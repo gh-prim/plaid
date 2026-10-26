@@ -70,8 +70,8 @@ lint-shell:
 docker: ## Build the Docker image plaid:dev
 	docker build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -t plaid:dev .
 
-deb: ## Build snapshot .deb packages into dist/ (needs goreleaser)
-	goreleaser release --snapshot --clean
+deb: ## Build snapshot .deb packages and binaries into dist/
+	go run github.com/goreleaser/goreleaser/v2@v2.19.0 release --snapshot --clean
 
 clean:
 	rm -rf server/bin server/tmp web/dist dist

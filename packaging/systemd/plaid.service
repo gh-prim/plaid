@@ -1,0 +1,45 @@
+[Unit]
+Description=PLAID media server
+Documentation=https://github.com/gh-prim/plaid
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=plaid
+Group=plaid
+EnvironmentFile=/etc/plaid/plaid.env
+ExecStart=/usr/bin/plaid
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+
+# Hardening: PLAID only writes to its data dir. Media is read-only by design.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/plaid
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+UMask=0027
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectClock=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectProc=invisible
+RestrictNamespaces=true
+RestrictRealtime=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+# Devices stay visible on purpose: hardware transcoding (F006) needs /dev/dri.
+
+[Install]
+WantedBy=multi-user.target
