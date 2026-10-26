@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Web app (built once, on the build machine's architecture) ---
-FROM --platform=$BUILDPLATFORM node:24-slim AS web
+FROM --platform=$BUILDPLATFORM node:26-slim AS web
 WORKDIR /src/web
 RUN corepack enable
 COPY web/package.json web/pnpm-lock.yaml ./
