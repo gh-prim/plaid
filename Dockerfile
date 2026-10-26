@@ -11,7 +11,7 @@ COPY web/ ./
 RUN pnpm build
 
 # --- Server (cross-compiled, no CGO) ---
-FROM --platform=$BUILDPLATFORM golang:1.26 AS server
+FROM --platform=$BUILDPLATFORM golang:1.27 AS server
 WORKDIR /src/server
 COPY server/ ./
 COPY --from=web /src/web/dist/ ./internal/webui/dist/
