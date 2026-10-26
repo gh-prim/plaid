@@ -1,0 +1,32 @@
+name: codegen
+
+on:
+  push:
+    branches: [main]
+    paths: [api/**, server/internal/api/**, web/src/api/**, scripts/check-codegen.sh, .github/workflows/codegen.yml]
+  pull_request:
+    paths: [api/**, server/internal/api/**, web/src/api/**, scripts/check-codegen.sh, .github/workflows/codegen.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm -C web install --frozen-lockfile
+      - name: Generated code matches api/openapi.yaml
+        run: make check-codegen

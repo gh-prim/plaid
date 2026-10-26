@@ -1,0 +1,38 @@
+name: web
+
+on:
+  push:
+    branches: [main]
+    paths: [web/**, api/**, Makefile, .nvmrc, .github/workflows/web.yml]
+  pull_request:
+    paths: [web/**, api/**, Makefile, .nvmrc, .github/workflows/web.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm -C web install --frozen-lockfile
+      - name: Lint (types, ESLint incl. no hard-coded strings, Prettier)
+        run: make lint-web
+      - name: Test
+        run: make test-web
+      - name: i18n (missing / unused keys)
+        run: make check-i18n
+      - name: Build
+        run: pnpm -C web build
