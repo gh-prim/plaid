@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info:
+  title: PLAID API
+  version: 0.1.0
+  description: |
+    API of the PLAID media server. This file is the source of truth:
+    the Go server interfaces and every client are generated from it.
+servers:
+  - url: /api/v1
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Liveness and build info
+      tags: [system]
+      security: []
+      responses:
+        "200":
+          description: Server is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        "503":
+          description: Server is up but a dependency is failing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+components:
+  schemas:
+    Health:
+      type: object
+      required: [status, version, commit, uptimeSeconds, database]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        version:
+          type: string
+          examples: ["0.1.0-dev"]
+        commit:
+          type: string
+          examples: ["02ec07a"]
+        uptimeSeconds:
+          type: integer
+          format: int64
+          minimum: 0
+        database:
+          type: string
+          enum: [ok, error]
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable key. Clients translate it through i18n.
+              examples: ["not_found"]
+            message:
+              type: string
+              description: Human-readable English message, for logs and developers. Never shown to end users.
