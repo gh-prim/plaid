@@ -7,8 +7,10 @@ package buildinfo
 import "time"
 
 var (
+	// Version is the release version, e.g. "0.1.0".
 	Version = "0.1.0-dev"
-	Commit  = "unknown"
+	// Commit is the short git commit the binary was built from.
+	Commit = "unknown"
 )
 
 var startedAt = time.Now()
