@@ -1,0 +1,65 @@
+# Builds Linux binaries and .deb packages. `make deb` runs a local snapshot;
+# pushing a v* tag runs release.yml and attaches everything to a draft GitHub release.
+version: 2
+project_name: plaid
+
+before:
+  hooks:
+    - make web-build
+
+builds:
+  - id: plaid
+    dir: server
+    main: ./cmd/plaid
+    binary: plaid
+    env: [CGO_ENABLED=0]
+    goos: [linux]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w
+      - -X github.com/gh-prim/plaid/server/internal/buildinfo.Version={{ .Version }}
+      - -X github.com/gh-prim/plaid/server/internal/buildinfo.Commit={{ .ShortCommit }}
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+nfpms:
+  - id: deb
+    package_name: plaid
+    file_name_template: "{{ .PackageName }}_{{ .Version }}_{{ .Arch }}"
+    formats: [deb]
+    vendor: PLAID
+    homepage: https://github.com/gh-prim/plaid
+    maintainer: PLAID developers <gh-prim@users.noreply.github.com>
+    description: Self-hosted media server. Plaid & chill.
+    license: MIT
+    section: video
+    priority: optional
+    bindir: /usr/bin
+    dependencies: [adduser, ca-certificates]
+    contents:
+      - src: packaging/systemd/plaid.service
+        dst: /usr/lib/systemd/system/plaid.service
+      - src: packaging/plaid.env
+        dst: /etc/plaid/plaid.env
+        type: config|noreplace
+        file_info:
+          mode: 0640
+    scripts:
+      postinstall: packaging/deb/postinstall.sh
+      preremove: packaging/deb/preremove.sh
+      postremove: packaging/deb/postremove.sh
+
+snapshot:
+  version_template: "{{ incpatch .Version }}~snapshot+{{ .ShortCommit }}"
+
+release:
+  draft: true
+
+changelog:
+  sort: asc

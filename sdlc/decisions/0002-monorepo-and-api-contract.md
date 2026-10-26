@@ -1,9 +1,9 @@
 ---
 id: 0002
 title: Monorepo and OpenAPI contract
-status: proposed
+status: accepted
 date: 2026-10-26
-deciders: [TBD, TBD]
+deciders: [gh-prim]
 supersedes: null
 ---
 
@@ -23,7 +23,7 @@ Five clients (web, iOS/iPadOS, tvOS, Android, Android TV) talk to the same serve
 - ❌ Painful syncing, scattered specs, overkill for two.
 
 ## Decision
-Proposed: **A**. The WebSocket events (Plaid Party) are described in `api/events.md` (or AsyncAPI later).
+We choose **A**. The WebSocket events (Plaid Party) are described in `api/events.md` (or AsyncAPI later).
 
 ## Consequences
 The Go server is written *contract-first* (handlers generated with `oapi-codegen`). The TS, Swift and Kotlin clients are generated and never edited by hand.

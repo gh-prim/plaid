@@ -1,0 +1,96 @@
+name: package-test
+
+# Builds the .deb and installs it on a real Ubuntu VM (GitHub runners have systemd),
+# exercising install, upgrade with an edited config, the install script, remove and purge.
+on:
+  push:
+    branches: [main]
+    paths: [packaging/**, .goreleaser.yaml, server/**, .github/workflows/package-test.yml]
+  pull_request:
+    paths: [packaging/**, .goreleaser.yaml, server/**, scripts/**, .claude/hooks/**, .github/workflows/package-test.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: make lint-shell
+
+  deb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm -C web install --frozen-lockfile
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --snapshot --clean
+
+      - name: Install
+        run: |
+          deb="$(ls dist/plaid_*_amd64.deb)"
+          sudo apt-get install -y "./$deb"
+          echo "DEB=$deb" >> "$GITHUB_ENV"
+
+      - name: Service is running as plaid and serves health + web app
+        run: |
+          systemctl is-active plaid
+          for _ in $(seq 1 20); do curl -fsS localhost:32500/api/v1/health && break; sleep 0.5; done
+          echo
+          curl -fsS localhost:32500/api/v1/health | grep '"status":"ok"'
+          curl -fsS localhost:32500/ | grep -i '<div id="root">'
+          test "$(ps -o user= -C plaid)" = plaid
+          sudo test -f /var/lib/plaid/plaid.db
+
+      - name: Upgrade keeps an edited config
+        run: |
+          sudo sed -i 's/^PLAID_LOG_LEVEL=info/PLAID_LOG_LEVEL=debug/' /etc/plaid/plaid.env
+          sudo apt-get install --reinstall -y "./$DEB"
+          sudo grep -q '^PLAID_LOG_LEVEL=debug' /etc/plaid/plaid.env
+          systemctl is-active plaid
+          for _ in $(seq 1 20); do curl -fsS localhost:32500/api/v1/health && break; sleep 0.5; done
+
+      - name: Install script verifies the checksum and installs
+        run: |
+          sudo PLAID_DEB_URL="file://$PWD/$DEB" PLAID_CHECKSUMS_URL="file://$PWD/dist/checksums.txt" bash packaging/install.sh
+          systemctl is-active plaid
+          # A tampered package must be refused.
+          cp "$DEB" /tmp/tampered.deb && echo x >> /tmp/tampered.deb
+          echo "$(sha256sum "$DEB" | cut -d' ' -f1)  tampered.deb" > /tmp/checksums.txt
+          if sudo PLAID_DEB_URL=file:///tmp/tampered.deb PLAID_CHECKSUMS_URL=file:///tmp/checksums.txt bash packaging/install.sh; then
+            echo "tampered package was installed" >&2; exit 1
+          fi
+
+      - name: Remove keeps data and config, purge removes config only
+        run: |
+          sudo apt-get remove -y plaid
+          if systemctl is-active --quiet plaid; then echo "still running" >&2; exit 1; fi
+          sudo test -d /var/lib/plaid
+          sudo test -f /etc/plaid/plaid.env
+          sudo apt-get purge -y plaid
+          sudo test ! -e /etc/plaid
+          sudo test -f /var/lib/plaid/plaid.db
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-packages
+          path: |
+            dist/*.deb
+            dist/checksums.txt

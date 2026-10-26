@@ -1,0 +1,16 @@
+{
+  "language": {
+    "en": "English",
+    "fr": "Français",
+    "label": "Language"
+  },
+  "welcome": {
+    "status": {
+      "error": "Can't reach the server. Is it still plugged in?",
+      "loading": "Warming up the couch…",
+      "ok": "Your server is up. Grab the blanket."
+    },
+    "title": "PLAID",
+    "version": "Version {{version}}"
+  }
+}

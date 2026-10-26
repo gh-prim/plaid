@@ -1,0 +1,31 @@
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Go
+/server/bin/
+/server/tmp/
+/server/internal/webui/dist/*
+!/server/internal/webui/dist/.keep
+/server/data/
+coverage.out
+
+# Web
+node_modules/
+/web/dist/
+/web/coverage/
+*.tsbuildinfo
+
+# Runtime data
+/data/
+
+# Release artifacts
+/dist/
+
+# Local env
+.env
+.env.*
+!.env.example
+.claude/settings.local.json

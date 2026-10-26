@@ -1,0 +1,12 @@
+.git
+**/node_modules
+web/dist
+server/bin
+server/tmp
+server/data
+server/internal/webui/dist/*
+!server/internal/webui/dist/.keep
+data
+dist
+sdlc
+*.md

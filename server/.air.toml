@@ -1,0 +1,13 @@
+# Dev auto-restart for `make dev`. Data goes to server/data (gitignored).
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/plaid ./cmd/plaid"
+  entrypoint = ["./tmp/plaid"]
+  include_ext = ["go", "sql"]
+  exclude_dir = ["tmp", "bin", "data", "internal/webui/dist"]
+  delay = 300
+
+[log]
+  main_only = true

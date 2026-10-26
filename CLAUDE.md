@@ -20,7 +20,23 @@ We follow the SDLC described in [sdlc/README.md](sdlc/README.md): `intent.md` â†
 | `android/` | Kotlin + Compose (coming) |
 
 ## Commands
-_To be filled in once the scaffold exists (F001)._ A single `make test` target must pass before any PR.
+Run from the repo root. Toolchain: Go 1.26, Node 24+, pnpm 10, golangci-lint v2, shellcheck, Docker (for `make docker`).
+
+| Command | What it does | Success looks like |
+|---------|--------------|--------------------|
+| `make setup` | Installs web deps and Go modules | exits 0 |
+| `make dev` | Go server on :32500 (auto-restart via air) + Vite on :5173 (proxies `/api`) | open http://localhost:5173 |
+| `make generate` | Regenerates `server/internal/api/api.gen.go` and `web/src/api/schema.d.ts` from `api/openapi.yaml` | no output; commit the generated files |
+| `make test` | lint + Go tests (`-race`) + web tests + i18n check + codegen drift check | last line `âœ… all checks passed` |
+| `make lint` | golangci-lint, tsc, ESLint, Prettier check, shellcheck | exits 0 |
+| `make build` | Web build embedded into `server/bin/plaid` | binary in `server/bin/` |
+| `make docker` | Builds image `plaid:dev` | then `docker compose up -d`, health at :32500 |
+| `make deb` | Snapshot binaries + `.deb` (amd64, arm64) + checksums in `dist/` | `release succeeded` |
+
+Single checks: `make test-server`, `make test-web`, `make check-i18n`, `make check-codegen`.
+A single `make test` target must pass before any PR.
+
+Generated files (`api.gen.go`, `schema.d.ts`) are never edited by hand. Web uses TypeScript 6: TypeScript 7 (native) breaks `openapi-typescript` and `typescript-eslint`.
 
 ## Conventions
 - **Everything in the repo is in English**: code, identifiers, comments, commit messages, branch names, PR descriptions, API and logs, as well as docs, specs, ADRs and skills. The team may chat in French.
