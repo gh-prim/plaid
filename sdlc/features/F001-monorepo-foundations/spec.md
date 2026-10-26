@@ -149,9 +149,9 @@ States:
 | `welcome.status.ok` | Your server is up. Grab the blanket. | Ton serveur est prêt. Attrape le plaid. |
 | `welcome.status.error` | Can't reach the server. Is it still plugged in? | Impossible de joindre le serveur. Il est bien branché ? |
 | `welcome.version` | Version {{version}} | Version {{version}} |
-| `common.language` | Language | Langue |
-| `common.language.en` | English | English |
-| `common.language.fr` | Français | Français |
+| `language.label` | Language | Langue |
+| `language.en` | English | English |
+| `language.fr` | Français | Français |
 
 Language names are shown in their own language.
 
@@ -197,4 +197,4 @@ All settled by gh-prim on 2026-10-26. ✅ = resolved, ⏸ = tracked elsewhere.
 - [ ] (R16) Given an empty data dir, when the server starts, then `plaid.db` is created in WAL mode and health reports `"database": "ok"`.
 
 ## Revisions
-_None yet._
+- **2026-10-26** — i18n keys `common.language` / `common.language.en|fr` renamed to `language.label` / `language.en|fr`: a key can't be both a string and a group. Found during the build.
