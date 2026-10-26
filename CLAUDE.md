@@ -32,9 +32,12 @@ Run from the repo root. Toolchain: Go 1.26, Node 24+, pnpm 10, golangci-lint v2,
 | `make build` | Web build embedded into `server/bin/plaid` | binary in `server/bin/` |
 | `make docker` | Builds image `plaid:dev` | then `docker compose up -d`, health at :32500 |
 | `make deb` | Snapshot binaries + `.deb` (amd64, arm64) + checksums in `dist/` | `release succeeded` |
+| `make test-deb` | Installs the `.deb` in a container with real systemd and runs 24 checks (install, upgrade, script, restart, remove, purge). `IMAGE=debian:trixie ARCH=arm64` to change target | `✅ … all checks passed` |
 
 Single checks: `make test-server`, `make test-web`, `make check-i18n`, `make check-codegen`.
 A single `make test` target must pass before any PR.
+
+On Apple Silicon, `make test-deb ARCH=amd64` only works on distros with systemd < 255 (e.g. `debian:bookworm`): newer systemd can't run under x86 emulation. Real amd64 coverage is the `package-test` CI job.
 
 Generated files (`api.gen.go`, `schema.d.ts`) are never edited by hand. Web uses TypeScript 6: TypeScript 7 (native) breaks `openapi-typescript` and `typescript-eslint`.
 
