@@ -1,9 +1,9 @@
 ---
 id: F001
 title: Monorepo foundations
-owner: TBD
+owner: gh-prim
 reviewer: TBD
-status: draft
+status: accepted
 phase: 0
 apps: [server, web, apple, android]
 created: 2026-10-26
@@ -15,7 +15,7 @@ created: 2026-10-26
 Two of us are starting four apps at the same time. Without a shared structure, CI and an API contract, each of us will head off in a different direction and we'll spend our time gluing the pieces back together.
 
 ## Expected outcome
-A repo where every app has its place, `make test` checks everything, the API is described in a single place, and `docker compose up` starts an empty server reachable from the browser.
+A repo where every app has its place, `make test` checks everything, the API is described in a single place, and the server can be installed either with `docker compose up` or **natively on Ubuntu** (like Plex: a package, a system service that starts on boot, no Docker required). Either way you get an empty server reachable from the browser.
 
 ## Users and systems affected
 - Both devs, and Claude, which reads `CLAUDE.md`.
@@ -28,6 +28,7 @@ A repo where every app has its place, `make test` checks everything, the API is 
 - [ ] `make test` and `make dev` at the root.
 - [ ] GitHub Actions CI triggered per changed folder.
 - [ ] Dockerfile + `docker-compose.yml`.
+- [ ] Native Ubuntu install: a `.deb` package (amd64 + arm64) that installs the binary and a systemd service that starts on boot, without Docker.
 - [ ] `CLAUDE.md` filled in with the real commands.
 - [ ] i18n wired into the web skeleton (`en` + `fr` catalogs), with a CI check that catches missing keys or hard-coded strings.
 

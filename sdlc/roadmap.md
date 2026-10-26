@@ -7,15 +7,15 @@ Index of all features. Update it whenever an artifact's status changes.
 ## Decisions (ADRs)
 | ID | Decision | Status |
 |----|----------|--------|
-| [0001](decisions/0001-server-language.md) | Server language: Go | 📝 proposed |
-| [0002](decisions/0002-monorepo-and-api-contract.md) | Monorepo + OpenAPI contract | 📝 proposed |
+| [0001](decisions/0001-server-language.md) | Server language: Go | ✅ accepted |
+| [0002](decisions/0002-monorepo-and-api-contract.md) | Monorepo + OpenAPI contract | ✅ accepted |
 | [0003](decisions/0003-remote-access-v1.md) | Remote access v1: pure self-host | 📝 proposed |
 
 ## Features
 
 | ID | Feature | Phase | Apps | Owner | Intent | Spec | Plan |
 |----|---------|-------|------|-------|--------|------|------|
-| [F001](features/F001-monorepo-foundations/intent.md) | Monorepo foundations, CI, Docker | 0 | all | ? | 📝 | — | — |
+| [F001](features/F001-monorepo-foundations/intent.md) | Monorepo foundations, CI, Docker | 0 | all | gh-prim | ✅ | [✅](features/F001-monorepo-foundations/spec.md) | [🚧](features/F001-monorepo-foundations/plan.md) |
 | [F002](features/F002-design-system/intent.md) | Design system and art direction | 0 | web, apple, android | ? | 📝 | — | — |
 | [F003](features/F003-accounts-auth/intent.md) | Accounts and authentication | 1 | server, web | ? | 📝 | — | — |
 | [F004](features/F004-library-scanning/intent.md) | Libraries and file scanning | 1 | server | ? | 📝 | — | — |

@@ -1,9 +1,9 @@
 ---
 id: 0001
 title: Server language
-status: proposed
+status: accepted
 date: 2026-10-26
-deciders: [TBD, TBD]
+deciders: [gh-prim]
 supersedes: null
 ---
 
@@ -37,7 +37,7 @@ The code is written by AI, so the learning curve doesn't matter. What matters: r
 - ❌ Less suited to a long-running daemon on small hardware.
 
 ## Decision
-Proposed: **Go**. Rust's performance gain is real but applies to a part of the system that isn't the bottleneck (FFmpeg is). Go wins on what really matters with an agent: fast iterations, trivial distribution, easy-to-review PRs.
+We choose **Go**. Rust's performance gain is real but applies to a part of the system that isn't the bottleneck (FFmpeg is). Go wins on what really matters with an agent: fast iterations, trivial distribution, easy-to-review PRs.
 
 We offset Go's weaker typing with safeguards: `go test -race` in CI, strict `golangci-lint`, integration tests on the Party protocol.
 
