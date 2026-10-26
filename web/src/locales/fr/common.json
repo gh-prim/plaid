@@ -1,0 +1,16 @@
+{
+  "language": {
+    "en": "English",
+    "fr": "Français",
+    "label": "Langue"
+  },
+  "welcome": {
+    "status": {
+      "error": "Impossible de joindre le serveur. Il est bien branché ?",
+      "loading": "On réchauffe le canapé…",
+      "ok": "Ton serveur est prêt. Attrape le plaid."
+    },
+    "title": "PLAID",
+    "version": "Version {{version}}"
+  }
+}
