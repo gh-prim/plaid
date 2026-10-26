@@ -18,3 +18,6 @@ make test    # everything CI checks
 
 How we work (intent → spec → plan → code): [sdlc/README.md](sdlc/README.md).
 Project context for Claude Code: [CLAUDE.md](CLAUDE.md).
+
+## License
+[MIT](LICENSE). Use it, fork it, snuggle with it.

@@ -37,6 +37,7 @@ nfpms:
     homepage: https://github.com/gh-prim/plaid
     maintainer: PLAID developers <gh-prim@users.noreply.github.com>
     description: Self-hosted media server. Plaid & chill.
+    license: MIT
     section: video
     priority: optional
     bindir: /usr/bin

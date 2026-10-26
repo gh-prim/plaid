@@ -167,11 +167,11 @@ All settled by gh-prim on 2026-10-26. ✅ = resolved, ⏸ = tracked elsewhere.
 
 - [x] **Default port** — ✅ `32500`.
 - [x] **Web package manager** — ✅ pnpm (most mature lockfile and CI caching story; bun's Vite/ESLint compatibility is less proven).
-- [x] **License** — ⏸ Deferred. Must be decided (short ADR, AGPL vs MIT) before the repo goes public and before any image is published.
+- [x] **License** — ✅ MIT, see [ADR 0004](../../decisions/0004-license.md).
 - [x] **SQLite in F001 (R16)** — ✅ Included. F003 and F004 run in parallel and both need a database; bootstrapping it once here avoids two competing DB layers.
 - [x] **Runtime base image** — ✅ Debian slim (not distroless), so F006 can add FFmpeg and GPU drivers without changing base.
 - [x] **Binding to `0.0.0.0` with no auth** — ⏸ Harmless with only `/health`. Tracked in F003: it must land before any endpoint that exposes data.
-- [x] **ghcr.io publishing (R18)** — ⏸ The workflow is written, but publishing stays disabled until the license is decided.
+- [x] **ghcr.io publishing (R18)** — ⏸ No longer blocked by licensing (MIT). The workflow still has `push: false`; turning it on is a separate, deliberate change.
 - [x] **Media folder permissions (native install)** — ✅ The `plaid` user can't read `/home/you/Films` by default (the #1 Plex-on-Linux support issue). F001 documents the fix (add `plaid` to the media's group, or ACLs); F007's folder picker will detect and explain unreadable folders.
 - [x] **FFmpeg for the native package** — ⏸ Tracked in F006 (distro `ffmpeg` vs our own build, as Jellyfin does). F001 declares no FFmpeg dependency.
 - [x] **APT repository (R25)** — ⏸ Later (needs hosting and a GPG key). Until then, upgrade = install the new `.deb` or re-run the script.

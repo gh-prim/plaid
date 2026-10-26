@@ -10,6 +10,7 @@ Index of all features. Update it whenever an artifact's status changes.
 | [0001](decisions/0001-server-language.md) | Server language: Go | ✅ accepted |
 | [0002](decisions/0002-monorepo-and-api-contract.md) | Monorepo + OpenAPI contract | ✅ accepted |
 | [0003](decisions/0003-remote-access-v1.md) | Remote access v1: pure self-host | 📝 proposed |
+| [0004](decisions/0004-license.md) | License: MIT | ✅ accepted |
 
 ## Features
 
