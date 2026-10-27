@@ -114,3 +114,23 @@ func TestServerName(t *testing.T) {
 		t.Errorf("default ServerName = %q (%v), want the hostname", cfg.ServerName, err)
 	}
 }
+
+func TestLoadLibraryOptions(t *testing.T) {
+	cfg, err := Load(env(map[string]string{
+		"PLAID_DATA_DIR":     t.TempDir(),
+		"PLAID_FFPROBE_PATH": "/opt/ffmpeg/bin/ffprobe",
+		"PLAID_BROWSE_ROOTS": "/srv/media: /mnt/usb/ ",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.FFprobePath != "/opt/ffmpeg/bin/ffprobe" {
+		t.Errorf("FFprobePath = %q", cfg.FFprobePath)
+	}
+	if len(cfg.BrowseRoots) != 2 || cfg.BrowseRoots[0] != "/srv/media" || cfg.BrowseRoots[1] != "/mnt/usb" {
+		t.Errorf("BrowseRoots = %q", cfg.BrowseRoots)
+	}
+	if _, err := Load(env(map[string]string{"PLAID_DATA_DIR": t.TempDir(), "PLAID_BROWSE_ROOTS": "media"})); err == nil {
+		t.Error("relative browse root accepted")
+	}
+}

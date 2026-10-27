@@ -25,7 +25,7 @@ func TestServeDrainsInFlightRequestsOnShutdown(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	served := make(chan error, 1)
-	go func() { served <- serve(ctx, ln, slow, logger) }()
+	go func() { served <- serve(ctx, ln, slow, logger, nil) }()
 
 	result := make(chan string, 1)
 	go func() {

@@ -9,12 +9,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
 	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for DeviceType.
@@ -86,15 +89,165 @@ func (e HealthStatus) Valid() bool {
 	}
 }
 
+// Defines values for ItemKind.
+const (
+	Episode ItemKind = "episode"
+	Movie   ItemKind = "movie"
+	Season  ItemKind = "season"
+	Show    ItemKind = "show"
+)
+
+// Valid indicates whether the value is a known member of the ItemKind enum.
+func (e ItemKind) Valid() bool {
+	switch e {
+	case Episode:
+		return true
+	case Movie:
+		return true
+	case Season:
+		return true
+	case Show:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LibraryFolderStatus.
+const (
+	LibraryFolderStatusOk          LibraryFolderStatus = "ok"
+	LibraryFolderStatusUnavailable LibraryFolderStatus = "unavailable"
+	LibraryFolderStatusUnreadable  LibraryFolderStatus = "unreadable"
+)
+
+// Valid indicates whether the value is a known member of the LibraryFolderStatus enum.
+func (e LibraryFolderStatus) Valid() bool {
+	switch e {
+	case LibraryFolderStatusOk:
+		return true
+	case LibraryFolderStatusUnavailable:
+		return true
+	case LibraryFolderStatusUnreadable:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LibraryType.
+const (
+	Movies LibraryType = "movies"
+	Shows  LibraryType = "shows"
+)
+
+// Valid indicates whether the value is a known member of the LibraryType enum.
+func (e LibraryType) Valid() bool {
+	switch e {
+	case Movies:
+		return true
+	case Shows:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MediaFileHdrFormat.
+const (
+	MediaFileHdrFormatDolbyVision MediaFileHdrFormat = "dolby_vision"
+	MediaFileHdrFormatHdr10       MediaFileHdrFormat = "hdr10"
+	MediaFileHdrFormatHdr10plus   MediaFileHdrFormat = "hdr10plus"
+	MediaFileHdrFormatHlg         MediaFileHdrFormat = "hlg"
+)
+
+// Valid indicates whether the value is a known member of the MediaFileHdrFormat enum.
+func (e MediaFileHdrFormat) Valid() bool {
+	switch e {
+	case MediaFileHdrFormatDolbyVision:
+		return true
+	case MediaFileHdrFormatHdr10:
+		return true
+	case MediaFileHdrFormatHdr10plus:
+		return true
+	case MediaFileHdrFormatHlg:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MediaFileParseStatus.
+const (
+	MediaFileParseStatusOk           MediaFileParseStatus = "ok"
+	MediaFileParseStatusUnrecognized MediaFileParseStatus = "unrecognized"
+)
+
+// Valid indicates whether the value is a known member of the MediaFileParseStatus enum.
+func (e MediaFileParseStatus) Valid() bool {
+	switch e {
+	case MediaFileParseStatusOk:
+		return true
+	case MediaFileParseStatusUnrecognized:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MediaFileProbeStatus.
+const (
+	MediaFileProbeStatusFailed  MediaFileProbeStatus = "failed"
+	MediaFileProbeStatusOk      MediaFileProbeStatus = "ok"
+	MediaFileProbeStatusPending MediaFileProbeStatus = "pending"
+	MediaFileProbeStatusSkipped MediaFileProbeStatus = "skipped"
+)
+
+// Valid indicates whether the value is a known member of the MediaFileProbeStatus enum.
+func (e MediaFileProbeStatus) Valid() bool {
+	switch e {
+	case MediaFileProbeStatusFailed:
+		return true
+	case MediaFileProbeStatusOk:
+		return true
+	case MediaFileProbeStatusPending:
+		return true
+	case MediaFileProbeStatusSkipped:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MediaStreamType.
+const (
+	Audio    MediaStreamType = "audio"
+	Subtitle MediaStreamType = "subtitle"
+	Video    MediaStreamType = "video"
+)
+
+// Valid indicates whether the value is a known member of the MediaStreamType enum.
+func (e MediaStreamType) Valid() bool {
+	switch e {
+	case Audio:
+		return true
+	case Subtitle:
+		return true
+	case Video:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PairingPendingStatus.
 const (
-	Pending PairingPendingStatus = "pending"
+	PairingPendingStatusPending PairingPendingStatus = "pending"
 )
 
 // Valid indicates whether the value is a known member of the PairingPendingStatus enum.
 func (e PairingPendingStatus) Valid() bool {
 	switch e {
-	case Pending:
+	case PairingPendingStatusPending:
 		return true
 	default:
 		return false
@@ -113,6 +266,99 @@ func (e Role) Valid() bool {
 	case Admin:
 		return true
 	case Member:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ScanEventType.
+const (
+	ScanEventTypeCompleted ScanEventType = "completed"
+	ScanEventTypeFailed    ScanEventType = "failed"
+	ScanEventTypeProgress  ScanEventType = "progress"
+)
+
+// Valid indicates whether the value is a known member of the ScanEventType enum.
+func (e ScanEventType) Valid() bool {
+	switch e {
+	case ScanEventTypeCompleted:
+		return true
+	case ScanEventTypeFailed:
+		return true
+	case ScanEventTypeProgress:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ScanState.
+const (
+	Analyzing ScanState = "analyzing"
+	Idle      ScanState = "idle"
+	Queued    ScanState = "queued"
+	Scanning  ScanState = "scanning"
+)
+
+// Valid indicates whether the value is a known member of the ScanState enum.
+func (e ScanState) Valid() bool {
+	switch e {
+	case Analyzing:
+		return true
+	case Idle:
+		return true
+	case Queued:
+		return true
+	case Scanning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TechnicalSummaryHdrFormats.
+const (
+	TechnicalSummaryHdrFormatsDolbyVision TechnicalSummaryHdrFormats = "dolby_vision"
+	TechnicalSummaryHdrFormatsHdr10       TechnicalSummaryHdrFormats = "hdr10"
+	TechnicalSummaryHdrFormatsHdr10plus   TechnicalSummaryHdrFormats = "hdr10plus"
+	TechnicalSummaryHdrFormatsHlg         TechnicalSummaryHdrFormats = "hlg"
+)
+
+// Valid indicates whether the value is a known member of the TechnicalSummaryHdrFormats enum.
+func (e TechnicalSummaryHdrFormats) Valid() bool {
+	switch e {
+	case TechnicalSummaryHdrFormatsDolbyVision:
+		return true
+	case TechnicalSummaryHdrFormatsHdr10:
+		return true
+	case TechnicalSummaryHdrFormatsHdr10plus:
+		return true
+	case TechnicalSummaryHdrFormatsHlg:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UnrecognizedFileProbeStatus.
+const (
+	UnrecognizedFileProbeStatusFailed  UnrecognizedFileProbeStatus = "failed"
+	UnrecognizedFileProbeStatusOk      UnrecognizedFileProbeStatus = "ok"
+	UnrecognizedFileProbeStatusPending UnrecognizedFileProbeStatus = "pending"
+	UnrecognizedFileProbeStatusSkipped UnrecognizedFileProbeStatus = "skipped"
+)
+
+// Valid indicates whether the value is a known member of the UnrecognizedFileProbeStatus enum.
+func (e UnrecognizedFileProbeStatus) Valid() bool {
+	switch e {
+	case UnrecognizedFileProbeStatusFailed:
+		return true
+	case UnrecognizedFileProbeStatusOk:
+		return true
+	case UnrecognizedFileProbeStatusPending:
+		return true
+	case UnrecognizedFileProbeStatusSkipped:
 		return true
 	default:
 		return false
@@ -143,6 +389,44 @@ type AuthResult struct {
 	User  User    `json:"user"`
 }
 
+// BrowseEntry defines model for BrowseEntry.
+type BrowseEntry struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+
+	// Readable PLAID can list and enter this folder.
+	Readable bool `json:"readable"`
+}
+
+// BrowseResult defines model for BrowseResult.
+type BrowseResult struct {
+	Entries []BrowseEntry `json:"entries"`
+
+	// Parent Null at `/`, at a configured root, or when listing the roots.
+	Parent nullable.Nullable[string] `json:"parent"`
+
+	// Path Empty when listing the configured roots.
+	Path string `json:"path"`
+}
+
+// Capabilities defines model for Capabilities.
+type Capabilities struct {
+	Ffprobe struct {
+		// Found When false, files are listed with `probeStatus` `skipped` (`ffprobe_missing`).
+		Found bool `json:"found"`
+
+		// Version Examples: 7.1.1
+		Version *string `json:"version,omitempty"`
+	} `json:"ffprobe"`
+
+	// InotifyLimit Per-user watch limit, 0 when unknown or not Linux.
+	InotifyLimit int `json:"inotifyLimit"`
+	InotifyUsed  int `json:"inotifyUsed"`
+
+	// WatchLimitReached Folders scanned periodically because the watch limit was reached.
+	WatchLimitReached []string `json:"watchLimitReached"`
+}
+
 // ChangePasswordRequest defines model for ChangePasswordRequest.
 type ChangePasswordRequest struct {
 	CurrentPassword string `json:"currentPassword"`
@@ -159,6 +443,15 @@ type ClaimPairingRequest struct {
 
 	// ProfileId Profile the TV starts on.
 	ProfileId string `json:"profileId"`
+}
+
+// CreateLibraryRequest defines model for CreateLibraryRequest.
+type CreateLibraryRequest struct {
+	// Folders Examples: ["/srv/media/movies"]
+	Folders             []string    `json:"folders"`
+	Name                string      `json:"name"`
+	ScanIntervalSeconds *int        `json:"scanIntervalSeconds,omitempty"`
+	Type                LibraryType `json:"type"`
 }
 
 // CreateProfileRequest defines model for CreateProfileRequest.
@@ -194,6 +487,15 @@ type Device struct {
 
 // DeviceType defines model for DeviceType.
 type DeviceType string
+
+// DolbyVision defines model for DolbyVision.
+type DolbyVision struct {
+	// Compatibility Examples: 1
+	Compatibility int `json:"compatibility"`
+
+	// Profile Examples: 8
+	Profile int `json:"profile"`
+}
 
 // Error defines model for Error.
 type Error struct {
@@ -237,6 +539,119 @@ type HealthDatabase string
 // HealthStatus defines model for Health.Status.
 type HealthStatus string
 
+// ItemDetail defines model for ItemDetail.
+type ItemDetail struct {
+	AirDate *openapi_types.Date `json:"airDate,omitempty"`
+
+	// ChildCount Seasons of a show, episodes of a season; 0 otherwise.
+	ChildCount    int         `json:"childCount"`
+	EpisodeNumber *int        `json:"episodeNumber,omitempty"`
+	FileCount     int         `json:"fileCount"`
+	Files         []MediaFile `json:"files"`
+
+	// Hints Ids found in file names, for metadata matching (F005).
+	Hints        *ItemHints `json:"hints,omitempty"`
+	Id           string     `json:"id"`
+	Kind         ItemKind   `json:"kind"`
+	ParentId     *string    `json:"parentId,omitempty"`
+	SeasonNumber *int       `json:"seasonNumber,omitempty"`
+
+	// Technical Across the item's files present on disk (for shows and seasons, their episodes).
+	Technical TechnicalSummary `json:"technical"`
+
+	// Title Parsed from names; matched metadata comes with F005.
+	Title *string `json:"title,omitempty"`
+	Year  *int    `json:"year,omitempty"`
+}
+
+// ItemHints Ids found in file names, for metadata matching (F005).
+type ItemHints struct {
+	Imdb *string `json:"imdb,omitempty"`
+	Tmdb *string `json:"tmdb,omitempty"`
+}
+
+// ItemKind defines model for ItemKind.
+type ItemKind string
+
+// ItemPage defines model for ItemPage.
+type ItemPage struct {
+	Items []ItemSummary `json:"items"`
+
+	// NextCursor Absent on the last page.
+	NextCursor *string `json:"nextCursor,omitempty"`
+}
+
+// ItemSummary defines model for ItemSummary.
+type ItemSummary struct {
+	AirDate *openapi_types.Date `json:"airDate,omitempty"`
+
+	// ChildCount Seasons of a show, episodes of a season; 0 otherwise.
+	ChildCount    int  `json:"childCount"`
+	EpisodeNumber *int `json:"episodeNumber,omitempty"`
+	FileCount     int  `json:"fileCount"`
+
+	// Hints Ids found in file names, for metadata matching (F005).
+	Hints        *ItemHints `json:"hints,omitempty"`
+	Id           string     `json:"id"`
+	Kind         ItemKind   `json:"kind"`
+	ParentId     *string    `json:"parentId,omitempty"`
+	SeasonNumber *int       `json:"seasonNumber,omitempty"`
+
+	// Technical Across the item's files present on disk (for shows and seasons, their episodes).
+	Technical TechnicalSummary `json:"technical"`
+
+	// Title Parsed from names; matched metadata comes with F005.
+	Title *string `json:"title,omitempty"`
+	Year  *int    `json:"year,omitempty"`
+}
+
+// Library defines model for Library.
+type Library struct {
+	Counts     LibraryCounts   `json:"counts"`
+	Folders    []LibraryFolder `json:"folders"`
+	Id         string          `json:"id"`
+	LastScanAt *time.Time      `json:"lastScanAt,omitempty"`
+	Name       string          `json:"name"`
+	Scan       ScanProgress    `json:"scan"`
+
+	// ScanIntervalSeconds Null when the defaults apply (15 min unwatched, 6 h watched).
+	ScanIntervalSeconds nullable.Nullable[int] `json:"scanIntervalSeconds"`
+	Type                LibraryType            `json:"type"`
+}
+
+// LibraryCounts defines model for LibraryCounts.
+type LibraryCounts struct {
+	Episodes int `json:"episodes"`
+
+	// Files Files present on disk.
+	Files        int `json:"files"`
+	Movies       int `json:"movies"`
+	Shows        int `json:"shows"`
+	Unrecognized int `json:"unrecognized"`
+}
+
+// LibraryFolder defines model for LibraryFolder.
+type LibraryFolder struct {
+	// FsType Examples: ext4, nfs
+	FsType *string `json:"fsType,omitempty"`
+	Id     string  `json:"id"`
+
+	// Path Cleaned, with symlinks resolved.
+	//
+	// Examples: /srv/media/movies
+	Path   string              `json:"path"`
+	Status LibraryFolderStatus `json:"status"`
+
+	// Watched Changes are picked up live; false on network file systems or when the watch limit was reached.
+	Watched bool `json:"watched"`
+}
+
+// LibraryFolderStatus defines model for LibraryFolder.Status.
+type LibraryFolderStatus string
+
+// LibraryType defines model for LibraryType.
+type LibraryType string
+
 // LoginRequest defines model for LoginRequest.
 type LoginRequest struct {
 	Device   Device `json:"device"`
@@ -250,6 +665,62 @@ type Me struct {
 	Profiles      []Profile `json:"profiles"`
 	User          User      `json:"user"`
 }
+
+// MediaFile defines model for MediaFile.
+type MediaFile struct {
+	Bitrate     *int64       `json:"bitrate,omitempty"`
+	Container   *string      `json:"container,omitempty"`
+	DolbyVision *DolbyVision `json:"dolbyVision,omitempty"`
+	DurationMs  *int64       `json:"durationMs,omitempty"`
+
+	// Edition Examples: Director's Cut
+	Edition      *string              `json:"edition,omitempty"`
+	HdrFormat    *MediaFileHdrFormat  `json:"hdrFormat,omitempty"`
+	Height       *int                 `json:"height,omitempty"`
+	Id           string               `json:"id"`
+	MissingSince *time.Time           `json:"missingSince,omitempty"`
+	ModifiedAt   time.Time            `json:"modifiedAt"`
+	ParseStatus  MediaFileParseStatus `json:"parseStatus"`
+	Path         string               `json:"path"`
+	ProbeStatus  MediaFileProbeStatus `json:"probeStatus"`
+	Size         int64                `json:"size"`
+	Streams      []MediaStream        `json:"streams"`
+	VideoCodec   *string              `json:"videoCodec,omitempty"`
+	Width        *int                 `json:"width,omitempty"`
+}
+
+// MediaFileHdrFormat defines model for MediaFile.HdrFormat.
+type MediaFileHdrFormat string
+
+// MediaFileParseStatus defines model for MediaFile.ParseStatus.
+type MediaFileParseStatus string
+
+// MediaFileProbeStatus defines model for MediaFile.ProbeStatus.
+type MediaFileProbeStatus string
+
+// MediaStream defines model for MediaStream.
+type MediaStream struct {
+	Channels *int    `json:"channels,omitempty"`
+	Codec    *string `json:"codec,omitempty"`
+	Default  bool    `json:"default"`
+	External bool    `json:"external"`
+	Forced   bool    `json:"forced"`
+
+	// ImageBased Bitmap subtitles (PGS, VobSub).
+	ImageBased bool `json:"imageBased"`
+
+	// Index ffprobe stream index; external subtitles use 1000 and up.
+	Index int `json:"index"`
+
+	// Language ISO 639-2/B, `und` when unknown.
+	Language string          `json:"language"`
+	Sdh      bool            `json:"sdh"`
+	Title    *string         `json:"title,omitempty"`
+	Type     MediaStreamType `json:"type"`
+}
+
+// MediaStreamType defines model for MediaStream.Type.
+type MediaStreamType string
 
 // PairingPending defines model for PairingPending.
 type PairingPending struct {
@@ -293,8 +764,59 @@ type ResetPasswordRequest struct {
 	TemporaryPassword string `json:"temporaryPassword"`
 }
 
+// Resolution defines model for Resolution.
+type Resolution struct {
+	Height int `json:"height"`
+	Width  int `json:"width"`
+}
+
 // Role defines model for Role.
 type Role string
+
+// ScanCounters defines model for ScanCounters.
+type ScanCounters struct {
+	Analyzed     int `json:"analyzed"`
+	Changed      int `json:"changed"`
+	Failed       int `json:"failed"`
+	Found        int `json:"found"`
+	Missing      int `json:"missing"`
+	Moved        int `json:"moved"`
+	New          int `json:"new"`
+	Unrecognized int `json:"unrecognized"`
+}
+
+// ScanEvent The `data` of a scan server-sent event.
+type ScanEvent struct {
+	// Error Set on `failed`, English, for logs.
+	Error    *string       `json:"error,omitempty"`
+	Progress ScanProgress  `json:"progress"`
+	Type     ScanEventType `json:"type"`
+}
+
+// ScanEventType defines model for ScanEvent.Type.
+type ScanEventType string
+
+// ScanProgress defines model for ScanProgress.
+type ScanProgress struct {
+	// Counters Of the running scan, or of the last one when idle.
+	Counters      ScanCounters `json:"counters"`
+	CurrentFolder *string      `json:"currentFolder,omitempty"`
+	Full          bool         `json:"full"`
+
+	// Queued Another scan starts when this one ends.
+	Queued    bool       `json:"queued"`
+	StartedAt *time.Time `json:"startedAt,omitempty"`
+	State     ScanState  `json:"state"`
+}
+
+// ScanRequest defines model for ScanRequest.
+type ScanRequest struct {
+	// Full Re-probe every file, changed or not.
+	Full *bool `json:"full,omitempty"`
+}
+
+// ScanState defines model for ScanState.
+type ScanState string
 
 // SelectProfileRequest defines model for SelectProfileRequest.
 type SelectProfileRequest struct {
@@ -355,6 +877,46 @@ type StartPairingRequest struct {
 	Device Device `json:"device"`
 }
 
+// TechnicalSummary Across the item's files present on disk (for shows and seasons, their episodes).
+type TechnicalSummary struct {
+	// AudioLanguages ISO 639-2/B codes; clients show names with `Intl.DisplayNames`.
+	//
+	// Examples: ["eng","fre"]
+	AudioLanguages []string                     `json:"audioLanguages"`
+	HdrFormats     []TechnicalSummaryHdrFormats `json:"hdrFormats"`
+
+	// Resolution The largest one.
+	Resolution *Resolution `json:"resolution,omitempty"`
+}
+
+// TechnicalSummaryHdrFormats defines model for TechnicalSummary.HdrFormats.
+type TechnicalSummaryHdrFormats string
+
+// UnrecognizedFile defines model for UnrecognizedFile.
+type UnrecognizedFile struct {
+	Id          string                      `json:"id"`
+	Path        string                      `json:"path"`
+	ProbeStatus UnrecognizedFileProbeStatus `json:"probeStatus"`
+	Size        int64                       `json:"size"`
+}
+
+// UnrecognizedFileProbeStatus defines model for UnrecognizedFile.ProbeStatus.
+type UnrecognizedFileProbeStatus string
+
+// UnrecognizedPage defines model for UnrecognizedPage.
+type UnrecognizedPage struct {
+	Files      []UnrecognizedFile `json:"files"`
+	NextCursor *string            `json:"nextCursor,omitempty"`
+}
+
+// UpdateLibraryRequest defines model for UpdateLibraryRequest.
+type UpdateLibraryRequest struct {
+	Folders             *[]string              `json:"folders,omitempty"`
+	Name                *string                `json:"name,omitempty"`
+	ScanIntervalSeconds nullable.Nullable[int] `json:"scanIntervalSeconds,omitempty"`
+	Type                *LibraryType           `json:"type,omitempty"`
+}
+
 // UpdateMeRequest defines model for UpdateMeRequest.
 type UpdateMeRequest struct {
 	DisplayName *string `json:"displayName,omitempty"`
@@ -398,6 +960,15 @@ type User struct {
 	Username           string `json:"username"`
 }
 
+// Cursor defines model for Cursor.
+type Cursor = string
+
+// LibraryId defines model for LibraryId.
+type LibraryId = string
+
+// Limit defines model for Limit.
+type Limit = int
+
 // ProfileId defines model for ProfileId.
 type ProfileId = string
 
@@ -407,6 +978,31 @@ type SessionId = string
 // UserId defines model for UserId.
 type UserId = string
 
+// BrowseFoldersParams defines parameters for BrowseFolders.
+type BrowseFoldersParams struct {
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
+}
+
+// ListLibraryItemsParams defines parameters for ListLibraryItems.
+type ListLibraryItemsParams struct {
+	// Kind Defaults to the top level, `movie` or `show`, when `parentId` is absent.
+	Kind *ItemKind `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// ParentId Seasons of a show, or episodes of a season.
+	ParentId *string `form:"parentId,omitempty" json:"parentId,omitempty"`
+
+	// Cursor Opaque `nextCursor` of the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListUnrecognizedFilesParams defines parameters for ListUnrecognizedFiles.
+type ListUnrecognizedFilesParams struct {
+	// Cursor Opaque `nextCursor` of the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // PollPairingParams defines parameters for PollPairing.
 type PollPairingParams struct {
 	// XPairingSecret The `pollSecret` returned when the pairing started.
@@ -415,6 +1011,15 @@ type PollPairingParams struct {
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
+
+// CreateLibraryJSONRequestBody defines body for CreateLibrary for application/json ContentType.
+type CreateLibraryJSONRequestBody = CreateLibraryRequest
+
+// UpdateLibraryJSONRequestBody defines body for UpdateLibrary for application/json ContentType.
+type UpdateLibraryJSONRequestBody = UpdateLibraryRequest
+
+// ScanLibraryJSONRequestBody defines body for ScanLibrary for application/json ContentType.
+type ScanLibraryJSONRequestBody = ScanRequest
 
 // UpdateMeJSONRequestBody defines body for UpdateMe for application/json ContentType.
 type UpdateMeJSONRequestBody = UpdateMeRequest
@@ -457,9 +1062,45 @@ type ServerInterface interface {
 	// Logout End the current session
 	// (POST /auth/logout)
 	Logout(w http.ResponseWriter, r *http.Request)
+	// BrowseFolders Sub-folders of a server folder, for the folder picker (admin)
+	// (GET /fs/browse)
+	BrowseFolders(w http.ResponseWriter, r *http.Request, params BrowseFoldersParams)
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
+	// GetItem An item with its files and streams
+	// (GET /items/{itemId})
+	GetItem(w http.ResponseWriter, r *http.Request, itemId string)
+	// ListLibraries All libraries, with folder status, counts and scan state
+	// (GET /libraries)
+	ListLibraries(w http.ResponseWriter, r *http.Request)
+	// CreateLibrary Create a library and start its first scan (admin)
+	// (POST /libraries)
+	CreateLibrary(w http.ResponseWriter, r *http.Request)
+	// DeleteLibrary Delete a library's rows; files on disk are never touched (admin)
+	// (DELETE /libraries/{libraryId})
+	DeleteLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
+	// GetLibrary One library
+	// (GET /libraries/{libraryId})
+	GetLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
+	// UpdateLibrary Rename a library, change its folders or scan interval (admin)
+	// (PATCH /libraries/{libraryId})
+	UpdateLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
+	// ListLibraryItems Items of a library, by kind and parent
+	// (GET /libraries/{libraryId}/items)
+	ListLibraryItems(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListLibraryItemsParams)
+	// GetLibraryScan Current scan progress (admin)
+	// (GET /libraries/{libraryId}/scan)
+	GetLibraryScan(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
+	// ScanLibrary Scan now, or full rescan (admin)
+	// (POST /libraries/{libraryId}/scan)
+	ScanLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
+	// GetLibraryScanEvents Live scan progress as server-sent events (admin)
+	// (GET /libraries/{libraryId}/scan/events)
+	GetLibraryScanEvents(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
+	// ListUnrecognizedFiles Files whose name couldn't be understood (admin)
+	// (GET /libraries/{libraryId}/unrecognized)
+	ListUnrecognizedFiles(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListUnrecognizedFilesParams)
 	// GetMe The signed-in account, its profiles and the active one
 	// (GET /me)
 	GetMe(w http.ResponseWriter, r *http.Request)
@@ -502,6 +1143,9 @@ type ServerInterface interface {
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(w http.ResponseWriter, r *http.Request)
+	// GetServerCapabilities ffprobe and file watching status (admin)
+	// (GET /server/capabilities)
+	GetServerCapabilities(w http.ResponseWriter, r *http.Request)
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(w http.ResponseWriter, r *http.Request)
@@ -571,11 +1215,390 @@ func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
+// BrowseFolders operation middleware
+func (siw *ServerInterfaceWrapper) BrowseFolders(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params BrowseFoldersParams
+
+	// ------------- Optional query parameter "path" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "path", r.URL.Query(), &params.Path, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "path"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "path", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.BrowseFolders(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetHealth operation middleware
 func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetItem operation middleware
+func (siw *ServerInterfaceWrapper) GetItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetItem(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListLibraries operation middleware
+func (siw *ServerInterfaceWrapper) ListLibraries(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListLibraries(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateLibrary operation middleware
+func (siw *ServerInterfaceWrapper) CreateLibrary(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateLibrary(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteLibrary operation middleware
+func (siw *ServerInterfaceWrapper) DeleteLibrary(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteLibrary(w, r, libraryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLibrary operation middleware
+func (siw *ServerInterfaceWrapper) GetLibrary(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLibrary(w, r, libraryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateLibrary operation middleware
+func (siw *ServerInterfaceWrapper) UpdateLibrary(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateLibrary(w, r, libraryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListLibraryItems operation middleware
+func (siw *ServerInterfaceWrapper) ListLibraryItems(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListLibraryItemsParams
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "kind", r.URL.Query(), &params.Kind, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "parentId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "parentId", r.URL.Query(), &params.ParentId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "parentId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "parentId", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListLibraryItems(w, r, libraryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLibraryScan operation middleware
+func (siw *ServerInterfaceWrapper) GetLibraryScan(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLibraryScan(w, r, libraryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ScanLibrary operation middleware
+func (siw *ServerInterfaceWrapper) ScanLibrary(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ScanLibrary(w, r, libraryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLibraryScanEvents operation middleware
+func (siw *ServerInterfaceWrapper) GetLibraryScanEvents(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLibraryScanEvents(w, r, libraryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListUnrecognizedFiles operation middleware
+func (siw *ServerInterfaceWrapper) ListUnrecognizedFiles(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListUnrecognizedFilesParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListUnrecognizedFiles(w, r, libraryId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -848,6 +1871,20 @@ func (siw *ServerInterfaceWrapper) GetServerInfo(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetServerInfo(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetServerCapabilities operation middleware
+func (siw *ServerInterfaceWrapper) GetServerCapabilities(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetServerCapabilities(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1213,6 +2250,19 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/pairing", wrapper.StartPairing)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/pairing/{pairingId}", wrapper.PollPairing)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/pairing/claim", wrapper.ClaimPairing)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries", wrapper.ListLibraries)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/libraries", wrapper.CreateLibrary)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/libraries/{libraryId}", wrapper.DeleteLibrary)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}", wrapper.GetLibrary)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/libraries/{libraryId}", wrapper.UpdateLibrary)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/scan", wrapper.GetLibraryScan)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/libraries/{libraryId}/scan", wrapper.ScanLibrary)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/scan/events", wrapper.GetLibraryScanEvents)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/items", wrapper.ListLibraryItems)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/unrecognized", wrapper.ListUnrecognizedFiles)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/items/{itemId}", wrapper.GetItem)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 
 	return m
 }
@@ -1290,6 +2340,45 @@ func (response LogoutdefaultJSONResponse) VisitLogoutResponse(w http.ResponseWri
 	return err
 }
 
+type BrowseFoldersRequestObject struct {
+	Params BrowseFoldersParams
+}
+
+type BrowseFoldersResponseObject interface {
+	VisitBrowseFoldersResponse(w http.ResponseWriter) error
+}
+
+type BrowseFolders200JSONResponse BrowseResult
+
+func (response BrowseFolders200JSONResponse) VisitBrowseFoldersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type BrowseFoldersdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response BrowseFoldersdefaultJSONResponse) VisitBrowseFoldersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetHealthRequestObject struct {
 }
 
@@ -1321,6 +2410,461 @@ func (response GetHealth503JSONResponse) VisitGetHealthResponse(w http.ResponseW
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetItemRequestObject struct {
+	ItemId string `json:"itemId"`
+}
+
+type GetItemResponseObject interface {
+	VisitGetItemResponse(w http.ResponseWriter) error
+}
+
+type GetItem200JSONResponse ItemDetail
+
+func (response GetItem200JSONResponse) VisitGetItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetItemdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetItemdefaultJSONResponse) VisitGetItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListLibrariesRequestObject struct {
+}
+
+type ListLibrariesResponseObject interface {
+	VisitListLibrariesResponse(w http.ResponseWriter) error
+}
+
+type ListLibraries200JSONResponse []Library
+
+func (response ListLibraries200JSONResponse) VisitListLibrariesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListLibrariesdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListLibrariesdefaultJSONResponse) VisitListLibrariesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateLibraryRequestObject struct {
+	Body *CreateLibraryJSONRequestBody
+}
+
+type CreateLibraryResponseObject interface {
+	VisitCreateLibraryResponse(w http.ResponseWriter) error
+}
+
+type CreateLibrary201JSONResponse Library
+
+func (response CreateLibrary201JSONResponse) VisitCreateLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateLibrarydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CreateLibrarydefaultJSONResponse) VisitCreateLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteLibraryRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+}
+
+type DeleteLibraryResponseObject interface {
+	VisitDeleteLibraryResponse(w http.ResponseWriter) error
+}
+
+type DeleteLibrary204Response struct {
+}
+
+func (response DeleteLibrary204Response) VisitDeleteLibraryResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteLibrarydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response DeleteLibrarydefaultJSONResponse) VisitDeleteLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLibraryRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+}
+
+type GetLibraryResponseObject interface {
+	VisitGetLibraryResponse(w http.ResponseWriter) error
+}
+
+type GetLibrary200JSONResponse Library
+
+func (response GetLibrary200JSONResponse) VisitGetLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLibrarydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetLibrarydefaultJSONResponse) VisitGetLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateLibraryRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+	Body      *UpdateLibraryJSONRequestBody
+}
+
+type UpdateLibraryResponseObject interface {
+	VisitUpdateLibraryResponse(w http.ResponseWriter) error
+}
+
+type UpdateLibrary200JSONResponse Library
+
+func (response UpdateLibrary200JSONResponse) VisitUpdateLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateLibrarydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdateLibrarydefaultJSONResponse) VisitUpdateLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListLibraryItemsRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+	Params    ListLibraryItemsParams
+}
+
+type ListLibraryItemsResponseObject interface {
+	VisitListLibraryItemsResponse(w http.ResponseWriter) error
+}
+
+type ListLibraryItems200JSONResponse ItemPage
+
+func (response ListLibraryItems200JSONResponse) VisitListLibraryItemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListLibraryItemsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListLibraryItemsdefaultJSONResponse) VisitListLibraryItemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLibraryScanRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+}
+
+type GetLibraryScanResponseObject interface {
+	VisitGetLibraryScanResponse(w http.ResponseWriter) error
+}
+
+type GetLibraryScan200JSONResponse ScanProgress
+
+func (response GetLibraryScan200JSONResponse) VisitGetLibraryScanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLibraryScandefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetLibraryScandefaultJSONResponse) VisitGetLibraryScanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ScanLibraryRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+	Body      *ScanLibraryJSONRequestBody
+}
+
+type ScanLibraryResponseObject interface {
+	VisitScanLibraryResponse(w http.ResponseWriter) error
+}
+
+type ScanLibrary202JSONResponse ScanProgress
+
+func (response ScanLibrary202JSONResponse) VisitScanLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(202)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ScanLibrarydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ScanLibrarydefaultJSONResponse) VisitScanLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLibraryScanEventsRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+}
+
+type GetLibraryScanEventsResponseObject interface {
+	VisitGetLibraryScanEventsResponse(w http.ResponseWriter) error
+}
+
+type GetLibraryScanEvents200TexteventStreamResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetLibraryScanEvents200TexteventStreamResponse) VisitGetLibraryScanEventsResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		// If w doesn't support flushing, fall back to io.Copy.
+		_, err := io.Copy(w, response.Body)
+		return err
+	}
+	// text/event-stream messages are typically small; use a
+	// modest buffer and flush after each chunk so clients see
+	// events immediately instead of waiting on OS buffering.
+	buf := make([]byte, 4096)
+	for {
+		n, err := response.Body.Read(buf)
+		if n > 0 {
+			if _, writeErr := w.Write(buf[:n]); writeErr != nil {
+				return writeErr
+			}
+			flusher.Flush()
+		}
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+	}
+}
+
+type GetLibraryScanEventsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetLibraryScanEventsdefaultJSONResponse) VisitGetLibraryScanEventsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListUnrecognizedFilesRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+	Params    ListUnrecognizedFilesParams
+}
+
+type ListUnrecognizedFilesResponseObject interface {
+	VisitListUnrecognizedFilesResponse(w http.ResponseWriter) error
+}
+
+type ListUnrecognizedFiles200JSONResponse UnrecognizedPage
+
+func (response ListUnrecognizedFiles200JSONResponse) VisitListUnrecognizedFilesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListUnrecognizedFilesdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListUnrecognizedFilesdefaultJSONResponse) VisitListUnrecognizedFilesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -1858,6 +3402,44 @@ func (response GetServerInfodefaultJSONResponse) VisitGetServerInfoResponse(w ht
 	return err
 }
 
+type GetServerCapabilitiesRequestObject struct {
+}
+
+type GetServerCapabilitiesResponseObject interface {
+	VisitGetServerCapabilitiesResponse(w http.ResponseWriter) error
+}
+
+type GetServerCapabilities200JSONResponse Capabilities
+
+func (response GetServerCapabilities200JSONResponse) VisitGetServerCapabilitiesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServerCapabilitiesdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetServerCapabilitiesdefaultJSONResponse) VisitGetServerCapabilitiesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type SelectProfileRequestObject struct {
 	Body *SelectProfileJSONRequestBody
 }
@@ -2239,9 +3821,45 @@ type StrictServerInterface interface {
 	// Logout End the current session
 	// (POST /auth/logout)
 	Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error)
+	// BrowseFolders Sub-folders of a server folder, for the folder picker (admin)
+	// (GET /fs/browse)
+	BrowseFolders(ctx context.Context, request BrowseFoldersRequestObject) (BrowseFoldersResponseObject, error)
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
+	// GetItem An item with its files and streams
+	// (GET /items/{itemId})
+	GetItem(ctx context.Context, request GetItemRequestObject) (GetItemResponseObject, error)
+	// ListLibraries All libraries, with folder status, counts and scan state
+	// (GET /libraries)
+	ListLibraries(ctx context.Context, request ListLibrariesRequestObject) (ListLibrariesResponseObject, error)
+	// CreateLibrary Create a library and start its first scan (admin)
+	// (POST /libraries)
+	CreateLibrary(ctx context.Context, request CreateLibraryRequestObject) (CreateLibraryResponseObject, error)
+	// DeleteLibrary Delete a library's rows; files on disk are never touched (admin)
+	// (DELETE /libraries/{libraryId})
+	DeleteLibrary(ctx context.Context, request DeleteLibraryRequestObject) (DeleteLibraryResponseObject, error)
+	// GetLibrary One library
+	// (GET /libraries/{libraryId})
+	GetLibrary(ctx context.Context, request GetLibraryRequestObject) (GetLibraryResponseObject, error)
+	// UpdateLibrary Rename a library, change its folders or scan interval (admin)
+	// (PATCH /libraries/{libraryId})
+	UpdateLibrary(ctx context.Context, request UpdateLibraryRequestObject) (UpdateLibraryResponseObject, error)
+	// ListLibraryItems Items of a library, by kind and parent
+	// (GET /libraries/{libraryId}/items)
+	ListLibraryItems(ctx context.Context, request ListLibraryItemsRequestObject) (ListLibraryItemsResponseObject, error)
+	// GetLibraryScan Current scan progress (admin)
+	// (GET /libraries/{libraryId}/scan)
+	GetLibraryScan(ctx context.Context, request GetLibraryScanRequestObject) (GetLibraryScanResponseObject, error)
+	// ScanLibrary Scan now, or full rescan (admin)
+	// (POST /libraries/{libraryId}/scan)
+	ScanLibrary(ctx context.Context, request ScanLibraryRequestObject) (ScanLibraryResponseObject, error)
+	// GetLibraryScanEvents Live scan progress as server-sent events (admin)
+	// (GET /libraries/{libraryId}/scan/events)
+	GetLibraryScanEvents(ctx context.Context, request GetLibraryScanEventsRequestObject) (GetLibraryScanEventsResponseObject, error)
+	// ListUnrecognizedFiles Files whose name couldn't be understood (admin)
+	// (GET /libraries/{libraryId}/unrecognized)
+	ListUnrecognizedFiles(ctx context.Context, request ListUnrecognizedFilesRequestObject) (ListUnrecognizedFilesResponseObject, error)
 	// GetMe The signed-in account, its profiles and the active one
 	// (GET /me)
 	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
@@ -2284,6 +3902,9 @@ type StrictServerInterface interface {
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(ctx context.Context, request GetServerInfoRequestObject) (GetServerInfoResponseObject, error)
+	// GetServerCapabilities ffprobe and file watching status (admin)
+	// (GET /server/capabilities)
+	GetServerCapabilities(ctx context.Context, request GetServerCapabilitiesRequestObject) (GetServerCapabilitiesResponseObject, error)
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(ctx context.Context, request SelectProfileRequestObject) (SelectProfileResponseObject, error)
@@ -2410,6 +4031,32 @@ func (sh *strictHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// BrowseFolders operation middleware
+func (sh *strictHandler) BrowseFolders(w http.ResponseWriter, r *http.Request, params BrowseFoldersParams) {
+	var request BrowseFoldersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.BrowseFolders(ctx, request.(BrowseFoldersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "BrowseFolders")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(BrowseFoldersResponseObject); ok {
+		if err := validResponse.VisitBrowseFoldersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetHealth operation middleware
 func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 	var request GetHealthRequestObject
@@ -2427,6 +4074,314 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
 		if err := validResponse.VisitGetHealthResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetItem operation middleware
+func (sh *strictHandler) GetItem(w http.ResponseWriter, r *http.Request, itemId string) {
+	var request GetItemRequestObject
+
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetItem(ctx, request.(GetItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetItemResponseObject); ok {
+		if err := validResponse.VisitGetItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListLibraries operation middleware
+func (sh *strictHandler) ListLibraries(w http.ResponseWriter, r *http.Request) {
+	var request ListLibrariesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListLibraries(ctx, request.(ListLibrariesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListLibraries")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListLibrariesResponseObject); ok {
+		if err := validResponse.VisitListLibrariesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateLibrary operation middleware
+func (sh *strictHandler) CreateLibrary(w http.ResponseWriter, r *http.Request) {
+	var request CreateLibraryRequestObject
+
+	var body CreateLibraryJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateLibrary(ctx, request.(CreateLibraryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateLibrary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateLibraryResponseObject); ok {
+		if err := validResponse.VisitCreateLibraryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteLibrary operation middleware
+func (sh *strictHandler) DeleteLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId) {
+	var request DeleteLibraryRequestObject
+
+	request.LibraryId = libraryId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteLibrary(ctx, request.(DeleteLibraryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteLibrary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteLibraryResponseObject); ok {
+		if err := validResponse.VisitDeleteLibraryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetLibrary operation middleware
+func (sh *strictHandler) GetLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId) {
+	var request GetLibraryRequestObject
+
+	request.LibraryId = libraryId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLibrary(ctx, request.(GetLibraryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLibrary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLibraryResponseObject); ok {
+		if err := validResponse.VisitGetLibraryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateLibrary operation middleware
+func (sh *strictHandler) UpdateLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId) {
+	var request UpdateLibraryRequestObject
+
+	request.LibraryId = libraryId
+
+	var body UpdateLibraryJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateLibrary(ctx, request.(UpdateLibraryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateLibrary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateLibraryResponseObject); ok {
+		if err := validResponse.VisitUpdateLibraryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListLibraryItems operation middleware
+func (sh *strictHandler) ListLibraryItems(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListLibraryItemsParams) {
+	var request ListLibraryItemsRequestObject
+
+	request.LibraryId = libraryId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListLibraryItems(ctx, request.(ListLibraryItemsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListLibraryItems")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListLibraryItemsResponseObject); ok {
+		if err := validResponse.VisitListLibraryItemsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetLibraryScan operation middleware
+func (sh *strictHandler) GetLibraryScan(w http.ResponseWriter, r *http.Request, libraryId LibraryId) {
+	var request GetLibraryScanRequestObject
+
+	request.LibraryId = libraryId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLibraryScan(ctx, request.(GetLibraryScanRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLibraryScan")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLibraryScanResponseObject); ok {
+		if err := validResponse.VisitGetLibraryScanResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ScanLibrary operation middleware
+func (sh *strictHandler) ScanLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId) {
+	var request ScanLibraryRequestObject
+
+	request.LibraryId = libraryId
+
+	var body ScanLibraryJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ScanLibrary(ctx, request.(ScanLibraryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ScanLibrary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ScanLibraryResponseObject); ok {
+		if err := validResponse.VisitScanLibraryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetLibraryScanEvents operation middleware
+func (sh *strictHandler) GetLibraryScanEvents(w http.ResponseWriter, r *http.Request, libraryId LibraryId) {
+	var request GetLibraryScanEventsRequestObject
+
+	request.LibraryId = libraryId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLibraryScanEvents(ctx, request.(GetLibraryScanEventsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLibraryScanEvents")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLibraryScanEventsResponseObject); ok {
+		if err := validResponse.VisitGetLibraryScanEventsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListUnrecognizedFiles operation middleware
+func (sh *strictHandler) ListUnrecognizedFiles(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListUnrecognizedFilesParams) {
+	var request ListUnrecognizedFilesRequestObject
+
+	request.LibraryId = libraryId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListUnrecognizedFiles(ctx, request.(ListUnrecognizedFilesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListUnrecognizedFiles")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListUnrecognizedFilesResponseObject); ok {
+		if err := validResponse.VisitListUnrecognizedFilesResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -2814,6 +4769,30 @@ func (sh *strictHandler) GetServerInfo(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetServerInfoResponseObject); ok {
 		if err := validResponse.VisitGetServerInfoResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetServerCapabilities operation middleware
+func (sh *strictHandler) GetServerCapabilities(w http.ResponseWriter, r *http.Request) {
+	var request GetServerCapabilitiesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetServerCapabilities(ctx, request.(GetServerCapabilitiesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetServerCapabilities")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetServerCapabilitiesResponseObject); ok {
+		if err := validResponse.VisitGetServerCapabilitiesResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

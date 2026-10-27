@@ -495,8 +495,277 @@ paths:
                 $ref: "#/components/schemas/SessionInfo"
         default:
           $ref: "#/components/responses/Error"
+  /libraries:
+    get:
+      operationId: listLibraries
+      summary: All libraries, with folder status, counts and scan state
+      tags: [libraries]
+      responses:
+        "200":
+          description: Libraries, by name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Library"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createLibrary
+      summary: Create a library and start its first scan (admin)
+      description: |
+        Each folder must be an absolute path to a directory PLAID can read and traverse
+        (`422 folder_not_found`, `422 folder_unreadable`), and can't be inside or contain
+        another library's folder (`409 folder_overlap`). Nothing is created on error.
+      tags: [libraries]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLibraryRequest"
+      responses:
+        "201":
+          description: Created; a full scan is queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Library"
+        default:
+          $ref: "#/components/responses/Error"
+  /libraries/{libraryId}:
+    parameters:
+      - $ref: "#/components/parameters/LibraryId"
+    get:
+      operationId: getLibrary
+      summary: One library
+      tags: [libraries]
+      responses:
+        "200":
+          description: The library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Library"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updateLibrary
+      summary: Rename a library, change its folders or scan interval (admin)
+      description: |
+        Absent fields are unchanged. `folders` replaces the whole list; added folders are
+        validated like on creation and scanned. A `type` different from the current one
+        returns `422 library_type_immutable`. `scanIntervalSeconds: null` goes back to the
+        defaults (15 min unwatched, 6 h watched).
+      tags: [libraries]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLibraryRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Library"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteLibrary
+      summary: Delete a library's rows; files on disk are never touched (admin)
+      tags: [libraries]
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /libraries/{libraryId}/scan:
+    parameters:
+      - $ref: "#/components/parameters/LibraryId"
+    get:
+      operationId: getLibraryScan
+      summary: Current scan progress (admin)
+      tags: [libraries]
+      responses:
+        "200":
+          description: Progress snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanProgress"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: scanLibrary
+      summary: Scan now, or full rescan (admin)
+      description: A request during a running scan queues one more scan; further requests are merged into it.
+      tags: [libraries]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScanRequest"
+      responses:
+        "202":
+          description: Scan started or queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanProgress"
+        default:
+          $ref: "#/components/responses/Error"
+  /libraries/{libraryId}/scan/events:
+    parameters:
+      - $ref: "#/components/parameters/LibraryId"
+    get:
+      operationId: getLibraryScanEvents
+      summary: Live scan progress as server-sent events (admin)
+      description: |
+        `text/event-stream`. Events `progress`, `completed` and `failed`, each with a
+        `ScanEvent` JSON in `data`. A progress event comes at least every 2 s while a scan
+        runs, and a `: ping` comment every 15 s. The current state is sent first.
+      tags: [libraries]
+      responses:
+        "200":
+          description: Event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /libraries/{libraryId}/items:
+    parameters:
+      - $ref: "#/components/parameters/LibraryId"
+    get:
+      operationId: listLibraryItems
+      summary: Items of a library, by kind and parent
+      description: Ordered by sort title. Hidden items (no file left on disk) are left out.
+      tags: [libraries]
+      parameters:
+        - name: kind
+          in: query
+          description: Defaults to the top level, `movie` or `show`, when `parentId` is absent.
+          schema:
+            $ref: "#/components/schemas/ItemKind"
+        - name: parentId
+          in: query
+          description: Seasons of a show, or episodes of a season.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: One page of items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemPage"
+        default:
+          $ref: "#/components/responses/Error"
+  /libraries/{libraryId}/unrecognized:
+    parameters:
+      - $ref: "#/components/parameters/LibraryId"
+    get:
+      operationId: listUnrecognizedFiles
+      summary: Files whose name couldn't be understood (admin)
+      tags: [libraries]
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: One page of files present on disk, by path
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnrecognizedPage"
+        default:
+          $ref: "#/components/responses/Error"
+  /items/{itemId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getItem
+      summary: An item with its files and streams
+      tags: [libraries]
+      responses:
+        "200":
+          description: The item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemDetail"
+        default:
+          $ref: "#/components/responses/Error"
+  /fs/browse:
+    get:
+      operationId: browseFolders
+      summary: Sub-folders of a server folder, for the folder picker (admin)
+      description: |
+        Lists directory names only, never files. `path` must be absolute without `..`;
+        it defaults to `/`, or to the list of roots when `PLAID_BROWSE_ROOTS` is set,
+        in which case paths outside the roots return `404 not_found`.
+      tags: [libraries]
+      parameters:
+        - name: path
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sub-folders, by name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowseResult"
+        default:
+          $ref: "#/components/responses/Error"
+  /server/capabilities:
+    get:
+      operationId: getServerCapabilities
+      summary: ffprobe and file watching status (admin)
+      tags: [libraries]
+      responses:
+        "200":
+          description: Capabilities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Capabilities"
+        default:
+          $ref: "#/components/responses/Error"
 components:
   parameters:
+    LibraryId:
+      name: libraryId
+      in: path
+      required: true
+      schema:
+        type: string
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque `nextCursor` of the previous page.
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
     ProfileId:
       name: profileId
       in: path
@@ -885,6 +1154,421 @@ components:
         pin:
           type: string
           description: Needed when that profile has a PIN.
+    LibraryType:
+      type: string
+      enum: [movies, shows]
+    LibraryFolder:
+      type: object
+      required: [id, path, watched, status]
+      properties:
+        id:
+          type: string
+        path:
+          type: string
+          description: Cleaned, with symlinks resolved.
+          examples: ["/srv/media/movies"]
+        fsType:
+          type: string
+          examples: ["ext4", "nfs"]
+        watched:
+          type: boolean
+          description: Changes are picked up live; false on network file systems or when the watch limit was reached.
+        status:
+          type: string
+          enum: [ok, unavailable, unreadable]
+    LibraryCounts:
+      type: object
+      required: [movies, shows, episodes, files, unrecognized]
+      properties:
+        movies:
+          type: integer
+        shows:
+          type: integer
+        episodes:
+          type: integer
+        files:
+          type: integer
+          description: Files present on disk.
+        unrecognized:
+          type: integer
+    Library:
+      type: object
+      required: [id, name, type, scanIntervalSeconds, folders, counts, scan]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/LibraryType"
+        scanIntervalSeconds:
+          type: [integer, "null"]
+          description: Null when the defaults apply (15 min unwatched, 6 h watched).
+        lastScanAt:
+          type: string
+          format: date-time
+        folders:
+          type: array
+          items:
+            $ref: "#/components/schemas/LibraryFolder"
+        counts:
+          $ref: "#/components/schemas/LibraryCounts"
+        scan:
+          $ref: "#/components/schemas/ScanProgress"
+    CreateLibraryRequest:
+      type: object
+      required: [name, type, folders]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        type:
+          $ref: "#/components/schemas/LibraryType"
+        folders:
+          type: array
+          minItems: 1
+          maxItems: 16
+          items:
+            type: string
+          examples: [["/srv/media/movies"]]
+        scanIntervalSeconds:
+          type: integer
+          minimum: 300
+          maximum: 86400
+    UpdateLibraryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        type:
+          $ref: "#/components/schemas/LibraryType"
+        folders:
+          type: array
+          minItems: 1
+          maxItems: 16
+          items:
+            type: string
+        scanIntervalSeconds:
+          type: [integer, "null"]
+          minimum: 300
+          maximum: 86400
+    ScanRequest:
+      type: object
+      properties:
+        full:
+          type: boolean
+          default: false
+          description: Re-probe every file, changed or not.
+    ScanState:
+      type: string
+      enum: [idle, queued, scanning, analyzing]
+    ScanCounters:
+      type: object
+      required: [found, new, changed, moved, missing, analyzed, failed, unrecognized]
+      properties:
+        found:
+          type: integer
+        new:
+          type: integer
+        changed:
+          type: integer
+        moved:
+          type: integer
+        missing:
+          type: integer
+        analyzed:
+          type: integer
+        failed:
+          type: integer
+        unrecognized:
+          type: integer
+    ScanProgress:
+      type: object
+      required: [state, queued, full, counters]
+      properties:
+        state:
+          $ref: "#/components/schemas/ScanState"
+        queued:
+          type: boolean
+          description: Another scan starts when this one ends.
+        full:
+          type: boolean
+        currentFolder:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        counters:
+          $ref: "#/components/schemas/ScanCounters"
+          description: Of the running scan, or of the last one when idle.
+    ScanEvent:
+      type: object
+      description: The `data` of a scan server-sent event.
+      required: [type, progress]
+      properties:
+        type:
+          type: string
+          enum: [progress, completed, failed]
+        progress:
+          $ref: "#/components/schemas/ScanProgress"
+        error:
+          type: string
+          description: Set on `failed`, English, for logs.
+    ItemKind:
+      type: string
+      enum: [movie, show, season, episode]
+    ItemHints:
+      type: object
+      description: Ids found in file names, for metadata matching (F005).
+      properties:
+        tmdb:
+          type: string
+        imdb:
+          type: string
+    Resolution:
+      type: object
+      required: [width, height]
+      properties:
+        width:
+          type: integer
+        height:
+          type: integer
+    TechnicalSummary:
+      type: object
+      description: Across the item's files present on disk (for shows and seasons, their episodes).
+      required: [hdrFormats, audioLanguages]
+      properties:
+        resolution:
+          $ref: "#/components/schemas/Resolution"
+          description: The largest one.
+        hdrFormats:
+          type: array
+          items:
+            type: string
+            enum: [hdr10, hdr10plus, dolby_vision, hlg]
+        audioLanguages:
+          type: array
+          description: ISO 639-2/B codes; clients show names with `Intl.DisplayNames`.
+          items:
+            type: string
+          examples: [["eng", "fre"]]
+    ItemSummary:
+      type: object
+      required: [id, kind, fileCount, childCount, technical]
+      properties:
+        id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/ItemKind"
+        parentId:
+          type: string
+        title:
+          type: string
+          description: Parsed from names; matched metadata comes with F005.
+        year:
+          type: integer
+        seasonNumber:
+          type: integer
+        episodeNumber:
+          type: integer
+        airDate:
+          type: string
+          format: date
+        hints:
+          $ref: "#/components/schemas/ItemHints"
+        fileCount:
+          type: integer
+        childCount:
+          type: integer
+          description: Seasons of a show, episodes of a season; 0 otherwise.
+        technical:
+          $ref: "#/components/schemas/TechnicalSummary"
+    ItemPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemSummary"
+        nextCursor:
+          type: string
+          description: Absent on the last page.
+    MediaStream:
+      type: object
+      required: [index, type, language, default, forced, sdh, imageBased, external]
+      properties:
+        index:
+          type: integer
+          description: ffprobe stream index; external subtitles use 1000 and up.
+        type:
+          type: string
+          enum: [video, audio, subtitle]
+        codec:
+          type: string
+        language:
+          type: string
+          description: ISO 639-2/B, `und` when unknown.
+        title:
+          type: string
+        channels:
+          type: integer
+        default:
+          type: boolean
+        forced:
+          type: boolean
+        sdh:
+          type: boolean
+        imageBased:
+          type: boolean
+          description: Bitmap subtitles (PGS, VobSub).
+        external:
+          type: boolean
+    DolbyVision:
+      type: object
+      required: [profile, compatibility]
+      properties:
+        profile:
+          type: integer
+          examples: [8]
+        compatibility:
+          type: integer
+          examples: [1]
+    MediaFile:
+      type: object
+      required: [id, path, size, modifiedAt, parseStatus, probeStatus, streams]
+      properties:
+        id:
+          type: string
+        path:
+          type: string
+        size:
+          type: integer
+          format: int64
+        modifiedAt:
+          type: string
+          format: date-time
+        edition:
+          type: string
+          examples: ["Director's Cut"]
+        parseStatus:
+          type: string
+          enum: [ok, unrecognized]
+        probeStatus:
+          type: string
+          enum: [pending, ok, failed, skipped]
+        container:
+          type: string
+        durationMs:
+          type: integer
+          format: int64
+        bitrate:
+          type: integer
+          format: int64
+        width:
+          type: integer
+        height:
+          type: integer
+        videoCodec:
+          type: string
+        hdrFormat:
+          type: string
+          enum: [hdr10, hdr10plus, dolby_vision, hlg]
+        dolbyVision:
+          $ref: "#/components/schemas/DolbyVision"
+        missingSince:
+          type: string
+          format: date-time
+        streams:
+          type: array
+          items:
+            $ref: "#/components/schemas/MediaStream"
+    ItemDetail:
+      allOf:
+        - $ref: "#/components/schemas/ItemSummary"
+        - type: object
+          required: [files]
+          properties:
+            files:
+              type: array
+              items:
+                $ref: "#/components/schemas/MediaFile"
+    UnrecognizedFile:
+      type: object
+      required: [id, path, size, probeStatus]
+      properties:
+        id:
+          type: string
+        path:
+          type: string
+        size:
+          type: integer
+          format: int64
+        probeStatus:
+          type: string
+          enum: [pending, ok, failed, skipped]
+    UnrecognizedPage:
+      type: object
+      required: [files]
+      properties:
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnrecognizedFile"
+        nextCursor:
+          type: string
+    BrowseEntry:
+      type: object
+      required: [name, path, readable]
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        readable:
+          type: boolean
+          description: PLAID can list and enter this folder.
+    BrowseResult:
+      type: object
+      required: [path, parent, entries]
+      properties:
+        path:
+          type: string
+          description: Empty when listing the configured roots.
+        parent:
+          type: [string, "null"]
+          description: Null at `/`, at a configured root, or when listing the roots.
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/BrowseEntry"
+    Capabilities:
+      type: object
+      required: [ffprobe, inotifyLimit, inotifyUsed, watchLimitReached]
+      properties:
+        ffprobe:
+          type: object
+          required: [found]
+          properties:
+            found:
+              type: boolean
+              description: When false, files are listed with `probeStatus` `skipped` (`ffprobe_missing`).
+            version:
+              type: string
+              examples: ["7.1.1"]
+        inotifyLimit:
+          type: integer
+          description: Per-user watch limit, 0 when unknown or not Linux.
+        inotifyUsed:
+          type: integer
+        watchLimitReached:
+          type: array
+          description: Folders scanned periodically because the watch limit was reached.
+          items:
+            type: string
     Error:
       type: object
       required: [error]

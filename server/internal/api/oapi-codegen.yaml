@@ -5,4 +5,7 @@ generate:
   models: true
 output-options:
   nullable-type: true
+  # Keep schemas no operation references, such as ScanEvent (the data of
+  # server-sent events).
+  skip-prune: true
 output: api.gen.go

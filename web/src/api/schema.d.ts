@@ -419,6 +419,202 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/libraries': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** All libraries, with folder status, counts and scan state */
+    get: operations['listLibraries']
+    put?: never
+    /**
+     * Create a library and start its first scan (admin)
+     * @description Each folder must be an absolute path to a directory PLAID can read and traverse
+     *     (`422 folder_not_found`, `422 folder_unreadable`), and can't be inside or contain
+     *     another library's folder (`409 folder_overlap`). Nothing is created on error.
+     */
+    post: operations['createLibrary']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/libraries/{libraryId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    /** One library */
+    get: operations['getLibrary']
+    put?: never
+    post?: never
+    /** Delete a library's rows; files on disk are never touched (admin) */
+    delete: operations['deleteLibrary']
+    options?: never
+    head?: never
+    /**
+     * Rename a library, change its folders or scan interval (admin)
+     * @description Absent fields are unchanged. `folders` replaces the whole list; added folders are
+     *     validated like on creation and scanned. A `type` different from the current one
+     *     returns `422 library_type_immutable`. `scanIntervalSeconds: null` goes back to the
+     *     defaults (15 min unwatched, 6 h watched).
+     */
+    patch: operations['updateLibrary']
+    trace?: never
+  }
+  '/libraries/{libraryId}/scan': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    /** Current scan progress (admin) */
+    get: operations['getLibraryScan']
+    put?: never
+    /**
+     * Scan now, or full rescan (admin)
+     * @description A request during a running scan queues one more scan; further requests are merged into it.
+     */
+    post: operations['scanLibrary']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/libraries/{libraryId}/scan/events': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    /**
+     * Live scan progress as server-sent events (admin)
+     * @description `text/event-stream`. Events `progress`, `completed` and `failed`, each with a
+     *     `ScanEvent` JSON in `data`. A progress event comes at least every 2 s while a scan
+     *     runs, and a `: ping` comment every 15 s. The current state is sent first.
+     */
+    get: operations['getLibraryScanEvents']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/libraries/{libraryId}/items': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    /**
+     * Items of a library, by kind and parent
+     * @description Ordered by sort title. Hidden items (no file left on disk) are left out.
+     */
+    get: operations['listLibraryItems']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/libraries/{libraryId}/unrecognized': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    /** Files whose name couldn't be understood (admin) */
+    get: operations['listUnrecognizedFiles']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/items/{itemId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: string
+      }
+      cookie?: never
+    }
+    /** An item with its files and streams */
+    get: operations['getItem']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/fs/browse': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Sub-folders of a server folder, for the folder picker (admin)
+     * @description Lists directory names only, never files. `path` must be absolute without `..`;
+     *     it defaults to `/`, or to the list of roots when `PLAID_BROWSE_ROOTS` is set,
+     *     in which case paths outside the roots return `404 not_found`.
+     */
+    get: operations['browseFolders']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/server/capabilities': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** ffprobe and file watching status (admin) */
+    get: operations['getServerCapabilities']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -614,6 +810,239 @@ export interface components {
       /** @description Needed when that profile has a PIN. */
       pin?: string
     }
+    /** @enum {string} */
+    LibraryType: 'movies' | 'shows'
+    LibraryFolder: {
+      id: string
+      /**
+       * @description Cleaned, with symlinks resolved.
+       * @example /srv/media/movies
+       */
+      path: string
+      /**
+       * @example ext4
+       * @example nfs
+       */
+      fsType?: string
+      /** @description Changes are picked up live; false on network file systems or when the watch limit was reached. */
+      watched: boolean
+      /** @enum {string} */
+      status: 'ok' | 'unavailable' | 'unreadable'
+    }
+    LibraryCounts: {
+      movies: number
+      shows: number
+      episodes: number
+      /** @description Files present on disk. */
+      files: number
+      unrecognized: number
+    }
+    Library: {
+      id: string
+      name: string
+      type: components['schemas']['LibraryType']
+      /** @description Null when the defaults apply (15 min unwatched, 6 h watched). */
+      scanIntervalSeconds: number | null
+      /** Format: date-time */
+      lastScanAt?: string
+      folders: components['schemas']['LibraryFolder'][]
+      counts: components['schemas']['LibraryCounts']
+      scan: components['schemas']['ScanProgress']
+    }
+    CreateLibraryRequest: {
+      name: string
+      type: components['schemas']['LibraryType']
+      /**
+       * @example [
+       *       "/srv/media/movies"
+       *     ]
+       */
+      folders: string[]
+      scanIntervalSeconds?: number
+    }
+    UpdateLibraryRequest: {
+      name?: string
+      type?: components['schemas']['LibraryType']
+      folders?: string[]
+      scanIntervalSeconds?: number | null
+    }
+    ScanRequest: {
+      /**
+       * @description Re-probe every file, changed or not.
+       * @default false
+       */
+      full: boolean
+    }
+    /** @enum {string} */
+    ScanState: 'idle' | 'queued' | 'scanning' | 'analyzing'
+    ScanCounters: {
+      found: number
+      new: number
+      changed: number
+      moved: number
+      missing: number
+      analyzed: number
+      failed: number
+      unrecognized: number
+    }
+    ScanProgress: {
+      state: components['schemas']['ScanState']
+      /** @description Another scan starts when this one ends. */
+      queued: boolean
+      full: boolean
+      currentFolder?: string
+      /** Format: date-time */
+      startedAt?: string
+      /** @description Of the running scan, or of the last one when idle. */
+      counters: components['schemas']['ScanCounters']
+    }
+    /** @description The `data` of a scan server-sent event. */
+    ScanEvent: {
+      /** @enum {string} */
+      type: 'progress' | 'completed' | 'failed'
+      progress: components['schemas']['ScanProgress']
+      /** @description Set on `failed`, English, for logs. */
+      error?: string
+    }
+    /** @enum {string} */
+    ItemKind: 'movie' | 'show' | 'season' | 'episode'
+    /** @description Ids found in file names, for metadata matching (F005). */
+    ItemHints: {
+      tmdb?: string
+      imdb?: string
+    }
+    Resolution: {
+      width: number
+      height: number
+    }
+    /** @description Across the item's files present on disk (for shows and seasons, their episodes). */
+    TechnicalSummary: {
+      /** @description The largest one. */
+      resolution?: components['schemas']['Resolution']
+      hdrFormats: ('hdr10' | 'hdr10plus' | 'dolby_vision' | 'hlg')[]
+      /**
+       * @description ISO 639-2/B codes; clients show names with `Intl.DisplayNames`.
+       * @example [
+       *       "eng",
+       *       "fre"
+       *     ]
+       */
+      audioLanguages: string[]
+    }
+    ItemSummary: {
+      id: string
+      kind: components['schemas']['ItemKind']
+      parentId?: string
+      /** @description Parsed from names; matched metadata comes with F005. */
+      title?: string
+      year?: number
+      seasonNumber?: number
+      episodeNumber?: number
+      /** Format: date */
+      airDate?: string
+      hints?: components['schemas']['ItemHints']
+      fileCount: number
+      /** @description Seasons of a show, episodes of a season; 0 otherwise. */
+      childCount: number
+      technical: components['schemas']['TechnicalSummary']
+    }
+    ItemPage: {
+      items: components['schemas']['ItemSummary'][]
+      /** @description Absent on the last page. */
+      nextCursor?: string
+    }
+    MediaStream: {
+      /** @description ffprobe stream index; external subtitles use 1000 and up. */
+      index: number
+      /** @enum {string} */
+      type: 'video' | 'audio' | 'subtitle'
+      codec?: string
+      /** @description ISO 639-2/B, `und` when unknown. */
+      language: string
+      title?: string
+      channels?: number
+      default: boolean
+      forced: boolean
+      sdh: boolean
+      /** @description Bitmap subtitles (PGS, VobSub). */
+      imageBased: boolean
+      external: boolean
+    }
+    DolbyVision: {
+      /** @example 8 */
+      profile: number
+      /** @example 1 */
+      compatibility: number
+    }
+    MediaFile: {
+      id: string
+      path: string
+      /** Format: int64 */
+      size: number
+      /** Format: date-time */
+      modifiedAt: string
+      /** @example Director's Cut */
+      edition?: string
+      /** @enum {string} */
+      parseStatus: 'ok' | 'unrecognized'
+      /** @enum {string} */
+      probeStatus: 'pending' | 'ok' | 'failed' | 'skipped'
+      container?: string
+      /** Format: int64 */
+      durationMs?: number
+      /** Format: int64 */
+      bitrate?: number
+      width?: number
+      height?: number
+      videoCodec?: string
+      /** @enum {string} */
+      hdrFormat?: 'hdr10' | 'hdr10plus' | 'dolby_vision' | 'hlg'
+      dolbyVision?: components['schemas']['DolbyVision']
+      /** Format: date-time */
+      missingSince?: string
+      streams: components['schemas']['MediaStream'][]
+    }
+    ItemDetail: components['schemas']['ItemSummary'] & {
+      files: components['schemas']['MediaFile'][]
+    }
+    UnrecognizedFile: {
+      id: string
+      path: string
+      /** Format: int64 */
+      size: number
+      /** @enum {string} */
+      probeStatus: 'pending' | 'ok' | 'failed' | 'skipped'
+    }
+    UnrecognizedPage: {
+      files: components['schemas']['UnrecognizedFile'][]
+      nextCursor?: string
+    }
+    BrowseEntry: {
+      name: string
+      path: string
+      /** @description PLAID can list and enter this folder. */
+      readable: boolean
+    }
+    BrowseResult: {
+      /** @description Empty when listing the configured roots. */
+      path: string
+      /** @description Null at `/`, at a configured root, or when listing the roots. */
+      parent: string | null
+      entries: components['schemas']['BrowseEntry'][]
+    }
+    Capabilities: {
+      ffprobe: {
+        /** @description When false, files are listed with `probeStatus` `skipped` (`ffprobe_missing`). */
+        found: boolean
+        /** @example 7.1.1 */
+        version?: string
+      }
+      /** @description Per-user watch limit, 0 when unknown or not Linux. */
+      inotifyLimit: number
+      inotifyUsed: number
+      /** @description Folders scanned periodically because the watch limit was reached. */
+      watchLimitReached: string[]
+    }
     Error: {
       error: {
         /**
@@ -648,6 +1077,10 @@ export interface components {
     }
   }
   parameters: {
+    LibraryId: string
+    /** @description Opaque `nextCursor` of the previous page. */
+    Cursor: string
+    Limit: number
     ProfileId: string
     SessionId: string
     UserId: string
@@ -1291,6 +1724,321 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['SessionInfo']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listLibraries: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Libraries, by name */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Library'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  createLibrary: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateLibraryRequest']
+      }
+    }
+    responses: {
+      /** @description Created; a full scan is queued */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Library']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getLibrary: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The library */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Library']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  deleteLibrary: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Deleted */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateLibrary: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateLibraryRequest']
+      }
+    }
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Library']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getLibraryScan: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Progress snapshot */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ScanProgress']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  scanLibrary: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['ScanRequest']
+      }
+    }
+    responses: {
+      /** @description Scan started or queued */
+      202: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ScanProgress']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getLibraryScanEvents: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Event stream */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'text/event-stream': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listLibraryItems: {
+    parameters: {
+      query?: {
+        /** @description Defaults to the top level, `movie` or `show`, when `parentId` is absent. */
+        kind?: components['schemas']['ItemKind']
+        /** @description Seasons of a show, or episodes of a season. */
+        parentId?: string
+        /** @description Opaque `nextCursor` of the previous page. */
+        cursor?: components['parameters']['Cursor']
+        limit?: components['parameters']['Limit']
+      }
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description One page of items */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ItemPage']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listUnrecognizedFiles: {
+    parameters: {
+      query?: {
+        /** @description Opaque `nextCursor` of the previous page. */
+        cursor?: components['parameters']['Cursor']
+        limit?: components['parameters']['Limit']
+      }
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description One page of files present on disk, by path */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UnrecognizedPage']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getItem: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The item */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ItemDetail']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  browseFolders: {
+    parameters: {
+      query?: {
+        path?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Sub-folders, by name */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['BrowseResult']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getServerCapabilities: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Capabilities */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Capabilities']
         }
       }
       default: components['responses']['Error']
