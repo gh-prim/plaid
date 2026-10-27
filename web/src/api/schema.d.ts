@@ -843,6 +843,8 @@ export interface components {
       type: components['schemas']['LibraryType']
       /** @description Null when the defaults apply (15 min unwatched, 6 h watched). */
       scanIntervalSeconds: number | null
+      metadataLanguage: components['schemas']['MetadataLanguage']
+      metadataRegion: components['schemas']['MetadataRegion']
       /** Format: date-time */
       lastScanAt?: string
       folders: components['schemas']['LibraryFolder'][]
@@ -865,7 +867,19 @@ export interface components {
       type?: components['schemas']['LibraryType']
       folders?: string[]
       scanIntervalSeconds?: number | null
+      metadataLanguage?: components['schemas']['MetadataLanguage']
+      metadataRegion?: components['schemas']['MetadataRegion']
     }
+    /**
+     * @description ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
+     * @example fr
+     */
+    MetadataLanguage: string
+    /**
+     * @description ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+     * @example FR
+     */
+    MetadataRegion: string
     ScanRequest: {
       /**
        * @description Re-probe every file, changed or not.
@@ -933,8 +947,23 @@ export interface components {
       id: string
       kind: components['schemas']['ItemKind']
       parentId?: string
-      /** @description Parsed from names; matched metadata comes with F005. */
+      /** @description Parsed from names. See displayTitle for what to show. */
       title?: string
+      /** @description The matched (or .nfo) title, else the parsed one. Empty for a season or episode TMDB doesn't know. */
+      displayTitle: string
+      matchStatus: components['schemas']['MatchStatus']
+      /**
+       * Format: date
+       * @description Movie release, show first air date, season or episode air date.
+       */
+      releaseDate?: string
+      /** @description TMDB average vote, 0–10. */
+      rating?: number
+      /** @description Content rating in certificationRegion, e.g. PG-13 or FSK 16. */
+      certification?: string
+      /** @description Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated. */
+      ageRating?: number
+      genres: string[]
       year?: number
       seasonNumber?: number
       episodeNumber?: number
@@ -1004,6 +1033,74 @@ export interface components {
     }
     ItemDetail: components['schemas']['ItemSummary'] & {
       files: components['schemas']['MediaFile'][]
+      metadata?: components['schemas']['ItemMetadata']
+    }
+    /**
+     * @description pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
+     * @enum {string}
+     */
+    MatchStatus: 'pending' | 'matched' | 'needs_review' | 'unmatched'
+    /** @description What F005 knows about an item, beyond the summary (R7, R8, R22, R23). */
+    ItemMetadata: {
+      /** @enum {string} */
+      matchSource?: 'nfo' | 'hint' | 'auto' | 'manual' | 'parent'
+      confidence?: number
+      originalTitle?: string
+      overview?: string
+      tagline?: string
+      /**
+       * Format: date
+       * @description A show's last air date.
+       */
+      endDate?: string
+      /** @enum {string} */
+      showStatus?: 'returning' | 'ended' | 'canceled' | 'in_production'
+      runtimeMinutes?: number
+      ratingCount?: number
+      certificationRegion?: string
+      /** @description Studios, or networks for a show. */
+      studios: string[]
+      trailers: components['schemas']['Trailer'][]
+      collection?: components['schemas']['CollectionRef']
+      credits: components['schemas']['Credit'][]
+      /** @description Language of text fields that fell back to English, e.g. {"overview": "en"} (R11). */
+      fieldLanguages: {
+        [key: string]: string
+      }
+      /** @description Fields an admin set; refreshes don't change them (R29). */
+      lockedFields: string[]
+      /** @description Fields taken from a local .nfo (R12). */
+      localFields: string[]
+      providerIds: components['schemas']['ProviderIds']
+      /** @description The older item of the library matched to the same title (R38). */
+      duplicateOf?: string
+    }
+    Trailer: {
+      /** @enum {string} */
+      site: 'YouTube'
+      /** @description The video id; clients build the URL. The server never calls YouTube. */
+      key: string
+      name?: string
+      language: string
+      /** @enum {string} */
+      type: 'Trailer' | 'Teaser'
+      official: boolean
+    }
+    CollectionRef: {
+      id: string
+      name: string
+    }
+    Credit: {
+      personId: string
+      name: string
+      /** @enum {string} */
+      role: 'cast' | 'director' | 'writer' | 'creator'
+      character?: string
+    }
+    ProviderIds: {
+      tmdb?: number
+      imdb?: string
+      tvdb?: number
     }
     UnrecognizedFile: {
       id: string

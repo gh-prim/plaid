@@ -1,0 +1,44 @@
+{
+  "total_results": 3,
+  "results": [
+    {
+      "id": 679,
+      "title": "Aliens",
+      "name": null,
+      "original_title": "Aliens",
+      "original_name": null,
+      "release_date": "1986-07-18",
+      "first_air_date": null,
+      "popularity": 27.6171,
+      "original_language": "en",
+      "poster_path": "/r1x5JGpyqZU8PYhbs4UcrO1Xb6x.jpg",
+      "overview": "Ripley, the sole survivor of the Nostromo's deadly encounter with the monstrous Alien, returns to Earth after drifting through space in hypersleep for 57 years."
+    },
+    {
+      "id": 471511,
+      "title": "Aliens, Dragons, Monsters & Me",
+      "name": null,
+      "original_title": "Aliens, Dragons, Monsters & Me",
+      "original_name": null,
+      "release_date": "1983-01-01",
+      "first_air_date": null,
+      "popularity": 1.8333,
+      "original_language": "en",
+      "poster_path": "/yV1tLv7kJxZRRZY9qaAEaQ1QoFv.jpg",
+      "overview": "Documentary about the life and work of Ray Harryhausen."
+    },
+    {
+      "id": 14510,
+      "title": "From Beyond",
+      "name": null,
+      "original_title": "From Beyond",
+      "original_name": null,
+      "release_date": "1986-10-24",
+      "first_air_date": null,
+      "popularity": 5.8857,
+      "original_language": "en",
+      "poster_path": "/zwmyxaKzIRLD4iUqZAQW940omdm.jpg",
+      "overview": "The Resonator, a powerful machine that can control the sixth sense, has killed its creator and sent his associate into an insane asylum. When a psychiatrist bec"
+    }
+  ]
+}

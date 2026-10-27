@@ -1,0 +1,87 @@
+{
+  "id": 3572,
+  "name": "Saison 1",
+  "overview": "Walter White, 50 ans, est professeur de chimie dans un lycée du Nouveau-Mexique. Son quotidien est bouleversé lorsqu’il apprend qu’il est atteint d’un cancer des poumons incurable. Il n’a plus qu’une seule solution pour mettre rapidement sa famille à l’abri du besoin : fabriquer et vendre une drogue de synthèse. Commence alors une longue descente aux enfers.",
+  "air_date": "2008-01-20",
+  "season_number": 1,
+  "poster_path": "/8heiYdc8oWbPODli86Vv3DvF3ON.jpg",
+  "episodes": [
+    {
+      "id": 62085,
+      "name": "Chute libre",
+      "overview": "Atteint d'un cancer en phase terminale, un prof de chimie se lance dans la fabrication et la vente de méthamphétamines pour assurer l'avenir financier de sa famille.",
+      "air_date": "2008-01-20",
+      "episode_number": 1,
+      "season_number": 1,
+      "runtime": 59,
+      "still_path": "/ydlY3iPfeOAvu8gVqrxPoMvzNCn.jpg",
+      "vote_average": 8.523
+    },
+    {
+      "id": 62086,
+      "name": "Le Choix",
+      "overview": "Alors qu'ils viennent de rater un deal, Walt et Jesse doivent se débarrasser de deux corps, tandis que Skyler soupçonne son mari de mijoter quelque chose.",
+      "air_date": "2008-01-27",
+      "episode_number": 2,
+      "season_number": 1,
+      "runtime": 49,
+      "still_path": "/AbMoecO0ZZio0LcgeLxlzdyGs6X.jpg",
+      "vote_average": 8.265
+    },
+    {
+      "id": 62087,
+      "name": "Dérapage",
+      "overview": "Alors que Walt tente de remettre de l'ordre après son premier deal, Skyler est à deux doigts de la vérité au sujet de la double vie de son mari.",
+      "air_date": "2008-02-10",
+      "episode_number": 3,
+      "season_number": 1,
+      "runtime": 49,
+      "still_path": "/n8Dah3Tc1vlc4i7bQ9zYPWaFO0e.jpg",
+      "vote_average": 8.44
+    },
+    {
+      "id": 62088,
+      "name": "Retour aux sources",
+      "overview": "Contraint de révéler à son entourage la vérité sur sa maladie, Walter doit trouver un moyen de financer son traitement contre le cancer.",
+      "air_date": "2008-02-17",
+      "episode_number": 4,
+      "season_number": 1,
+      "runtime": 49,
+      "still_path": "/i5BAJVhuIWfkoSqDID6FnQNCTVc.jpg",
+      "vote_average": 7.9
+    },
+    {
+      "id": 62089,
+      "name": "Vivre ou survivre",
+      "overview": "Skyler tente de persuader Walter d'accepter le travail lucratif proposé par un ancien ami qui lui permettrait de couvrir ses dépenses de santé.",
+      "air_date": "2008-02-24",
+      "episode_number": 5,
+      "season_number": 1,
+      "runtime": 49,
+      "still_path": "/82G3wZgEvZLKcte6yoZJahUWBtx.jpg",
+      "vote_average": 8.2
+    },
+    {
+      "id": 62090,
+      "name": "Bluff",
+      "overview": "Alors que ses frais médicaux augmentent et que les effets secondaires de la chimio se font ressentir, Walt compte sur Jesse pour l'aider à écouler plus de came.",
+      "air_date": "2008-03-02",
+      "episode_number": 6,
+      "season_number": 1,
+      "runtime": 49,
+      "still_path": "/j5DgXgtZcA6fioFyaFzdqlt3t6.jpg",
+      "vote_average": 8.9
+    },
+    {
+      "id": 62091,
+      "name": "Le Fruit défendu",
+      "overview": "Alors que Jesse a frôlé la mort, Walt décide de doubler sa production pour l'impitoyable Tuco, pendant que Skyler soupçonne sa sœur de vol à l'étalage.",
+      "air_date": "2008-03-09",
+      "episode_number": 7,
+      "season_number": 1,
+      "runtime": 48,
+      "still_path": "/1dgFAsajUpUT7DLXgAxHb9GyXHH.jpg",
+      "vote_average": 8.4
+    }
+  ]
+}

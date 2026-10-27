@@ -20,6 +20,30 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for CreditRole.
+const (
+	Cast     CreditRole = "cast"
+	Creator  CreditRole = "creator"
+	Director CreditRole = "director"
+	Writer   CreditRole = "writer"
+)
+
+// Valid indicates whether the value is a known member of the CreditRole enum.
+func (e CreditRole) Valid() bool {
+	switch e {
+	case Cast:
+		return true
+	case Creator:
+		return true
+	case Director:
+		return true
+	case Writer:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeviceType.
 const (
 	Android   DeviceType = "android"
@@ -113,6 +137,57 @@ func (e ItemKind) Valid() bool {
 	}
 }
 
+// Defines values for ItemMetadataMatchSource.
+const (
+	Auto   ItemMetadataMatchSource = "auto"
+	Hint   ItemMetadataMatchSource = "hint"
+	Manual ItemMetadataMatchSource = "manual"
+	Nfo    ItemMetadataMatchSource = "nfo"
+	Parent ItemMetadataMatchSource = "parent"
+)
+
+// Valid indicates whether the value is a known member of the ItemMetadataMatchSource enum.
+func (e ItemMetadataMatchSource) Valid() bool {
+	switch e {
+	case Auto:
+		return true
+	case Hint:
+		return true
+	case Manual:
+		return true
+	case Nfo:
+		return true
+	case Parent:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ItemMetadataShowStatus.
+const (
+	Canceled     ItemMetadataShowStatus = "canceled"
+	Ended        ItemMetadataShowStatus = "ended"
+	InProduction ItemMetadataShowStatus = "in_production"
+	Returning    ItemMetadataShowStatus = "returning"
+)
+
+// Valid indicates whether the value is a known member of the ItemMetadataShowStatus enum.
+func (e ItemMetadataShowStatus) Valid() bool {
+	switch e {
+	case Canceled:
+		return true
+	case Ended:
+		return true
+	case InProduction:
+		return true
+	case Returning:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for LibraryFolderStatus.
 const (
 	LibraryFolderStatusOk          LibraryFolderStatus = "ok"
@@ -146,6 +221,30 @@ func (e LibraryType) Valid() bool {
 	case Movies:
 		return true
 	case Shows:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MatchStatus.
+const (
+	MatchStatusMatched     MatchStatus = "matched"
+	MatchStatusNeedsReview MatchStatus = "needs_review"
+	MatchStatusPending     MatchStatus = "pending"
+	MatchStatusUnmatched   MatchStatus = "unmatched"
+)
+
+// Valid indicates whether the value is a known member of the MatchStatus enum.
+func (e MatchStatus) Valid() bool {
+	switch e {
+	case MatchStatusMatched:
+		return true
+	case MatchStatusNeedsReview:
+		return true
+	case MatchStatusPending:
+		return true
+	case MatchStatusUnmatched:
 		return true
 	default:
 		return false
@@ -341,6 +440,39 @@ func (e TechnicalSummaryHdrFormats) Valid() bool {
 	}
 }
 
+// Defines values for TrailerSite.
+const (
+	YouTube TrailerSite = "YouTube"
+)
+
+// Valid indicates whether the value is a known member of the TrailerSite enum.
+func (e TrailerSite) Valid() bool {
+	switch e {
+	case YouTube:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TrailerType.
+const (
+	TrailerTypeTeaser  TrailerType = "Teaser"
+	TrailerTypeTrailer TrailerType = "Trailer"
+)
+
+// Valid indicates whether the value is a known member of the TrailerType enum.
+func (e TrailerType) Valid() bool {
+	switch e {
+	case TrailerTypeTeaser:
+		return true
+	case TrailerTypeTrailer:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UnrecognizedFileProbeStatus.
 const (
 	UnrecognizedFileProbeStatusFailed  UnrecognizedFileProbeStatus = "failed"
@@ -445,6 +577,12 @@ type ClaimPairingRequest struct {
 	ProfileId string `json:"profileId"`
 }
 
+// CollectionRef defines model for CollectionRef.
+type CollectionRef struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // CreateLibraryRequest defines model for CreateLibraryRequest.
 type CreateLibraryRequest struct {
 	// Folders Examples: ["/srv/media/movies"]
@@ -475,6 +613,17 @@ type CreateUserRequest struct {
 	TemporaryPassword string  `json:"temporaryPassword"`
 	Username          string  `json:"username"`
 }
+
+// Credit defines model for Credit.
+type Credit struct {
+	Character *string    `json:"character,omitempty"`
+	Name      string     `json:"name"`
+	PersonId  string     `json:"personId"`
+	Role      CreditRole `json:"role"`
+}
+
+// CreditRole defines model for Credit.Role.
+type CreditRole string
 
 // Device defines model for Device.
 type Device struct {
@@ -541,25 +690,46 @@ type HealthStatus string
 
 // ItemDetail defines model for ItemDetail.
 type ItemDetail struct {
-	AirDate *openapi_types.Date `json:"airDate,omitempty"`
+	// AgeRating Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated.
+	AgeRating *int                `json:"ageRating,omitempty"`
+	AirDate   *openapi_types.Date `json:"airDate,omitempty"`
+
+	// Certification Content rating in certificationRegion, e.g. PG-13 or FSK 16.
+	Certification *string `json:"certification,omitempty"`
 
 	// ChildCount Seasons of a show, episodes of a season; 0 otherwise.
-	ChildCount    int         `json:"childCount"`
+	ChildCount int `json:"childCount"`
+
+	// DisplayTitle The matched (or .nfo) title, else the parsed one. Empty for a season or episode TMDB doesn't know.
+	DisplayTitle  string      `json:"displayTitle"`
 	EpisodeNumber *int        `json:"episodeNumber,omitempty"`
 	FileCount     int         `json:"fileCount"`
 	Files         []MediaFile `json:"files"`
+	Genres        []string    `json:"genres"`
 
 	// Hints Ids found in file names, for metadata matching (F005).
-	Hints        *ItemHints `json:"hints,omitempty"`
-	Id           string     `json:"id"`
-	Kind         ItemKind   `json:"kind"`
-	ParentId     *string    `json:"parentId,omitempty"`
-	SeasonNumber *int       `json:"seasonNumber,omitempty"`
+	Hints *ItemHints `json:"hints,omitempty"`
+	Id    string     `json:"id"`
+	Kind  ItemKind   `json:"kind"`
+
+	// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
+	MatchStatus MatchStatus `json:"matchStatus"`
+
+	// Metadata What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
+	Metadata *ItemMetadata `json:"metadata,omitempty"`
+	ParentId *string       `json:"parentId,omitempty"`
+
+	// Rating TMDB average vote, 0–10.
+	Rating *float32 `json:"rating,omitempty"`
+
+	// ReleaseDate Movie release, show first air date, season or episode air date.
+	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
+	SeasonNumber *int                `json:"seasonNumber,omitempty"`
 
 	// Technical Across the item's files present on disk (for shows and seasons, their episodes).
 	Technical TechnicalSummary `json:"technical"`
 
-	// Title Parsed from names; matched metadata comes with F005.
+	// Title Parsed from names. See displayTitle for what to show.
 	Title *string `json:"title,omitempty"`
 	Year  *int    `json:"year,omitempty"`
 }
@@ -573,6 +743,47 @@ type ItemHints struct {
 // ItemKind defines model for ItemKind.
 type ItemKind string
 
+// ItemMetadata What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
+type ItemMetadata struct {
+	CertificationRegion *string        `json:"certificationRegion,omitempty"`
+	Collection          *CollectionRef `json:"collection,omitempty"`
+	Confidence          *float32       `json:"confidence,omitempty"`
+	Credits             []Credit       `json:"credits"`
+
+	// DuplicateOf The older item of the library matched to the same title (R38).
+	DuplicateOf *string `json:"duplicateOf,omitempty"`
+
+	// EndDate A show's last air date.
+	EndDate *openapi_types.Date `json:"endDate,omitempty"`
+
+	// FieldLanguages Language of text fields that fell back to English, e.g. {"overview": "en"} (R11).
+	FieldLanguages map[string]string `json:"fieldLanguages"`
+
+	// LocalFields Fields taken from a local .nfo (R12).
+	LocalFields []string `json:"localFields"`
+
+	// LockedFields Fields an admin set; refreshes don't change them (R29).
+	LockedFields   []string                 `json:"lockedFields"`
+	MatchSource    *ItemMetadataMatchSource `json:"matchSource,omitempty"`
+	OriginalTitle  *string                  `json:"originalTitle,omitempty"`
+	Overview       *string                  `json:"overview,omitempty"`
+	ProviderIds    ProviderIds              `json:"providerIds"`
+	RatingCount    *int                     `json:"ratingCount,omitempty"`
+	RuntimeMinutes *int                     `json:"runtimeMinutes,omitempty"`
+	ShowStatus     *ItemMetadataShowStatus  `json:"showStatus,omitempty"`
+
+	// Studios Studios, or networks for a show.
+	Studios  []string  `json:"studios"`
+	Tagline  *string   `json:"tagline,omitempty"`
+	Trailers []Trailer `json:"trailers"`
+}
+
+// ItemMetadataMatchSource defines model for ItemMetadata.MatchSource.
+type ItemMetadataMatchSource string
+
+// ItemMetadataShowStatus defines model for ItemMetadata.ShowStatus.
+type ItemMetadataShowStatus string
+
 // ItemPage defines model for ItemPage.
 type ItemPage struct {
 	Items []ItemSummary `json:"items"`
@@ -583,24 +794,42 @@ type ItemPage struct {
 
 // ItemSummary defines model for ItemSummary.
 type ItemSummary struct {
-	AirDate *openapi_types.Date `json:"airDate,omitempty"`
+	// AgeRating Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated.
+	AgeRating *int                `json:"ageRating,omitempty"`
+	AirDate   *openapi_types.Date `json:"airDate,omitempty"`
+
+	// Certification Content rating in certificationRegion, e.g. PG-13 or FSK 16.
+	Certification *string `json:"certification,omitempty"`
 
 	// ChildCount Seasons of a show, episodes of a season; 0 otherwise.
-	ChildCount    int  `json:"childCount"`
-	EpisodeNumber *int `json:"episodeNumber,omitempty"`
-	FileCount     int  `json:"fileCount"`
+	ChildCount int `json:"childCount"`
+
+	// DisplayTitle The matched (or .nfo) title, else the parsed one. Empty for a season or episode TMDB doesn't know.
+	DisplayTitle  string   `json:"displayTitle"`
+	EpisodeNumber *int     `json:"episodeNumber,omitempty"`
+	FileCount     int      `json:"fileCount"`
+	Genres        []string `json:"genres"`
 
 	// Hints Ids found in file names, for metadata matching (F005).
-	Hints        *ItemHints `json:"hints,omitempty"`
-	Id           string     `json:"id"`
-	Kind         ItemKind   `json:"kind"`
-	ParentId     *string    `json:"parentId,omitempty"`
-	SeasonNumber *int       `json:"seasonNumber,omitempty"`
+	Hints *ItemHints `json:"hints,omitempty"`
+	Id    string     `json:"id"`
+	Kind  ItemKind   `json:"kind"`
+
+	// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
+	MatchStatus MatchStatus `json:"matchStatus"`
+	ParentId    *string     `json:"parentId,omitempty"`
+
+	// Rating TMDB average vote, 0–10.
+	Rating *float32 `json:"rating,omitempty"`
+
+	// ReleaseDate Movie release, show first air date, season or episode air date.
+	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
+	SeasonNumber *int                `json:"seasonNumber,omitempty"`
 
 	// Technical Across the item's files present on disk (for shows and seasons, their episodes).
 	Technical TechnicalSummary `json:"technical"`
 
-	// Title Parsed from names; matched metadata comes with F005.
+	// Title Parsed from names. See displayTitle for what to show.
 	Title *string `json:"title,omitempty"`
 	Year  *int    `json:"year,omitempty"`
 }
@@ -611,8 +840,18 @@ type Library struct {
 	Folders    []LibraryFolder `json:"folders"`
 	Id         string          `json:"id"`
 	LastScanAt *time.Time      `json:"lastScanAt,omitempty"`
-	Name       string          `json:"name"`
-	Scan       ScanProgress    `json:"scan"`
+
+	// MetadataLanguage ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
+	//
+	// Examples: fr
+	MetadataLanguage MetadataLanguage `json:"metadataLanguage"`
+
+	// MetadataRegion ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+	//
+	// Examples: FR
+	MetadataRegion MetadataRegion `json:"metadataRegion"`
+	Name           string         `json:"name"`
+	Scan           ScanProgress   `json:"scan"`
 
 	// ScanIntervalSeconds Null when the defaults apply (15 min unwatched, 6 h watched).
 	ScanIntervalSeconds nullable.Nullable[int] `json:"scanIntervalSeconds"`
@@ -658,6 +897,9 @@ type LoginRequest struct {
 	Password string `json:"password"`
 	Username string `json:"username"`
 }
+
+// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
+type MatchStatus string
 
 // Me defines model for Me.
 type Me struct {
@@ -722,6 +964,16 @@ type MediaStream struct {
 // MediaStreamType defines model for MediaStream.Type.
 type MediaStreamType string
 
+// MetadataLanguage ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
+//
+// Examples: fr
+type MetadataLanguage = string
+
+// MetadataRegion ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+//
+// Examples: FR
+type MetadataRegion = string
+
 // PairingPending defines model for PairingPending.
 type PairingPending struct {
 	Status PairingPendingStatus `json:"status"`
@@ -757,6 +1009,13 @@ type Profile struct {
 	// MaxAge Age limit, one of 0, 7, 10, 12, 13, 16 or 18; null means no limit. Enforced by the browsing and playback features.
 	MaxAge nullable.Nullable[int] `json:"maxAge"`
 	Name   string                 `json:"name"`
+}
+
+// ProviderIds defines model for ProviderIds.
+type ProviderIds struct {
+	Imdb *string `json:"imdb,omitempty"`
+	Tmdb *int    `json:"tmdb,omitempty"`
+	Tvdb *int    `json:"tvdb,omitempty"`
 }
 
 // ResetPasswordRequest defines model for ResetPasswordRequest.
@@ -892,6 +1151,23 @@ type TechnicalSummary struct {
 // TechnicalSummaryHdrFormats defines model for TechnicalSummary.HdrFormats.
 type TechnicalSummaryHdrFormats string
 
+// Trailer defines model for Trailer.
+type Trailer struct {
+	// Key The video id; clients build the URL. The server never calls YouTube.
+	Key      string      `json:"key"`
+	Language string      `json:"language"`
+	Name     *string     `json:"name,omitempty"`
+	Official bool        `json:"official"`
+	Site     TrailerSite `json:"site"`
+	Type     TrailerType `json:"type"`
+}
+
+// TrailerSite defines model for Trailer.Site.
+type TrailerSite string
+
+// TrailerType defines model for Trailer.Type.
+type TrailerType string
+
 // UnrecognizedFile defines model for UnrecognizedFile.
 type UnrecognizedFile struct {
 	Id          string                      `json:"id"`
@@ -911,7 +1187,17 @@ type UnrecognizedPage struct {
 
 // UpdateLibraryRequest defines model for UpdateLibraryRequest.
 type UpdateLibraryRequest struct {
-	Folders             *[]string              `json:"folders,omitempty"`
+	Folders *[]string `json:"folders,omitempty"`
+
+	// MetadataLanguage ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
+	//
+	// Examples: fr
+	MetadataLanguage *MetadataLanguage `json:"metadataLanguage,omitempty"`
+
+	// MetadataRegion ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+	//
+	// Examples: FR
+	MetadataRegion      *MetadataRegion        `json:"metadataRegion,omitempty"`
 	Name                *string                `json:"name,omitempty"`
 	ScanIntervalSeconds nullable.Nullable[int] `json:"scanIntervalSeconds,omitempty"`
 	Type                *LibraryType           `json:"type,omitempty"`

@@ -1,0 +1,120 @@
+{
+  "id": 85712,
+  "name": "Saison 1",
+  "overview": "Quatre familles affolées par la disparition d'un enfant cherchent des réponses et tombent sur un mystère impliquant trois générations qui finit de les déstabiliser.",
+  "air_date": "2017-12-01",
+  "season_number": 1,
+  "poster_path": "/nth9Jw0GfdkCiZMsaACUM5yYHXR.jpg",
+  "episodes": [
+    {
+      "id": 1279454,
+      "name": "Secrets",
+      "overview": "En 2019, la disparition d'un garçon fait naître la peur parmi les habitants de Winden, une petite ville allemande à l'histoire étrange et tragique.",
+      "air_date": "2017-12-01",
+      "episode_number": 1,
+      "season_number": 1,
+      "runtime": 52,
+      "still_path": "/ljQC5U5Ag86vRylCR5gmf78fVaS.jpg",
+      "vote_average": 7.9
+    },
+    {
+      "id": 1375781,
+      "name": "Mensonges",
+      "overview": "Suite à une découverte sinistre qui laisse la police dans l'incompréhension, Ulrich demande un mandat pour fouiller la centrale. Un inconnu arrive à l'hôtel.",
+      "air_date": "2017-12-01",
+      "episode_number": 2,
+      "season_number": 1,
+      "runtime": 45,
+      "still_path": "/oFTNaNwF1g0GCQPTXgHviixMCDM.jpg",
+      "vote_average": 7.8
+    },
+    {
+      "id": 1375782,
+      "name": "Passé et présent",
+      "overview": "En 1986, le frère d'Ulrich, Mads, a disparu depuis un mois. La confusion est à son comble tandis que passé et présent s'entremêlent.",
+      "air_date": "2017-12-01",
+      "episode_number": 3,
+      "season_number": 1,
+      "runtime": 46,
+      "still_path": "/86XR5D6BVpYGRKO5qu1mRLY8EM2.jpg",
+      "vote_average": 8.1
+    },
+    {
+      "id": 1375783,
+      "name": "Doubles vies",
+      "overview": "D'étranges événements donnent à Charlotte, qui soupçonne Peter de cacher quelque chose, une impression de déjà vu. Franziska le prend mal quand Magnus l'interroge.",
+      "air_date": "2017-12-01",
+      "episode_number": 4,
+      "season_number": 1,
+      "runtime": 48,
+      "still_path": "/eH3NmNsMv5uNygAn57uOBS3wHqB.jpg",
+      "vote_average": 7.8
+    },
+    {
+      "id": 1375784,
+      "name": "Vérités",
+      "overview": "Hannah est complètement obsédée par Ulrich. L'inconnu demande à Regina de livrer un paquet important. Martha est déchirée entre Jonas et Bartosz.",
+      "air_date": "2017-12-01",
+      "episode_number": 5,
+      "season_number": 1,
+      "runtime": 46,
+      "still_path": "/piwRYraJ1jUE8pcuQJfWPgs6hdy.jpg",
+      "vote_average": 8.5
+    },
+    {
+      "id": 1375785,
+      "name": "Sic mundus creatus est",
+      "overview": "Ulrich cherche des réponses dans le passé et déterre des secrets de famille dérangeants. Armé de nouveaux outils, Jonas explore les profondeurs glauques de la grotte.",
+      "air_date": "2017-12-01",
+      "episode_number": 6,
+      "season_number": 1,
+      "runtime": 51,
+      "still_path": "/b29shl2dzHgCclnKgk7xXQQ2qC.jpg",
+      "vote_average": 8.6
+    },
+    {
+      "id": 1375786,
+      "name": "Carrefour",
+      "overview": "Ulrich interroge un Helge fragile et effrayé dans la maison de retraite. Jonas cherche Mikkel, mais l'inconnu le met en garde, lui déconseillant de se mêler du passé.",
+      "air_date": "2017-12-01",
+      "episode_number": 7,
+      "season_number": 1,
+      "runtime": 52,
+      "still_path": "/5Is0BxZrsvmC7KCNp4v9WVWl5Hj.jpg",
+      "vote_average": 8.3
+    },
+    {
+      "id": 1375787,
+      "name": "On récolte ce que l'on sème",
+      "overview": "En 1953, les corps défigurés de deux garçons sont exhumés sur le chantier où la future centrale nucléaire de Winden est en construction.",
+      "air_date": "2017-12-01",
+      "episode_number": 8,
+      "season_number": 1,
+      "runtime": 51,
+      "still_path": "/pgRyuIwDfrTrDj02IjajEz4pKwv.jpg",
+      "vote_average": 8.6
+    },
+    {
+      "id": 1375788,
+      "name": "Tout est maintenant",
+      "overview": "Ulrich a des ennuis avec la justice, Helge essaie d'éviter Egon Tiedemann, Claudia exploite les pouvoirs de la grotte, et Katharina s'en prend à Hannah.",
+      "air_date": "2017-12-01",
+      "episode_number": 9,
+      "season_number": 1,
+      "runtime": 56,
+      "still_path": "/7Po2UkodniCiksyJT4sLLky4dEz.jpg",
+      "vote_average": 8.2
+    },
+    {
+      "id": 1375789,
+      "name": "Alpha et oméga",
+      "overview": "Peter subit un choc. Jonas apprend la vérité sur sa famille, et d'autres surprises l'attendent. Helge fait un sacrifice.",
+      "air_date": "2017-12-01",
+      "episode_number": 10,
+      "season_number": 1,
+      "runtime": 57,
+      "still_path": "/9oZjmjudW8bCyhhIOfiacYsTgx0.jpg",
+      "vote_average": 8.6
+    }
+  ]
+}

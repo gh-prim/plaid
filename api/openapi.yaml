@@ -1193,7 +1193,7 @@ components:
           type: integer
     Library:
       type: object
-      required: [id, name, type, scanIntervalSeconds, folders, counts, scan]
+      required: [id, name, type, scanIntervalSeconds, metadataLanguage, metadataRegion, folders, counts, scan]
       properties:
         id:
           type: string
@@ -1204,6 +1204,10 @@ components:
         scanIntervalSeconds:
           type: [integer, "null"]
           description: Null when the defaults apply (15 min unwatched, 6 h watched).
+        metadataLanguage:
+          $ref: "#/components/schemas/MetadataLanguage"
+        metadataRegion:
+          $ref: "#/components/schemas/MetadataRegion"
         lastScanAt:
           type: string
           format: date-time
@@ -1255,6 +1259,22 @@ components:
           type: [integer, "null"]
           minimum: 300
           maximum: 86400
+        metadataLanguage:
+          $ref: "#/components/schemas/MetadataLanguage"
+        metadataRegion:
+          $ref: "#/components/schemas/MetadataRegion"
+    MetadataLanguage:
+      type: string
+      pattern: "^[a-z]{2}$"
+      description: >-
+        ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the
+        creating admin's locale. Changing it refreshes the library's metadata in the background.
+      examples: [fr]
+    MetadataRegion:
+      type: string
+      pattern: "^[A-Z]{2}$"
+      description: ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+      examples: [FR]
     ScanRequest:
       type: object
       properties:
@@ -1357,7 +1377,7 @@ components:
           examples: [["eng", "fre"]]
     ItemSummary:
       type: object
-      required: [id, kind, fileCount, childCount, technical]
+      required: [id, kind, displayTitle, matchStatus, genres, fileCount, childCount, technical]
       properties:
         id:
           type: string
@@ -1367,7 +1387,29 @@ components:
           type: string
         title:
           type: string
-          description: Parsed from names; matched metadata comes with F005.
+          description: Parsed from names. See displayTitle for what to show.
+        displayTitle:
+          type: string
+          description: The matched (or .nfo) title, else the parsed one. Empty for a season or episode TMDB doesn't know.
+        matchStatus:
+          $ref: "#/components/schemas/MatchStatus"
+        releaseDate:
+          type: string
+          format: date
+          description: Movie release, show first air date, season or episode air date.
+        rating:
+          type: number
+          description: TMDB average vote, 0–10.
+        certification:
+          type: string
+          description: Content rating in certificationRegion, e.g. PG-13 or FSK 16.
+        ageRating:
+          type: integer
+          description: Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated.
+        genres:
+          type: array
+          items:
+            type: string
         year:
           type: integer
         seasonNumber:
@@ -1496,6 +1538,127 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/MediaFile"
+            metadata:
+              $ref: "#/components/schemas/ItemMetadata"
+    MatchStatus:
+      type: string
+      enum: [pending, matched, needs_review, unmatched]
+      description: >-
+        pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched:
+        TMDB found nothing; it's tried again later (F005 R5).
+    ItemMetadata:
+      type: object
+      description: What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
+      required: [fieldLanguages, lockedFields, localFields, studios, trailers, credits, providerIds]
+      properties:
+        matchSource:
+          type: string
+          enum: [nfo, hint, auto, manual, parent]
+        confidence:
+          type: number
+        originalTitle:
+          type: string
+        overview:
+          type: string
+        tagline:
+          type: string
+        endDate:
+          type: string
+          format: date
+          description: A show's last air date.
+        showStatus:
+          type: string
+          enum: [returning, ended, canceled, in_production]
+        runtimeMinutes:
+          type: integer
+        ratingCount:
+          type: integer
+        certificationRegion:
+          type: string
+        studios:
+          type: array
+          description: Studios, or networks for a show.
+          items:
+            type: string
+        trailers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Trailer"
+        collection:
+          $ref: "#/components/schemas/CollectionRef"
+        credits:
+          type: array
+          items:
+            $ref: "#/components/schemas/Credit"
+        fieldLanguages:
+          type: object
+          description: 'Language of text fields that fell back to English, e.g. {"overview": "en"} (R11).'
+          additionalProperties:
+            type: string
+        lockedFields:
+          type: array
+          description: Fields an admin set; refreshes don't change them (R29).
+          items:
+            type: string
+        localFields:
+          type: array
+          description: Fields taken from a local .nfo (R12).
+          items:
+            type: string
+        providerIds:
+          $ref: "#/components/schemas/ProviderIds"
+        duplicateOf:
+          type: string
+          description: The older item of the library matched to the same title (R38).
+    Trailer:
+      type: object
+      required: [site, key, language, type, official]
+      properties:
+        site:
+          type: string
+          enum: [YouTube]
+        key:
+          type: string
+          description: The video id; clients build the URL. The server never calls YouTube.
+        name:
+          type: string
+        language:
+          type: string
+        type:
+          type: string
+          enum: [Trailer, Teaser]
+        official:
+          type: boolean
+    CollectionRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Credit:
+      type: object
+      required: [personId, name, role]
+      properties:
+        personId:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [cast, director, writer, creator]
+        character:
+          type: string
+    ProviderIds:
+      type: object
+      properties:
+        tmdb:
+          type: integer
+        imdb:
+          type: string
+        tvdb:
+          type: integer
     UnrecognizedFile:
       type: object
       required: [id, path, size, probeStatus]

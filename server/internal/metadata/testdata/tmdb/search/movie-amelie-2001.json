@@ -1,0 +1,31 @@
+{
+  "total_results": 2,
+  "results": [
+    {
+      "id": 194,
+      "title": "Amélie",
+      "name": null,
+      "original_title": "Le Fabuleux Destin d'Amélie Poulain",
+      "original_name": null,
+      "release_date": "2001-04-25",
+      "first_air_date": null,
+      "popularity": 23.4623,
+      "original_language": "fr",
+      "poster_path": "/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg",
+      "overview": "At a tiny Parisian café, the adorable yet painfully shy Amélie accidentally discovers a gift for helping others. Soon Amelie is spending her days as a matchmake"
+    },
+    {
+      "id": 1602539,
+      "title": "Inside the Making of - Amélie",
+      "name": null,
+      "original_title": "Inside the Making of - Amélie",
+      "original_name": null,
+      "release_date": "2001-04-25",
+      "first_air_date": null,
+      "popularity": 1.3715,
+      "original_language": "fr",
+      "poster_path": "/7T1strMrzILKPJjaOECAAcOHBOD.jpg",
+      "overview": "Documentary footage from the making of \"Le fabuleux destin d'Amélie Poulain\""
+    }
+  ]
+}

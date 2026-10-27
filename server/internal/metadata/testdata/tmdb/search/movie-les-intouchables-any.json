@@ -1,0 +1,31 @@
+{
+  "total_results": 2,
+  "results": [
+    {
+      "id": 1586005,
+      "title": "Les vacances des intouchables",
+      "name": null,
+      "original_title": "Les vacances des intouchables",
+      "original_name": null,
+      "release_date": "2025-01-28",
+      "first_air_date": null,
+      "popularity": 0.4159,
+      "original_language": "fr",
+      "poster_path": "/f76mgHPkDU1jD2DQz96kijec0t3.jpg",
+      "overview": ""
+    },
+    {
+      "id": 45138,
+      "title": "Machine Gun McCain",
+      "name": null,
+      "original_title": "Gli intoccabili",
+      "original_name": null,
+      "release_date": "1969-04-01",
+      "first_air_date": null,
+      "popularity": 4.9393,
+      "original_language": "it",
+      "poster_path": "/nlCoQTTfVVuzpEbNe2H0ovjnsA.jpg",
+      "overview": "After serving 12 years behind bars for armed robbery, tough guy Hank McCain finds himself the pawn of a ruthless mob runt's rebellion against a high level don. "
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": 8091,
+  "name": "Alien Collection",
+  "overview": "A science fiction horror film franchise, focusing on Lieutenant Ellen Ripley (Sigourney Weaver) and her battle with an extraterrestrial life-form, commonly referred to as \"the Alien\". Produced by 20th Century Fox, the series started with the 1979 film Alien, then Aliens in 1986, Alien³ in 1992, and Alien: Resurrection in 1997.",
+  "poster_path": "/gWFHIY77cRVoBRGERwMHqpD27gc.jpg",
+  "backdrop_path": "/6X42JnSMdo3dPAswOHUuvebdTq7.jpg",
+  "parts": [
+    {
+      "id": 348,
+      "title": "Alien",
+      "release_date": "1979-05-25"
+    },
+    {
+      "id": 679,
+      "title": "Aliens",
+      "release_date": "1986-07-18"
+    },
+    {
+      "id": 8077,
+      "title": "Alien³",
+      "release_date": "1992-05-22"
+    },
+    {
+      "id": 8078,
+      "title": "Alien Resurrection",
+      "release_date": "1997-11-12"
+    }
+  ]
+}

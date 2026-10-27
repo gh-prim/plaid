@@ -1,0 +1,44 @@
+{
+  "total_results": 3,
+  "results": [
+    {
+      "id": 2224,
+      "title": null,
+      "name": "The Daily Show",
+      "original_title": null,
+      "original_name": "The Daily Show",
+      "release_date": null,
+      "first_air_date": "1996-07-22",
+      "popularity": 272.7186,
+      "original_language": "en",
+      "poster_path": "/ixcfyK7it6FjRM36Te4OdblAq4X.jpg",
+      "overview": "The World's Fakest News Team tackle the biggest stories in news, politics and pop culture."
+    },
+    {
+      "id": 38609,
+      "title": null,
+      "name": "The Daily Show",
+      "original_title": null,
+      "original_name": "The Daily Show",
+      "release_date": null,
+      "first_air_date": "2011-01-31",
+      "popularity": 2.462,
+      "original_language": "nl",
+      "poster_path": null,
+      "overview": ""
+    },
+    {
+      "id": 33832,
+      "title": null,
+      "name": "The Daily Show",
+      "original_title": null,
+      "original_name": "The Daily Show",
+      "release_date": null,
+      "first_air_date": "",
+      "popularity": 0.411,
+      "original_language": "en",
+      "poster_path": null,
+      "overview": "The Daily Show is a lifestyle magazine show which aired on the RTÉ One television channel in Ireland, and which debuted as part of RTÉ's autumn/winter season 20"
+    }
+  ]
+}

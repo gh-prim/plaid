@@ -27,6 +27,9 @@ type Config struct {
 	// BrowseRoots restricts the library folder picker (F004-R3); empty
 	// means the whole file system.
 	BrowseRoots []string
+	// TMDBAPIKey is the admin's TMDB key (F005 R34, ADR 0007); empty means
+	// the key saved in settings or the one built into release binaries.
+	TMDBAPIKey string
 }
 
 // Addr returns the host:port the HTTP server listens on.
@@ -82,6 +85,7 @@ func Load(getenv func(string) string) (Config, error) {
 	cfg.TrustedProxies = proxies
 
 	cfg.FFprobePath = getenv("PLAID_FFPROBE_PATH")
+	cfg.TMDBAPIKey = strings.TrimSpace(getenv("PLAID_TMDB_API_KEY"))
 	roots, err := parseRoots(getenv("PLAID_BROWSE_ROOTS"))
 	if err != nil {
 		return Config{}, fmt.Errorf("PLAID_BROWSE_ROOTS: %w", err)

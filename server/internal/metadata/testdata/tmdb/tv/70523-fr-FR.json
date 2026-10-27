@@ -1,0 +1,997 @@
+{
+  "adult": false,
+  "backdrop_path": "/3jDXL4Xvj3AzDOF6UH1xeyHW8MH.jpg",
+  "created_by": [
+    {
+      "id": 232959,
+      "credit_id": "58c14491c3a368265b0092f6",
+      "name": "Baran bo Odar",
+      "original_name": "Baran bo Odar",
+      "gender": 2,
+      "profile_path": "/3CfxoYPDPgFZ6jJMBOXCO5zhhEQ.jpg"
+    },
+    {
+      "id": 1075096,
+      "credit_id": "5d77e4ce5907de00132cd3df",
+      "name": "Jantje Friese",
+      "original_name": "Jantje Friese",
+      "gender": 1,
+      "profile_path": "/1FPWxHCzCmiLlmCAf7Gze6jkWP7.jpg"
+    }
+  ],
+  "episode_run_time": [],
+  "first_air_date": "2017-12-01",
+  "genres": [
+    {
+      "id": 80,
+      "name": "Crime"
+    },
+    {
+      "id": 18,
+      "name": "Drame"
+    },
+    {
+      "id": 10765,
+      "name": "Science-Fiction & Fantastique"
+    },
+    {
+      "id": 9648,
+      "name": "Mystère"
+    }
+  ],
+  "homepage": "https://www.netflix.com/title/80100172",
+  "id": 70523,
+  "in_production": false,
+  "languages": [
+    "de"
+  ],
+  "last_air_date": "2020-06-27",
+  "last_episode_to_air": {
+    "id": 2284019,
+    "name": "Le paradis",
+    "overview": "Claudia révèle à Adam comment tout est connecté, et comment il peut détruire le nœud.",
+    "vote_average": 9.044,
+    "vote_count": 91,
+    "air_date": "2020-06-27",
+    "episode_number": 8,
+    "episode_type": "finale",
+    "production_code": "",
+    "runtime": 74,
+    "season_number": 3,
+    "show_id": 70523,
+    "still_path": "/pvPrpHjJbO6TcnBZ7OIiG39dx9X.jpg"
+  },
+  "name": "Dark",
+  "next_episode_to_air": null,
+  "networks": [
+    {
+      "id": 213,
+      "logo_path": "/wwemzKWzjKYJFfCeiB57q3r4Bcm.png",
+      "name": "Netflix",
+      "origin_country": ""
+    }
+  ],
+  "number_of_episodes": 26,
+  "number_of_seasons": 3,
+  "origin_country": [
+    "DE"
+  ],
+  "original_language": "de",
+  "original_name": "Dark",
+  "overview": "Quatre familles affolées par la disparition d'un enfant cherchent des réponses et tombent sur un mystère impliquant trois générations qui finit de les déstabiliser.",
+  "popularity": 48.1866,
+  "poster_path": "/vbG0zu0lIVDZZaUVOZuBIE9kno3.jpg",
+  "production_companies": [
+    {
+      "id": 40788,
+      "name": "Wiedemann & Berg Television",
+      "origin_country": "DE"
+    }
+  ],
+  "seasons": [
+    {
+      "air_date": "2017-12-11",
+      "episode_count": 5,
+      "id": 101749,
+      "name": "Épisodes spéciaux",
+      "overview": "",
+      "poster_path": "/sbuYWNhmLrzaTyeCL9jLKQ7dqyc.jpg",
+      "season_number": 0,
+      "vote_average": 0.0
+    },
+    {
+      "air_date": "2017-12-01",
+      "episode_count": 10,
+      "id": 85712,
+      "name": "Saison 1",
+      "overview": "Quatre familles affolées par la disparition d'un enfant cherchent des réponses et tombent sur un mystère impliquant trois générations qui finit de les déstabiliser.",
+      "poster_path": "/nth9Jw0GfdkCiZMsaACUM5yYHXR.jpg",
+      "season_number": 1,
+      "vote_average": 8.2
+    },
+    {
+      "air_date": "2019-06-21",
+      "episode_count": 8,
+      "id": 124476,
+      "name": "Saison 2",
+      "overview": "Six mois après les disparitions de Mikkel, Jonas et Ulrich, les mystères planant sur Winden s'assombrissent, devenant une menace pour l'avenir du monde.",
+      "poster_path": "/6vKAlmLHLhux5gC0qU5fsprOZTG.jpg",
+      "season_number": 2,
+      "vote_average": 8.6
+    },
+    {
+      "air_date": "2020-06-27",
+      "episode_count": 8,
+      "id": 151853,
+      "name": "Saison 3",
+      "overview": "La folie temporelle touche à sa fin dans un nouveau monde étrange, où certaines choses sont plutôt familières – et d'autres sont très loin de l'être.",
+      "poster_path": "/bib4gP5N8ZQvrAoZZh3ThGCjdhI.jpg",
+      "season_number": 3,
+      "vote_average": 8.5
+    }
+  ],
+  "softcore": false,
+  "status": "Ended",
+  "tagline": "Tout est connecté.",
+  "type": "Scripted",
+  "vote_average": 8.4,
+  "vote_count": 7949,
+  "aggregate_credits": {
+    "cast": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1037348,
+        "known_for_department": "Acting",
+        "name": "Louis Hofmann",
+        "original_name": "Louis Hofmann",
+        "popularity": 2.3957,
+        "profile_path": "/m3Mo38afbKmy9EOsfmUagvTFM9q.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "5f90a7af278d8a003a35fdaa",
+            "character": "Jonas Kahnwald",
+            "episode_count": 26
+          }
+        ],
+        "order": 0
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 142660,
+        "known_for_department": "Acting",
+        "name": "Lisa Vicari",
+        "original_name": "Lisa Vicari",
+        "popularity": 2.619,
+        "profile_path": "/y31tGv4Y7yijRBQdGWwIZs8Loml.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "5ec1d30ad2147c0022b41e2f",
+            "character": "Martha Nielsen",
+            "episode_count": 26
+          }
+        ],
+        "order": 1
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1073985,
+        "known_for_department": "Acting",
+        "name": "Andreas Pietschmann",
+        "original_name": "Andreas Pietschmann",
+        "popularity": 1.1004,
+        "profile_path": "/72Srjd11dwvovxe1tyUKU0ml04u.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "5ec1df75cdf2e600204f2d7c",
+            "character": "The Stranger",
+            "episode_count": 26
+          }
+        ],
+        "order": 2
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 568418,
+        "known_for_department": "Acting",
+        "name": "Maja Schöne",
+        "original_name": "Maja Schöne",
+        "popularity": 1.1423,
+        "profile_path": "/867PeMDC2fjF5tpnEDDZ9f9MGky.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "5ec1d9934e52ed002136fb00",
+            "character": "Hannah Kahnwald",
+            "episode_count": 26
+          }
+        ],
+        "order": 5
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 4541,
+        "known_for_department": "Acting",
+        "name": "Stephan Kampwirth",
+        "original_name": "Stephan Kampwirth",
+        "popularity": 0.7941,
+        "profile_path": "/A9B8Qdrej95XaNzEmZBsaR5IxwV.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "5ec2bedbd2147c0023b80491",
+            "character": "Peter Doppler",
+            "episode_count": 26
+          }
+        ],
+        "order": 6
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1900308,
+        "known_for_department": "Acting",
+        "name": "Paul Lux",
+        "original_name": "Paul Lux",
+        "popularity": 0.7892,
+        "profile_path": "/ba8kY09L3qz7Cm7vgf33wbhyMUL.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "5ec32006cdf2e6002050ca81",
+            "character": "Bartosz Tiedemann",
+            "episode_count": 26
+          }
+        ],
+        "order": 8
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 73926,
+        "known_for_department": "Acting",
+        "name": "Jördis Triebel",
+        "original_name": "Jördis Triebel",
+        "popularity": 1.7349,
+        "profile_path": "/jpetRzlJix0vpUM1PyhAEgt1R3b.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "5ec1d5af4e52ed00203713dd",
+            "character": "Katharina Nielsen",
+            "episode_count": 26
+          }
+        ],
+        "order": 10
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 28395,
+        "known_for_department": "Acting",
+        "name": "Karoline Eichhorn",
+        "original_name": "Karoline Eichhorn",
+        "popularity": 1.0554,
+        "profile_path": "/bReOiTHOCNBdLRyNJRhJPVYXUsC.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "5ec1ceb93d3557001ce33f48",
+            "character": "Charlotte Doppler",
+            "episode_count": 26
+          }
+        ],
+        "order": 11
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1262244,
+        "known_for_department": "Acting",
+        "name": "Moritz Jahn",
+        "original_name": "Moritz Jahn",
+        "popularity": 0.9638,
+        "profile_path": "/qxAmxpTpZ3mFiW6Ls5v1otsCxxH.jpg",
+        "total_episode_count": 18,
+        "roles": [
+          {
+            "credit_id": "5ec2c487d2147c0022b56c8a",
+            "character": "Magnus Nielsen",
+            "episode_count": 18
+          }
+        ],
+        "order": 586
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 213581,
+        "known_for_department": "Acting",
+        "name": "Oliver Masucci",
+        "original_name": "Oliver Masucci",
+        "popularity": 1.9612,
+        "profile_path": "/u3ndWBPECxyKf6CRAZqjlJ92hQw.jpg",
+        "total_episode_count": 17,
+        "roles": [
+          {
+            "credit_id": "5ec2c1e0cdf2e60022514dce",
+            "character": "Ulrich Nielsen",
+            "episode_count": 17
+          }
+        ],
+        "order": 9
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 147634,
+        "known_for_department": "Acting",
+        "name": "Peter Benedict",
+        "original_name": "Peter Benedict",
+        "popularity": 0.6661,
+        "profile_path": "/wrz9Ig5Us5lXJJzhOuM3WetSZRq.jpg",
+        "total_episode_count": 17,
+        "roles": [
+          {
+            "credit_id": "5ec31b7c3d3557001ee94680",
+            "character": "Aleksander Tiedemann",
+            "episode_count": 17
+          }
+        ],
+        "order": 587
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 229400,
+        "known_for_department": "Acting",
+        "name": "Gina Stiebitz",
+        "original_name": "Gina Stiebitz",
+        "popularity": 1.1165,
+        "profile_path": "/frH4Vvnf1GN8Uf2J7xpsGuTXIwd.jpg",
+        "total_episode_count": 16,
+        "roles": [
+          {
+            "credit_id": "5ec321c33d3557001ce4f621",
+            "character": "Franziska Doppler",
+            "episode_count": 16
+          }
+        ],
+        "order": 588
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 43156,
+        "known_for_department": "Acting",
+        "name": "Deborah Kaufmann",
+        "original_name": "Deborah Kaufmann",
+        "popularity": 0.7548,
+        "profile_path": "/uysGC2y3XPXZwriRyQHzRNWLNTK.jpg",
+        "total_episode_count": 16,
+        "roles": [
+          {
+            "credit_id": "5ec31d188e2e0000211ec56c",
+            "character": "Regina Tiedemann",
+            "episode_count": 16
+          }
+        ],
+        "order": 609
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1608974,
+        "known_for_department": "Acting",
+        "name": "Daan Lennard Liebrenz",
+        "original_name": "Daan Lennard Liebrenz",
+        "popularity": 0.858,
+        "profile_path": "/dYJWxmuhKvSjx7vCQdybZsoe38X.jpg",
+        "total_episode_count": 14,
+        "roles": [
+          {
+            "credit_id": "5ec3230228723c0020492714",
+            "character": "Mikkel Nielsen",
+            "episode_count": 14
+          }
+        ],
+        "order": 3
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1567434,
+        "known_for_department": "Acting",
+        "name": "Carlotta von Falkenhayn",
+        "original_name": "Carlotta von Falkenhayn",
+        "popularity": 0.9987,
+        "profile_path": "/j8UP1U2yoaCYwYHtnujc17Tp2RY.jpg",
+        "total_episode_count": 14,
+        "roles": [
+          {
+            "credit_id": "5ec42c6b28723c001f4d099c",
+            "character": "Elisabeth Doppler",
+            "episode_count": 14
+          }
+        ],
+        "order": 594
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 28294,
+        "known_for_department": "Acting",
+        "name": "Julika Jenkins",
+        "original_name": "Julika Jenkins",
+        "popularity": 0.841,
+        "profile_path": "/p81Ekx1ocQjuQMERTiZqn6zq95C.jpg",
+        "total_episode_count": 14,
+        "roles": [
+          {
+            "credit_id": "5ec430e2caab6d00218fefd1",
+            "character": "Claudia Tiedemann",
+            "episode_count": 14
+          }
+        ],
+        "order": 610
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 38608,
+        "known_for_department": "Acting",
+        "name": "Dietrich Hollinderbäumer",
+        "original_name": "Dietrich Hollinderbäumer",
+        "popularity": 0.8812,
+        "profile_path": "/wj4zDoZnFMRhyTCeKx0C8Zh6q07.jpg",
+        "total_episode_count": 13,
+        "roles": [
+          {
+            "credit_id": "5d8f871466a7c3000f8969c3",
+            "character": "Adam",
+            "episode_count": 13
+          }
+        ],
+        "order": 4
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 40501,
+        "known_for_department": "Acting",
+        "name": "Mark Waschke",
+        "original_name": "Mark Waschke",
+        "popularity": 0.8007,
+        "profile_path": "/3oj00IFsIcWjcCCfwsFAnxFzssP.jpg",
+        "total_episode_count": 13,
+        "roles": [
+          {
+            "credit_id": "5ec3247718b751001ec94ea4",
+            "character": "Noah",
+            "episode_count": 13
+          }
+        ],
+        "order": 7
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 50041,
+        "known_for_department": "Acting",
+        "name": "Leopold Hornung",
+        "original_name": "Leopold Hornung",
+        "popularity": 0.8633,
+        "profile_path": "/cleGeHDug8U49tF3eBrhvNheqYr.jpg",
+        "total_episode_count": 13,
+        "roles": [
+          {
+            "credit_id": "5a77e0180e0a26598e00bcd7",
+            "character": "Torben Wöller",
+            "episode_count": 13
+          }
+        ],
+        "order": 600
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1329162,
+        "known_for_department": "Acting",
+        "name": "Christian Pätzold",
+        "original_name": "Christian Pätzold",
+        "popularity": 0.6681,
+        "profile_path": "/kKTi2xTXjV4H6zAfCAjHAM5NVNB.jpg",
+        "total_episode_count": 12,
+        "roles": [
+          {
+            "credit_id": "5d8f8a6e79b3d4000f8c9281",
+            "character": "Egon Tiedemann",
+            "episode_count": 12
+          }
+        ],
+        "order": 608
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 688,
+        "known_for_department": "Acting",
+        "name": "Hermann Beyer",
+        "original_name": "Hermann Beyer",
+        "popularity": 1.4199,
+        "profile_path": "/9tDZp6iRk7ctzhwQMDzlyCfn7Gd.jpg",
+        "total_episode_count": 10,
+        "roles": [
+          {
+            "credit_id": "5a77dfda0e0a26598b00bea6",
+            "character": "Helge Doppler",
+            "episode_count": 10
+          }
+        ],
+        "order": 599
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 11248,
+        "known_for_department": "Acting",
+        "name": "Christian Steyer",
+        "original_name": "Christian Steyer",
+        "popularity": 0.5046,
+        "profile_path": "/mjHNODhlnjheVGrwN2XPGuPay5q.jpg",
+        "total_episode_count": 10,
+        "roles": [
+          {
+            "credit_id": "5a77e11d0e0a26598e00bdc5",
+            "character": "H.G. Tannhaus",
+            "episode_count": 10
+          }
+        ],
+        "order": 602
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 13804,
+        "known_for_department": "Acting",
+        "name": "Anne Ratte-Polle",
+        "original_name": "Anne Ratte-Polle",
+        "popularity": 1.1945,
+        "profile_path": "/urX3hisdzUOs4eBEvLeiEY5uDRh.jpg",
+        "total_episode_count": 9,
+        "roles": [
+          {
+            "credit_id": "5a77e206925141776300a496",
+            "character": "Ines Kahnwald",
+            "episode_count": 9
+          }
+        ],
+        "order": 573
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 22612,
+        "known_for_department": "Acting",
+        "name": "Lisa Kreuzer",
+        "original_name": "Lisa Kreuzer",
+        "popularity": 1.2531,
+        "profile_path": "/iDlFoZkpOL856wiEDlJT3ksfzP.jpg",
+        "total_episode_count": 9,
+        "roles": [
+          {
+            "credit_id": "5a77eca20e0a26598e00c879",
+            "character": "Claudia Tiedemann",
+            "episode_count": 9
+          }
+        ],
+        "order": 606
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 37107,
+        "known_for_department": "Acting",
+        "name": "Walter Kreye",
+        "original_name": "Walter Kreye",
+        "popularity": 0.7899,
+        "profile_path": "/JtzOVZZMiRvsyWoJgNRPaqf0ei.jpg",
+        "total_episode_count": 8,
+        "roles": [
+          {
+            "credit_id": "5a77e0300e0a26599400ba52",
+            "character": "Tronte Nielsen",
+            "episode_count": 8
+          }
+        ],
+        "order": 528
+      }
+    ]
+  },
+  "videos": {
+    "results": [
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "All The Opening Credits",
+        "key": "fUiifh_aCLU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Opening Credits",
+        "official": true,
+        "id": "623375a834e152001cbfc4b1",
+        "published_at": "2020-06-28T09:00:01.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "DARK Bande Annonce VF (Nouvelle // 2017) NETFLIX",
+        "key": "vx9HQwjTcXI",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": false,
+        "id": "63cba57609dda40083844bc2",
+        "published_at": "2017-11-09T09:27:57.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Date Announcement",
+        "key": "pi2k1u6eZuI",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Teaser",
+        "official": true,
+        "id": "5d14f01fd6d64d0030b042df",
+        "published_at": "2017-10-04T09:00:03.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "DARK - Teaser VF",
+        "key": "I_5QAwslFTk",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Teaser",
+        "official": true,
+        "id": "5b13b312c3a368628e0174cf",
+        "published_at": "2017-10-04T09:00:01.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Teaser [Subtitled]",
+        "key": "ESEUoa-mz2c",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "5d14f016d6d64d0030b042c7",
+        "published_at": "2017-03-01T09:48:57.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Dark - Teaser VOST",
+        "key": "a7LYIKK3v_w",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Teaser",
+        "official": true,
+        "id": "58c14545c3a368265b009359",
+        "published_at": "2017-03-01T09:48:54.000Z"
+      }
+    ]
+  },
+  "images": {
+    "backdrops": [
+      {
+        "aspect_ratio": 1.778,
+        "height": 1920,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/3jDXL4Xvj3AzDOF6UH1xeyHW8MH.jpg",
+        "vote_average": 6.648,
+        "vote_count": 17,
+        "width": 3414
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/75HgaphatW0PDI3XIHQWZUpbhn6.jpg",
+        "vote_average": 6.306,
+        "vote_count": 18,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/2VpSajCTI26zddsp5cSjqfCBKEa.jpg",
+        "vote_average": 6.2,
+        "vote_count": 10,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.777,
+        "height": 1688,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/nOpary3p4f9cazyj1bCGkBNoaIS.jpg",
+        "vote_average": 5.25,
+        "vote_count": 10,
+        "width": 3000
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1152,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/57jxJRWWQVY3J1ZA9m09QfL1Ttt.jpg",
+        "vote_average": 5.25,
+        "vote_count": 8,
+        "width": 2048
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1034,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/4gGu1E9UdVe1r3DJTS1rP3JIFEq.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 1838
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/mga3Y3dDvMfWGJekcoZZgdTWVph.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/i0SFNZ0MVdQC1WrKgdFyDsX4L4G.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/ul6fLXk1MbRN83tX1jkEd65RSuM.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/bdN3ghiNcugkQSanhtjZJ1K2rbi.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 3840
+      }
+    ],
+    "logos": [
+      {
+        "aspect_ratio": 7.485,
+        "height": 684,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/bV2DiPOCGj3VYtxTK3qS2N6PePI.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 5120
+      },
+      {
+        "aspect_ratio": 5.562,
+        "height": 112,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/dWVToOrK3pqeiy9wRPbbKpNEWbg.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 623
+      }
+    ],
+    "posters": [
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/wiiyc3m6HKaQhFBYeuM7ySCNQsG.jpg",
+        "vote_average": 10.0,
+        "vote_count": 4,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.68,
+        "height": 1000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/7CFCzWIZZcnxHke3yAQiGPWXHwF.jpg",
+        "vote_average": 4.776,
+        "vote_count": 20,
+        "width": 680
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/apbrbWs8M9lyOpJYU5WXrpFbk1Z.jpg",
+        "vote_average": 4.656,
+        "vote_count": 32,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.675,
+        "height": 2048,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/wSXJHO9WHLb0aCwvQrtco7vOmWA.jpg",
+        "vote_average": 4.458,
+        "vote_count": 12,
+        "width": 1382
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2550,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/vbG0zu0lIVDZZaUVOZuBIE9kno3.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 1700
+      },
+      {
+        "aspect_ratio": 0.666,
+        "height": 1799,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/mtnWi9tPp4XvHRe6KfZKhwkN9Lh.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 1199
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/eDKtPI0GAq1atAF6GQM15BALTWy.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/qlXeH10IfnXRQd8ergh0hR9TZrG.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/lY6XLb5qmUMivAuSW3VSGa7DVIo.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/aMN3zSyT5IeVy2vGcycxEr4rIDv.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 2000
+      }
+    ]
+  },
+  "content_ratings": {
+    "results": [
+      {
+        "descriptors": [],
+        "iso_3166_1": "DE",
+        "rating": "16"
+      },
+      {
+        "descriptors": [],
+        "iso_3166_1": "FR",
+        "rating": "16"
+      },
+      {
+        "descriptors": [],
+        "iso_3166_1": "US",
+        "rating": "TV-MA"
+      },
+      {
+        "descriptors": [],
+        "iso_3166_1": "GB",
+        "rating": "15"
+      }
+    ]
+  },
+  "external_ids": {
+    "imdb_id": "tt5753856",
+    "freebase_mid": null,
+    "freebase_id": "",
+    "tvdb_id": 334824,
+    "tvrage_id": null,
+    "wikidata_id": "Q28443710",
+    "facebook_id": "DARKNetflix",
+    "instagram_id": "darknetflix",
+    "twitter_id": "darknetflix"
+  },
+  "translations": {
+    "translations": [
+      {
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "name": "English",
+        "english_name": "English",
+        "data": {
+          "name": "",
+          "overview": "A missing child sets four families on a frantic hunt for answers as they unearth a mind-bending mystery that spans three generations.",
+          "homepage": "",
+          "tagline": "Everything is connected."
+        }
+      },
+      {
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "name": "",
+          "overview": "Quatre familles affolées par la disparition d'un enfant cherchent des réponses et tombent sur un mystère impliquant trois générations qui finit de les déstabiliser.",
+          "homepage": "",
+          "tagline": "Tout est connecté."
+        }
+      },
+      {
+        "iso_3166_1": "CA",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "name": "",
+          "overview": "Après la disparition d'un enfant, quatre familles s'évertuent à découvrir la vérité. Leur quête fait remonter à la surface un mystère s'étendant sur trois générations.",
+          "homepage": "",
+          "tagline": ""
+        }
+      }
+    ]
+  }
+}

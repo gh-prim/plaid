@@ -18,6 +18,8 @@ import (
 	"github.com/gh-prim/plaid/server/internal/handlers"
 	"github.com/gh-prim/plaid/server/internal/httpserver"
 	"github.com/gh-prim/plaid/server/internal/library"
+	"github.com/gh-prim/plaid/server/internal/metadata"
+	"github.com/gh-prim/plaid/server/internal/metadata/provider"
 )
 
 // These tests drive the acceptance criteria of F004 that go through the
@@ -57,19 +59,31 @@ type libEnv struct {
 type libOpts struct {
 	prober      library.Prober
 	browseRoots []string
+	// metadata, when set, runs F005 against the recorded TMDB responses.
+	metadata provider.Provider
 }
 
 func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	t.Helper()
 	e := newEnv(t)
 	logger := slog.New(slog.NewTextHandler(e.logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	var (
+		meta  *metadata.Service
+		hooks library.Hooks
+	)
+	if o.metadata != nil {
+		meta = metadata.New(metadata.Options{DB: e.db, Provider: o.metadata, Log: logger, Workers: 2, QueueIdle: 20 * time.Millisecond})
+		meta.Start(context.Background())
+		t.Cleanup(meta.Close)
+		hooks.ItemsCreated = meta.ItemsCreated
+	}
 	engine := library.NewEngine(e.db, library.EngineOptions{Prober: o.prober, FFprobeVersion: "7.1.1",
-		BrowseRoots: o.browseRoots, Log: logger, Workers: 2})
+		BrowseRoots: o.browseRoots, Log: logger, Workers: 2, Hooks: hooks})
 	engine.Start(context.Background())
 	t.Cleanup(engine.Close)
 	streams, end := context.WithCancel(context.Background())
 	t.Cleanup(end)
-	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Streams: streams})
+	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta, Streams: streams})
 	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct})
 	le := &libEnv{env: e, engine: engine, endStream: end}
 	le.admin = e.setup().Token

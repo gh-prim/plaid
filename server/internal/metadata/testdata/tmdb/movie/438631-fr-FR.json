@@ -1,0 +1,1735 @@
+{
+  "adult": false,
+  "backdrop_path": "/jYEW5xZkZk2WTrdbMGAPFuBqbDc.jpg",
+  "belongs_to_collection": {
+    "id": 726871,
+    "name": "Dune - Saga",
+    "poster_path": "/m7xCDl5PTG9A5LH7XLuBjGhgLuO.jpg",
+    "backdrop_path": "/fahk0Fu7VUUfK6IkTt1R3waOD9F.jpg"
+  },
+  "budget": 165000000,
+  "genres": [
+    {
+      "id": 878,
+      "name": "Science-Fiction"
+    },
+    {
+      "id": 12,
+      "name": "Aventure"
+    }
+  ],
+  "homepage": "",
+  "id": 438631,
+  "imdb_id": "tt1160419",
+  "origin_country": [
+    "US"
+  ],
+  "original_language": "en",
+  "original_title": "Dune",
+  "overview": "L'histoire de Paul Atreides, jeune homme aussi doué que brillant, voué à connaître un destin hors du commun qui le dépasse totalement. Car, s'il veut préserver l'avenir de sa famille et de son peuple, il devra se rendre sur Dune, la planète la plus dangereuse de l'Univers. Mais aussi la seule à même de fournir la ressource la plus précieuse capable de décupler la puissance de l'Humanité. Tandis que des forces maléfiques se disputent le contrôle de cette planète, seuls ceux qui parviennent à dominer leur peur pourront survivre…",
+  "popularity": 45.7773,
+  "poster_path": "/qpyaW4xUPeIiYA5ckg5zAZFHvsb.jpg",
+  "production_companies": [
+    {
+      "id": 923,
+      "name": "Legendary Pictures",
+      "origin_country": "US"
+    }
+  ],
+  "release_date": "2021-09-15",
+  "revenue": 410668500,
+  "runtime": 155,
+  "softcore": false,
+  "status": "Released",
+  "tagline": "Au-delà de la peur, le destin attend.",
+  "title": "Dune",
+  "video": false,
+  "vote_average": 7.785,
+  "vote_count": 15820,
+  "credits": {
+    "cast": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1190668,
+        "known_for_department": "Acting",
+        "name": "Timothée Chalamet",
+        "original_name": "Timothée Chalamet",
+        "popularity": 7.2983,
+        "profile_path": "/dFxpwRpmzpVfP1zjluH68DeQhyj.jpg",
+        "cast_id": 13,
+        "character": "Paul Atreides",
+        "credit_id": "5b4d01bac3a36823d803cd45",
+        "order": 0
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 933238,
+        "known_for_department": "Acting",
+        "name": "Rebecca Ferguson",
+        "original_name": "Rebecca Ferguson",
+        "popularity": 8.6292,
+        "profile_path": "/ra53cM1aNmdH0aFhj8yBqPOj2fb.jpg",
+        "cast_id": 14,
+        "character": "Lady Jessica Atreides",
+        "credit_id": "5b90742fc3a368222e002f41",
+        "order": 1
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 25072,
+        "known_for_department": "Acting",
+        "name": "Oscar Isaac",
+        "original_name": "Oscar Isaac",
+        "popularity": 4.7263,
+        "profile_path": "/dW5U5yrIIPmMjRThR9KT2xH6nTz.jpg",
+        "cast_id": 53,
+        "character": "Duke Leto Atreides",
+        "credit_id": "5c50bc070e0a2612cccedcb3",
+        "order": 2
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 117642,
+        "known_for_department": "Acting",
+        "name": "Jason Momoa",
+        "original_name": "Jason Momoa",
+        "popularity": 7.8782,
+        "profile_path": "/3troAR6QbSb6nUFMDu61YCCWLKa.jpg",
+        "cast_id": 75,
+        "character": "Duncan Idaho",
+        "credit_id": "5c6610319251412fc6017577",
+        "order": 3
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1640,
+        "known_for_department": "Acting",
+        "name": "Stellan Skarsgård",
+        "original_name": "Stellan Skarsgård",
+        "popularity": 3.7872,
+        "profile_path": "/mW7xmtGV4y79kQGn0zkKVGDMAmw.jpg",
+        "cast_id": 31,
+        "character": "Baron Vladimir Harkonnen",
+        "credit_id": "5c364b61c3a368273c1c5fee",
+        "order": 4
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 196179,
+        "known_for_department": "Acting",
+        "name": "Stephen McKinley Henderson",
+        "original_name": "Stephen McKinley Henderson",
+        "popularity": 2.1484,
+        "profile_path": "/z2weSPo4sdMNj47tP5o0me41r2z.jpg",
+        "cast_id": 209,
+        "character": "Thufir Hawat",
+        "credit_id": "61468a6985c0a20043d24c95",
+        "order": 5
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 16851,
+        "known_for_department": "Acting",
+        "name": "Josh Brolin",
+        "original_name": "Josh Brolin",
+        "popularity": 6.9896,
+        "profile_path": "/7QpneI3HoZCCDVPyWx3p3t7yeo7.jpg",
+        "cast_id": 73,
+        "character": "Gurney Halleck",
+        "credit_id": "5c64750d9251412fb4feec3e",
+        "order": 6
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3810,
+        "known_for_department": "Acting",
+        "name": "Javier Bardem",
+        "original_name": "Javier Bardem",
+        "popularity": 4.6137,
+        "profile_path": "/zfRID0jx8DKBluPGU9xtk9sZWUt.jpg",
+        "cast_id": 55,
+        "character": "Stilgar",
+        "credit_id": "5c55434c0e0a26567ac66f76",
+        "order": 7
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 195666,
+        "known_for_department": "Acting",
+        "name": "Sharon Duncan-Brewster",
+        "original_name": "Sharon Duncan-Brewster",
+        "popularity": 1.8948,
+        "profile_path": "/gp5h6rOrqBrIGgID4AMd58O6Ow6.jpg",
+        "cast_id": 160,
+        "character": "Dr. Liet Kynes",
+        "credit_id": "5e37991c4ca676001252ea99",
+        "order": 8
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1622,
+        "known_for_department": "Acting",
+        "name": "張震",
+        "original_name": "張震",
+        "popularity": 2.3287,
+        "profile_path": "/tkROVkn6yoqF3AcQ4hneOursHXR.jpg",
+        "cast_id": 103,
+        "character": "Dr. Wellington Yueh",
+        "credit_id": "5c8e6e129251410ff4a1c158",
+        "order": 9
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 543530,
+        "known_for_department": "Acting",
+        "name": "Dave Bautista",
+        "original_name": "Dave Bautista",
+        "popularity": 4.1193,
+        "profile_path": "/snk6JiXOOoRjPtHU5VMoy6qbd32.jpg",
+        "cast_id": 30,
+        "character": "Beast Rabban Harkonnen",
+        "credit_id": "5c342d10c3a36851f8b52ac9",
+        "order": 10
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 83854,
+        "known_for_department": "Acting",
+        "name": "David Dastmalchian",
+        "original_name": "David Dastmalchian",
+        "popularity": 2.6121,
+        "profile_path": "/eLafwcpL64CqzwjjSgKpO7Rv4ae.jpg",
+        "cast_id": 77,
+        "character": "Piter de Vries",
+        "credit_id": "5c6c967b0e0a261e069f48b6",
+        "order": 11
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 505710,
+        "known_for_department": "Acting",
+        "name": "Zendaya",
+        "original_name": "Zendaya",
+        "popularity": 9.8437,
+        "profile_path": "/qGkBlyn1AwQpuFnRARMRwj0iHZp.jpg",
+        "cast_id": 54,
+        "character": "Chani",
+        "credit_id": "5c5241fa0e0a2612ccd0fc9c",
+        "order": 12
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 44079,
+        "known_for_department": "Acting",
+        "name": "Charlotte Rampling",
+        "original_name": "Charlotte Rampling",
+        "popularity": 2.9629,
+        "profile_path": "/jgpJroIhfkrZmh7C4T5MADjpGBG.jpg",
+        "cast_id": 36,
+        "character": "Reverend Mother Mohiam",
+        "credit_id": "5c3e88ba9251415524ae5623",
+        "order": 13
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 205923,
+        "known_for_department": "Acting",
+        "name": "Babs Olusanmokun",
+        "original_name": "Babs Olusanmokun",
+        "popularity": 1.8364,
+        "profile_path": "/bqycmpUrpISeLzQniiYwAZ5X1RN.jpg",
+        "cast_id": 159,
+        "character": "Jamis",
+        "credit_id": "5e3799110c27100013728d9c",
+        "order": 14
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3185383,
+        "known_for_department": "Acting",
+        "name": "Benjamin Clementine",
+        "original_name": "Benjamin Clementine",
+        "popularity": 1.1182,
+        "profile_path": "/johpHbzqrue6XDG63vapfugGbnn.jpg",
+        "cast_id": 206,
+        "character": "Herald of the Change",
+        "credit_id": "61098872dcf875004856d399",
+        "order": 15
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 261927,
+        "known_for_department": "Acting",
+        "name": "Souad Faress",
+        "original_name": "Souad Faress",
+        "popularity": 0.5786,
+        "profile_path": "/aEGdIch9eRzJcsAGbF7mAZPUiXt.jpg",
+        "cast_id": 208,
+        "character": "Bene Gesserit Sister",
+        "credit_id": "6109894e255dba002de4620e",
+        "order": 16
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1856875,
+        "known_for_department": "Acting",
+        "name": "Golda Rosheuvel",
+        "original_name": "Golda Rosheuvel",
+        "popularity": 1.3343,
+        "profile_path": "/nlSIvTWzMEzZGljKYgpZxGcsJtv.jpg",
+        "cast_id": 198,
+        "character": "Shadout Mapes",
+        "credit_id": "60621d77d7a70a007430f1df",
+        "order": 17
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2974,
+        "known_for_department": "Acting",
+        "name": "Roger Yuan",
+        "original_name": "Roger Yuan",
+        "popularity": 0.8298,
+        "profile_path": "/jHdxbT6n3ToYKw0DVFIUkva86SO.jpg",
+        "cast_id": 197,
+        "character": "Lieutenant Lanville",
+        "credit_id": "604c3692ae28110029cfb466",
+        "order": 18
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2411333,
+        "known_for_department": "Acting",
+        "name": "Seun Shote",
+        "original_name": "Seun Shote",
+        "popularity": 0.7174,
+        "profile_path": "/33szNjKtUsTxlwV039Gec2PKQS2.jpg",
+        "cast_id": 226,
+        "character": "Arrakeen Residency Gardener",
+        "credit_id": "617019e6a097dc00920af978",
+        "order": 19
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 178629,
+        "known_for_department": "Acting",
+        "name": "Neil Bell",
+        "original_name": "Neil Bell",
+        "popularity": 1.4196,
+        "profile_path": "/3K3dDytqtTSaGrDZ3qOHYpJUGea.jpg",
+        "cast_id": 227,
+        "character": "Sardaukar Bashar",
+        "credit_id": "617019e6a097dc0065e51a15",
+        "order": 20
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1638835,
+        "known_for_department": "Acting",
+        "name": "Oliver Ryan",
+        "original_name": "Oliver Ryan",
+        "popularity": 0.9707,
+        "profile_path": "/S0YPiYOSikfqjR6HMuxoFDzh0f.jpg",
+        "cast_id": 165,
+        "character": "Hawat Specialist",
+        "credit_id": "5e446b483dd12600165a37d1",
+        "order": 21
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1929092,
+        "known_for_department": "Acting",
+        "name": "Stephen Collins",
+        "original_name": "Stephen Collins",
+        "popularity": 0.7471,
+        "profile_path": "/86LlKrbvYVmR4Ca9fARwUoY5TgJ.jpg",
+        "cast_id": 166,
+        "character": "Harkonnen Trooper",
+        "credit_id": "5e446b99596a91001301aefc",
+        "order": 22
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1083177,
+        "known_for_department": "Acting",
+        "name": "Charlie Rawes",
+        "original_name": "Charlie Rawes",
+        "popularity": 1.4697,
+        "profile_path": "/zsARROMEHNANOAI8wntYcn3BpOM.jpg",
+        "cast_id": 162,
+        "character": "Harkonnen Trooper",
+        "credit_id": "5e446a8a41465c001ad29ace",
+        "order": 23
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3275311,
+        "known_for_department": "Acting",
+        "name": "Richard Carter",
+        "original_name": "Richard Carter",
+        "popularity": 0.4954,
+        "profile_path": "/vwMG8213y9UiCDXBPIUwzhVxUcX.jpg",
+        "cast_id": 225,
+        "character": "Harkonnen Trooper",
+        "credit_id": "616d8946ba131b008e16d46f",
+        "order": 24
+      }
+    ],
+    "crew": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 137427,
+        "known_for_department": "Directing",
+        "name": "Denis Villeneuve",
+        "original_name": "Denis Villeneuve",
+        "popularity": 3.1035,
+        "profile_path": "/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg",
+        "credit_id": "58920db99251412dd10093b4",
+        "department": "Directing",
+        "job": "Director"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 27,
+        "known_for_department": "Writing",
+        "name": "Eric Roth",
+        "original_name": "Eric Roth",
+        "popularity": 1.8811,
+        "profile_path": "/p61cF5pqC6cH6CgXQUuBpW6P2qa.jpg",
+        "credit_id": "5c6dad950e0a267f9d9a1f7d",
+        "department": "Writing",
+        "job": "Screenplay"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 137427,
+        "known_for_department": "Directing",
+        "name": "Denis Villeneuve",
+        "original_name": "Denis Villeneuve",
+        "popularity": 3.1035,
+        "profile_path": "/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg",
+        "credit_id": "5c6dada90e0a266dacad0df3",
+        "department": "Writing",
+        "job": "Screenplay"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 564940,
+        "known_for_department": "Writing",
+        "name": "Jon Spaihts",
+        "original_name": "Jon Spaihts",
+        "popularity": 0.9531,
+        "profile_path": "/n5JF0cYCWe8AUqb4Sto042rnG4e.jpg",
+        "credit_id": "5c6dadd992514129d5051200",
+        "department": "Writing",
+        "job": "Screenplay"
+      }
+    ]
+  },
+  "videos": {
+    "results": [
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Beware the Baron - Behind the Scenes",
+        "key": "P4MviO-BXH0",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": true,
+        "id": "6963d98a50a20b1e74d1565f",
+        "published_at": "2026-01-10T13:00:49.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Building the Ancient Future - Behind the Scenes",
+        "key": "lOu4tV7NWeA",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": true,
+        "id": "6963da1479f34dbfcd1d9428",
+        "published_at": "2026-01-03T13:01:35.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Duncan Steals Ornithopter - Movie Clip",
+        "key": "PA3Pz45lt9c",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6963db6727d260bab8bd40cb",
+        "published_at": "2026-01-01T13:00:47.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Joe Walker | 94th Oscars Best Film Editing | Behind the Oscars Speech",
+        "key": "V94LRgJ42PA",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "67b4b36bb30837d8f8e0dc29",
+        "published_at": "2025-02-13T16:00:06.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Paul Atreides Becomes One Of The Fremen",
+        "key": "QCScW8vVnB4",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6620664d960cde0187a5eefb",
+        "published_at": "2024-04-18T00:00:11.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Filmbooks: The Spice Melange",
+        "key": "YUP3vA-Hq_k",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6610d5718c0a48016403a5da",
+        "published_at": "2024-04-01T14:00:19.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Hunter Seeker",
+        "key": "AHqIUDZBRM4",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6607b9728a0e9b017c4ee3c1",
+        "published_at": "2024-03-28T14:00:11.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Filmbooks: The Fremen",
+        "key": "g7ZdIahdbU8",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "660335690c1255017e125c3c",
+        "published_at": "2024-03-25T14:00:33.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "New World",
+        "key": "9zis0vxefts",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "65fcafec0bc5290162af9e28",
+        "published_at": "2024-03-21T14:00:11.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Filmbooks: The Bene Gesserit",
+        "key": "FHn9BmxKyvA",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "65fa3eca770700017c05df39",
+        "published_at": "2024-03-18T14:00:21.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Learn What I Do",
+        "key": "xWByujyT2rI",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "65fa3f0d54508d017cf7da88",
+        "published_at": "2024-03-14T16:00:43.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "My First Time",
+        "key": "DsB9BakpCTY",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "65fa3f22d40d4c017c6f74d3",
+        "published_at": "2024-03-10T14:00:09.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Crysknife",
+        "key": "vChbtnS7FdM",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "65fa3fbf5be00e017c6d78f2",
+        "published_at": "2024-03-06T15:00:50.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Paul Atreides Has a Vision",
+        "key": "kVgxQJlgDAQ",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "65e7b0639638640181c8279a",
+        "published_at": "2024-03-05T23:01:10.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Filmbooks: House Harkonnen",
+        "key": "HQOEfU6Nt9Y",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "65ff97fe0c1255017e0f2664",
+        "published_at": "2024-03-03T15:00:10.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Join Me in Death",
+        "key": "twl_Gec4TSQ",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "65ff94460c125501650ca30c",
+        "published_at": "2024-03-01T15:01:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Filmbooks: House Atreides",
+        "key": "nL8tdegPQPg",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "65fa5e8054508d017cf81deb",
+        "published_at": "2024-02-28T15:00:52.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Jason Momoa: Guardian of House Atreides",
+        "key": "K7g6fZH220Y",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": true,
+        "id": "6480d01e64765400e67fe934",
+        "published_at": "2023-05-26T16:00:25.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Adapting 'Dune' for the Big Screen | Academy x FilmAid: Visiting Artists Series",
+        "key": "Shs7UMYQzVM",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "63d11f34cb71b800d439ab78",
+        "published_at": "2022-09-06T15:00:11.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Otherworldly Wears",
+        "key": "86WVlFR8dLc",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": true,
+        "id": "62b6aafb73520500614f871d",
+        "published_at": "2022-06-24T14:59:46.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "'Dune' Wins Best Production Design | 94th Oscars",
+        "key": "EBnF9XEjnxw",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Featurette",
+        "official": true,
+        "id": "63d12374cb71b8007c1b1e9a",
+        "published_at": "2022-05-01T17:00:11.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "'Dune' Wins Best Film Editing | 94th Oscars",
+        "key": "WPvmh4Cw54A",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Featurette",
+        "official": true,
+        "id": "63d124b1a410c8125be63cf2",
+        "published_at": "2022-04-30T20:00:05.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Hans Zimmer Wins Best Original Score for 'Dune'  | 94th Oscars",
+        "key": "12Ur2THtOPM",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Featurette",
+        "official": true,
+        "id": "63d1238066ae4d007bf61bcb",
+        "published_at": "2022-04-30T17:00:01.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "'Dune' Wins Best Visual Effects | 94th Oscars",
+        "key": "NU39cERScn4",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Featurette",
+        "official": true,
+        "id": "63d123a39f51af00dc257847",
+        "published_at": "2022-04-27T17:00:12.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "'Dune' Wins Best Cinematography | 94th Oscars",
+        "key": "b1b4Wbhv0E0",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Featurette",
+        "official": true,
+        "id": "63d123c29f51af008645b177",
+        "published_at": "2022-04-26T20:00:15.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "'Dune' Wins Best Sound | 94th Oscars",
+        "key": "XPOn2hIrvzI",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Featurette",
+        "official": true,
+        "id": "63d123aacb71b80081020756",
+        "published_at": "2022-04-26T17:00:14.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Paul Atreides Tries To Outrun The Sandworm",
+        "key": "7jB5gCD5kjU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "62454c76458199005c3cef42",
+        "published_at": "2022-03-28T21:00:32.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Paul Tries to Protect Lady Jessica",
+        "key": "s-TublCeuSE",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "62454aab6dc50700931c337e",
+        "published_at": "2022-03-27T20:00:42.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "No Choice",
+        "key": "KwsCbdhO2SU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "62454bbdf263ba005c25e852",
+        "published_at": "2022-03-25T16:59:55.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Emperor Has Spoken",
+        "key": "1_TuEO6Mttw",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "62455329c740d90089f547c1",
+        "published_at": "2022-03-24T14:59:50.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Zendaya’s Dune Scenes Compilation",
+        "key": "p2U7OvRUNv4",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "62454b826dc507005de78e9f",
+        "published_at": "2022-03-22T18:00:51.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Dune's SFX team get emotional as they thank their families and collaborators | EE BAFTAs 2022",
+        "key": "-r3DXP-sVDs",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "655cedc410923000c471e9ec",
+        "published_at": "2022-03-14T21:00:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Dune Wins Production Design | EE BAFTA Film Awards 2022",
+        "key": "yYpCilOzruU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "655cedd00816c70137ec2fdf",
+        "published_at": "2022-03-13T23:07:15.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Dune Wins Sound | EE BAFTA Film Awards 2022",
+        "key": "r6lnvApZa7M",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "655cee4eb5400214d27e8f7e",
+        "published_at": "2022-03-13T22:51:45.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Dune ASMR with Sharon Duncan-Brewster",
+        "key": "2u4tR8se-40",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "62cb4039d05a03005cbaaa05",
+        "published_at": "2022-03-10T03:00:48.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Dune - Regardez les premières minutes du film !",
+        "key": "P0JOlLHc_bs",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "65ed7dfbbdc34c018533b8f3",
+        "published_at": "2022-02-16T17:23:52.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Designing the Sandworm",
+        "key": "suf4D0f1NuE",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": true,
+        "id": "63af97487ef3811f60862102",
+        "published_at": "2022-02-12T18:45:24.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Sounds of Dune - Behind The Scenes with Denis Villeneuve",
+        "key": "Gkf_rdROyWw",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": true,
+        "id": "66456c5e81e5089af75cba90",
+        "published_at": "2022-01-27T21:31:16.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Spice",
+        "key": "26bgYpJOqcw",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "623b629a58361b005ee7d5f3",
+        "published_at": "2022-01-18T19:00:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "BFI Q&A - Denis Villeneuve on Dune",
+        "key": "AID-fCCESww",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6328454cd7a70a0081ce81bf",
+        "published_at": "2022-01-17T14:59:25.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Silence",
+        "key": "l9fvEDpub8M",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "623b62766bdec3005b45f87c",
+        "published_at": "2022-01-11T19:00:27.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Training Room",
+        "key": "AvqgxCw75JA",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": true,
+        "id": "623b62475541fa00494cc674",
+        "published_at": "2021-12-26T19:00:03.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Royal Houses",
+        "key": "wkDiyC82boU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": true,
+        "id": "623b62b1d1a89300885b85d3",
+        "published_at": "2021-12-10T18:00:30.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "10 Minute Preview",
+        "key": "dFa0jyEOcVw",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "69fa459d3e2ddd0cf1d255ec",
+        "published_at": "2021-12-10T15:12:28.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Full Movie Preview",
+        "key": "3pzNn31ukI4",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "63af96c61d1bf4008adf06ef",
+        "published_at": "2021-12-06T21:41:23.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Inside Dune: Working with the Cast",
+        "key": "u8QjWsiACTE",
+        "site": "YouTube",
+        "size": 2160,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "622d7e8665c26c00204c60d5",
+        "published_at": "2021-11-29T16:00:22.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Sharon Duncan-Brewster Plays You vs. Your Character",
+        "key": "xEvs38heDXY",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "629c2f59992fe6006681e1e3",
+        "published_at": "2021-11-06T16:00:23.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Worm Promo",
+        "key": "FabyRquCEtY",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Teaser",
+        "official": true,
+        "id": "6993af629bd5ecf20b2af68e",
+        "published_at": "2021-10-20T07:50:09.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Denis Villeneuve and Hans Zimmer on Dune",
+        "key": "Ul7--N4iZH0",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "65d0b97f303c85018852aa23",
+        "published_at": "2021-10-09T15:00:13.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Protect",
+        "key": "tepmGelLeHY",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Teaser",
+        "official": true,
+        "id": "6993af4277403baa2f1afa20",
+        "published_at": "2021-10-09T07:30:05.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "A Message for Canada from the Stars of DUNE",
+        "key": "gVg97FfltRM",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "67e352cce28af41cfc7623b3",
+        "published_at": "2021-10-08T22:09:34.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Inside Dune: Working with one of my idols",
+        "key": "hD_FiUOOkko",
+        "site": "YouTube",
+        "size": 2160,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "622d7f89b04605007a7a9a89",
+        "published_at": "2021-10-08T18:22:21.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Final Trailer",
+        "key": "w0HgHet0sxg",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "615f6a958e2ba600434e8c0b",
+        "published_at": "2021-10-07T16:00:27.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Dune Awaits: Becoming Duncan Idaho",
+        "key": "A8y30Uyqc1E",
+        "site": "YouTube",
+        "size": 2160,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "622d8b6fe04aca00459c7836",
+        "published_at": "2021-09-21T15:00:04.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Desert Visions Featurette",
+        "key": "aSHs224Dge0",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6141974dfd7aa400294685ba",
+        "published_at": "2021-09-13T22:24:05.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Bande-annonce 2 VF",
+        "key": "gHt8tCHbB2M",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "613ab914aaf897008cfec981",
+        "published_at": "2021-07-22T13:00:14.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Bande-annonce 2 VOST",
+        "key": "CjVqieIWGjM",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "613ab8ea5258ae0044aa9584",
+        "published_at": "2021-07-22T13:00:07.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Official Main Trailer",
+        "key": "8g18jFHCLXk",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "60f96f11f1759c004667ff5c",
+        "published_at": "2021-07-22T13:00:04.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Bande-annonce VF",
+        "key": "b0WH8wWmqtE",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "5f59cd307314a10034d85779",
+        "published_at": "2020-09-09T16:18:47.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Bande-annonce VOST",
+        "key": "Sc-0S8z1jFA",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "5f59cd1eec0c580035a27cb7",
+        "published_at": "2020-09-09T16:18:40.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Official Trailer",
+        "key": "n9xhJrPXop4",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "5f59011dbefb090036571115",
+        "published_at": "2020-09-09T16:18:02.000Z"
+      }
+    ]
+  },
+  "images": {
+    "backdrops": [
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/h61Kc0NC7d90jNwXfBx5js7DnSQ.jpg",
+        "vote_average": 5.786,
+        "vote_count": 6,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/jYEW5xZkZk2WTrdbMGAPFuBqbDc.jpg",
+        "vote_average": 5.044,
+        "vote_count": 70,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/h3HsfV8Kn9Sz2QWUYYdP5ya23hx.jpg",
+        "vote_average": 5.034,
+        "vote_count": 44,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/zRKQW58MBEY078AxkHxEJzUskCl.jpg",
+        "vote_average": 5.008,
+        "vote_count": 59,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/lzWHmYdfeFiMIY4JaMmtR7GEli3.jpg",
+        "vote_average": 5.008,
+        "vote_count": 59,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/wYMbnrdRCREjNLwFlG5SLWzBjui.jpg",
+        "vote_average": 4.954,
+        "vote_count": 32,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/qVgZu5BTx6pu4owCvVOm4zjTfOi.jpg",
+        "vote_average": 4.934,
+        "vote_count": 30,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/jKhsC3yguywiKF1XA6OlslFhlwT.jpg",
+        "vote_average": 4.818,
+        "vote_count": 11,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/guB0jTCIlMB5gJUILzZrxXVMuyJ.jpg",
+        "vote_average": 4.776,
+        "vote_count": 20,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.779,
+        "height": 1124,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/1httqnYN5eMIkuxibCkRzInUvoS.jpg",
+        "vote_average": 4.722,
+        "vote_count": 10,
+        "width": 2000
+      }
+    ],
+    "logos": [
+      {
+        "aspect_ratio": 4.689,
+        "height": 919,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/2gk0HwLIAyQcwyUBI7oddJYOxpN.png",
+        "vote_average": 10.0,
+        "vote_count": 4,
+        "width": 4309
+      },
+      {
+        "aspect_ratio": 6.301,
+        "height": 299,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/woifx7xduIyJYq8ktCiN36zt9Xu.png",
+        "vote_average": 5.778,
+        "vote_count": 10,
+        "width": 1884
+      },
+      {
+        "aspect_ratio": 5.468,
+        "height": 365,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/zVpR9hgzpTisBffuIVEyHoRntoa.png",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1996
+      },
+      {
+        "aspect_ratio": 5.3,
+        "height": 40,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/2QVwURuSNtAxx3vC8mugsb1uqLG.svg",
+        "vote_average": 1.75,
+        "vote_count": 4,
+        "width": 212
+      },
+      {
+        "aspect_ratio": 6.014,
+        "height": 718,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/s01UkBZNh7m2lAZO25bSCtykkK.png",
+        "vote_average": 1.75,
+        "vote_count": 4,
+        "width": 4318
+      },
+      {
+        "aspect_ratio": 9.749,
+        "height": 443,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/wfVfhi7eZ7Na7gT7FIua3chJ6mG.png",
+        "vote_average": 1.714,
+        "vote_count": 7,
+        "width": 4319
+      },
+      {
+        "aspect_ratio": 1.79,
+        "height": 305,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/hlnyMaUxeFJTb3QL1hKpHwhWowC.png",
+        "vote_average": 1.714,
+        "vote_count": 7,
+        "width": 546
+      },
+      {
+        "aspect_ratio": 2.581,
+        "height": 310,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/2focGv14yVGJNBwKvNWiiAGTNWM.png",
+        "vote_average": 0.166,
+        "vote_count": 2,
+        "width": 800
+      },
+      {
+        "aspect_ratio": 8.576,
+        "height": 205,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/yTTUMkgTrOLd5atdLCuea3AS0Zi.png",
+        "vote_average": 0.166,
+        "vote_count": 1,
+        "width": 1758
+      },
+      {
+        "aspect_ratio": 8.576,
+        "height": 205,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/eMZsAczRqVK6i2wfgbLy1H2WUWl.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 1758
+      }
+    ],
+    "posters": [
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/v1tRXZ4JtD2Iv6fjkPvT4GiwslV.jpg",
+        "vote_average": 7.108,
+        "vote_count": 23,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/yyrBBEHvwdJEgNgALxuh0EyWmsN.jpg",
+        "vote_average": 8.362,
+        "vote_count": 6,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1500,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/8hoD5BQuUV9dDecAbiyVIxLjzZ9.jpg",
+        "vote_average": 7.56,
+        "vote_count": 74,
+        "width": 1000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2888,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/cDbNAY0KM84cxXhmj8f0dLWza3t.jpg",
+        "vote_average": 6.572,
+        "vote_count": 97,
+        "width": 1925
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/fRGGZ1HdbF4LPrDsJq7kEwMEjPm.jpg",
+        "vote_average": 6.5,
+        "vote_count": 19,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.671,
+        "height": 1600,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/lr3cYNDlJcpT1EWzFH42aSIvkab.jpg",
+        "vote_average": 6.2,
+        "vote_count": 45,
+        "width": 1073
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2048,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/ebyPRFv8aA1hLXxs9AKab3UZoPR.jpg",
+        "vote_average": 6.06,
+        "vote_count": 41,
+        "width": 1365
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/wHmRNdlim18cykUjJyFtdFr5Ieo.jpg",
+        "vote_average": 5.566,
+        "vote_count": 15,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2046,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/s1FhMAr91WL8D5DeHOcuBELtiHJ.jpg",
+        "vote_average": 5.25,
+        "vote_count": 44,
+        "width": 1364
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/qpyaW4xUPeIiYA5ckg5zAZFHvsb.jpg",
+        "vote_average": 5.25,
+        "vote_count": 12,
+        "width": 2000
+      }
+    ]
+  },
+  "release_dates": {
+    "results": [
+      {
+        "iso_3166_1": "DE",
+        "release_dates": [
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2021-09-16T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2021-11-01T00:00:00.000Z",
+            "type": 4
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "HBO Max",
+            "release_date": "2026-01-13T00:00:00.000Z",
+            "type": 4
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2021-12-23T00:00:00.000Z",
+            "type": 5
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "FR",
+        "release_dates": [
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Deauville American Film Festival",
+            "release_date": "2021-09-10T00:00:00.000Z",
+            "type": 1
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2021-09-15T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2022-01-13T00:00:00.000Z",
+            "type": 4
+          },
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "fr",
+            "note": "Canal+ (ex myCanal)",
+            "release_date": "2022-05-20T00:00:00.000Z",
+            "type": 4
+          },
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Blu-ray / DVD",
+            "release_date": "2022-01-26T00:00:00.000Z",
+            "type": 5
+          },
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "fr",
+            "note": "France•2",
+            "release_date": "2025-11-30T00:00:00.000Z",
+            "type": 6
+          },
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "fr",
+            "note": "TMC",
+            "release_date": "2026-06-29T00:00:00.000Z",
+            "type": 6
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "GB",
+        "release_dates": [
+          {
+            "certification": "12A",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2021-10-21T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "12A",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Re-Release",
+            "release_date": "2024-02-09T00:00:00.000Z",
+            "type": 3
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "US",
+        "release_dates": [
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "New York Film Festival",
+            "release_date": "2021-10-07T00:00:00.000Z",
+            "type": 1
+          },
+          {
+            "certification": "PG-13",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "IMAX Re-Release",
+            "release_date": "2024-02-09T00:00:00.000Z",
+            "type": 2
+          },
+          {
+            "certification": "PG-13",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2021-10-22T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "PG-13",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "HBO Max",
+            "release_date": "2021-10-21T00:00:00.000Z",
+            "type": 4
+          },
+          {
+            "certification": "PG-13",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2021-12-03T00:00:00.000Z",
+            "type": 4
+          },
+          {
+            "certification": "PG-13",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "4K Ultra HD / Blu-ray / DVD",
+            "release_date": "2022-01-11T00:00:00.000Z",
+            "type": 5
+          },
+          {
+            "certification": "PG-13",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "HBO",
+            "release_date": "2022-03-26T00:00:00.000Z",
+            "type": 6
+          }
+        ]
+      }
+    ]
+  },
+  "external_ids": {
+    "imdb_id": "tt1160419",
+    "wikidata_id": "Q60834962",
+    "facebook_id": "dune",
+    "instagram_id": "dunemovie",
+    "twitter_id": "dunemovie"
+  },
+  "translations": {
+    "translations": [
+      {
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "name": "English",
+        "english_name": "English",
+        "data": {
+          "homepage": "https://www.warnerbros.com/movies/dune",
+          "overview": "Paul Atreides, a brilliant and gifted young man born into a great destiny beyond his understanding, must travel to the most dangerous planet in the universe to ensure the future of his family and his people. As malevolent forces explode into conflict over the planet's exclusive supply of the most precious resource in existence - a commodity capable of unlocking humanity's greatest potential - only those who can conquer their fear will survive.",
+          "runtime": 155,
+          "tagline": "It begins.",
+          "title": ""
+        }
+      },
+      {
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "homepage": "",
+          "overview": "L'histoire de Paul Atreides, jeune homme aussi doué que brillant, voué à connaître un destin hors du commun qui le dépasse totalement. Car, s'il veut préserver l'avenir de sa famille et de son peuple, il devra se rendre sur Dune, la planète la plus dangereuse de l'Univers. Mais aussi la seule à même de fournir la ressource la plus précieuse capable de décupler la puissance de l'Humanité. Tandis que des forces maléfiques se disputent le contrôle de cette planète, seuls ceux qui parviennent à dominer leur peur pourront survivre…",
+          "runtime": 155,
+          "tagline": "Au-delà de la peur, le destin attend.",
+          "title": ""
+        }
+      },
+      {
+        "iso_3166_1": "CA",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "homepage": "https://www.warnerbroscanada.com/fr/films/dune",
+          "overview": "Paul Atreides doit se rendre sur la planète la plus dangereuse de l’univers afin d’assurer l’avenir de sa famille et de son peuple. Cette planète est la source exclusive de la ressource la plus précieuse qui soit – une substance capable de libérer le plein potentiel de l’humanité –, pour laquelle des forces sinistres déclenchent un conflit dont seuls ceux sachant maîtriser leurs peurs survivront.",
+          "runtime": 155,
+          "tagline": "Ça commence",
+          "title": ""
+        }
+      }
+    ]
+  }
+}

@@ -358,4 +358,12 @@ Settled by gh-prim on 2026-10-27. ✅ = resolved, ⏸ = tracked elsewhere.
 - [ ] Given the recorded-response perf profile (1,000 movies, 100 shows, 9,000 episodes, TMDB stub with 50 ms latency), then enrichment finishes within the NFR budget and never goes above 20 requests/s to the stub.
 
 ## Revisions
-_None yet._
+- **2026-10-27, PR B (matcher tuning, plan step 10).** The weights (0.7 / 0.3), the threshold (0.85) and the margin (0.05) are kept. Two rules are added to R5, tuned on 86 real names (`server/internal/metadata/match/testdata/cases.json`):
+  - **Popularity breaks an exact tie.** Within the margin, the best candidate still wins when it's at least **20×** more popular than every candidate in the tie. That way *Alien* (1979) beats an obscure *The Alien* (1979) at 83×, and *The Daily Show* beats its namesakes at 110×. *The Office* (US/UK, 12.5×), *Dune*, *Oldboy* and the other remakes without a year still go to review. So do *Arrival* (2016, 12.5×) and *It* (2017, 15.6×): popularity can't tell them apart from *The Office*.
+  - **Retry without a leading article.** When no candidate reaches the threshold and the title starts with an article, R4 searches once more without it. TMDB's English search doesn't find "Les Intouchables", but finds "Intouchables".
+  - Searches always use English (`en-US`). Release names usually carry English titles, and the original title catches the rest (*Der Untergang*, *La Casa de Papel*, *Le Dîner de cons*).
+- **2026-10-27, PR B (apply).**
+  - A refresh never searches again: a matched item keeps its TMDB id, so a change in popularity can't send it back to review. The order of R3 is: locked match → `.nfo` id → current match → file name hint → search.
+  - `unmatched` items are tried again after 7 days (TMDB may add the title).
+  - A collection that can't be fetched doesn't fail the movie (R23 is a should): it's retried at the next refresh.
+  - Invalid `metadataLanguage` / `metadataRegion` values return `422 validation_failed` with the field, like the rest of `PATCH /libraries/{id}`, instead of the separate `invalid_language` / `invalid_region` codes.

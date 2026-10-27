@@ -120,9 +120,13 @@ func TestLoadLibraryOptions(t *testing.T) {
 		"PLAID_DATA_DIR":     t.TempDir(),
 		"PLAID_FFPROBE_PATH": "/opt/ffmpeg/bin/ffprobe",
 		"PLAID_BROWSE_ROOTS": "/srv/media: /mnt/usb/ ",
+		"PLAID_TMDB_API_KEY": " abc123 ",
 	}))
 	if err != nil {
 		t.Fatal(err)
+	}
+	if cfg.TMDBAPIKey != "abc123" {
+		t.Errorf("TMDBAPIKey = %q", cfg.TMDBAPIKey)
 	}
 	if cfg.FFprobePath != "/opt/ffmpeg/bin/ffprobe" {
 		t.Errorf("FFprobePath = %q", cfg.FFprobePath)
