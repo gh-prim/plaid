@@ -16,6 +16,7 @@ import (
 
 	"github.com/gh-prim/plaid/server/internal/api"
 	"github.com/gh-prim/plaid/server/internal/apierr"
+	"github.com/gh-prim/plaid/server/internal/auth"
 	"github.com/gh-prim/plaid/server/internal/handlers"
 )
 
@@ -29,15 +30,34 @@ var builtWeb = fstest.MapFS{
 	"favicon.svg":     {Data: []byte("<svg/>")},
 }
 
+// oneSession accepts the bearer token "valid".
+type oneSession struct{}
+
+func (oneSession) Lookup(_ context.Context, token string) (auth.Principal, error) {
+	if token == "valid" {
+		return auth.Principal{UserID: "u1", SessionID: "s1", Role: auth.RoleMember}, nil
+	}
+	return auth.Principal{}, auth.ErrNoSession
+}
+
 func newTestServer(web fstest.MapFS) http.Handler {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	return New(handlers.New(okPinger{}), web, logger, Options{})
+	return New(handlers.New(handlers.Deps{DB: okPinger{}}), web, logger, Options{Sessions: oneSession{}})
 }
 
 func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
 	t.Helper()
+	return getWithToken(t, h, path, "")
+}
+
+func getWithToken(t *testing.T, h http.Handler, path, token string) *httptest.ResponseRecorder {
+	t.Helper()
+	r := httptest.NewRequest(http.MethodGet, path, nil)
+	if token != "" {
+		r.Header.Set("Authorization", "Bearer "+token)
+	}
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
+	h.ServeHTTP(rec, r)
 	return rec
 }
 
@@ -57,8 +77,15 @@ func TestHealthRoute(t *testing.T) {
 	}
 }
 
-func TestUnknownAPIRouteIsJSON404(t *testing.T) {
+func TestUnknownAPIRouteWithoutSessionIs401(t *testing.T) {
 	rec := get(t, newTestServer(builtWeb), "/api/v1/nope")
+	if rec.Code != http.StatusUnauthorized || !strings.Contains(rec.Body.String(), `"code":"unauthorized"`) {
+		t.Fatalf("status %d body %q, want 401 unauthorized", rec.Code, rec.Body)
+	}
+}
+
+func TestUnknownAPIRouteIsJSON404(t *testing.T) {
+	rec := getWithToken(t, newTestServer(builtWeb), "/api/v1/nope", "valid")
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", rec.Code)
 	}

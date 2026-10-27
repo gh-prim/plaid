@@ -7,6 +7,11 @@ info:
     the Go server interfaces and every client are generated from it.
 servers:
   - url: /api/v1
+# Every operation needs a session unless it declares `security: []` (F003-R12).
+# Native apps send a bearer token, the web app the plaid_session cookie.
+security:
+  - bearerAuth: []
+  - cookieAuth: []
 paths:
   /health:
     get:
@@ -28,6 +33,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Health"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Opaque session token returned by sign-in, setup or TV pairing.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: plaid_session
+      description: "HttpOnly session cookie used by the web app. State-changing requests also need `X-Plaid-Client: web` and a same-origin `Origin`."
   schemas:
     Health:
       type: object

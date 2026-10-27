@@ -48,7 +48,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	}
 	defer database.Close()
 
-	handler := httpserver.New(handlers.New(database), webui.FS(), logger, httpserver.Options{
+	handler := httpserver.New(handlers.New(handlers.Deps{DB: database}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
 	})
 

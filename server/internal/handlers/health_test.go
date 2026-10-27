@@ -13,7 +13,7 @@ type fakePinger struct{ err error }
 func (f fakePinger) PingContext(context.Context) error { return f.err }
 
 func TestGetHealthOK(t *testing.T) {
-	h := New(fakePinger{})
+	h := New(Deps{DB: fakePinger{}})
 	resp, err := h.GetHealth(context.Background(), api.GetHealthRequestObject{})
 	if err != nil {
 		t.Fatal(err)
@@ -34,7 +34,7 @@ func TestGetHealthOK(t *testing.T) {
 }
 
 func TestGetHealthDegradedWhenDatabaseFails(t *testing.T) {
-	h := New(fakePinger{err: errors.New("disk on fire")})
+	h := New(Deps{DB: fakePinger{err: errors.New("disk on fire")}})
 	resp, err := h.GetHealth(context.Background(), api.GetHealthRequestObject{})
 	if err != nil {
 		t.Fatal(err)
