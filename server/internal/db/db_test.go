@@ -1,10 +1,13 @@
 package db
 
 import (
+	"bytes"
 	"context"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -67,6 +70,9 @@ func TestMigrationsApplyIncrementally(t *testing.T) {
 	}
 	// Roll back to "only 0001 applied".
 	for _, stmt := range []string{
+		"DROP TABLE settings", "DROP TABLE sidecar_files", "DROP TABLE file_identifications",
+		"DROP TABLE item_credits", "DROP TABLE people", "DROP TABLE match_candidates",
+		"DROP TABLE item_metadata", "DROP TABLE artwork", "DROP TABLE collections",
 		"DROP TABLE media_streams", "DROP TABLE item_files", "DROP TABLE media_files",
 		"DROP TABLE items", "DROP TABLE library_folders", "DROP TABLE libraries",
 		"DROP TABLE pairing_codes", "DROP TABLE sessions", "DROP TABLE profiles", "DROP TABLE users",
@@ -124,5 +130,127 @@ func TestAccountsSchema(t *testing.T) {
 	var n int
 	if err := d.QueryRowContext(ctx, `SELECT COUNT(*) FROM sessions`).Scan(&n); err != nil || n != 0 {
 		t.Errorf("deleting a user left %d sessions (%v)", n, err)
+	}
+}
+
+// metadataTables are the tables migration 0004 creates, children first.
+var metadataTables = []string{
+	"settings", "sidecar_files", "file_identifications", "item_credits", "people",
+	"match_candidates", "item_metadata", "artwork", "collections",
+}
+
+// TestMetadataMigrationUpgradesLibraries rolls a database back to "0003
+// applied" with an existing library, then upgrades it: the library gets the
+// default metadata language and region (F005 R10).
+func TestMetadataMigrationUpgradesLibraries(t *testing.T) {
+	dir := t.TempDir()
+	ctx := context.Background()
+	d, err := Open(ctx, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stmts := make([]string, 0, len(metadataTables)+3)
+	for _, name := range metadataTables {
+		stmts = append(stmts, "DROP TABLE "+name)
+	}
+	stmts = append(stmts,
+		"ALTER TABLE libraries DROP COLUMN metadata_language",
+		"ALTER TABLE libraries DROP COLUMN metadata_region",
+		"DELETE FROM schema_migrations WHERE name = 'migrations/0004_metadata.sql'",
+	)
+	for _, stmt := range stmts {
+		if _, err := d.ExecContext(ctx, stmt); err != nil {
+			t.Fatalf("%s: %v", stmt, err)
+		}
+	}
+	now := "2026-10-27T12:00:00Z"
+	if _, err := d.ExecContext(ctx, `INSERT INTO libraries (id, name, type, created_at, updated_at) VALUES ('l1', 'Movies', 'movies', ?, ?)`, now, now); err != nil {
+		t.Fatal(err)
+	}
+	d.Close()
+
+	d, err = Open(ctx, dir)
+	if err != nil {
+		t.Fatalf("upgrade: %v", err)
+	}
+	defer d.Close()
+	var lang, region string
+	if err := d.QueryRowContext(ctx, `SELECT metadata_language, metadata_region FROM libraries WHERE id = 'l1'`).Scan(&lang, &region); err != nil {
+		t.Fatal(err)
+	}
+	if lang != "en" || region != "US" {
+		t.Errorf("defaults = %s/%s, want en/US", lang, region)
+	}
+	for _, name := range metadataTables {
+		var n int
+		if err := d.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?", name).Scan(&n); err != nil || n != 1 {
+			t.Errorf("table %s missing after upgrade (%v)", name, err)
+		}
+	}
+}
+
+// TestMetadataSchemaCascades checks the deletes F005 relies on: removing an
+// item removes its metadata and credits, removing a library its collections.
+func TestMetadataSchemaCascades(t *testing.T) {
+	ctx := context.Background()
+	d, err := Open(ctx, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	exec := func(q string, args ...any) {
+		t.Helper()
+		if _, err := d.ExecContext(ctx, q, args...); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	now := "2026-10-27T12:00:00Z"
+	exec(`INSERT INTO libraries (id, name, type, created_at, updated_at) VALUES ('l1', 'Movies', 'movies', ?, ?)`, now, now)
+	exec(`INSERT INTO items (id, library_id, kind, title, created_at, updated_at) VALUES ('i1', 'l1', 'movie', 'Alien', ?, ?)`, now, now)
+	exec(`INSERT INTO collections (id, library_id, tmdb_id, name, updated_at) VALUES ('c1', 'l1', 8091, 'Alien Collection', ?)`, now)
+	exec(`INSERT INTO item_metadata (item_id, state, tmdb_id, collection_id, updated_at) VALUES ('i1', 'matched', 348, 'c1', ?)`, now)
+	exec(`INSERT INTO people (id, tmdb_id, name, updated_at) VALUES ('p1', 10205, 'Sigourney Weaver', ?)`, now)
+	exec(`INSERT INTO item_credits (item_id, person_id, role, character, ord) VALUES ('i1', 'p1', 'cast', 'Ripley', 0)`)
+	if _, err := d.ExecContext(ctx, `INSERT INTO item_metadata (item_id, state, updated_at) VALUES ('i1', 'bogus', ?)`, now); err == nil {
+		t.Error("invalid state accepted")
+	}
+
+	exec(`DELETE FROM items WHERE id = 'i1'`)
+	for _, table := range []string{"item_metadata", "item_credits"} {
+		var n int
+		if err := d.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+table).Scan(&n); err != nil || n != 0 {
+			t.Errorf("deleting the item left %d rows in %s (%v)", n, table, err)
+		}
+	}
+	exec(`DELETE FROM libraries WHERE id = 'l1'`)
+	var n int
+	if err := d.QueryRowContext(ctx, `SELECT COUNT(*) FROM collections`).Scan(&n); err != nil || n != 0 {
+		t.Errorf("deleting the library left %d collections (%v)", n, err)
+	}
+}
+
+func TestCheckPermissions(t *testing.T) {
+	dir := t.TempDir()
+	d, err := Open(context.Background(), dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d.Close()
+	path := filepath.Join(dir, "plaid.db")
+	if st, err := os.Stat(path); err != nil || st.Mode().Perm() != 0o600 {
+		t.Errorf("new database mode = %v (%v), want 0600", st.Mode().Perm(), err)
+	}
+	for _, c := range []struct {
+		mode os.FileMode
+		warn bool
+	}{{0o600, false}, {0o644, true}, {0o660, true}} {
+		if err := os.Chmod(path, c.mode); err != nil {
+			t.Fatal(err)
+		}
+		var buf bytes.Buffer
+		CheckPermissions(dir, slog.New(slog.NewTextHandler(&buf, nil)))
+		if got := strings.Contains(buf.String(), "readable by other users"); got != c.warn {
+			t.Errorf("mode %04o: warning = %v, want %v (log: %q)", c.mode, got, c.warn, buf.String())
+		}
 	}
 }

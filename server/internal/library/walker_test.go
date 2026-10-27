@@ -249,3 +249,47 @@ func TestIgnoreStackDirectoryPattern(t *testing.T) {
 		t.Error("Old/ shouldn't match a file named Old")
 	}
 }
+
+// TestWalkSidecars: .nfo and image files are reported for F005 (R14), with
+// the hidden-file and .plaidignore rules, and without becoming videos.
+func TestWalkSidecars(t *testing.T) {
+	root := t.TempDir()
+	writeTree(t, root,
+		"Alien (1979)/Alien (1979).mkv",
+		"Alien (1979)/movie.nfo",
+		"Alien (1979)/poster.jpg",
+		"Alien (1979)/Fanart.JPEG",
+		"Alien (1979)/clearlogo.png",
+		"Alien (1979)/sample-poster.webp", // "sample" doesn't hide sidecars
+		"Alien (1979)/.hidden.jpg",
+		"Alien (1979)/notes.txt",
+		"Alien (1979)/Extras/still.jpg", // ignored folder
+		"Show/Season 01/season01-poster.jpg",
+		"Show/private/cover.jpg",
+		"Show/.plaidignore",
+	)
+	if err := os.WriteFile(filepath.Join(root, "Show/.plaidignore"), []byte("private/\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	res, err := Walk(context.Background(), root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rels []string
+	for _, s := range res.Sidecars {
+		rels = append(rels, s.Rel)
+		if s.Size == 0 || s.ModTime.IsZero() || s.Path != filepath.Join(root, filepath.FromSlash(s.Rel)) {
+			t.Errorf("sidecar %+v", s)
+		}
+	}
+	want := []string{
+		"Alien (1979)/Fanart.JPEG", "Alien (1979)/clearlogo.png", "Alien (1979)/movie.nfo",
+		"Alien (1979)/poster.jpg", "Alien (1979)/sample-poster.webp", "Show/Season 01/season01-poster.jpg",
+	}
+	if !slices.Equal(rels, want) {
+		t.Errorf("sidecars = %q, want %q", rels, want)
+	}
+	if got := walkRels(t, root); !slices.Equal(got, []string{"Alien (1979)/Alien (1979).mkv"}) {
+		t.Errorf("videos = %q", got)
+	}
+}

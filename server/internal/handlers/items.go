@@ -26,13 +26,19 @@ func checkLimit(limit *int, p *problems) int {
 
 // ListLibraryItems lists a library's items by kind and parent (F004-R22).
 func (h *Handlers) ListLibraryItems(ctx context.Context, req api.ListLibraryItemsRequestObject) (api.ListLibraryItemsResponseObject, error) {
-	if _, err := principal(ctx); err != nil {
+	pr, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	limit, err := h.accounts.AccessLimit(ctx, pr)
+	if err != nil {
 		return nil, err
 	}
 	var p problems
 	q := library.ItemQuery{
 		LibraryID: req.LibraryId, ParentID: deref(req.Params.ParentId),
 		Cursor: deref(req.Params.Cursor), Limit: checkLimit(req.Params.Limit, &p),
+		Access: limit,
 	}
 	if k := req.Params.Kind; k != nil {
 		if !itemKinds[*k] {
@@ -56,12 +62,18 @@ func (h *Handlers) ListLibraryItems(ctx context.Context, req api.ListLibraryItem
 
 // GetItem returns an item with its files and streams.
 func (h *Handlers) GetItem(ctx context.Context, req api.GetItemRequestObject) (api.GetItemResponseObject, error) {
-	if _, err := principal(ctx); err != nil {
+	pr, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	limit, err := h.accounts.AccessLimit(ctx, pr)
+	if err != nil {
 		return nil, err
 	}
 	st := h.library.Store()
 	it, err := st.GetItem(ctx, req.ItemId)
-	if errors.Is(err, library.ErrNotFound) {
+	// An item the profile may not see doesn't exist for it (F005 R25).
+	if errors.Is(err, library.ErrNotFound) || err == nil && !limit.Allows(it.AgeRating) {
 		return nil, apierr.NotFound("no such item")
 	}
 	if err != nil {

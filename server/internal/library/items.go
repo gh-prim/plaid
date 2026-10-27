@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/gh-prim/plaid/server/internal/access"
 )
 
 // MaxPageSize bounds list pages (R22).
@@ -19,14 +21,17 @@ var ErrBadCursor = errors.New("invalid cursor")
 
 // itemSortKey orders items within a list: by sort title for movies and
 // shows, by number for seasons, by number then air date for episodes.
-// Seasons and episodes have no parsed title before F005.
-const itemSortKey = `CASE kind
-	WHEN 'season' THEN printf('%06d', COALESCE(season_number, 0))
-	WHEN 'episode' THEN printf('%06d|%s', COALESCE(episode_number, 999999), COALESCE(air_date, ''))
-	ELSE COALESCE(sort_title, '') END`
+// Movies and shows use their matched sort title (F005) when they have one,
+// joined as m.
+const itemSortKey = `CASE items.kind
+	WHEN 'season' THEN printf('%06d', COALESCE(items.season_number, 0))
+	WHEN 'episode' THEN printf('%06d|%s', COALESCE(items.episode_number, 999999), COALESCE(items.air_date, ''))
+	ELSE COALESCE(m.sort_title, items.sort_title, '') END`
 
-const itemColumns = `SELECT id, kind, COALESCE(parent_id, ''), COALESCE(title, ''), COALESCE(year, 0),
-	season_number, episode_number, COALESCE(air_date, ''), COALESCE(hints, '') FROM items WHERE id IN (`
+const itemColumns = `SELECT items.id, items.kind, COALESCE(items.parent_id, ''), COALESCE(items.title, ''),
+	COALESCE(items.year, 0), items.season_number, items.episode_number, COALESCE(items.air_date, ''),
+	COALESCE(items.hints, ''), m.age_rating
+	FROM items LEFT JOIN item_metadata m ON m.item_id = items.id WHERE items.id IN (`
 
 // cursor is the keyset position after the last row of a page.
 type cursor struct {
@@ -66,6 +71,9 @@ type Item struct {
 	Episode  *int
 	AirDate  string
 	Hints    map[string]string
+	// AgeRating is the minimum age from F005's certification, nil when
+	// unrated.
+	AgeRating *int
 	// FileCount counts files present on disk, ChildCount visible children.
 	FileCount  int
 	ChildCount int
@@ -88,6 +96,8 @@ type ItemQuery struct {
 	ParentID string
 	Cursor   string
 	Limit    int
+	// Access filters out what the active profile may not see (F005 R25).
+	Access access.Limit
 }
 
 // ListItems returns a page of visible items and the cursor of the next
@@ -97,11 +107,11 @@ func (s *Store) ListItems(ctx context.Context, q ItemQuery) ([]Item, string, err
 	if err != nil {
 		return nil, "", err
 	}
-	where := []string{"library_id = ?", "hidden = 0"}
+	where := []string{"items.library_id = ?", "items.hidden = 0"}
 	args := []any{q.LibraryID}
 	switch {
 	case q.ParentID != "":
-		where = append(where, "parent_id = ?")
+		where = append(where, "items.parent_id = ?")
 		args = append(args, q.ParentID)
 	case q.Kind == "":
 		q.Kind = KindMovie
@@ -110,11 +120,16 @@ func (s *Store) ListItems(ctx context.Context, q ItemQuery) ([]Item, string, err
 		}
 	}
 	if q.Kind != "" {
-		where = append(where, "kind = ?")
+		where = append(where, "items.kind = ?")
 		args = append(args, q.Kind)
 	}
+	if cond, condArgs := q.Access.SQL("m"); cond != "" {
+		where = append(where, cond)
+		args = append(args, condArgs...)
+	}
 	// Only constant fragments are concatenated; values go through args.
-	query := `SELECT id, k FROM (SELECT id, ` + itemSortKey + ` AS k FROM items WHERE ` + strings.Join(where, " AND ") + `)` //nolint:gosec // see above
+	const from = ` AS k FROM items LEFT JOIN item_metadata m ON m.item_id = items.id WHERE `
+	query := `SELECT id, k FROM (SELECT items.id AS id, ` + itemSortKey + from + strings.Join(where, " AND ") + `)` //nolint:gosec // see above
 	if q.Cursor != "" {
 		c, err := decodeCursor(q.Cursor)
 		if err != nil {
@@ -185,12 +200,12 @@ func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
 	}
 	for rows.Next() {
 		var (
-			it              Item
-			season, episode sql.NullInt64
-			hints           string
+			it                   Item
+			season, episode, age sql.NullInt64
+			hints                string
 		)
 		if err := rows.Scan(&it.ID, &it.Kind, &it.ParentID, &it.Title, &it.Year, &season, &episode,
-			&it.AirDate, &hints); err != nil {
+			&it.AirDate, &hints, &age); err != nil {
 			_ = rows.Close()
 			return nil, err
 		}
@@ -204,6 +219,10 @@ func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
 		}
 		if hints != "" {
 			_ = json.Unmarshal([]byte(hints), &it.Hints)
+		}
+		if age.Valid {
+			n := int(age.Int64)
+			it.AgeRating = &n
 		}
 		it.Technical = Technical{HDRFormats: []string{}, AudioLanguages: []string{}}
 		byID[it.ID] = &it
