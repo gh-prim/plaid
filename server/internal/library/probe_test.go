@@ -230,3 +230,32 @@ func TestProbeRealFile(t *testing.T) {
 		t.Errorf("audio languages = %v", audio)
 	}
 }
+
+// TestProbeLevels checks the codec level and pixel format F006 needs to
+// decide whether a client can play a video stream as is.
+func TestProbeLevels(t *testing.T) {
+	cases := map[string]struct {
+		level  int
+		pixFmt string
+	}{
+		"pgs_subtitles":    {31, "yuv420p"},
+		"hlg":              {123, "yuv420p10le"},
+		"dolby_vision_p81": {150, "yuv420p10le"},
+	}
+	for name, want := range cases {
+		res, err := fixtureProber(t, name).Probe(context.Background(), "/media/x.mkv")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if v := res.Video(); v == nil || v.Level != want.level || v.PixFmt != want.pixFmt {
+			t.Errorf("%s: video = %+v, want level %d and %s", name, v, want.level, want.pixFmt)
+		}
+	}
+	res, err := ParseProbe([]byte(`{"format": {"format_name": "matroska,webm"}, "streams": [{"index": 0, "codec_type": "video", "codec_name": "h264", "level": -99}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v := res.Video(); v.Level != 0 {
+		t.Errorf("unknown level = %d, want 0", v.Level)
+	}
+}

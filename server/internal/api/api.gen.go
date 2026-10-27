@@ -131,6 +131,39 @@ func (e AttributionProvider) Valid() bool {
 	}
 }
 
+// Defines values for CapabilityProfilePreset.
+const (
+	CapabilityProfilePresetExternal CapabilityProfilePreset = "external"
+)
+
+// Valid indicates whether the value is a known member of the CapabilityProfilePreset enum.
+func (e CapabilityProfilePreset) Valid() bool {
+	switch e {
+	case CapabilityProfilePresetExternal:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CapabilityProfileProtocols.
+const (
+	Hls  CapabilityProfileProtocols = "hls"
+	Http CapabilityProfileProtocols = "http"
+)
+
+// Valid indicates whether the value is a known member of the CapabilityProfileProtocols enum.
+func (e CapabilityProfileProtocols) Valid() bool {
+	switch e {
+	case Hls:
+		return true
+	case Http:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CreditRole.
 const (
 	CreditRoleCast     CreditRole = "cast"
@@ -536,6 +569,90 @@ func (e PersonCreditRole) Valid() bool {
 	}
 }
 
+// Defines values for PlaybackMethod.
+const (
+	PlaybackMethodDirectPlay   PlaybackMethod = "direct_play"
+	PlaybackMethodDirectStream PlaybackMethod = "direct_stream"
+	PlaybackMethodTranscode    PlaybackMethod = "transcode"
+)
+
+// Valid indicates whether the value is a known member of the PlaybackMethod enum.
+func (e PlaybackMethod) Valid() bool {
+	switch e {
+	case PlaybackMethodDirectPlay:
+		return true
+	case PlaybackMethodDirectStream:
+		return true
+	case PlaybackMethodTranscode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PlaybackRequestForceMethod.
+const (
+	PlaybackRequestForceMethodDirectStream PlaybackRequestForceMethod = "direct_stream"
+	PlaybackRequestForceMethodTranscode    PlaybackRequestForceMethod = "transcode"
+)
+
+// Valid indicates whether the value is a known member of the PlaybackRequestForceMethod enum.
+func (e PlaybackRequestForceMethod) Valid() bool {
+	switch e {
+	case PlaybackRequestForceMethodDirectStream:
+		return true
+	case PlaybackRequestForceMethodTranscode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PlaybackState.
+const (
+	Buffering PlaybackState = "buffering"
+	Paused    PlaybackState = "paused"
+	Playing   PlaybackState = "playing"
+	Stopped   PlaybackState = "stopped"
+)
+
+// Valid indicates whether the value is a known member of the PlaybackState enum.
+func (e PlaybackState) Valid() bool {
+	switch e {
+	case Buffering:
+		return true
+	case Paused:
+		return true
+	case Playing:
+		return true
+	case Stopped:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PlaybackSubtitleDelivery.
+const (
+	PlaybackSubtitleDeliveryBurnIn   PlaybackSubtitleDelivery = "burn_in"
+	PlaybackSubtitleDeliveryEmbedded PlaybackSubtitleDelivery = "embedded"
+	PlaybackSubtitleDeliveryExternal PlaybackSubtitleDelivery = "external"
+)
+
+// Valid indicates whether the value is a known member of the PlaybackSubtitleDelivery enum.
+func (e PlaybackSubtitleDelivery) Valid() bool {
+	switch e {
+	case PlaybackSubtitleDeliveryBurnIn:
+		return true
+	case PlaybackSubtitleDeliveryEmbedded:
+		return true
+	case PlaybackSubtitleDeliveryExternal:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ProviderStatusKeySource.
 const (
 	ProviderStatusKeySourceBuiltin ProviderStatusKeySource = "builtin"
@@ -599,6 +716,36 @@ func (e ProviderStatusState) Valid() bool {
 	case ProviderStatusStateOk:
 		return true
 	case ProviderStatusStateUnreachable:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Quality.
+const (
+	N1080p   Quality = "1080p"
+	N2160p   Quality = "2160p"
+	N360p    Quality = "360p"
+	N480p    Quality = "480p"
+	N720p    Quality = "720p"
+	Original Quality = "original"
+)
+
+// Valid indicates whether the value is a known member of the Quality enum.
+func (e Quality) Valid() bool {
+	switch e {
+	case N1080p:
+		return true
+	case N2160p:
+		return true
+	case N360p:
+		return true
+	case N480p:
+		return true
+	case N720p:
+		return true
+	case Original:
 		return true
 	default:
 		return false
@@ -692,6 +839,45 @@ func (e ScanState) Valid() bool {
 	}
 }
 
+// Defines values for SubtitleCapabilityImage.
+const (
+	Pgs    SubtitleCapabilityImage = "pgs"
+	Vobsub SubtitleCapabilityImage = "vobsub"
+)
+
+// Valid indicates whether the value is a known member of the SubtitleCapabilityImage enum.
+func (e SubtitleCapabilityImage) Valid() bool {
+	switch e {
+	case Pgs:
+		return true
+	case Vobsub:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SubtitleCapabilityText.
+const (
+	Ass SubtitleCapabilityText = "ass"
+	Srt SubtitleCapabilityText = "srt"
+	Vtt SubtitleCapabilityText = "vtt"
+)
+
+// Valid indicates whether the value is a known member of the SubtitleCapabilityText enum.
+func (e SubtitleCapabilityText) Valid() bool {
+	switch e {
+	case Ass:
+		return true
+	case Srt:
+		return true
+	case Vtt:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for TechnicalSummaryHdrFormats.
 const (
 	TechnicalSummaryHdrFormatsDolbyVision TechnicalSummaryHdrFormats = "dolby_vision"
@@ -773,6 +959,30 @@ func (e UnrecognizedFileProbeStatus) Valid() bool {
 	}
 }
 
+// Defines values for VideoCapabilityHdr.
+const (
+	VideoCapabilityHdrDolbyVision VideoCapabilityHdr = "dolby_vision"
+	VideoCapabilityHdrHdr10       VideoCapabilityHdr = "hdr10"
+	VideoCapabilityHdrHdr10plus   VideoCapabilityHdr = "hdr10plus"
+	VideoCapabilityHdrHlg         VideoCapabilityHdr = "hlg"
+)
+
+// Valid indicates whether the value is a known member of the VideoCapabilityHdr enum.
+func (e VideoCapabilityHdr) Valid() bool {
+	switch e {
+	case VideoCapabilityHdrDolbyVision:
+		return true
+	case VideoCapabilityHdrHdr10:
+		return true
+	case VideoCapabilityHdrHdr10plus:
+		return true
+	case VideoCapabilityHdrHlg:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SearchMetadataParamsKind.
 const (
 	SearchMetadataParamsKindMovie SearchMetadataParamsKind = "movie"
@@ -789,6 +999,29 @@ func (e SearchMetadataParamsKind) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// ActivePlayback defines model for ActivePlayback.
+type ActivePlayback struct {
+	DeviceName     string    `json:"deviceName"`
+	ItemTitle      string    `json:"itemTitle"`
+	LastActivityAt time.Time `json:"lastActivityAt"`
+	PositionMs     int64     `json:"positionMs"`
+	ProfileId      string    `json:"profileId"`
+	ProfileName    string    `json:"profileName"`
+
+	// Remote The client is outside the local networks (R22).
+	Remote    bool            `json:"remote"`
+	Session   PlaybackSession `json:"session"`
+	StartedAt time.Time       `json:"startedAt"`
+	State     *PlaybackState  `json:"state,omitempty"`
+	UserId    string          `json:"userId"`
+	Username  string          `json:"username"`
+}
+
+// ActivePlaybackList defines model for ActivePlaybackList.
+type ActivePlaybackList struct {
+	Sessions []ActivePlayback `json:"sessions"`
 }
 
 // AdminUser defines model for AdminUser.
@@ -874,6 +1107,13 @@ type Attribution struct {
 // AttributionProvider defines model for Attribution.Provider.
 type AttributionProvider string
 
+// AudioCapability defines model for AudioCapability.
+type AudioCapability struct {
+	// Codec ffprobe codec name, e.g. aac, ac3, eac3, opus, flac, truehd, dts.
+	Codec       string `json:"codec"`
+	MaxChannels *int   `json:"maxChannels,omitempty"`
+}
+
 // AuthResult defines model for AuthResult.
 type AuthResult struct {
 	ActiveProfile *Profile    `json:"activeProfile,omitempty"`
@@ -908,6 +1148,13 @@ type BrowseResult struct {
 
 // Capabilities defines model for Capabilities.
 type Capabilities struct {
+	Ffmpeg struct {
+		// Found When false, Direct Play still works and other methods answer `ffmpeg_missing` (F006 R31).
+		Found bool `json:"found"`
+
+		// Version Examples: 7.1.1
+		Version *string `json:"version,omitempty"`
+	} `json:"ffmpeg"`
 	Ffprobe struct {
 		// Found When false, files are listed with `probeStatus` `skipped` (`ffprobe_missing`).
 		Found bool `json:"found"`
@@ -923,6 +1170,30 @@ type Capabilities struct {
 	// WatchLimitReached Folders scanned periodically because the watch limit was reached.
 	WatchLimitReached []string `json:"watchLimitReached"`
 }
+
+// CapabilityProfile What the client can play (F006 R2). Sent with each playback request, never stored. `preset: external` means "plays everything over HTTP" (VLC, mpv) and ignores the other fields. Unknown codec names are ignored.
+type CapabilityProfile struct {
+	Audio *[]AudioCapability `json:"audio,omitempty"`
+
+	// CanSwitchAudioTrack The player can pick a non-default audio track inside a file.
+	CanSwitchAudioTrack *bool `json:"canSwitchAudioTrack,omitempty"`
+
+	// Containers Containers for Direct Play, as short names (mp4, mkv, webm, mov, ts, avi).
+	Containers *[]string `json:"containers,omitempty"`
+
+	// MaxBitrate Bits per second; null for no limit.
+	MaxBitrate nullable.Nullable[int64]      `json:"maxBitrate,omitempty"`
+	Preset     *CapabilityProfilePreset      `json:"preset,omitempty"`
+	Protocols  *[]CapabilityProfileProtocols `json:"protocols,omitempty"`
+	Subtitles  *SubtitleCapability           `json:"subtitles,omitempty"`
+	Video      *[]VideoCapability            `json:"video,omitempty"`
+}
+
+// CapabilityProfilePreset defines model for CapabilityProfile.Preset.
+type CapabilityProfilePreset string
+
+// CapabilityProfileProtocols defines model for CapabilityProfile.Protocols.
+type CapabilityProfileProtocols string
 
 // ChangePasswordRequest defines model for ChangePasswordRequest.
 type ChangePasswordRequest struct {
@@ -1153,7 +1424,10 @@ type ItemDetail struct {
 
 	// Title Parsed from names. See displayTitle for what to show.
 	Title *string `json:"title,omitempty"`
-	Year  *int    `json:"year,omitempty"`
+
+	// UserState The active profile's watch state for an item (F006 R36). Absent when no profile is active.
+	UserState *UserState `json:"userState,omitempty"`
+	Year      *int       `json:"year,omitempty"`
 }
 
 // ItemHints Ids found in file names, for metadata matching (F005).
@@ -1270,7 +1544,10 @@ type ItemSummary struct {
 
 	// Title Parsed from names. See displayTitle for what to show.
 	Title *string `json:"title,omitempty"`
-	Year  *int    `json:"year,omitempty"`
+
+	// UserState The active profile's watch state for an item (F006 R36). Absent when no profile is active.
+	UserState *UserState `json:"userState,omitempty"`
+	Year      *int       `json:"year,omitempty"`
 }
 
 // Library defines model for Library.
@@ -1535,6 +1812,106 @@ type PersonCredit struct {
 // PersonCreditRole defines model for PersonCredit.Role.
 type PersonCreditRole string
 
+// PlaybackAudioTrack defines model for PlaybackAudioTrack.
+type PlaybackAudioTrack struct {
+	Channels int    `json:"channels"`
+	Codec    string `json:"codec"`
+	Default  bool   `json:"default"`
+
+	// Delivered The codec the client receives for the selected track, when it's converted (e.g. aac).
+	Delivered *string `json:"delivered,omitempty"`
+	Index     int     `json:"index"`
+	Language  string  `json:"language"`
+	Selected  bool    `json:"selected"`
+	Title     *string `json:"title,omitempty"`
+}
+
+// PlaybackMethod defines model for PlaybackMethod.
+type PlaybackMethod string
+
+// PlaybackProgress defines model for PlaybackProgress.
+type PlaybackProgress struct {
+	PositionMs int64         `json:"positionMs"`
+	State      PlaybackState `json:"state"`
+}
+
+// PlaybackRequest defines model for PlaybackRequest.
+type PlaybackRequest struct {
+	// AudioStreamIndex Defaults to the file's default audio track.
+	AudioStreamIndex *int  `json:"audioStreamIndex,omitempty"`
+	BurnSubtitles    *bool `json:"burnSubtitles,omitempty"`
+
+	// FileId Defaults to the best file of the item for this client (R3).
+	FileId *string `json:"fileId,omitempty"`
+
+	// ForceMethod For debugging.
+	ForceMethod *PlaybackRequestForceMethod `json:"forceMethod,omitempty"`
+	MaxBitrate  *int64                      `json:"maxBitrate,omitempty"`
+
+	// Profile What the client can play (F006 R2). Sent with each playback request, never stored. `preset: external` means "plays everything over HTTP" (VLC, mpv) and ignores the other fields. Unknown codec names are ignored.
+	Profile         CapabilityProfile `json:"profile"`
+	Quality         *Quality          `json:"quality,omitempty"`
+	StartPositionMs *int64            `json:"startPositionMs,omitempty"`
+
+	// SubtitleStreamIndex null turns subtitles off; absent picks a forced track in the audio language, if any.
+	SubtitleStreamIndex nullable.Nullable[int] `json:"subtitleStreamIndex,omitempty"`
+}
+
+// PlaybackRequestForceMethod For debugging.
+type PlaybackRequestForceMethod string
+
+// PlaybackSession defines model for PlaybackSession.
+type PlaybackSession struct {
+	AudioTracks             []PlaybackAudioTrack `json:"audioTracks"`
+	DurationMs              int64                `json:"durationMs"`
+	ExpiresAfterIdleSeconds int                  `json:"expiresAfterIdleSeconds"`
+	FileId                  string               `json:"fileId"`
+
+	// HardwareAcceleration The accelerator in use for a transcode, absent in software or without transcoding.
+	HardwareAcceleration *string        `json:"hardwareAcceleration,omitempty"`
+	Id                   string         `json:"id"`
+	ItemId               string         `json:"itemId"`
+	Method               PlaybackMethod `json:"method"`
+	Qualities            []Quality      `json:"qualities"`
+	Quality              Quality        `json:"quality"`
+
+	// Reasons Why the method isn't Direct Play, as stable keys: container_not_supported, video_codec_not_supported, video_profile_not_supported, resolution_too_high, bit_depth_not_supported, hdr_not_supported, audio_codec_not_supported, audio_channels_too_many, audio_track_switch_unsupported, subtitle_burn_in, bitrate_too_high, keyframe_index_missing, forced_by_client.
+	Reasons         []string           `json:"reasons"`
+	StartPositionMs int64              `json:"startPositionMs"`
+	Subtitles       []PlaybackSubtitle `json:"subtitles"`
+
+	// Url Relative to the server, e.g. /api/v1/stream/<token>/file.
+	Url string `json:"url"`
+
+	// Warnings Stable keys, e.g. colors_may_be_wrong.
+	Warnings []string `json:"warnings"`
+}
+
+// PlaybackState defines model for PlaybackState.
+type PlaybackState string
+
+// PlaybackStop defines model for PlaybackStop.
+type PlaybackStop struct {
+	PositionMs *int64 `json:"positionMs,omitempty"`
+}
+
+// PlaybackSubtitle defines model for PlaybackSubtitle.
+type PlaybackSubtitle struct {
+	Codec string `json:"codec"`
+
+	// Delivery How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
+	Delivery PlaybackSubtitleDelivery `json:"delivery"`
+	Forced   bool                     `json:"forced"`
+	Index    int                      `json:"index"`
+	Language string                   `json:"language"`
+	Selected bool                     `json:"selected"`
+	Title    *string                  `json:"title,omitempty"`
+	Url      *string                  `json:"url,omitempty"`
+}
+
+// PlaybackSubtitleDelivery How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
+type PlaybackSubtitleDelivery string
+
 // Profile defines model for Profile.
 type Profile struct {
 	AllowUnrated bool `json:"allowUnrated"`
@@ -1577,6 +1954,9 @@ type ProviderStatusProvider string
 
 // ProviderStatusState defines model for ProviderStatus.State.
 type ProviderStatusState string
+
+// Quality defines model for Quality.
+type Quality string
 
 // RefreshRequest defines model for RefreshRequest.
 type RefreshRequest struct {
@@ -1728,6 +2108,21 @@ type StartPairingRequest struct {
 	Device Device `json:"device"`
 }
 
+// SubtitleCapability defines model for SubtitleCapability.
+type SubtitleCapability struct {
+	// Image Image formats the client renders itself.
+	Image *[]SubtitleCapabilityImage `json:"image,omitempty"`
+
+	// Text Text formats the client renders itself.
+	Text *[]SubtitleCapabilityText `json:"text,omitempty"`
+}
+
+// SubtitleCapabilityImage defines model for SubtitleCapability.Image.
+type SubtitleCapabilityImage string
+
+// SubtitleCapabilityText defines model for SubtitleCapability.Text.
+type SubtitleCapabilityText string
+
 // TechnicalSummary Across the item's files present on disk (for shows and seasons, their episodes).
 type TechnicalSummary struct {
 	// AudioLanguages ISO 639-2/B codes; clients show names with `Intl.DisplayNames`.
@@ -1838,6 +2233,43 @@ type User struct {
 	Username           string `json:"username"`
 }
 
+// UserState The active profile's watch state for an item (F006 R36). Absent when no profile is active.
+type UserState struct {
+	LastPlayedAt *time.Time `json:"lastPlayedAt,omitempty"`
+	PlayCount    int        `json:"playCount"`
+
+	// PositionMs Resume point, 0 when there's none.
+	PositionMs int64 `json:"positionMs"`
+
+	// TotalEpisodes Shows and seasons only.
+	TotalEpisodes *int `json:"totalEpisodes,omitempty"`
+	Watched       bool `json:"watched"`
+
+	// WatchedEpisodes Shows and seasons only.
+	WatchedEpisodes *int `json:"watchedEpisodes,omitempty"`
+}
+
+// VideoCapability defines model for VideoCapability.
+type VideoCapability struct {
+	// Codec ffprobe codec name, e.g. h264, hevc, av1, vp9.
+	Codec string `json:"codec"`
+
+	// Hdr HDR formats shown as HDR; anything else needs tone mapping.
+	Hdr         *[]VideoCapabilityHdr `json:"hdr,omitempty"`
+	MaxBitDepth *int                  `json:"maxBitDepth,omitempty"`
+	MaxHeight   *int                  `json:"maxHeight,omitempty"`
+
+	// MaxLevel Highest level, as ffprobe reports it (H.264 51 = 5.1, HEVC 153 = 5.1).
+	MaxLevel *int `json:"maxLevel,omitempty"`
+	MaxWidth *int `json:"maxWidth,omitempty"`
+
+	// Profiles Accepted ffprobe profile names, lowercase (`high`, `main 10`); absent means any.
+	Profiles *[]string `json:"profiles,omitempty"`
+}
+
+// VideoCapabilityHdr defines model for VideoCapability.Hdr.
+type VideoCapabilityHdr string
+
 // Cursor defines model for Cursor.
 type Cursor = string
 
@@ -1850,11 +2282,20 @@ type LibraryId = string
 // Limit defines model for Limit.
 type Limit = int
 
+// PlaybackSessionId defines model for PlaybackSessionId.
+type PlaybackSessionId = string
+
 // ProfileId defines model for ProfileId.
 type ProfileId = string
 
+// Range Examples: bytes=0-1048575
+type Range = string
+
 // SessionId defines model for SessionId.
 type SessionId = string
+
+// StreamToken defines model for StreamToken.
+type StreamToken = string
 
 // UserId defines model for UserId.
 type UserId = string
@@ -1908,6 +2349,13 @@ type ListUnrecognizedFilesParams struct {
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// ListContinueWatchingParams defines parameters for ListContinueWatching.
+type ListContinueWatchingParams struct {
+	// Cursor Opaque `nextCursor` of the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // SearchMetadataParams defines parameters for SearchMetadata.
 type SearchMetadataParams struct {
 	Kind   SearchMetadataParamsKind `form:"kind" json:"kind"`
@@ -1936,6 +2384,9 @@ type MatchItemJSONRequestBody = MatchRequest
 
 // UpdateItemMetadataJSONRequestBody defines body for UpdateItemMetadata for application/json ContentType.
 type UpdateItemMetadataJSONRequestBody = MetadataPatch
+
+// StartPlaybackJSONRequestBody defines body for StartPlayback for application/json ContentType.
+type StartPlaybackJSONRequestBody = PlaybackRequest
 
 // RefreshItemJSONRequestBody defines body for RefreshItem for application/json ContentType.
 type RefreshItemJSONRequestBody = RefreshRequest
@@ -1975,6 +2426,12 @@ type StartPairingJSONRequestBody = StartPairingRequest
 
 // ClaimPairingJSONRequestBody defines body for ClaimPairing for application/json ContentType.
 type ClaimPairingJSONRequestBody = ClaimPairingRequest
+
+// StopPlaybackJSONRequestBody defines body for StopPlayback for application/json ContentType.
+type StopPlaybackJSONRequestBody = PlaybackStop
+
+// ReportPlaybackProgressJSONRequestBody defines body for ReportPlaybackProgress for application/json ContentType.
+type ReportPlaybackProgressJSONRequestBody = PlaybackProgress
 
 // SelectProfileJSONRequestBody defines body for SelectProfile for application/json ContentType.
 type SelectProfileJSONRequestBody = SelectProfileRequest
@@ -2035,9 +2492,18 @@ type ServerInterface interface {
 	// UpdateItemMetadata Edit and lock fields (admin, F005 R29)
 	// (PATCH /items/{itemId}/metadata)
 	UpdateItemMetadata(w http.ResponseWriter, r *http.Request, itemId ItemId)
+	// StartPlayback Start playing a movie or an episode (F006 R1–R5)
+	// (POST /items/{itemId}/playback)
+	StartPlayback(w http.ResponseWriter, r *http.Request, itemId string)
 	// RefreshItem Refresh an item's metadata now (admin, F005 R31)
 	// (POST /items/{itemId}/refresh)
 	RefreshItem(w http.ResponseWriter, r *http.Request, itemId ItemId)
+	// MarkUnwatched Mark an item unwatched for the active profile; a show or season unmarks every episode (F006 R35)
+	// (DELETE /items/{itemId}/watched)
+	MarkUnwatched(w http.ResponseWriter, r *http.Request, itemId string)
+	// MarkWatched Mark an item watched for the active profile; a show or season marks every episode (F006 R35)
+	// (PUT /items/{itemId}/watched)
+	MarkWatched(w http.ResponseWriter, r *http.Request, itemId string)
 	// ListLibraries All libraries, with folder status, counts and scan state
 	// (GET /libraries)
 	ListLibraries(w http.ResponseWriter, r *http.Request)
@@ -2080,6 +2546,9 @@ type ServerInterface interface {
 	// UpdateMe Update own display name or locale
 	// (PATCH /me)
 	UpdateMe(w http.ResponseWriter, r *http.Request)
+	// ListContinueWatching In-progress movies and episodes, plus each show's next episode, most recent first (F006 R37)
+	// (GET /me/continue-watching)
+	ListContinueWatching(w http.ResponseWriter, r *http.Request, params ListContinueWatchingParams)
 	// ChangeMyPassword Change own password
 	// (POST /me/password)
 	ChangeMyPassword(w http.ResponseWriter, r *http.Request)
@@ -2134,6 +2603,18 @@ type ServerInterface interface {
 	// GetPerson A person and what they're in, on this server (F005 R8)
 	// (GET /people/{personId})
 	GetPerson(w http.ResponseWriter, r *http.Request, personId string)
+	// ListPlaybackSessions Every active playback session (admin, F006 R29)
+	// (GET /playback)
+	ListPlaybackSessions(w http.ResponseWriter, r *http.Request)
+	// StopPlayback End a playback session (yours, or anyone's for an admin) and save its last position (F006 R8, R32)
+	// (DELETE /playback/{sessionId})
+	StopPlayback(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId)
+	// GetPlayback One of your playback sessions
+	// (GET /playback/{sessionId})
+	GetPlayback(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId)
+	// ReportPlaybackProgress Report the position and state; also keeps the session alive (F006 R32)
+	// (POST /playback/{sessionId}/progress)
+	ReportPlaybackProgress(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId)
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(w http.ResponseWriter, r *http.Request)
@@ -2594,6 +3075,32 @@ func (siw *ServerInterfaceWrapper) UpdateItemMetadata(w http.ResponseWriter, r *
 	handler.ServeHTTP(w, r)
 }
 
+// StartPlayback operation middleware
+func (siw *ServerInterfaceWrapper) StartPlayback(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartPlayback(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // RefreshItem operation middleware
 func (siw *ServerInterfaceWrapper) RefreshItem(w http.ResponseWriter, r *http.Request) {
 
@@ -2611,6 +3118,58 @@ func (siw *ServerInterfaceWrapper) RefreshItem(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.RefreshItem(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MarkUnwatched operation middleware
+func (siw *ServerInterfaceWrapper) MarkUnwatched(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkUnwatched(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MarkWatched operation middleware
+func (siw *ServerInterfaceWrapper) MarkWatched(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkWatched(w, r, itemId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3049,6 +3608,52 @@ func (siw *ServerInterfaceWrapper) UpdateMe(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
+// ListContinueWatching operation middleware
+func (siw *ServerInterfaceWrapper) ListContinueWatching(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListContinueWatchingParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListContinueWatching(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ChangeMyPassword operation middleware
 func (siw *ServerInterfaceWrapper) ChangeMyPassword(w http.ResponseWriter, r *http.Request) {
 
@@ -3462,6 +4067,98 @@ func (siw *ServerInterfaceWrapper) GetPerson(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPerson(w, r, personId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListPlaybackSessions operation middleware
+func (siw *ServerInterfaceWrapper) ListPlaybackSessions(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListPlaybackSessions(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StopPlayback operation middleware
+func (siw *ServerInterfaceWrapper) StopPlayback(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId PlaybackSessionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", r.PathValue("sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StopPlayback(w, r, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPlayback operation middleware
+func (siw *ServerInterfaceWrapper) GetPlayback(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId PlaybackSessionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", r.PathValue("sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPlayback(w, r, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ReportPlaybackProgress operation middleware
+func (siw *ServerInterfaceWrapper) ReportPlaybackProgress(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId PlaybackSessionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", r.PathValue("sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ReportPlaybackProgress(w, r, sessionId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3885,6 +4582,14 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/people/{personId}", wrapper.GetPerson)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/items/{itemId}", wrapper.GetItem)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/images/{imageId}", wrapper.GetImage)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/items/{itemId}/playback", wrapper.StartPlayback)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/items/{itemId}/watched", wrapper.MarkUnwatched)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/items/{itemId}/watched", wrapper.MarkWatched)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/me/continue-watching", wrapper.ListContinueWatching)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/playback", wrapper.ListPlaybackSessions)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/playback/{sessionId}", wrapper.StopPlayback)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/playback/{sessionId}", wrapper.GetPlayback)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/playback/{sessionId}/progress", wrapper.ReportPlaybackProgress)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 
@@ -4491,6 +5196,46 @@ func (response UpdateItemMetadatadefaultJSONResponse) VisitUpdateItemMetadataRes
 	return err
 }
 
+type StartPlaybackRequestObject struct {
+	ItemId string `json:"itemId"`
+	Body   *StartPlaybackJSONRequestBody
+}
+
+type StartPlaybackResponseObject interface {
+	VisitStartPlaybackResponse(w http.ResponseWriter) error
+}
+
+type StartPlayback201JSONResponse PlaybackSession
+
+func (response StartPlayback201JSONResponse) VisitStartPlaybackResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartPlaybackdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response StartPlaybackdefaultJSONResponse) VisitStartPlaybackResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type RefreshItemRequestObject struct {
 	ItemId ItemId `json:"itemId"`
 	Body   *RefreshItemJSONRequestBody
@@ -4514,6 +5259,72 @@ type RefreshItemdefaultJSONResponse struct {
 }
 
 func (response RefreshItemdefaultJSONResponse) VisitRefreshItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MarkUnwatchedRequestObject struct {
+	ItemId string `json:"itemId"`
+}
+
+type MarkUnwatchedResponseObject interface {
+	VisitMarkUnwatchedResponse(w http.ResponseWriter) error
+}
+
+type MarkUnwatched204Response struct {
+}
+
+func (response MarkUnwatched204Response) VisitMarkUnwatchedResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type MarkUnwatcheddefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response MarkUnwatcheddefaultJSONResponse) VisitMarkUnwatchedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MarkWatchedRequestObject struct {
+	ItemId string `json:"itemId"`
+}
+
+type MarkWatchedResponseObject interface {
+	VisitMarkWatchedResponse(w http.ResponseWriter) error
+}
+
+type MarkWatched204Response struct {
+}
+
+func (response MarkWatched204Response) VisitMarkWatchedResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type MarkWatcheddefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response MarkWatcheddefaultJSONResponse) VisitMarkWatchedResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -5081,6 +5892,45 @@ type UpdateMedefaultJSONResponse struct {
 }
 
 func (response UpdateMedefaultJSONResponse) VisitUpdateMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListContinueWatchingRequestObject struct {
+	Params ListContinueWatchingParams
+}
+
+type ListContinueWatchingResponseObject interface {
+	VisitListContinueWatchingResponse(w http.ResponseWriter) error
+}
+
+type ListContinueWatching200JSONResponse ItemPage
+
+func (response ListContinueWatching200JSONResponse) VisitListContinueWatchingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListContinueWatchingdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListContinueWatchingdefaultJSONResponse) VisitListContinueWatchingResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -5788,6 +6638,151 @@ func (response GetPersondefaultJSONResponse) VisitGetPersonResponse(w http.Respo
 	return err
 }
 
+type ListPlaybackSessionsRequestObject struct {
+}
+
+type ListPlaybackSessionsResponseObject interface {
+	VisitListPlaybackSessionsResponse(w http.ResponseWriter) error
+}
+
+type ListPlaybackSessions200JSONResponse ActivePlaybackList
+
+func (response ListPlaybackSessions200JSONResponse) VisitListPlaybackSessionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPlaybackSessionsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListPlaybackSessionsdefaultJSONResponse) VisitListPlaybackSessionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StopPlaybackRequestObject struct {
+	SessionId PlaybackSessionId `json:"sessionId"`
+	Body      *StopPlaybackJSONRequestBody
+}
+
+type StopPlaybackResponseObject interface {
+	VisitStopPlaybackResponse(w http.ResponseWriter) error
+}
+
+type StopPlayback204Response struct {
+}
+
+func (response StopPlayback204Response) VisitStopPlaybackResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type StopPlaybackdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response StopPlaybackdefaultJSONResponse) VisitStopPlaybackResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPlaybackRequestObject struct {
+	SessionId PlaybackSessionId `json:"sessionId"`
+}
+
+type GetPlaybackResponseObject interface {
+	VisitGetPlaybackResponse(w http.ResponseWriter) error
+}
+
+type GetPlayback200JSONResponse PlaybackSession
+
+func (response GetPlayback200JSONResponse) VisitGetPlaybackResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPlaybackdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetPlaybackdefaultJSONResponse) VisitGetPlaybackResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReportPlaybackProgressRequestObject struct {
+	SessionId PlaybackSessionId `json:"sessionId"`
+	Body      *ReportPlaybackProgressJSONRequestBody
+}
+
+type ReportPlaybackProgressResponseObject interface {
+	VisitReportPlaybackProgressResponse(w http.ResponseWriter) error
+}
+
+type ReportPlaybackProgress204Response struct {
+}
+
+func (response ReportPlaybackProgress204Response) VisitReportPlaybackProgressResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type ReportPlaybackProgressdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ReportPlaybackProgressdefaultJSONResponse) VisitReportPlaybackProgressResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetServerInfoRequestObject struct {
 }
 
@@ -6281,9 +7276,18 @@ type StrictServerInterface interface {
 	// UpdateItemMetadata Edit and lock fields (admin, F005 R29)
 	// (PATCH /items/{itemId}/metadata)
 	UpdateItemMetadata(ctx context.Context, request UpdateItemMetadataRequestObject) (UpdateItemMetadataResponseObject, error)
+	// StartPlayback Start playing a movie or an episode (F006 R1–R5)
+	// (POST /items/{itemId}/playback)
+	StartPlayback(ctx context.Context, request StartPlaybackRequestObject) (StartPlaybackResponseObject, error)
 	// RefreshItem Refresh an item's metadata now (admin, F005 R31)
 	// (POST /items/{itemId}/refresh)
 	RefreshItem(ctx context.Context, request RefreshItemRequestObject) (RefreshItemResponseObject, error)
+	// MarkUnwatched Mark an item unwatched for the active profile; a show or season unmarks every episode (F006 R35)
+	// (DELETE /items/{itemId}/watched)
+	MarkUnwatched(ctx context.Context, request MarkUnwatchedRequestObject) (MarkUnwatchedResponseObject, error)
+	// MarkWatched Mark an item watched for the active profile; a show or season marks every episode (F006 R35)
+	// (PUT /items/{itemId}/watched)
+	MarkWatched(ctx context.Context, request MarkWatchedRequestObject) (MarkWatchedResponseObject, error)
 	// ListLibraries All libraries, with folder status, counts and scan state
 	// (GET /libraries)
 	ListLibraries(ctx context.Context, request ListLibrariesRequestObject) (ListLibrariesResponseObject, error)
@@ -6326,6 +7330,9 @@ type StrictServerInterface interface {
 	// UpdateMe Update own display name or locale
 	// (PATCH /me)
 	UpdateMe(ctx context.Context, request UpdateMeRequestObject) (UpdateMeResponseObject, error)
+	// ListContinueWatching In-progress movies and episodes, plus each show's next episode, most recent first (F006 R37)
+	// (GET /me/continue-watching)
+	ListContinueWatching(ctx context.Context, request ListContinueWatchingRequestObject) (ListContinueWatchingResponseObject, error)
 	// ChangeMyPassword Change own password
 	// (POST /me/password)
 	ChangeMyPassword(ctx context.Context, request ChangeMyPasswordRequestObject) (ChangeMyPasswordResponseObject, error)
@@ -6380,6 +7387,18 @@ type StrictServerInterface interface {
 	// GetPerson A person and what they're in, on this server (F005 R8)
 	// (GET /people/{personId})
 	GetPerson(ctx context.Context, request GetPersonRequestObject) (GetPersonResponseObject, error)
+	// ListPlaybackSessions Every active playback session (admin, F006 R29)
+	// (GET /playback)
+	ListPlaybackSessions(ctx context.Context, request ListPlaybackSessionsRequestObject) (ListPlaybackSessionsResponseObject, error)
+	// StopPlayback End a playback session (yours, or anyone's for an admin) and save its last position (F006 R8, R32)
+	// (DELETE /playback/{sessionId})
+	StopPlayback(ctx context.Context, request StopPlaybackRequestObject) (StopPlaybackResponseObject, error)
+	// GetPlayback One of your playback sessions
+	// (GET /playback/{sessionId})
+	GetPlayback(ctx context.Context, request GetPlaybackRequestObject) (GetPlaybackResponseObject, error)
+	// ReportPlaybackProgress Report the position and state; also keeps the session alive (F006 R32)
+	// (POST /playback/{sessionId}/progress)
+	ReportPlaybackProgress(ctx context.Context, request ReportPlaybackProgressRequestObject) (ReportPlaybackProgressResponseObject, error)
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(ctx context.Context, request GetServerInfoRequestObject) (GetServerInfoResponseObject, error)
@@ -6847,6 +7866,39 @@ func (sh *strictHandler) UpdateItemMetadata(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// StartPlayback operation middleware
+func (sh *strictHandler) StartPlayback(w http.ResponseWriter, r *http.Request, itemId string) {
+	var request StartPlaybackRequestObject
+
+	request.ItemId = itemId
+
+	var body StartPlaybackJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StartPlayback(ctx, request.(StartPlaybackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StartPlayback")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StartPlaybackResponseObject); ok {
+		if err := validResponse.VisitStartPlaybackResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // RefreshItem operation middleware
 func (sh *strictHandler) RefreshItem(w http.ResponseWriter, r *http.Request, itemId ItemId) {
 	var request RefreshItemRequestObject
@@ -6876,6 +7928,58 @@ func (sh *strictHandler) RefreshItem(w http.ResponseWriter, r *http.Request, ite
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(RefreshItemResponseObject); ok {
 		if err := validResponse.VisitRefreshItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MarkUnwatched operation middleware
+func (sh *strictHandler) MarkUnwatched(w http.ResponseWriter, r *http.Request, itemId string) {
+	var request MarkUnwatchedRequestObject
+
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MarkUnwatched(ctx, request.(MarkUnwatchedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MarkUnwatched")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MarkUnwatchedResponseObject); ok {
+		if err := validResponse.VisitMarkUnwatchedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MarkWatched operation middleware
+func (sh *strictHandler) MarkWatched(w http.ResponseWriter, r *http.Request, itemId string) {
+	var request MarkWatchedRequestObject
+
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MarkWatched(ctx, request.(MarkWatchedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MarkWatched")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MarkWatchedResponseObject); ok {
+		if err := validResponse.VisitMarkWatchedResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -7276,6 +8380,32 @@ func (sh *strictHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateMeResponseObject); ok {
 		if err := validResponse.VisitUpdateMeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListContinueWatching operation middleware
+func (sh *strictHandler) ListContinueWatching(w http.ResponseWriter, r *http.Request, params ListContinueWatchingParams) {
+	var request ListContinueWatchingRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListContinueWatching(ctx, request.(ListContinueWatchingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListContinueWatching")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListContinueWatchingResponseObject); ok {
+		if err := validResponse.VisitListContinueWatchingResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -7774,6 +8904,125 @@ func (sh *strictHandler) GetPerson(w http.ResponseWriter, r *http.Request, perso
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetPersonResponseObject); ok {
 		if err := validResponse.VisitGetPersonResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListPlaybackSessions operation middleware
+func (sh *strictHandler) ListPlaybackSessions(w http.ResponseWriter, r *http.Request) {
+	var request ListPlaybackSessionsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListPlaybackSessions(ctx, request.(ListPlaybackSessionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListPlaybackSessions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListPlaybackSessionsResponseObject); ok {
+		if err := validResponse.VisitListPlaybackSessionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// StopPlayback operation middleware
+func (sh *strictHandler) StopPlayback(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId) {
+	var request StopPlaybackRequestObject
+
+	request.SessionId = sessionId
+
+	var body StopPlaybackJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StopPlayback(ctx, request.(StopPlaybackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StopPlayback")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StopPlaybackResponseObject); ok {
+		if err := validResponse.VisitStopPlaybackResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetPlayback operation middleware
+func (sh *strictHandler) GetPlayback(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId) {
+	var request GetPlaybackRequestObject
+
+	request.SessionId = sessionId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPlayback(ctx, request.(GetPlaybackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPlayback")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPlaybackResponseObject); ok {
+		if err := validResponse.VisitGetPlaybackResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ReportPlaybackProgress operation middleware
+func (sh *strictHandler) ReportPlaybackProgress(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId) {
+	var request ReportPlaybackProgressRequestObject
+
+	request.SessionId = sessionId
+
+	var body ReportPlaybackProgressJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ReportPlaybackProgress(ctx, request.(ReportPlaybackProgressRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ReportPlaybackProgress")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ReportPlaybackProgressResponseObject); ok {
+		if err := validResponse.VisitReportPlaybackProgressResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

@@ -79,3 +79,23 @@ func TestWithHeaderDoesNotMutateOriginal(t *testing.T) {
 		t.Errorf("original header mutated: %v", base.Header)
 	}
 }
+
+func TestPlaybackErrors(t *testing.T) {
+	for _, c := range []struct {
+		e      *Error
+		status int
+		code   string
+	}{
+		{NotPlayable("x"), http.StatusUnprocessableEntity, "not_playable"},
+		{FileUnavailable(), http.StatusGone, "file_unavailable"},
+		{FileNotAnalyzed(), http.StatusConflict, "file_not_analyzed"},
+		{ProfileRequired(), http.StatusForbidden, "profile_required"},
+		{FFmpegMissing(), http.StatusServiceUnavailable, "ffmpeg_missing"},
+		{PlaybackSessionNotFound(), http.StatusNotFound, "playback_session_not_found"},
+	} {
+		rec, b := write(t, c.e)
+		if rec.Code != c.status || b.Error.Code != c.code {
+			t.Errorf("%s: %d %s", c.code, rec.Code, b.Error.Code)
+		}
+	}
+}

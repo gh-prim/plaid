@@ -8,4 +8,8 @@ output-options:
   # Keep schemas no operation references, such as ScanEvent (the data of
   # server-sent events).
   skip-prune: true
+  # /stream/{token}/... is served by a plain handler (Range, HEAD, long
+  # polling for segments, F006): the operations stay in the contract for
+  # clients, the generated server skips them.
+  exclude-tags: [stream]
 output: api.gen.go

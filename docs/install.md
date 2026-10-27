@@ -77,6 +77,7 @@ All settings are environment variables (in `/etc/plaid/plaid.env` for the native
 | `PLAID_SERVER_NAME` | the machine's hostname | Name the apps show for this server |
 | `PLAID_TRUSTED_PROXIES` | empty | Reverse proxies (IPs or CIDRs, comma-separated) whose `X-Forwarded-For` / `X-Forwarded-Proto` headers PLAID believes. See below |
 | `PLAID_FFPROBE_PATH` | `ffprobe` on `PATH` | ffprobe used to analyze media files. Without one, files are listed but not analyzed |
+| `PLAID_FFMPEG_PATH` | `ffmpeg` on `PATH` | ffmpeg used to convert files for players that can't play them as they are. Without one, only Direct Play works |
 | `PLAID_BROWSE_ROOTS` | empty (whole disk) | Folders the library folder picker may show, colon-separated absolute paths, e.g. `/srv/media:/mnt` |
 | `PLAID_TMDB_API_KEY` | the key built into release binaries | Your own [TMDB](https://www.themoviedb.org/settings/api) key for posters and synopses. See [Metadata](#metadata-posters-and-synopses) |
 | `PLAID_FANART_API_KEY` | the key built into release binaries | Your own [fanart.tv](https://fanart.tv/get-an-api-key/) project key for logos and clearart |
@@ -173,3 +174,30 @@ PLAID matches your movies and shows to [TMDB](https://www.themoviedb.org) and ad
 **Disk.** Downloaded originals live in `PLAID_DATA_DIR/artwork` (about 2 GB for 1,000 movies and 100 shows); back them up with `plaid.db`, or they're downloaded again. Resized copies live in `PLAID_DATA_DIR/cache/artwork`, capped by `PLAID_ARTWORK_CACHE_MAX_MB`, and can be deleted at any time.
 
 **Attribution.** This product uses the TMDB API but is not endorsed or certified by TMDB. Logos, clearart and some backdrops come from fanart.tv.
+
+## Playing a movie with curl and VLC
+
+The web player arrives with the web app. Until then, any player that opens a URL can play your movies, and so will external players later on.
+
+1. Sign in and keep the token. If your account has several profiles, pick one with `POST /api/v1/session/profile`:
+
+   ```bash
+   TOKEN=$(curl -s http://<server>:32500/api/v1/auth/login -H 'Content-Type: application/json' \
+     -d '{"username": "you", "password": "…", "device": {"name": "Terminal", "type": "other"}}' | jq -r .token)
+   ```
+
+2. Find the movie's id (`GET /api/v1/libraries`, then `GET /api/v1/libraries/<library id>/items`).
+
+3. Start playing it with the `external` profile, which means "this player plays every file as it is":
+
+   ```bash
+   curl -s http://<server>:32500/api/v1/items/<item id>/playback -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' -d '{"profile": {"preset": "external"}}' | jq -r .url
+   ```
+
+4. Open `http://<server>:32500` followed by that URL in VLC (Media → Open Network Stream) or `mpv`. Seeking works.
+
+The link carries its own key: anyone who has it can play that movie until the session ends, so don't share it. It stops working when you end it (`DELETE /api/v1/playback/<id>`), 24 hours after it was last used, 7 days after it was made at the latest, or as soon as the device that made it is signed out.
+
+Files a player can't play as they are need FFmpeg and arrive with a later version of PLAID; until then, PLAID answers `ffmpeg_missing` for them.
+

@@ -20,6 +20,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/metadata/tmdbtest"
+	"github.com/gh-prim/plaid/server/internal/playback"
 	"github.com/gh-prim/plaid/server/internal/settings"
 )
 
@@ -53,6 +54,7 @@ func (p *stubProber) Probe(ctx context.Context, _ string) (*library.ProbeResult,
 type libEnv struct {
 	*env
 	engine    *library.Engine
+	play      *playback.Service
 	admin     string
 	endStream context.CancelFunc
 }
@@ -92,9 +94,13 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	t.Cleanup(engine.Close)
 	streams, end := context.WithCancel(context.Background())
 	t.Cleanup(end)
-	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta, Streams: streams})
-	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct})
-	le := &libEnv{env: e, engine: engine, endStream: end}
+	play := playback.New(playback.Options{DB: e.db, Library: engine.Store(), Accounts: e.acct,
+		Settings: settings.New(e.db), Log: logger, Now: e.clock.now})
+	t.Cleanup(play.Close)
+	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta,
+		Playback: play, Streams: streams})
+	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct, Stream: handlers.StreamHandler(play)})
+	le := &libEnv{env: e, engine: engine, play: play, endStream: end}
 	le.admin = e.setup().Token
 	return le
 }

@@ -43,6 +43,9 @@ var publicRoutes = []string{
 	"POST /auth/login",
 	"POST /pairing",
 	"GET /pairing/{pairingId}",
+	// Playback streams authenticate by the token in their path (F006 R25).
+	"GET /stream/{token}/file",
+	"HEAD /stream/{token}/file",
 }
 
 // passwordChangeRoutes stay usable while an account has a temporary

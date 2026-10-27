@@ -19,6 +19,9 @@ type Options struct {
 	TrustedProxies []netip.Prefix
 	// Sessions resolves session tokens. Nil refuses every protected route.
 	Sessions auth.SessionLookup
+	// Stream serves /api/v1/stream/ (F006), which authenticates by the
+	// token in its path. Nil leaves it a 404.
+	Stream http.Handler
 }
 
 // New returns the root handler: /api/v1/* is the generated API, any other
@@ -40,6 +43,9 @@ func New(h api.StrictServerInterface, web fs.FS, logger *slog.Logger, opts Optio
 		ErrorHandlerFunc: badRequest,
 	})
 
+	if opts.Stream != nil {
+		mux.Handle("/api/v1/stream/", opts.Stream)
+	}
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "not_found", "no API route for "+r.Method+" "+r.URL.Path)
 	})

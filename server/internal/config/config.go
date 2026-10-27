@@ -24,6 +24,8 @@ type Config struct {
 	ServerName string
 	// FFprobePath overrides the ffprobe found on PATH (F004-R25).
 	FFprobePath string
+	// FFmpegPath overrides the ffmpeg found on PATH (ADR 0006, F006).
+	FFmpegPath string
 	// BrowseRoots restricts the library folder picker (F004-R3); empty
 	// means the whole file system.
 	BrowseRoots []string
@@ -89,6 +91,7 @@ func Load(getenv func(string) string) (Config, error) {
 	cfg.TrustedProxies = proxies
 
 	cfg.FFprobePath = getenv("PLAID_FFPROBE_PATH")
+	cfg.FFmpegPath = getenv("PLAID_FFMPEG_PATH")
 	cfg.TMDBAPIKey = strings.TrimSpace(getenv("PLAID_TMDB_API_KEY"))
 	cfg.FanartAPIKey = strings.TrimSpace(getenv("PLAID_FANART_API_KEY"))
 	if v := getenv("PLAID_ARTWORK_CACHE_MAX_MB"); v != "" {

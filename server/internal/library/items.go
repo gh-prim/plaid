@@ -336,6 +336,8 @@ type MediaFile struct {
 	DVCompat     int
 	MissingSince *time.Time
 	Streams      []MediaStream
+
+	probeJSON string // kept for PlayableFiles
 }
 
 // MediaStream is a stored stream; External is set for subtitle files.
@@ -351,6 +353,8 @@ type MediaStream struct {
 	SDH      bool
 	Image    bool
 	External bool
+	// ExternalPath is the subtitle file's path; never sent to clients.
+	ExternalPath string
 }
 
 // ItemFiles returns the files linked to an item, present ones first.
@@ -380,8 +384,9 @@ func (s *Store) ItemFiles(ctx context.Context, itemID string) ([]MediaFile, erro
 					f.MissingSince = &t
 				}
 			}
+			f.probeJSON = probeJSON
 			if f.HDRFormat == DolbyVision && probeJSON != "" {
-				if res, err := parseProbe([]byte(probeJSON)); err == nil {
+				if res, err := ParseProbe([]byte(probeJSON)); err == nil {
 					if v := res.Video(); v != nil {
 						f.DVProfile, f.DVCompat = v.DVProfile, v.DVCompat
 					}
@@ -398,14 +403,15 @@ func (s *Store) ItemFiles(ctx context.Context, itemID string) ([]MediaFile, erro
 		f.Streams = []MediaStream{}
 		if err := s.scanRows(ctx, `
 			SELECT idx, type, COALESCE(codec, ''), COALESCE(language, 'und'), COALESCE(title, ''),
-			       COALESCE(channels, 0), is_default, is_forced, is_sdh, is_image, external_path IS NOT NULL
+			       COALESCE(channels, 0), is_default, is_forced, is_sdh, is_image, COALESCE(external_path, '')
 			FROM media_streams WHERE file_id = ? ORDER BY idx`, []any{f.ID},
 			func(r *sql.Rows) error {
 				var st MediaStream
 				if err := r.Scan(&st.Index, &st.Type, &st.Codec, &st.Language, &st.Title, &st.Channels,
-					&st.Default, &st.Forced, &st.SDH, &st.Image, &st.External); err != nil {
+					&st.Default, &st.Forced, &st.SDH, &st.Image, &st.ExternalPath); err != nil {
 					return err
 				}
+				st.External = st.ExternalPath != ""
 				f.Streams = append(f.Streams, st)
 				return nil
 			}); err != nil {
@@ -413,6 +419,32 @@ func (s *Store) ItemFiles(ctx context.Context, itemID string) ([]MediaFile, erro
 		}
 	}
 	return files, nil
+}
+
+// PlayableFile is a file with what ffprobe said about it, for playback
+// (F006 R3). Probe is nil when the file isn't analyzed or its analysis
+// can't be read.
+type PlayableFile struct {
+	MediaFile
+	Probe *ProbeResult
+}
+
+// PlayableFiles returns the files linked to an item with their analysis,
+// present ones first. Missing and unanalyzed files are included: F006
+// tells them apart for its errors.
+func (s *Store) PlayableFiles(ctx context.Context, itemID string) ([]PlayableFile, error) {
+	files, err := s.ItemFiles(ctx, itemID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]PlayableFile, len(files))
+	for i, f := range files {
+		out[i].MediaFile = f
+		if f.ProbeStatus == "ok" && f.probeJSON != "" {
+			out[i].Probe, _ = ParseProbe([]byte(f.probeJSON))
+		}
+	}
+	return out, nil
 }
 
 // UnrecognizedFile is a file present on disk whose name couldn't be parsed

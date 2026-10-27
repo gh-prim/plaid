@@ -65,6 +65,9 @@ func (h *Handlers) ListLibraryItems(ctx context.Context, req api.ListLibraryItem
 		withSummary(&s, sums[it.ID])
 		out.Items = append(out.Items, s)
 	}
+	if err := h.withUserStates(ctx, pr, out.Items); err != nil {
+		return nil, err
+	}
 	return api.ListLibraryItems200JSONResponse(out), nil
 }
 
@@ -82,6 +85,13 @@ func (h *Handlers) GetItem(ctx context.Context, req api.GetItemRequestObject) (a
 	if err != nil {
 		return nil, err
 	}
+	// The detail repeats the summary's fields; its watch state comes the
+	// same way (F006 R36).
+	sum := []api.ItemSummary{{Id: out.Id, Kind: out.Kind}}
+	if err := h.withUserStates(ctx, pr, sum); err != nil {
+		return nil, err
+	}
+	out.UserState = sum[0].UserState
 	return api.GetItem200JSONResponse(out), nil
 }
 
