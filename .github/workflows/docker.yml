@@ -1,14 +1,11 @@
 name: docker
 
+# Called by ci.yml: on every push to main, and on PRs that touch Docker files.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    paths: [Dockerfile, .dockerignore, docker-compose.yml, .github/workflows/docker.yml]
+  workflow_call:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   image:
