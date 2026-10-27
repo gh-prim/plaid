@@ -11,6 +11,11 @@ import (
 	"github.com/gh-prim/plaid/server/internal/metadata/tmdbtest"
 )
 
+// metadataWait bounds how long these tests wait for the background queue.
+// Locally it takes well under a second; CI runners under -race are several
+// times slower (decoding and resizing images dominates).
+const metadataWait = 30 * time.Second
+
 // TestImagesThroughTheAPI drives F005 R19 and R25 through GET /images.
 func TestImagesThroughTheAPI(t *testing.T) {
 	srv := tmdbtest.New(t)
@@ -30,7 +35,7 @@ func TestImagesThroughTheAPI(t *testing.T) {
 		Backdrop *art
 		Metadata struct{ Logo *art }
 	}
-	for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
+	for deadline := time.Now().Add(metadataWait); time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
 		var page struct{ Items []struct{ ID string } }
 		e.do("GET", "/libraries/"+lib.ID+"/items", nil, bearer(e.admin)).json(&page)
 		if len(page.Items) == 1 {
@@ -100,7 +105,7 @@ func TestMetadataThroughTheAPI(t *testing.T) {
 	waitFor := func(want string) summary {
 		t.Helper()
 		var page struct{ Items []summary }
-		for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
+		for deadline := time.Now().Add(metadataWait); time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
 			e.do("GET", "/libraries/"+lib.ID+"/items", nil, bearer(e.admin)).json(&page)
 			if len(page.Items) == 1 && page.Items[0].DisplayTitle == want {
 				return page.Items[0]
