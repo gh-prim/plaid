@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -40,7 +41,7 @@ func (s *syncBuffer) String() string {
 
 // hlsService is a service with FFmpeg, a transcode folder and short
 // timings, without a library: tests add sessions to its manager directly.
-func hlsService(t *testing.T, timings Timings, free uint64) (*Service, *syncBuffer) {
+func hlsService(t *testing.T, timings Timings) (*Service, *syncBuffer) {
 	t.Helper()
 	path := testmedia.FFmpeg(t)
 	logs := &syncBuffer{}
@@ -52,7 +53,7 @@ func hlsService(t *testing.T, timings Timings, free uint64) (*Service, *syncBuff
 	s := New(Options{
 		DB: database, Settings: settings.New(database),
 		FFmpeg: &FFmpeg{Path: path}, TranscodeDir: filepath.Join(t.TempDir(), "transcodes"), CacheDir: t.TempDir(),
-		Free: func(string) (uint64, error) { return free, nil }, Timings: &timings,
+		Free: func(string) (uint64, error) { return 100 << 30, nil }, Timings: &timings,
 		Log: slog.New(slog.NewTextHandler(logs, nil)),
 	})
 	ctx, cancel := context.WithCancel(context.Background())
@@ -80,7 +81,7 @@ var fastTimings = Timings{
 }
 
 func TestSegmentRequests(t *testing.T) {
-	s, logs := hlsService(t, fastTimings, 100<<30)
+	s, logs := hlsService(t, fastTimings)
 	m := longMedia(t)
 	sess := addSession(t, s, directStreamOf(m))
 	st := s.stream(sess.ID)
@@ -134,7 +135,7 @@ func TestSegmentRequests(t *testing.T) {
 	}
 	// Out of range.
 	for _, n := range []int{-1, len(st.layout.Segments)} {
-		if _, err := s.Segment(ctx, sess, n); err != ErrNoSuchSegment {
+		if _, err := s.Segment(ctx, sess, n); !errors.Is(err, ErrNoSuchSegment) {
 			t.Errorf("segment %d: %v", n, err)
 		}
 	}
@@ -143,7 +144,7 @@ func TestSegmentRequests(t *testing.T) {
 func TestThrottle(t *testing.T) {
 	timings := fastTimings
 	timings.ThrottleAhead, timings.ResumeAhead = 60_000, 30_000
-	s, _ := hlsService(t, timings, 100<<30)
+	s, _ := hlsService(t, timings)
 	m := longMedia(t)
 	sess := addSession(t, s, transcodeOf(m))
 	st := s.stream(sess.ID)
@@ -184,8 +185,8 @@ func TestThrottle(t *testing.T) {
 func TestIdleStop(t *testing.T) {
 	timings := fastTimings
 	timings.IdleStop = time.Second
-	s, _ := hlsService(t, timings, 100<<30)
-	sess := addSession(t, s, directStreamOf(longMedia(t)))
+	s, _ := hlsService(t, timings)
+	sess := addSession(t, s, transcodeOf(longMedia(t))) // 20 minutes: still running (or throttled) at the check
 	st := s.stream(sess.ID)
 	ctx := context.Background()
 	if _, err := s.Segment(ctx, sess, 0); err != nil {
@@ -194,6 +195,11 @@ func TestIdleStop(t *testing.T) {
 	st.mu.Lock()
 	run := st.run
 	st.mu.Unlock()
+	select {
+	case <-run.Done():
+		t.Fatal("the run ended on its own: nothing to stop")
+	default:
+	}
 	// No requests for 1 s: the run stops, the session stays.
 	select {
 	case <-run.Done():
@@ -210,11 +216,11 @@ func TestIdleStop(t *testing.T) {
 }
 
 func TestSlots(t *testing.T) {
-	s, _ := hlsService(t, fastTimings, 100<<30)
+	s, _ := hlsService(t, fastTimings)
 	s.setConfig(func(c *Config) { c.MaxTranscodes = 1 })
 	m := longMedia(t)
 	a := addSession(t, s, transcodeOf(m))
-	if _, err := s.admit(transcodeOf(m)); err != ErrTranscodeLimit {
+	if _, err := s.admit(transcodeOf(m)); !errors.Is(err, ErrTranscodeLimit) {
 		t.Fatalf("second transcode: %v", err)
 	}
 	// Direct Stream with audio conversion takes no slot.
@@ -233,7 +239,7 @@ func TestSlots(t *testing.T) {
 func TestSlotReleasedAfterInactivity(t *testing.T) {
 	timings := fastTimings
 	timings.SlotIdle, timings.IdleStop = 300*time.Millisecond, 100*time.Millisecond
-	s, _ := hlsService(t, timings, 100<<30)
+	s, _ := hlsService(t, timings)
 	s.setConfig(func(c *Config) { c.MaxTranscodes = 1 })
 	m := longMedia(t)
 	a := addSession(t, s, transcodeOf(m))
@@ -254,14 +260,14 @@ func TestSlotReleasedAfterInactivity(t *testing.T) {
 	}
 	// Coming back with the slot taken by someone else fails cleanly.
 	b := addSession(t, s, transcodeOf(m))
-	if _, err := s.Segment(context.Background(), a, 1); err != ErrTranscodeLimit {
+	if _, err := s.Segment(context.Background(), a, 150); !errors.Is(err, ErrTranscodeLimit) { // far from what's on disk
 		t.Fatalf("resuming without a slot: %v", err)
 	}
 	_ = b
 }
 
 func TestStorageCap(t *testing.T) {
-	s, _ := hlsService(t, fastTimings, 100<<30)
+	s, _ := hlsService(t, fastTimings)
 	m := longMedia(t)
 	a := addSession(t, s, directStreamOf(m))
 	ctx := context.Background()
@@ -291,7 +297,7 @@ func TestStorageCap(t *testing.T) {
 	if !s.storageFull() {
 		t.Fatal("not full")
 	}
-	if _, err := s.admit(directStreamOf(m)); err != ErrTranscodeStorage {
+	if _, err := s.admit(directStreamOf(m)); !errors.Is(err, ErrTranscodeStorage) {
 		t.Fatalf("new stream with a full folder: %v", err)
 	}
 	// Ending the session empties its folder; the folder fits again.
@@ -340,7 +346,7 @@ func TestStoragePurgeAtStart(t *testing.T) {
 }
 
 func TestSubtitleFiles(t *testing.T) {
-	s, _ := hlsService(t, fastTimings, 100<<30)
+	s, _ := hlsService(t, fastTimings)
 	path := testmedia.Clip(t, testmedia.MKV)
 	ext := filepath.Join(testmedia.Dir(t), testmedia.ExtSRT)
 	m := Media{FileID: "subs", Path: path, Container: "mkv", DurationMs: 60_000, Subtitles: []Subtitle{
@@ -360,22 +366,34 @@ func TestSubtitleFiles(t *testing.T) {
 		b, _ := os.ReadFile(p) //nolint:gosec // test output
 		return string(b)
 	}
+	// Cue times within 20 ms: FFmpeg 7's MKV muxer stores them 10 ms late.
 	for _, c := range []struct {
-		index  int
-		format string
-		want   []string
+		index int
+		cues  [][2]float64
+		texts []string
 	}{
-		{2, SubtitleVTT, []string{"WEBVTT", "00:01.000 --> 00:04.000", "Bonjour", "00:30.500 --> 00:33.250"}},
-		{3, SubtitleVTT, []string{"WEBVTT", "00:02.000 --> 00:05.500", "Hello", "00:40.000 --> 00:42.000"}},
-		{3, SubtitleASS, []string{"[Events]", "Dialogue: 0,0:00:02.00,0:00:05.50"}},
-		{1000, SubtitleVTT, []string{"WEBVTT", "00:00.500 --> 00:02.000", "Panneau"}},
+		{2, [][2]float64{{1, 4}, {30.5, 33.25}}, []string{"Bonjour", "Au revoir"}},
+		{3, [][2]float64{{2, 5.5}, {40, 42}}, []string{"Hello", "Goodbye"}},
+		{1000, [][2]float64{{0.5, 2}}, []string{"Panneau"}},
 	} {
-		got := read(c.index, c.format)
-		for _, w := range c.want {
-			if !strings.Contains(got, w) {
-				t.Errorf("%d.%s has no %q:\n%s", c.index, c.format, w, got)
+		got := read(c.index, SubtitleVTT)
+		cues := vttCues(got)
+		if !strings.HasPrefix(got, "WEBVTT") || len(cues) != len(c.cues) {
+			t.Fatalf("%d.vtt:\n%s", c.index, got)
+		}
+		for i, want := range c.cues {
+			if d0, d1 := cues[i][0]-want[0], cues[i][1]-want[1]; d0 < -0.02 || d0 > 0.02 || d1 < -0.02 || d1 > 0.02 {
+				t.Errorf("%d.vtt cue %d at %v, want %v", c.index, i, cues[i], want)
 			}
 		}
+		for _, w := range c.texts {
+			if !strings.Contains(got, w) {
+				t.Errorf("%d.vtt has no %q", c.index, w)
+			}
+		}
+	}
+	if got := read(3, SubtitleASS); !strings.Contains(got, "[Events]") || !strings.Contains(got, "Dialogue: 0,0:00:02.0") {
+		t.Errorf("3.ass:\n%s", got)
 	}
 	// Cached: the second read is the same file.
 	p1, _ := s.SubtitleFile(ctx, sess, 2, SubtitleVTT)
@@ -388,7 +406,7 @@ func TestSubtitleFiles(t *testing.T) {
 		index  int
 		format string
 	}{{99, SubtitleVTT}, {1001, SubtitleVTT}, {2, SubtitleASS}, {2, "srt"}} {
-		if _, err := s.SubtitleFile(ctx, sess, c.index, c.format); err != ErrNoSuchSubtitle {
+		if _, err := s.SubtitleFile(ctx, sess, c.index, c.format); !errors.Is(err, ErrNoSuchSubtitle) {
 			t.Errorf("%d.%s: %v", c.index, c.format, err)
 		}
 	}
@@ -473,6 +491,26 @@ func TestSettingsValidation(t *testing.T) {
 
 func ptr[T any](v T) *T { return &v }
 
+// vttCues reads the cue times of a WebVTT file, in seconds; both the long
+// (00:00:01.000) and short (00:01.000) forms are valid.
+func vttCues(vtt string) [][2]float64 {
+	var out [][2]float64
+	secs := func(ts string) float64 {
+		var total float64
+		for _, part := range strings.Split(ts, ":") {
+			v, _ := strconv.ParseFloat(part, 64)
+			total = total*60 + v
+		}
+		return total
+	}
+	for _, line := range strings.Split(vtt, "\n") {
+		if a, b, ok := strings.Cut(line, " --> "); ok {
+			out = append(out, [2]float64{secs(a), secs(strings.Fields(b)[0])})
+		}
+	}
+	return out
+}
+
 // setConfig changes the settings in effect, as a saved change would.
 func (s *Service) setConfig(change func(*Config)) {
 	s.cfgMu.Lock()
@@ -480,4 +518,6 @@ func (s *Service) setConfig(change func(*Config)) {
 	change(&s.cfg)
 }
 
-func principalOf(s Session) auth.Principal { return auth.Principal{UserID: s.UserID, ProfileID: s.ProfileID} }
+func principalOf(s Session) auth.Principal {
+	return auth.Principal{UserID: s.UserID, ProfileID: s.ProfileID}
+}

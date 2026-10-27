@@ -60,7 +60,9 @@ func StartRun(ffmpeg string, spec RunSpec) (*Run, error) {
 		Spec: spec, done: make(chan struct{}), stderr: &ring{max: stderrKeep},
 		produced: spec.StartPiece - 1, changed: make(chan struct{}),
 	}
-	cmd := exec.Command(ffmpeg, spec.Args()...) //nolint:gosec // admin-configured binary, argument list
+	// Not tied to a context: the run lives until Stop, which signals the
+	// whole process group (R28).
+	cmd := exec.CommandContext(context.Background(), ffmpeg, spec.Args()...) //nolint:gosec // admin-configured binary, argument list
 	cmd.SysProcAttr = procAttr()
 	cmd.Stderr = r.stderr
 	stdout, err := cmd.StdoutPipe()

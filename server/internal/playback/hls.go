@@ -95,7 +95,7 @@ func layoutOf(d Decision) Layout {
 }
 
 // newStream registers the HLS stream of a session's current decision.
-func (s *Service) newStream(sess Session, gen int, slot bool) *hlsStream {
+func (s *Service) newStream(sess Session, gen int, slot bool) {
 	st := &hlsStream{
 		sessionID: sess.ID, dir: s.storage.SessionDir(sess.ID, gen), layout: layoutOf(sess.Decision),
 		decision: sess.Decision, preset: s.config().EncoderPreset, slot: slot, lastSegAt: s.o.Now(),
@@ -104,7 +104,6 @@ func (s *Service) newStream(sess Session, gen int, slot bool) *hlsStream {
 	s.mu.Lock()
 	s.streams[sess.ID] = st
 	s.mu.Unlock()
-	return st
 }
 
 func (s *Service) stream(sessionID string) *hlsStream {
@@ -115,18 +114,18 @@ func (s *Service) stream(sessionID string) *hlsStream {
 
 // closeStream stops a session's run, deletes its folder and frees its
 // slot unless keepSlot.
-func (s *Service) closeStream(sessionID string, keepSlot bool) (hadSlot bool) {
+func (s *Service) closeStream(sessionID string, keepSlot bool) {
 	s.mu.Lock()
 	st := s.streams[sessionID]
 	delete(s.streams, sessionID)
 	s.mu.Unlock()
 	if st == nil {
-		return false
+		return
 	}
 	st.mu.Lock()
 	run := st.run
 	st.run = nil
-	hadSlot = st.slot
+	hadSlot := st.slot
 	st.slot = false
 	st.mu.Unlock()
 	if run != nil {
@@ -136,7 +135,6 @@ func (s *Service) closeStream(sessionID string, keepSlot bool) (hadSlot bool) {
 	if hadSlot && !keepSlot {
 		s.releaseSlot()
 	}
-	return hadSlot
 }
 
 // startRun starts FFmpeg at a piece, after stopping the previous run.

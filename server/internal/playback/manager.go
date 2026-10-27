@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/netip"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -233,7 +234,12 @@ func (m *Manager) List() []Session {
 			out = append(out, *s)
 		}
 	}
-	slices.SortFunc(out, func(a, b Session) int { return a.CreatedAt.Compare(b.CreatedAt) })
+	slices.SortFunc(out, func(a, b Session) int {
+		if c := a.CreatedAt.Compare(b.CreatedAt); c != 0 {
+			return c
+		}
+		return strings.Compare(a.ID, b.ID) // UUIDv7: creation order within a clock tick
+	})
 	return out
 }
 

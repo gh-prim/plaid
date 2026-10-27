@@ -260,3 +260,27 @@ func TestRunFailure(t *testing.T) {
 		t.Fatal("a failed run has no pieces")
 	}
 }
+
+// TestBurnInTrickyName burns an embedded SRT into a transcode of a file
+// whose name needs the filter graph's two levels of escaping.
+func TestBurnInTrickyName(t *testing.T) {
+	f, err := FindFFmpeg(context.Background(), "")
+	if err != nil {
+		t.Skip("ffmpeg not installed")
+	}
+	if !f.HasFilter("subtitles") {
+		t.Skip("this ffmpeg has no subtitles filter (libass)")
+	}
+	path := testmedia.Copy(t, testmedia.Clip(t, testmedia.MKV), filepath.Join(t.TempDir(), `It's: a, [test]; film\.mkv`))
+	m := Media{FileID: "t", Path: path, Container: "mkv", DurationMs: 60_000,
+		Video:     &library.Stream{Index: 0, Type: "video", Codec: "h264", Width: 640, Height: 360},
+		Audio:     []library.Stream{{Index: 1, Type: "audio", Codec: "ac3", Channels: 6, Default: true}},
+		Subtitles: []Subtitle{{Index: 2, Codec: "subrip", Language: "fre"}, {Index: 3, Codec: "ass", Language: "eng"}}}
+	d := transcodeOf(m)
+	d.Subtitle, d.SubtitleDelivery = &m.Subtitles[0], DeliveryBurnIn
+	run := runTo(t, RunSpec{Decision: d, Layout: TranscodeLayout(m.DurationMs), Dir: t.TempDir()}, 0)
+	run.Stop()
+	if run.Err() != nil {
+		t.Fatalf("burn-in failed: %v\n%s", run.Err(), run.Stderr())
+	}
+}

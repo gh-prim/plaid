@@ -7,6 +7,8 @@ error
 pipe:1
 -stats_period
 0.5
+-seek_timestamp
+1
 -ss
 6120.000
 -i

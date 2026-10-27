@@ -21,7 +21,7 @@ import (
 // Clip names.
 const (
 	MP4      = "h264-aac.mp4"      // 60 s H.264/AAC MP4 (B-frames, edit list)
-	MKV      = "h264-ac3-subs.mkv" // 60 s H.264/AC-3 MKV with an SRT (fre) and an ASS (eng) track
+	MKV      = "h264-ac3-subs.mkv" // 60 s H.264/AC-3 (French) MKV with an SRT (fre) and an ASS (eng) track
 	HEVCHDR  = "hevc-main10-hdr10.mkv"
 	TS       = "h264.ts"  // 30 s MPEG-TS: no keyframe index
 	Long     = "long.mkv" // 20 min 240p H.264/AAC MKV, keyframes every 2 s
@@ -47,7 +47,7 @@ var recipes = map[string]recipe{
 		"-map", "0:v", "-map", "1:a", "-map", "2:s", "-map", "3:s",
 		"-c:v", "libx264", "-preset", "ultrafast", "-g", "48", "-crf", "32", "-pix_fmt", "yuv420p",
 		"-c:a", "ac3", "-b:a", "192k", "-ac", "6", "-c:s:0", "srt", "-c:s:1", "ass",
-		"-metadata:s:a:0", "language=eng", "-metadata:s:s:0", "language=fre", "-metadata:s:s:1", "language=eng", "{out}"})},
+		"-metadata:s:a:0", "language=fre", "-metadata:s:s:0", "language=fre", "-metadata:s:s:1", "language=eng", "{out}"})},
 	HEVCHDR: {encoder: "libx265", args: cat(src, tone, []string{"-t", "60", "-map", "0:v", "-map", "1:a",
 		"-c:v", "libx265", "-preset", "ultrafast", "-pix_fmt", "yuv420p10le", "-x265-params",
 		"log-level=error:keyint=48:min-keyint=48:hdr10=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:" +
@@ -159,7 +159,7 @@ func Clip(t testing.TB, name string) string {
 // HasEncoder reports whether ffmpeg lists an encoder.
 func HasEncoder(t testing.TB, name string) bool {
 	t.Helper()
-	out, err := exec.Command(FFmpeg(t), "-hide_banner", "-encoders").Output() //nolint:gosec // test helper
+	out, err := exec.CommandContext(context.Background(), FFmpeg(t), "-hide_banner", "-encoders").Output() //nolint:gosec // test helper
 	if err != nil {
 		return false
 	}
@@ -178,7 +178,7 @@ func Copy(t testing.TB, clip, dst string) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(dst, b, 0o600); err != nil {
+	if err := os.WriteFile(dst, b, 0o600); err != nil { //nolint:gosec // test helper, paths from the test
 		t.Fatal(err)
 	}
 	return dst

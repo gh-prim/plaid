@@ -46,7 +46,10 @@ func (r RunSpec) Args() []string {
 	m := d.Media
 	a := []string{"-hide_banner", "-nostdin", "-nostats", "-loglevel", "error", "-progress", "pipe:1", "-stats_period", "0.5"}
 	if start := r.startMs(); start > 0 {
-		a = append(a, "-ss", seconds(start))
+		// -seek_timestamp: -ss is a timestamp, not offset by the file's
+		// start time. FFmpeg 7 adds a negative start (AAC priming) to it,
+		// which would land a copied video on the previous keyframe.
+		a = append(a, "-seek_timestamp", "1", "-ss", seconds(start))
 	}
 	a = append(a, "-i", m.Path, "-copyts", "-avoid_negative_ts", "disabled", "-map_metadata", "-1", "-map_chapters", "-1")
 
