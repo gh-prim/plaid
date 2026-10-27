@@ -1,0 +1,52 @@
+# Movie parser table: path | title | year | edition | hints
+# year 0 = none, "-" = empty, hints as k=v,k=v. An empty title means unrecognized.
+# Every bug found in the wild becomes a line here.
+The Matrix (1999)/The Matrix (1999).mkv | The Matrix | 1999 | - | -
+The.Matrix.1999.1080p.BluRay.x264-GRP.mkv | The Matrix | 1999 | - | -
+Blade Runner (1982) {edition-Final Cut}.mkv | Blade Runner | 1982 | Final Cut | -
+Alien (1979) {tmdb-348}.mkv | Alien | 1979 | - | tmdb=348
+2001 A Space Odyssey (1968).mkv | 2001 A Space Odyssey | 1968 | - | -
+Movie (2019) - 1080p.mkv | Movie | 2019 | - | -
+Movie (2019) - 2160p.mkv | Movie | 2019 | - | -
+The Matrix [1999].mkv | The Matrix | 1999 | - | -
+The Matrix (1999) {imdb-tt0133093}.mkv | The Matrix | 1999 | - | imdb=tt0133093
+The Matrix (1999) {tmdb-603} {imdb-tt0133093}.mkv | The Matrix | 1999 | - | imdb=tt0133093,tmdb=603
+Inception (2010) [imdbid-tt1375666].mkv | Inception | 2010 | - | imdb=tt1375666
+Inception (2010) [tmdbid=27205].mp4 | Inception | 2010 | - | tmdb=27205
+Blade Runner 2049 (2017).mkv | Blade Runner 2049 | 2017 | - | -
+Blade.Runner.2049.2017.2160p.UHD.BluRay.x265-GRP.mkv | Blade Runner 2049 | 2017 | - | -
+1917 (2019).mkv | 1917 | 2019 | - | -
+1917.2019.1080p.WEB-DL.DD5.1.H264-GRP.mkv | 1917 | 2019 | - | -
+Mr. & Mrs. Smith (2005).mkv | Mr. & Mrs. Smith | 2005 | - | -
+Mr.and.Mrs.Smith.2005.720p.BluRay.x264.mkv | Mr and Mrs Smith | 2005 | - | -
+Spider-Man Into the Spider-Verse (2018).mkv | Spider-Man Into the Spider-Verse | 2018 | - | -
+Charlotte's Web (1973).avi | Charlotte's Web | 1973 | - | -
+Amélie (2001).mkv | Amélie | 2001 | - | -
+Le Fabuleux Destin d'Amélie Poulain (2001)/Le.Fabuleux.Destin.d'Amélie.Poulain.2001.FRENCH.1080p.mkv | Le Fabuleux Destin d'Amélie Poulain | 2001 | - | -
+Apocalypse Now (1979) - Director's Cut.mkv | Apocalypse Now | 1979 | Director's Cut | -
+Apocalypse.Now.1979.Directors.Cut.1080p.BluRay.mkv | Apocalypse Now | 1979 | Director's Cut | -
+Aliens (1986) {edition-Special Edition}.mkv | Aliens | 1986 | Special Edition | -
+Aliens.1986.Extended.Edition.1080p.mkv | Aliens | 1986 | Extended | -
+The Lord of the Rings The Fellowship of the Ring (2001) Extended.mkv | The Lord of the Rings The Fellowship of the Ring | 2001 | Extended | -
+Dune (1984) Unrated.mkv | Dune | 1984 | Unrated | -
+Avatar.2009.Theatrical.Cut.2160p.mkv | Avatar | 2009 | Theatrical | -
+Jaws.1975.REMASTERED.1080p.BluRay.mkv | Jaws | 1975 | Remastered | -
+The Dark Knight (2008) IMAX.mkv | The Dark Knight | 2008 | IMAX | -
+Interstellar.IMAX.2014.1080p.mkv | Interstellar | 2014 | IMAX | -
+Heat (1995)/heat.1080p.mkv | Heat | 1995 | - | -
+Heat (1995)/Heat (1995).mkv | Heat | 1995 | - | -
+Heat (1995) {tmdb-949}/Heat.mkv | Heat | 1995 | - | tmdb=949
+Collection/Toy Story (1995)/Toy Story (1995).mp4 | Toy Story | 1995 | - | -
+Arrival.mkv | Arrival | 0 | - | -
+Arrival.1080p.BluRay.x264-GRP.mkv | Arrival | 0 | - | -
+[GRP] Akira (1988) [1080p].mkv | Akira | 1988 | - | -
+Oldboy_2003_1080p_BluRay.mkv | Oldboy | 2003 | - | -
+Parasite.2019.KOREAN.1080p.WEBRip.x264.mkv | Parasite | 2019 | - | -
+The Good, the Bad and the Ugly (1966).mkv | The Good, the Bad and the Ugly | 1966 | - | -
+Se7en (1995).mkv | Se7en | 1995 | - | -
+WALL·E (2008).mkv | WALL·E | 2008 | - | -
+Godzilla.Minus.One.2023.1080p.WEB-DL.mkv | Godzilla Minus One | 2023 | - | -
+Star Wars Episode IV - A New Hope (1977).mkv | Star Wars Episode IV - A New Hope | 1977 | - | -
+Movie.Title.2016.PROPER.REPACK.720p.HDTV.mkv | Movie Title | 2016 | - | -
+Back to the Future (1985)/BTTF.mkv | Back to the Future | 1985 | - | -
+(2019).mkv |  | 0 | - | -
