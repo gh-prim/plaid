@@ -104,9 +104,12 @@ func mtimeString(t time.Time) string {
 func (s *Store) now() string { return ts(s.Now()) }
 
 // CreateLibrary inserts a library and its folders. Paths must already be
-// validated and cleaned by the caller.
-func (s *Store) CreateLibrary(ctx context.Context, name, typ string, folders []string) (Library, error) {
+// validated and cleaned by the caller. interval is optional (nil = defaults).
+func (s *Store) CreateLibrary(ctx context.Context, name, typ string, folders []string, interval ...*int64) (Library, error) {
 	lib := Library{ID: newID(), Name: name, Type: typ}
+	if len(interval) > 0 {
+		lib.ScanIntervalS = interval[0]
+	}
 	now := s.now()
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -114,8 +117,8 @@ func (s *Store) CreateLibrary(ctx context.Context, name, typ string, folders []s
 	}
 	defer tx.Rollback()
 	if _, err := tx.ExecContext(ctx,
-		`INSERT INTO libraries (id, name, type, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
-		lib.ID, name, typ, now, now); err != nil {
+		`INSERT INTO libraries (id, name, type, scan_interval_s, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+		lib.ID, name, typ, nullInt64Ptr(lib.ScanIntervalS), now, now); err != nil {
 		return lib, fmt.Errorf("insert library: %w", err)
 	}
 	for _, p := range folders {

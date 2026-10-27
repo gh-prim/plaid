@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log/slog"
 	"runtime"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -315,4 +316,162 @@ func (e *Engine) Capabilities(ctx context.Context) (Capabilities, error) {
 		}
 	}
 	return c, nil
+}
+
+// BrowseRoots returns the folder picker roots (PLAID_BROWSE_ROOTS).
+func (e *Engine) BrowseRoots() []string { return e.opts.BrowseRoots }
+
+// View is a library with its counts and scan state, as the API shows it.
+type View struct {
+	Library
+	Counts Counts
+	Scan   Progress
+}
+
+// Libraries lists every library with counts and scan state.
+func (e *Engine) Libraries(ctx context.Context) ([]View, error) {
+	libs, err := e.store.ListLibraries(ctx)
+	if err != nil {
+		return nil, err
+	}
+	counts, err := e.store.LibraryCounts(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]View, 0, len(libs))
+	for _, lib := range libs {
+		p, _ := e.sched.snapshot(lib.ID)
+		if p.State == "" {
+			p.State = StateIdle
+		}
+		out = append(out, View{Library: lib, Counts: counts[lib.ID], Scan: p})
+	}
+	return out, nil
+}
+
+// View returns one library with counts and scan state.
+func (e *Engine) View(ctx context.Context, id string) (View, error) {
+	lib, err := e.store.GetLibrary(ctx, id)
+	if err != nil {
+		return View{}, err
+	}
+	counts, err := e.store.LibraryCounts(ctx)
+	if err != nil {
+		return View{}, err
+	}
+	p, _ := e.sched.snapshot(id)
+	if p.State == "" {
+		p.State = StateIdle
+	}
+	return View{Library: lib, Counts: counts[id], Scan: p}, nil
+}
+
+// validateFolders cleans and checks every folder (R2) and rejects overlaps
+// with each other and with other libraries' folders.
+func (e *Engine) validateFolders(ctx context.Context, folders []string, selfID string) ([]string, error) {
+	var clean []string
+	for _, f := range folders {
+		c, err := ValidateFolder(f)
+		if err != nil {
+			return nil, err
+		}
+		if !slices.Contains(clean, c) {
+			clean = append(clean, c)
+		}
+	}
+	existing, err := e.store.AllFolders(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkOverlap(clean, existing, selfID); err != nil {
+		return nil, err
+	}
+	return clean, nil
+}
+
+// NewLibrary is what CreateLibrary needs. Name, type and interval bounds
+// are checked by the caller.
+type NewLibrary struct {
+	Name          string
+	Type          string
+	Folders       []string
+	ScanIntervalS *int64
+}
+
+// CreateLibrary validates the folders, stores the library, arms its
+// watchers and queues a full scan (R1, R2). Nothing is created on error.
+func (e *Engine) CreateLibrary(ctx context.Context, n NewLibrary) (Library, error) {
+	folders, err := e.validateFolders(ctx, n.Folders, "")
+	if err != nil {
+		return Library{}, err
+	}
+	lib, err := e.store.CreateLibrary(ctx, n.Name, n.Type, folders, n.ScanIntervalS)
+	if err != nil {
+		return Library{}, err
+	}
+	e.track(lib)
+	if err := e.sched.request(lib.ID, true); err != nil {
+		return Library{}, err
+	}
+	return e.store.GetLibrary(ctx, lib.ID)
+}
+
+// UpdateLibrary applies p. New folders are validated, watched and scanned;
+// removed ones stop being watched.
+func (e *Engine) UpdateLibrary(ctx context.Context, id string, p Patch) (Library, error) {
+	before, err := e.store.GetLibrary(ctx, id)
+	if err != nil {
+		return Library{}, err
+	}
+	if p.Folders != nil {
+		if p.Folders, err = e.validateFolders(ctx, p.Folders, id); err != nil {
+			return Library{}, err
+		}
+	}
+	added, err := e.store.UpdateLibrary(ctx, id, p)
+	if err != nil {
+		return Library{}, err
+	}
+	if p.Folders != nil {
+		var removed []string
+		for _, f := range before.Folders {
+			if !slices.Contains(p.Folders, f.Path) {
+				removed = append(removed, f.ID)
+			}
+		}
+		e.unwatch(removed...)
+	}
+	lib, err := e.store.GetLibrary(ctx, id)
+	if err != nil {
+		return Library{}, err
+	}
+	lib = e.armFolders(lib)
+	if !e.sched.tracked(id) {
+		e.track(lib)
+	} else {
+		e.sched.setInterval(id, interval(lib))
+	}
+	if len(added) > 0 || len(lib.Folders) < len(before.Folders) {
+		// New folders' files are found, removed ones' items cleaned up.
+		if err := e.sched.request(id, false); err != nil {
+			return Library{}, err
+		}
+	}
+	return lib, nil
+}
+
+// DeleteLibrary cancels the library's scan, stops its watchers and deletes
+// its rows. Nothing on disk is touched (R23).
+func (e *Engine) DeleteLibrary(ctx context.Context, id string) error {
+	lib, err := e.store.GetLibrary(ctx, id)
+	if err != nil {
+		return err
+	}
+	e.sched.remove(id)
+	ids := make([]string, 0, len(lib.Folders))
+	for _, f := range lib.Folders {
+		ids = append(ids, f.ID)
+	}
+	e.unwatch(ids...)
+	return e.store.DeleteLibrary(ctx, id)
 }
