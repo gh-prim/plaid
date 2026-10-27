@@ -1,9 +1,9 @@
 ---
 id: F006
 title: Playback — direct play and transcoding
-owner: TBD
+owner: gh-prim
 reviewer: TBD
-status: draft
+status: accepted
 phase: 1
 apps: [server]
 created: 2026-10-26
@@ -38,5 +38,5 @@ The client declares what it can play. The server picks the lightest strategy: Di
 Advanced HDR → SDR tone-mapping (v2), Chromecast / AirPlay.
 
 ## Open questions
-- [ ] Where to store temporary segments: RAM (tmpfs) or disk?
-- [ ] Signed playback link, for external players like VLC?
+- [x] Where to store temporary segments: RAM (tmpfs) or disk? → **Disk**, in a configurable transcode directory (default under the data dir) with a size cap and per-session cleanup. Admins who want RAM point it at a tmpfs. Reason: 4K segments would exhaust RAM on a Pi-class server.
+- [x] Signed playback link, for external players like VLC? → **Yes, for every player.** A short-lived token in the URL, scoped to one playback session. Native HLS players (Safari, AVPlayer, `<video>`) can't add an `Authorization` header to each segment request, so our own clients need it too; external players like VLC get it for free.
