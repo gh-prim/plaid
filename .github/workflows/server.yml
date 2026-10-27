@@ -1,18 +1,11 @@
 name: server
 
+# Called by ci.yml when server/ or api/ change.
 on:
-  push:
-    branches: [main]
-    paths: [server/**, api/**, Makefile, .github/workflows/server.yml]
-  pull_request:
-    paths: [server/**, api/**, Makefile, .github/workflows/server.yml]
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   go:

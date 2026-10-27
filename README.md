@@ -3,9 +3,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/gh-prim/plaid/actions/workflows/server.yml"><img src="https://github.com/gh-prim/plaid/actions/workflows/server.yml/badge.svg" alt="Server CI"></a>
-  <a href="https://github.com/gh-prim/plaid/actions/workflows/web.yml"><img src="https://github.com/gh-prim/plaid/actions/workflows/web.yml/badge.svg" alt="Web CI"></a>
-  <a href="https://github.com/gh-prim/plaid/actions/workflows/package-test.yml"><img src="https://github.com/gh-prim/plaid/actions/workflows/package-test.yml/badge.svg" alt="Package test"></a>
+  <a href="https://github.com/gh-prim/plaid/actions/workflows/ci.yml"><img src="https://github.com/gh-prim/plaid/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/gh-prim/plaid/actions/workflows/release.yml"><img src="https://github.com/gh-prim/plaid/actions/workflows/release.yml/badge.svg" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8a8378" alt="MIT license"></a>
 </p>
 

@@ -2,12 +2,9 @@ name: package-test
 
 # Builds the .deb and installs it on a real Ubuntu VM (GitHub runners have systemd),
 # exercising install, upgrade with an edited config, the install script, remove and purge.
+# Called by ci.yml when packaging, the server or scripts change.
 on:
-  push:
-    branches: [main]
-    paths: [packaging/**, .goreleaser.yaml, server/**, .github/workflows/package-test.yml]
-  pull_request:
-    paths: [packaging/**, .goreleaser.yaml, server/**, scripts/**, .claude/hooks/**, .github/workflows/package-test.yml]
+  workflow_call:
 
 permissions:
   contents: read
