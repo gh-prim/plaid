@@ -1285,11 +1285,13 @@ export interface operations {
     }
     responses: {
       /** @description Claimed; the TV gets its session on its next poll */
-      204: {
+      200: {
         headers: {
           [name: string]: unknown
         }
-        content?: never
+        content: {
+          'application/json': components['schemas']['SessionInfo']
+        }
       }
       default: components['responses']['Error']
     }

@@ -1735,12 +1735,18 @@ type ClaimPairingResponseObject interface {
 	VisitClaimPairingResponse(w http.ResponseWriter) error
 }
 
-type ClaimPairing204Response struct {
-}
+type ClaimPairing200JSONResponse SessionInfo
 
-func (response ClaimPairing204Response) VisitClaimPairingResponse(w http.ResponseWriter) error {
-	w.WriteHeader(204)
-	return nil
+func (response ClaimPairing200JSONResponse) VisitClaimPairingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
 }
 
 type ClaimPairingdefaultJSONResponse struct {

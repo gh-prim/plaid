@@ -65,6 +65,9 @@ func New(db *sql.DB, opts Options) *Service {
 	if opts.Now == nil {
 		opts.Now = time.Now
 	}
+	// Every time the service stores or returns is UTC, whatever the host's zone.
+	clock := opts.Now
+	opts.Now = func() time.Time { return clock().UTC() }
 	if opts.Logger == nil {
 		opts.Logger = slog.Default()
 	}
