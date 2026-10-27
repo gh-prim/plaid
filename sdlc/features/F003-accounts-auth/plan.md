@@ -3,7 +3,7 @@ id: F003
 title: Accounts and authentication
 owner: gh-prim
 reviewer: TBD
-status: draft            # draft | approved | in-progress | done
+status: in-progress      # draft | approved | in-progress | done
 spec: ./spec.md
 branch: feat/F003-accounts-auth
 ---
