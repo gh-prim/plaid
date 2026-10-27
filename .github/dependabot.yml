@@ -6,6 +6,11 @@ updates:
   - package-ecosystem: npm
     directory: /web
     schedule: { interval: weekly }
+    ignore:
+      # We stay on Node 24 LTS; a Node major bump is done by hand across
+      # Dockerfile, .nvmrc and @types/node in one change.
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
     groups:
       web-dev-deps:
         dependency-type: development
@@ -15,3 +20,7 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule: { interval: weekly }
+    ignore:
+      # Same Node 24 LTS policy as above. Node 26 also drops corepack, used by the Dockerfile.
+      - dependency-name: node
+        update-types: [version-update:semver-major]
