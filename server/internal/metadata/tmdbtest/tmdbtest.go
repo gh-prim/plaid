@@ -136,6 +136,10 @@ func New(t testing.TB) *Server {
 			w.WriteHeader(int(code))
 			return
 		}
+		if r.URL.Path == "/configuration" {
+			_, _ = w.Write([]byte(`{"images":{}}`))
+			return
+		}
 		file := fixture(r.URL.Path, q)
 		if file == "" {
 			t.Errorf("tmdbtest: no fixture for %s?%s", r.URL.Path, q.Encode())

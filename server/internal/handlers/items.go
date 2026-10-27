@@ -7,13 +7,14 @@ import (
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
 
+	"github.com/gh-prim/plaid/server/internal/access"
 	"github.com/gh-prim/plaid/server/internal/api"
 	"github.com/gh-prim/plaid/server/internal/apierr"
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/metadata"
 )
 
-var itemKinds = map[api.ItemKind]bool{api.Movie: true, api.Show: true, api.Season: true, api.Episode: true}
+var itemKinds = map[api.ItemKind]bool{api.ItemKindMovie: true, api.ItemKindShow: true, api.ItemKindSeason: true, api.ItemKindEpisode: true}
 
 func checkLimit(limit *int, p *problems) int {
 	if limit == nil {
@@ -77,25 +78,34 @@ func (h *Handlers) GetItem(ctx context.Context, req api.GetItemRequestObject) (a
 	if err != nil {
 		return nil, err
 	}
-	st := h.library.Store()
-	it, err := st.GetItem(ctx, req.ItemId)
-	// An item the profile may not see doesn't exist for it (F005 R25).
-	if errors.Is(err, library.ErrNotFound) || err == nil && !limit.Allows(it.AgeRating) {
-		return nil, apierr.NotFound("no such item")
-	}
+	out, err := h.itemDetail(ctx, req.ItemId, limit)
 	if err != nil {
 		return nil, err
+	}
+	return api.GetItem200JSONResponse(out), nil
+}
+
+// itemDetail builds an item with its files and metadata. An item the
+// profile may not see doesn't exist for it (F005 R25).
+func (h *Handlers) itemDetail(ctx context.Context, id string, limit access.Limit) (api.ItemDetail, error) {
+	st := h.library.Store()
+	it, err := st.GetItem(ctx, id)
+	if errors.Is(err, library.ErrNotFound) || err == nil && !limit.Allows(it.AgeRating) {
+		return api.ItemDetail{}, apierr.NotFound("no such item")
+	}
+	if err != nil {
+		return api.ItemDetail{}, err
 	}
 	files, err := st.ItemFiles(ctx, it.ID)
 	if err != nil {
-		return nil, err
+		return api.ItemDetail{}, err
 	}
 	s := toItemSummary(it)
 	var detail *metadata.Detail
 	if h.metadata != nil {
 		d, ok, err := h.metadata.Store().Detail(ctx, it.ID)
 		if err != nil {
-			return nil, err
+			return api.ItemDetail{}, err
 		}
 		if ok {
 			detail = &d
@@ -117,7 +127,36 @@ func (h *Handlers) GetItem(ctx context.Context, req api.GetItemRequestObject) (a
 	for _, f := range files {
 		out.Files = append(out.Files, toMediaFile(f))
 	}
-	return api.GetItem200JSONResponse(out), nil
+	return out, nil
+}
+
+// summariesOf builds summaries of items by id, in order, leaving out the
+// ones that are gone or the profile may not see.
+func (h *Handlers) summariesOf(ctx context.Context, ids []string, limit access.Limit) ([]api.ItemSummary, error) {
+	var items []library.Item
+	for _, id := range ids {
+		it, err := h.library.Store().GetItem(ctx, id)
+		if errors.Is(err, library.ErrNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		if limit.Allows(it.AgeRating) {
+			items = append(items, it)
+		}
+	}
+	sums, err := h.summaries(ctx, items)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]api.ItemSummary, 0, len(items))
+	for _, it := range items {
+		s := toItemSummary(it)
+		withSummary(&s, sums[it.ID])
+		out = append(out, s)
+	}
+	return out, nil
 }
 
 // ListUnrecognizedFiles lists files whose name couldn't be parsed (F004-R11).

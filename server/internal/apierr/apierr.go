@@ -211,3 +211,35 @@ func LibraryTypeImmutable() *Error {
 func ProviderUnavailable() *Error {
 	return New(http.StatusServiceUnavailable, "provider_unavailable", "the metadata provider can't be reached right now")
 }
+
+// MetadataDisabled means there's no TMDB key to search or match with.
+func MetadataDisabled() *Error {
+	return New(http.StatusConflict, "metadata_disabled", "no TMDB API key is set")
+}
+
+// InvalidAPIKey means a provider rejected a key the admin entered.
+func InvalidAPIKey(field string) *Error {
+	e := New(http.StatusUnprocessableEntity, "invalid_api_key", "the provider rejected this key")
+	e.Details = []Detail{{Field: field, Code: "invalid"}}
+	return e
+}
+
+// MatchNotFound means TMDB has no title with that id.
+func MatchNotFound() *Error {
+	return New(http.StatusNotFound, "match_not_found", "TMDB has no title with this id")
+}
+
+// ItemKindMismatch means the match doesn't fit the item's kind.
+func ItemKindMismatch() *Error {
+	return New(http.StatusUnprocessableEntity, "item_kind_mismatch", "this match doesn't fit this kind of item")
+}
+
+// FieldNotEditable means a field that can't be edited or locked.
+func FieldNotEditable() *Error {
+	return New(http.StatusUnprocessableEntity, "field_not_editable", "this field can't be edited")
+}
+
+// AlreadyIdentified means a file was already recognized or identified.
+func AlreadyIdentified() *Error {
+	return New(http.StatusConflict, "already_identified", "this file is already identified")
+}

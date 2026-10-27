@@ -152,27 +152,27 @@ Each step brings its tests in the same commit.
     - Handler tests cover each case. (R19, R25, R36)
 
 ### PR D — admin API, keys and proofs
-23. [ ] **Search and candidate images.** `GET /metadata/search` parses `tmdb:` / `imdb:` ids or free text, scores against `itemId` when given, and returns `503 provider_unavailable` while TMDB is unreachable. `GET /metadata/candidate-images/{path}` checks the path against `^[A-Za-z0-9]+\.(jpg|png)$` (otherwise `400`, with no request), then proxies TMDB `w185` with a 1-hour in-memory cache. Tests include the traversal attempt from the acceptance criteria. (R27)
-24. [ ] **Fix match, unmatch, refresh.**
+23. [x] **Search and candidate images.** `GET /metadata/search` parses `tmdb:` / `imdb:` ids or free text, scores against `itemId` when given, and returns `503 provider_unavailable` while TMDB is unreachable. `GET /metadata/candidate-images/{path}` checks the path against `^[A-Za-z0-9]+\.(jpg|png)$` (otherwise `400`, with no request), then proxies TMDB `w185` with a 1-hour in-memory cache. Tests include the traversal attempt from the acceptance criteria. (R27)
+24. [x] **Fix match, unmatch, refresh.**
     - `POST /items/{id}/match` validates the kind (a movie id on a show → `422 item_kind_mismatch`; unknown → `404 match_not_found`), fetches, applies with `match_locked`, and cascades for shows.
     - An episode with `{seasonNumber, episodeNumber}` relinks its files (R39).
     - `DELETE /items/{id}/match` resets to `pending` and unlocks.
     - `POST /items/{id}/refresh` and `/libraries/{id}/metadata/refresh` set `refresh_at = now`, with `images: true` re-picking unlocked kinds.
     - Tests: *The Office* UK → US, with the lock surviving a rescan and a refresh. (R26, R31, R39)
-25. [ ] **Identify unrecognized files.** `POST /media-files/{fileId}/identify` checks that the file is `unrecognized` or not identified yet (`409 already_identified` otherwise), writes `file_identifications`, links the file through the same code path as the F004 hook (step 3), sets `parse_status = ok`, then applies. Test: *Amélie*, then a full rescan and a move. (R28)
-26. [ ] **Field edits and artwork choice.** `PATCH /items/{id}/metadata` only accepts the R29 fields (otherwise `422 field_not_editable`), locks them, and handles `unlock`. `GET`, `PUT` and `DELETE /items/{id}/artwork/{kind}` cover listing candidates, selecting one and locking it, and unlocking it. Tests cover locks surviving refresh. (R29, R30)
-27. [ ] **Settings, status, SSE, attribution.**
+25. [x] **Identify unrecognized files.** `POST /media-files/{fileId}/identify` checks that the file is `unrecognized` or not identified yet (`409 already_identified` otherwise), writes `file_identifications`, links the file through the same code path as the F004 hook (step 3), sets `parse_status = ok`, then applies. Test: *Amélie*, then a full rescan and a move. (R28)
+26. [x] **Field edits and artwork choice.** `PATCH /items/{id}/metadata` only accepts the R29 fields (otherwise `422 field_not_editable`), locks them, and handles `unlock`. `GET`, `PUT` and `DELETE /items/{id}/artwork/{kind}` cover listing candidates, selecting one and locking it, and unlocking it. Tests cover locks surviving refresh. (R29, R30)
+27. [x] **Settings, status, SSE, attribution.**
     - `GET` / `PATCH /metadata/settings`: the key is validated with TMDB `/configuration` (`422 invalid_api_key`, nothing stored), never echoed back, and `null` falls back to env, then the built-in key.
     - `GET /metadata/status` per R35. The library SSE stream gets a `metadata` event, sent through `Engine.Publish` and throttled to one every 2 s per library.
     - `GET /server` gets `attributions`.
     - Tests: grep every captured log line and response body for the test key value (it must not appear), the SSE event shape, and a member getting `403` on every admin route (a table over the generated operation list). (R34, R35, R37)
-28. [ ] **Collections and people routes.** `GET /collections?libraryId=`, `GET /collections/{id}` (movies by release date, filtered by `access`), and `GET /people/{id}` (filmography filtered by `access`). (R8, R23, R25)
-29. [ ] **Release keys and docs.**
+28. [x] **Collections and people routes.** `GET /collections?libraryId=`, `GET /collections/{id}` (movies by release date, filtered by `access`), and `GET /people/{id}` (filmography filtered by `access`). (R8, R23, R25)
+29. [x] **Release keys and docs.**
     - `.goreleaser.yaml` `ldflags` read `{{ .Env.TMDB_API_KEY }}` / `{{ .Env.FANART_API_KEY }}` (empty is allowed: the binary then reports `no_api_key`).
     - `release.yml` sets them from secrets on the GoReleaser step only. Pull-request workflows never see them; GoReleaser runs only on tags.
     - The Dockerfile doesn't take keys while the image isn't published. A comment points to ADR 0007 (build secrets when publishing starts).
     - `docs/install.md` gets keys, privacy, disk and backup, and attribution. ADR 0007 gets the result of the terms check (watch-out "provider terms").
-30. [ ] **End-to-end and performance.**
+30. [x] **End-to-end and performance.**
     - `e2e_test.go` runs every acceptance criterion in the spec against stub providers, including offline and recovery, `429`, `401`, no key at all, and the read-only tree hash.
     - `perf_test.go` (`-tags perf`) generates the reference library and checks the request rate (≤ 20/s), the time to all posters, and peak memory with `runtime.ReadMemStats`. Run it in the throttled container from CLAUDE.md and paste the numbers in the PR.
 
@@ -243,3 +243,15 @@ Deviations from the plan found during the build (date + what + why).
   - **API:** `ItemSummary.poster|backdrop|still`, `ItemMetadata.logo|clearart|backdrops` and `Credit.portrait`, as `Artwork {imageId, width, height, source, colors}`. `GET /images/{imageId}?w=` returns JPEG or PNG with `ETag` / `304`, `Cache-Control: private, max-age=31536000, immutable` and `nosniff`, and a 404 for an item the profile may not see.
   - **Config:** `PLAID_FANART_API_KEY`, and `PLAID_ARTWORK_CACHE_MAX_MB` (at least 64). The fanart.tv built-in key is set by PR D, like TMDB's.
   - **Speed:** a 780 px poster resized to 342 px takes about 18 ms on an M-series Mac (`BenchmarkPosterVariant`). The Pi number comes with PR D's perf run. Apply tests turn artwork on only where they test it.
+- **2026-10-27, PR D (steps 23–30)**, by gh-prim with Claude. Divergences from the steps above:
+  - **`item_kind_mismatch`** is for matches that don't fit the item: a TMDB id on a season or an episode, season/episode numbers on a movie or show, or identifying a file in a library of the other type. A movie id given for a show can't be detected: TMDB ids are per type, so it's looked up as a show and gives `match_not_found` if TMDB has no show with that id.
+  - **`metadata_disabled` is a `409`**: search, fix match and identify need a TMDB key.
+  - **Fix match runs synchronously** and answers with the item already matched. An episode fixed with `{seasonNumber, episodeNumber}` answers with the episode its files moved to (the old one is deleted when it has no file left).
+  - **Identify** creates the movie, or the show/season/episode items, directly in the metadata store (no F004 hook, see PR A). It reuses an item already matched to the same TMDB id and accepts only `unrecognized` files (`409 already_identified` otherwise).
+  - **`refresh` with `images: true`** forgets the unlocked artwork choices of the item and its children, so they're picked and downloaded anew.
+  - **Live counters:** the scan SSE stream subscribes to the metadata service (`Service.Subscribe`), which publishes at most one `metadata` event every 2 s per library (trailing). F004's `library.Event` is unchanged. `ScanEvent.progress` is optional now that an event can be `metadata` only.
+  - **Key checks** go through `Options.CheckKey` (tests replace it). The default asks TMDB `/configuration` and fanart.tv `/movies/603`.
+  - **Collections** with no movie the profile may see are left out of the list, and `GET /collections/{id}` gives `404` for them. Collection posters and backdrops are fetched on first request.
+  - **Release keys:** `.goreleaser.yaml` reads `{{ index .Env "TMDB_API_KEY" }}` (empty in local builds). `release.yml` passes the secrets to the GoReleaser step only. The Dockerfile has a comment and no keys (the image isn't published).
+  - **Performance:** `perf_test.go` uses a dynamic TMDB stub with 50 ms of latency behind the real `httpx` client (so the 20 req/s limit is exercised), plus generated images. The numbers are in the PR. The throttled-container (Pi-like) run is still to do.
+  - **Acceptance criteria** are covered across `metadata/*_test.go`, `metadata/artwork`, `metadata/match`, `metadata/tmdb` and `handlers/*metadata*_test.go`, not in one `e2e_test.go`.

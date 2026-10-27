@@ -390,8 +390,20 @@ func (s *Service) ensureCollection(ctx context.Context, prov provider.Provider, 
 		return "", err
 	}
 	// Another worker may have inserted it first.
-	err = s.store.db.QueryRowContext(ctx, `SELECT id FROM collections WHERE library_id = ? AND tmdb_id = ?`, p.LibraryID, ref.TMDBID).Scan(&id)
-	return id, err
+	if err := s.store.db.QueryRowContext(ctx, `SELECT id FROM collections WHERE library_id = ? AND tmdb_id = ?`, p.LibraryID, ref.TMDBID).Scan(&id); err != nil {
+		return "", err
+	}
+	// Its poster and backdrop are fetched on first request (R23).
+	o := owner{"collection", id}
+	for kind, path := range map[string]string{"poster": col.PosterPath, "backdrop": col.BackdropPath} {
+		if path == "" {
+			continue
+		}
+		if err := s.store.syncArtwork(ctx, o, kind, []candidate{{Source: "tmdb", URL: path}}); err != nil {
+			return "", err
+		}
+	}
+	return id, nil
 }
 
 // build merges what's known about an item into the row to store, field by

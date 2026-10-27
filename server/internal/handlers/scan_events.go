@@ -9,6 +9,7 @@ import (
 
 	"github.com/gh-prim/plaid/server/internal/api"
 	"github.com/gh-prim/plaid/server/internal/library"
+	"github.com/gh-prim/plaid/server/internal/metadata"
 )
 
 // Server-sent events timing (F004-R21, watch-out SSE). Variables so tests
@@ -31,10 +32,17 @@ func (h *Handlers) GetLibraryScanEvents(ctx context.Context, req api.GetLibraryS
 	if err != nil {
 		return nil, libraryErr(err, nil)
 	}
-	return scanEventStream{
+	stream := scanEventStream{
 		ctx: ctx, shutdown: h.streams, events: events, cancel: cancel, first: first,
 		progress: func() (library.Progress, error) { return h.library.Progress(ctx, req.LibraryId) },
-	}, nil
+	}
+	// F005 R35: the library's matching counters ride on the same stream.
+	if h.metadata != nil {
+		counts, stop := h.metadata.Subscribe(req.LibraryId)
+		stream.counts = counts
+		stream.cancel = func() { cancel(); stop() }
+	}
+	return stream, nil
 }
 
 // scanEventStream writes a text/event-stream response. It implements the
@@ -47,6 +55,7 @@ type scanEventStream struct {
 	cancel   func()
 	first    library.Progress
 	progress func() (library.Progress, error)
+	counts   <-chan metadata.Counters // nil without F005
 }
 
 // VisitGetLibraryScanEventsResponse runs until the client disconnects, the
@@ -61,10 +70,8 @@ func (s scanEventStream) VisitGetLibraryScanEventsResponse(w http.ResponseWriter
 	w.WriteHeader(http.StatusOK)
 	rc := http.NewResponseController(w)
 
-	send := func(ev library.Event) bool {
-		data, err := json.Marshal(api.ScanEvent{
-			Type: api.ScanEventType(ev.Type), Progress: toScanProgress(ev.Progress), Error: optional(ev.Error),
-		})
+	write := func(ev api.ScanEvent) bool {
+		data, err := json.Marshal(ev)
 		if err != nil {
 			return false
 		}
@@ -72,6 +79,10 @@ func (s scanEventStream) VisitGetLibraryScanEventsResponse(w http.ResponseWriter
 			return false
 		}
 		return rc.Flush() == nil
+	}
+	send := func(ev library.Event) bool {
+		p := toScanProgress(ev.Progress)
+		return write(api.ScanEvent{Type: api.ScanEventType(ev.Type), Progress: &p, Error: optional(ev.Error)})
 	}
 	if !send(library.Event{Type: library.EventProgress, Progress: s.first}) {
 		return nil
@@ -93,6 +104,12 @@ func (s scanEventStream) VisitGetLibraryScanEventsResponse(w http.ResponseWriter
 			return nil
 		case ev, ok := <-s.events:
 			if !ok || !send(ev) {
+				return nil
+			}
+		case c := <-s.counts:
+			if !write(api.ScanEvent{Type: api.ScanEventTypeMetadata, Metadata: &api.MetadataCounts{
+				Pending: c.Pending, Matched: c.Matched, NeedsReview: c.NeedsReview, Unmatched: c.Unmatched,
+			}}) {
 				return nil
 			}
 		case <-progress.C:

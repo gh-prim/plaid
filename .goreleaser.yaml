@@ -20,6 +20,10 @@ builds:
       - -s -w
       - -X github.com/gh-prim/plaid/server/internal/buildinfo.Version={{ .Version }}
       - -X github.com/gh-prim/plaid/server/internal/buildinfo.Commit={{ .ShortCommit }}
+      # Built-in metadata keys (ADR 0007): set from repository secrets by the
+      # release workflow, empty in local builds (the server then asks for one).
+      - -X github.com/gh-prim/plaid/server/internal/metadata.builtinTMDBKey={{ index .Env "TMDB_API_KEY" }}
+      - -X github.com/gh-prim/plaid/server/internal/metadata.builtinFanartKey={{ index .Env "FANART_API_KEY" }}
 
 archives:
   - formats: [tar.gz]

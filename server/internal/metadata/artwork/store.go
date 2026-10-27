@@ -112,6 +112,25 @@ func (s *Store) Download(ctx context.Context, rawURL string) (Original, error) {
 	return o, nil
 }
 
+// Fetch downloads an image without storing it (candidate previews, R27).
+func (s *Store) Fetch(ctx context.Context, rawURL string) ([]byte, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, err
+	}
+	if base, ok := s.hosts[u.Hostname()]; ok {
+		rawURL = strings.TrimSuffix(base, "/") + u.EscapedPath()
+	}
+	body, err := s.http.Get(ctx, rawURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := inspect(body); err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
 // Inspect reads a local image's hash and size without copying it (R13).
 func Inspect(path string) (Original, error) {
 	f, err := os.Open(path) //nolint:gosec // a library folder, read-only

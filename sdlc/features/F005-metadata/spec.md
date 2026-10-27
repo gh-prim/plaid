@@ -370,3 +370,7 @@ Settled by gh-prim on 2026-10-27. ✅ = resolved, ⏸ = tracked elsewhere.
 - **2026-10-27, PR C (artwork).**
   - **R14:** a changed `.nfo` is applied through an immediate refresh of its movie or show, which makes one TMDB call. The plan simplified sidecar handling to "detect, then refresh", so artwork and `.nfo` fields are chosen in one place.
   - **R15:** posters and logos whose language is neither the library's, English nor "no text" are left out of the candidates, rather than ranked last.
+- **2026-10-27, PR D (admin API).**
+  - `item_kind_mismatch` covers matches that can't fit the item (a TMDB id on a season or episode, episode numbers on a movie). A movie id sent for a show can't be told apart, because TMDB ids are per type: it gives `match_not_found` when TMDB has no show with that id.
+  - `metadata_disabled` is `409`.
+  - Collections with no movie the active profile may see are hidden (R23, R25).

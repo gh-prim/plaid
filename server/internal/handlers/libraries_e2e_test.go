@@ -20,6 +20,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/metadata/tmdbtest"
+	"github.com/gh-prim/plaid/server/internal/settings"
 )
 
 // These tests drive the acceptance criteria of F004 that go through the
@@ -74,7 +75,13 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	)
 	if o.tmdb != nil {
 		meta = metadata.New(metadata.Options{DB: e.db, Provider: o.tmdb.Client(), Fanart: o.tmdb.Fanart(), Log: logger,
-			Workers: 2, QueueIdle: 20 * time.Millisecond, DataDir: t.TempDir(), ImageHTTP: o.tmdb.HTTP(), ImageHosts: o.tmdb.ImageHosts()})
+			Workers: 2, QueueIdle: 20 * time.Millisecond, DataDir: t.TempDir(), ImageHTTP: o.tmdb.HTTP(), ImageHosts: o.tmdb.ImageHosts(),
+			Settings: settings.New(e.db), CheckKey: func(_ context.Context, _, key string) error {
+				if key == tmdbtest.Key || key == tmdbtest.FanartKey {
+					return nil
+				}
+				return metadata.ErrInvalidAPIKey
+			}})
 		meta.Start(context.Background())
 		t.Cleanup(meta.Close)
 		hooks.ItemsCreated, hooks.Sidecars = meta.ItemsCreated, meta.SidecarsSeen
