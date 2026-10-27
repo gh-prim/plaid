@@ -16,6 +16,26 @@ const (
 
 var x264Presets = map[string]string{PresetFast: "veryfast", PresetBalanced: "faster", PresetQuality: "medium"}
 
+// smallCPUs is the core count at or under which fast goes one step faster.
+const smallCPUs = 4
+
+// x264Preset is libx264's preset for an encoderPreset on a machine with
+// cpus usable cores (0 if unknown). On 4 cores or fewer, fast is
+// superfast: veryfast doesn't keep a 1080p→720p transcode at real time
+// there (plan step 30, Pi-like profile).
+func x264Preset(setting string, cpus int) string {
+	if setting == "" {
+		setting = PresetFast
+	}
+	if setting == PresetFast && cpus > 0 && cpus <= smallCPUs {
+		return "superfast"
+	}
+	if p, ok := x264Presets[setting]; ok {
+		return p
+	}
+	return x264Presets[PresetFast]
+}
+
 // segmentOptions make every run of a session write the same init segment
 // and keep the source timestamps, so segments of different runs join up
 // after a seek (plan step 16). frag_discont keeps each fragment's real
@@ -33,6 +53,10 @@ type RunSpec struct {
 	Dir        string // the session folder
 	RunID      int    // names the run's init segment and playlist
 	Preset     string // encoderPreset; "" is fast
+	// HW is the accelerator of a transcode run, nil in software (R24).
+	HW *HWConfig
+	// CPUs is how many cores the software encoder may use; 0 if unknown.
+	CPUs int
 }
 
 // InitName is the init segment a run writes. The first one written
@@ -45,6 +69,12 @@ func (r RunSpec) Args() []string {
 	d := r.Decision
 	m := d.Media
 	a := []string{"-hide_banner", "-nostdin", "-nostats", "-loglevel", "error", "-progress", "pipe:1", "-stats_period", "0.5"}
+	if hw := r.hw(); hw != nil {
+		a = append(a, hwDeviceArgs(hw)...)
+		if m.Video != nil && hw.decodes(m.Video.Codec) {
+			a = append(a, hwDecodeArgs(hw, m.Video.Codec, r.gpuChain())...)
+		}
+	}
 	if start := r.startMs(); start > 0 {
 		// -seek_timestamp: -ss is a timestamp, not offset by the file's
 		// start time. FFmpeg 7 adds a negative start (AAC priming) to it,
@@ -84,31 +114,138 @@ func (r RunSpec) startMs() int64 {
 	return start
 }
 
+// hw is the run's accelerator: transcodes only.
+func (r RunSpec) hw() *HWConfig {
+	if r.Decision.Method != Transcode {
+		return nil
+	}
+	return r.HW
+}
+
+// gpuChain reports whether decoded frames stay on the GPU for scaling
+// (and tone mapping) before the encoder: the GPU decodes the codec, and
+// tone mapping, when needed, has a GPU filter (R24).
+func (r RunSpec) gpuChain() bool {
+	hw, m := r.hw(), r.Decision.Media
+	return hw != nil && hw.spec().gpuFrames && m.Video != nil && hw.decodes(m.Video.Codec) &&
+		(!r.Decision.Tonemap || hw.Tonemap)
+}
+
+// swTonemap maps HDR10 and HLG to SDR BT.709 (R23).
+const swTonemap = "zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv"
+
 func (r RunSpec) videoTranscode() []string {
 	d := r.Decision
-	m := d.Media
-	scale := fmt.Sprintf("scale=%d:%d,format=yuv420p", d.Width, d.Height)
 	var a []string
+	switch hw := r.hw(); {
+	case hw == nil:
+		a = r.swFilters(",format=yuv420p")
+	case !r.gpuChain():
+		// Software decoding or filters, GPU encoding.
+		if up := hw.spec().upload; up != "" {
+			a = r.swFilters(",format=nv12," + up)
+		} else {
+			a = r.swFilters(",format=yuv420p")
+		}
+	default:
+		a = r.gpuFilters(hw)
+	}
+	a = append(a, r.encoderArgs()...)
+	if d.Tonemap {
+		a = append(a, "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709")
+	}
+	return a
+}
+
+// swFilters draws burned-in subtitles at the source size, then scales,
+// tone maps when needed, and ends with tail (pixel format, upload).
+func (r RunSpec) swFilters(tail string) []string {
+	d := r.Decision
+	m := d.Media
+	scale := fmt.Sprintf("scale=%d:%d", d.Width, d.Height)
+	if d.Tonemap {
+		scale += "," + swTonemap
+	}
+	scale += tail
 	switch sub := d.Subtitle; {
 	case d.SubtitleDelivery == DeliveryBurnIn && sub.Image:
-		a = append(a, "-filter_complex", fmt.Sprintf("[%s][%s]overlay=eof_action=pass,%s[v]", stream(m.Video.Index), stream(sub.Index), scale), "-map", "[v]")
+		return []string{"-filter_complex", fmt.Sprintf("[%s][%s]overlay=eof_action=pass,%s[v]", stream(m.Video.Index), stream(sub.Index), scale), "-map", "[v]"}
 	case d.SubtitleDelivery == DeliveryBurnIn:
-		a = append(a, "-map", stream(m.Video.Index), "-vf", subtitlesFilter(m, *sub)+","+scale)
+		return []string{"-map", stream(m.Video.Index), "-vf", subtitlesFilter(m, *sub) + "," + scale}
+	}
+	return []string{"-map", stream(m.Video.Index), "-vf", scale}
+}
+
+// gpuFilters scale (and tone map) on the GPU. Burned-in subtitles go
+// through system memory: download, overlay in software, upload (R24).
+func (r RunSpec) gpuFilters(hw *HWConfig) []string {
+	d := r.Decision
+	m := d.Media
+	a := hw.spec()
+	pixfmt := "nv12"
+	var scale string
+	switch hw.Accel {
+	case HWVAAPI:
+		scale = fmt.Sprintf("scale_vaapi=w=%d:h=%d:format=nv12", d.Width, d.Height)
+		if d.Tonemap {
+			scale = fmt.Sprintf("scale_vaapi=w=%d:h=%d,tonemap_vaapi=format=nv12:t=bt709:m=bt709:p=bt709", d.Width, d.Height)
+		}
+	case HWQSV:
+		scale = fmt.Sprintf("scale_qsv=w=%d:h=%d:format=nv12", d.Width, d.Height)
+		if d.Tonemap {
+			scale = fmt.Sprintf("vpp_qsv=w=%d:h=%d:format=nv12:tonemap=1", d.Width, d.Height)
+		}
 	default:
-		a = append(a, "-map", stream(m.Video.Index), "-vf", scale)
+		pixfmt = "yuv420p"
+		scale = fmt.Sprintf("%s=w=%d:h=%d:format=yuv420p", a.scale, d.Width, d.Height)
 	}
-	level := "4.1"
-	if d.Width > 1920 || d.Height > 1080 {
-		level = "5.1"
+	upload := ""
+	if a.upload != "" {
+		upload = ",format=nv12," + a.upload
 	}
-	preset := x264Presets[r.Preset]
-	if preset == "" {
-		preset = x264Presets[PresetFast]
+	down := ",hwdownload,format=" + pixfmt
+	switch sub := d.Subtitle; {
+	case d.SubtitleDelivery == DeliveryBurnIn && sub.Image:
+		// The subtitle canvas is the source's size: scaled to the output's.
+		return []string{"-filter_complex", fmt.Sprintf("[%s]%s%s[v0];[%s]scale=%d:%d[s0];[v0][s0]overlay=eof_action=pass%s[v]",
+			stream(m.Video.Index), scale, down, stream(sub.Index), d.Width, d.Height, upload), "-map", "[v]"}
+	case d.SubtitleDelivery == DeliveryBurnIn:
+		return []string{"-map", stream(m.Video.Index), "-vf", scale + down + "," + subtitlesFilter(m, *sub) + upload}
 	}
+	return []string{"-map", stream(m.Video.Index), "-vf", scale}
+}
+
+// encoderArgs are the H.264 encoder's options (R20): libx264 High in
+// software, the accelerator's encoder otherwise, keyframes forced on
+// segment boundaries either way.
+func (r RunSpec) encoderArgs() []string {
+	d := r.Decision
 	rate := strconv.FormatInt(d.VideoBitrate, 10)
-	return append(a, "-c:v", "libx264", "-preset", preset, "-profile:v", "high", "-level:v", level,
-		"-b:v", rate, "-maxrate", rate, "-bufsize", strconv.FormatInt(2*d.VideoBitrate, 10),
-		"-force_key_frames", "expr:gte(t,n_forced*6)", "-sc_threshold", "0")
+	rates := []string{"-b:v", rate, "-maxrate", rate, "-bufsize", strconv.FormatInt(2*d.VideoBitrate, 10),
+		"-force_key_frames", "expr:gte(t,n_forced*6)"}
+	hw := r.hw()
+	if hw == nil {
+		level := "4.1"
+		if d.Width > 1920 || d.Height > 1080 {
+			level = "5.1"
+		}
+		a := []string{"-c:v", "libx264", "-preset", x264Preset(r.Preset, r.CPUs), "-profile:v", "high", "-level:v", level}
+		return append(append(a, rates...), "-sc_threshold", "0")
+	}
+	sp := hw.spec()
+	a := []string{"-c:v", encoderFor(hw.Accel, "h264")}
+	if sp.presets != nil {
+		preset := sp.presets[r.Preset]
+		if preset == "" {
+			preset = sp.presets[PresetFast]
+		}
+		a = append(a, "-preset", preset)
+	}
+	if hw.Accel != HWV4L2M2M {
+		a = append(a, "-profile:v", "high")
+	}
+	a = append(a, sp.extra...)
+	return append(a, rates...)
 }
 
 func audioArgs(d Decision) []string {

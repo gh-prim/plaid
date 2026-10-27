@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"io"
 	"mime"
@@ -12,6 +13,8 @@ import (
 	"time"
 
 	"github.com/gh-prim/plaid/server/internal/apierr"
+	"github.com/gh-prim/plaid/server/internal/library"
+	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/playback"
 )
 
@@ -28,8 +31,9 @@ const (
 // server, which can't do Range, HEAD or long polling. The operations are
 // still in api/openapi.yaml for clients. The token in the path is the only
 // authentication; paths on disk always come from the session, never from
-// the URL.
-func StreamHandler(svc *playback.Service) http.Handler {
+// the URL. meta and lib serve the playing item's artwork (R40); without
+// them, artwork is a 404.
+func StreamHandler(svc *playback.Service, meta *metadata.Service, lib *library.Store) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
@@ -62,6 +66,8 @@ func StreamHandler(svc *playback.Service) http.Handler {
 				return
 			}
 			apierr.Write(w, apierr.NotFound("no such stream resource"))
+		case dir == "artwork" && streamArtworkKinds[name]:
+			serveArtwork(w, r, svc, meta, lib, token, name)
 		case dir == "subtitles" && (ext == "m3u8" || ext == playback.SubtitleVTT || ext == playback.SubtitleASS):
 			if n, ok := streamIndex(base); ok {
 				serveSubtitle(w, r, svc, token, n, ext)
@@ -215,6 +221,99 @@ func serveSubtitle(w http.ResponseWriter, r *http.Request, svc *playback.Service
 		ctype = "text/x-ssa; charset=utf-8"
 	}
 	serveFiles(w, r, ctype, []string{path})
+}
+
+// streamArtworkKinds are the kinds served through a token (R40).
+var streamArtworkKinds = map[string]bool{"poster": true, "backdrop": true, "still": true}
+
+// serveArtwork serves the playing item's artwork with the session's age
+// limit (R40). An episode without an image of that kind uses its
+// season's, then its show's.
+func serveArtwork(w http.ResponseWriter, r *http.Request, svc *playback.Service, meta *metadata.Service, lib *library.Store, token, kind string) {
+	sess, ok := session(w, r, svc, token, true)
+	if !ok {
+		return
+	}
+	want := 0
+	if v := r.URL.Query().Get("w"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 1 || n > 3840 {
+			apierr.Write(w, apierr.ValidationFailed(apierr.Detail{Field: "w", Code: "out_of_range"}))
+			return
+		}
+		want = n
+	}
+	if meta == nil || lib == nil {
+		apierr.Write(w, apierr.NotFound("no such image"))
+		return
+	}
+	ctx := r.Context()
+	imageID, err := streamArtworkID(ctx, meta, lib, sess.ItemID, kind)
+	if err != nil {
+		apierr.Write(w, apierr.Internal())
+		return
+	}
+	if imageID == "" {
+		apierr.Write(w, apierr.NotFound("no such image"))
+		return
+	}
+	limit, err := svc.AccessLimit(ctx, sess)
+	if err != nil {
+		apierr.Write(w, apierr.Internal())
+		return
+	}
+	v, err := meta.Image(ctx, imageID, want, limit)
+	switch {
+	case errors.Is(err, metadata.ErrImageNotFound):
+		apierr.Write(w, apierr.NotFound("no such image"))
+		return
+	case err != nil && metadata.IsProviderError(err):
+		apierr.Write(w, apierr.ProviderUnavailable())
+		return
+	case err != nil:
+		apierr.Write(w, apierr.Internal())
+		return
+	}
+	f, err := os.Open(v.Path)
+	if err != nil {
+		apierr.Write(w, apierr.NotFound("no such image"))
+		return
+	}
+	defer func() { _ = f.Close() }()
+	h := w.Header()
+	h.Set("Content-Type", v.ContentType)
+	h.Set("ETag", v.ETag)
+	h.Set("Cache-Control", "private, max-age=3600")
+	h.Set("X-Content-Type-Options", "nosniff")
+	http.ServeContent(w, r, "", time.Time{}, f)
+}
+
+// streamArtworkID is the selected image of a kind for an item, else for
+// its parent (season), else its grandparent (show); "" when none has one.
+func streamArtworkID(ctx context.Context, meta *metadata.Service, lib *library.Store, itemID, kind string) (string, error) {
+	var ids []string
+	for id := itemID; id != "" && len(ids) < 3; {
+		ids = append(ids, id)
+		item, err := lib.GetItem(ctx, id)
+		if errors.Is(err, library.ErrNotFound) {
+			break
+		}
+		if err != nil {
+			return "", err
+		}
+		id = item.ParentID
+	}
+	sums, err := meta.Store().Summaries(ctx, ids)
+	if err != nil {
+		return "", err
+	}
+	for _, id := range ids {
+		sm := sums[id]
+		if art := map[string]*metadata.Art{"poster": sm.Poster, "backdrop": sm.Backdrop, "still": sm.Still}[kind]; art != nil {
+			return art.ID, nil
+		}
+	}
+	return "", nil
 }
 
 func codecOf(s playback.Session, index int) string {

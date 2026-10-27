@@ -91,6 +91,7 @@ func TestPlaybackErrors(t *testing.T) {
 		{FileNotAnalyzed(), http.StatusConflict, "file_not_analyzed"},
 		{ProfileRequired(), http.StatusForbidden, "profile_required"},
 		{FFmpegMissing(), http.StatusServiceUnavailable, "ffmpeg_missing"},
+		{HWAccelUnavailable(), http.StatusUnprocessableEntity, "hw_accel_unavailable"},
 		{PlaybackSessionNotFound(), http.StatusNotFound, "playback_session_not_found"},
 	} {
 		rec, b := write(t, c.e)

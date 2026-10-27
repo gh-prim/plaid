@@ -270,6 +270,25 @@ func TestHLSFFmpegLifetime(t *testing.T) {
 	if !ffmpegRunning(t, s.ID) {
 		t.Fatal("no FFmpeg after the first segment")
 	}
+	// The admin list shows the run's speed, and that it's software (R29).
+	waitFor(t, 5*time.Second, "the transcode speed in the admin list", func() bool {
+		var list struct {
+			Sessions []struct {
+				Speed   *float64
+				Session struct {
+					ID                   string
+					HardwareAcceleration *string
+				}
+			}
+		}
+		e.do("GET", "/playback", nil, bearer(e.admin)).json(&list)
+		for _, a := range list.Sessions {
+			if a.Session.ID == s.ID && a.Session.HardwareAcceleration == nil && a.Speed != nil && *a.Speed > 0 {
+				return true
+			}
+		}
+		return false
+	})
 	dir := regexp.MustCompile(`(\S+plaid-` + s.ID + `-\d+)/%d\.m4s`).FindStringSubmatch(e.logs.String())
 	if dir == nil {
 		t.Fatal("no session folder in the logs")

@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/gh-prim/plaid/server/internal/api"
+	"github.com/gh-prim/plaid/server/internal/playback"
 )
 
 // GetServerCapabilities reports ffprobe, ffmpeg and file watching
-// (F004-R18, R25, F006 R31).
+// (F004-R18, R25, F006 R24, R31).
 func (h *Handlers) GetServerCapabilities(ctx context.Context, _ api.GetServerCapabilitiesRequestObject) (api.GetServerCapabilitiesResponseObject, error) {
 	if _, err := admin(ctx); err != nil {
 		return nil, err
@@ -22,10 +23,12 @@ func (h *Handlers) GetServerCapabilities(ctx context.Context, _ api.GetServerCap
 	}
 	out.Ffprobe.Found = c.FFprobeFound
 	out.Ffprobe.Version = optional(c.FFprobeVersion)
+	out.HwAccel = toHardwareStatus(playback.HWStatus{Configured: playback.HWNone})
 	if h.playback != nil {
 		if f := h.playback.FFmpeg(); f != nil {
 			out.Ffmpeg.Found, out.Ffmpeg.Version = true, optional(f.Version)
 		}
+		out.HwAccel = toHardwareStatus(h.playback.Hardware())
 	}
 	return api.GetServerCapabilities200JSONResponse(out), nil
 }

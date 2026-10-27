@@ -45,7 +45,7 @@ nfpms:
     section: video
     priority: optional
     bindir: /usr/bin
-    dependencies: [adduser, ca-certificates, ffmpeg] # ffmpeg: ffprobe for media analysis (ADR 0006)
+    dependencies: [adduser, ca-certificates, ffmpeg] # ffmpeg: ffprobe analyzes media, ffmpeg plays it (ADR 0006)
     contents:
       - src: packaging/systemd/plaid.service
         dst: /usr/lib/systemd/system/plaid.service

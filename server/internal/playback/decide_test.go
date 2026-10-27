@@ -145,6 +145,46 @@ func TestDecide(t *testing.T) {
 			},
 		},
 		{
+			name:  "HDR10 transcoded for an SDR client is tone mapped (R23)",
+			media: media(t, "hevc_hdr10_multiaudio", "/media/Dune.mkv"), profile: chrome, limits: Limits{Tonemap: true},
+			method: Transcode, reasons: []string{ReasonContainer, ReasonVideoCodec, ReasonAudioCodec},
+			check: func(t *testing.T, d Decision) {
+				if !d.Tonemap || len(d.Warnings) != 0 {
+					t.Errorf("tonemap = %v, warnings = %v", d.Tonemap, d.Warnings)
+				}
+			},
+		},
+		{
+			name:  "without zscale the same file is flagged instead (R23)",
+			media: media(t, "hevc_hdr10_multiaudio", "/media/Dune.mkv"), profile: chrome,
+			method: Transcode, reasons: []string{ReasonContainer, ReasonVideoCodec, ReasonAudioCodec},
+			check: func(t *testing.T, d Decision) {
+				if d.Tonemap || !slices.Contains(d.Warnings, WarningColors) {
+					t.Errorf("tonemap = %v, warnings = %v", d.Tonemap, d.Warnings)
+				}
+			},
+		},
+		{
+			name:  "HLG is tone mapped too",
+			media: media(t, "hlg", "/media/HLG.mkv"), profile: chrome, limits: Limits{Tonemap: true},
+			method: Transcode, reasons: []string{ReasonContainer, ReasonVideoCodec},
+			check: func(t *testing.T, d Decision) {
+				if !d.Tonemap {
+					t.Errorf("tonemap = %v", d.Tonemap)
+				}
+			},
+		},
+		{
+			name:  "SDR isn't tone mapped",
+			media: media(t, "sdr_h264_stereo", "/media/Movie.mp4"), profile: chrome, req: Request{ForceMethod: Transcode}, limits: Limits{Tonemap: true},
+			method: Transcode, reasons: []string{ReasonForced},
+			check: func(t *testing.T, d Decision) {
+				if d.Tonemap || len(d.Warnings) != 0 {
+					t.Errorf("tonemap = %v, warnings = %v", d.Tonemap, d.Warnings)
+				}
+			},
+		},
+		{
 			name:  "the same file in VLC plays directly",
 			media: media(t, "hevc_hdr10_multiaudio", "/media/Dune.mkv"), profile: ExternalProfile(),
 			method: DirectPlay, reasons: []string{},
@@ -204,10 +244,10 @@ func TestDecide(t *testing.T) {
 		{
 			name:    "Dolby Vision 5 is transcoded with a color warning",
 			media:   media(t, "dolby_vision_p81", "/media/DV.mkv", func(f *library.PlayableFile) { f.DVProfile, f.DVCompat = 5, 0 }),
-			profile: appleTV,
-			method:  Transcode, reasons: []string{ReasonContainer, ReasonHDR},
+			profile: appleTV, limits: Limits{Tonemap: true},
+			method: Transcode, reasons: []string{ReasonContainer, ReasonHDR},
 			check: func(t *testing.T, d Decision) {
-				if !slices.Contains(d.Warnings, WarningColors) {
+				if d.Tonemap || !slices.Contains(d.Warnings, WarningColors) {
 					t.Errorf("warnings = %v", d.Warnings)
 				}
 			},

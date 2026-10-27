@@ -1043,7 +1043,7 @@ export interface paths {
     head?: never
     /**
      * Change playback settings (admin, F006 R30)
-     * @description Absent fields keep their value; `null` on `maxTranscodes` or `transcodeDirMaxBytes` goes back to the computed default.
+     * @description Absent fields keep their value; `null` on `maxTranscodes`, `transcodeDirMaxBytes` or `hwDevice` goes back to the default. Changing `hwAccel` or `hwDevice` runs the hardware test first (a few seconds): an explicit accelerator that fails it answers 422 `hw_accel_unavailable` and nothing is saved; `auto` falls back to software, and `hardware` says so (F006 R24).
      */
     patch: operations['updatePlaybackSettings']
     trace?: never
@@ -1218,6 +1218,30 @@ export interface paths {
     }
     /** An ASS/SSA track as is, for clients that render ASS (F006 R16) */
     get: operations['streamSubtitleAss']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/artwork/{kind}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        kind: 'poster' | 'backdrop' | 'still'
+      }
+      cookie?: never
+    }
+    /**
+     * The playing item's artwork, through the playback token (F006 R40)
+     * @description For players that can't send a session (lock screen, "now playing", external players). An episode without its own image of that kind uses its season's, then its show's. Same widths and formats as `GET /images/{imageId}`. Only this item's artwork, and only while the session lives.
+     */
+    get: operations['streamArtwork']
     put?: never
     post?: never
     delete?: never
@@ -2098,8 +2122,11 @@ export interface components {
       startPositionMs: number
       quality: components['schemas']['Quality']
       qualities: components['schemas']['Quality'][]
-      /** @description The accelerator in use for a transcode, absent in software or without transcoding. */
-      hardwareAcceleration?: string
+      /**
+       * @description The accelerator a transcode runs on, absent in software or without transcoding. It disappears when a hardware run fails and the session continues in software (F006 R24).
+       * @enum {string}
+       */
+      hardwareAcceleration?: 'vaapi' | 'qsv' | 'nvenc' | 'v4l2m2m' | 'videotoolbox'
       /** @description Stable keys, e.g. colors_may_be_wrong. */
       warnings: string[]
       audioTracks: components['schemas']['PlaybackAudioTrack'][]
@@ -2134,10 +2161,52 @@ export interface components {
       burnSubtitles?: boolean
     }
     /**
-     * @description Encoder speed against quality (libx264 veryfast, faster, medium).
+     * @description Encoder speed against quality (libx264 veryfast, faster, medium). On 4 cores or fewer (counting a container's CPU quota), fast uses superfast to keep up with real time.
      * @enum {string}
      */
     EncoderPreset: 'fast' | 'balanced' | 'quality'
+    /**
+     * @description Hardware acceleration (F006 R24). `auto` tries vaapi, qsv, nvenc, v4l2m2m, then videotoolbox (macOS, development only) and keeps the first that passes a test encode.
+     * @enum {string}
+     */
+    HwAccelSetting: 'auto' | 'none' | 'vaapi' | 'qsv' | 'nvenc' | 'v4l2m2m' | 'videotoolbox'
+    /** @description The result of the last hardware test (F006 R24, R31). */
+    HardwareStatus: {
+      configured: components['schemas']['HwAccelSetting']
+      /**
+       * @description The accelerator transcodes run on; absent in software.
+       * @enum {string}
+       */
+      active?: 'vaapi' | 'qsv' | 'nvenc' | 'v4l2m2m' | 'videotoolbox'
+      /**
+       * @description The render node in use (VAAPI, QSV).
+       * @example /dev/dri/renderD128
+       */
+      device?: string
+      /**
+       * @description Encoders that passed the test.
+       * @example [
+       *       "h264_vaapi",
+       *       "hevc_vaapi"
+       *     ]
+       */
+      encoders: string[]
+      /**
+       * @description Codecs decoded on the GPU.
+       * @example [
+       *       "h264",
+       *       "hevc"
+       *     ]
+       */
+      decoders: string[]
+      /** @description The accelerator tone maps HDR on the GPU; otherwise it's done in software. */
+      tonemap: boolean
+      /**
+       * @description Why hardware isn't in use although it's wanted: the test found nothing that works, or 3 transcodes failed on it within 10 minutes (until the next restart or settings change).
+       * @enum {string}
+       */
+      disabledReason?: 'not_found' | 'repeated_failures'
+    }
     PlaybackSettings: {
       /** @description Simultaneous video transcodes (R26). */
       maxTranscodes: number
@@ -2161,6 +2230,10 @@ export interface components {
        */
       transcodeDirMaxBytesDefault: number
       encoderPreset: components['schemas']['EncoderPreset']
+      hwAccel: components['schemas']['HwAccelSetting']
+      /** @description The render node set by the admin; absent for the default (the first /dev/dri/renderD*). */
+      hwDevice?: string
+      hardware: components['schemas']['HardwareStatus']
     }
     PlaybackSettingsUpdate: {
       maxTranscodes?: number | null
@@ -2170,6 +2243,9 @@ export interface components {
       /** Format: int64 */
       transcodeDirMaxBytes?: number | null
       encoderPreset?: components['schemas']['EncoderPreset']
+      hwAccel?: components['schemas']['HwAccelSetting']
+      /** @description An absolute device path, e.g. /dev/dri/renderD129. */
+      hwDevice?: string | null
     }
     ActivePlayback: {
       session: components['schemas']['PlaybackSession']
@@ -2184,6 +2260,11 @@ export interface components {
       state?: components['schemas']['PlaybackState']
       /** @description The client is outside the local networks (R22). */
       remote: boolean
+      /**
+       * Format: double
+       * @description Speed of the running FFmpeg against real time (1.0 = real time), absent when none runs. A transcode under 1.2 can't keep up and is logged (`transcode_too_slow`). Hardware or software is `session.hardwareAcceleration`.
+       */
+      speed?: number
       /** Format: date-time */
       startedAt: string
       /** Format: date-time */
@@ -2193,6 +2274,7 @@ export interface components {
       sessions: components['schemas']['ActivePlayback'][]
     }
     Capabilities: {
+      hwAccel: components['schemas']['HardwareStatus']
       ffmpeg: {
         /** @description When false, Direct Play still works and other methods answer `ffmpeg_missing` (F006 R31). */
         found: boolean
@@ -4156,6 +4238,35 @@ export interface operations {
         }
         content: {
           'text/x-ssa': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamArtwork: {
+    parameters: {
+      query?: {
+        /** @description Wanted width in pixels; defaults to 342. */
+        w?: number
+      }
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        kind: 'poster' | 'backdrop' | 'still'
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The image */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'image/jpeg': string
+          'image/png': string
         }
       }
       default: components['responses']['Error']

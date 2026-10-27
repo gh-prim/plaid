@@ -32,13 +32,20 @@ Run from the repo root. Toolchain: Go 1.26, Node 24+, pnpm 10, golangci-lint v2,
 | `make build` | Web build embedded into `server/bin/plaid` | binary in `server/bin/` |
 | `make docker` | Builds image `plaid:dev` | then `docker compose up -d`, health at :32500 |
 | `make deb` | Snapshot binaries + `.deb` (amd64, arm64) + checksums in `dist/` | `release succeeded` |
-| `make test-deb` | Installs the `.deb` in a container with real systemd and runs 24 checks (install, upgrade, script, a library scanned with ffprobe by the hardened service, restart, remove, purge). `IMAGE=debian:trixie ARCH=arm64` to change target | `✅ … all checks passed` |
+| `make test-deb` | Installs the `.deb` in a container with real systemd and runs 27 checks (install, upgrade, script, a library scanned with ffprobe and played (remux, software transcode) by the hardened service, no ffmpeg left after stop, restart, remove, purge). `IMAGE=debian:trixie ARCH=arm64` to change target | `✅ … all checks passed` |
 
 Single checks: `make test-server`, `make test-web`, `make check-i18n`, `make check-codegen`.
 
 TMDB and fanart.tv test recordings (F005, `server/internal/metadata/testdata/{tmdb,fanart}`): refresh them with `TMDB_API_KEY=… FANART_API_KEY=… scripts/record-metadata-fixtures.sh` (needs curl, jq, perl; `ONLY=tmdb` or `ONLY=fanart` for one of them). Images aren't recorded: the test server generates them. Tests never call TMDB; a request with no recording fails the test. Matcher decisions are frozen in `server/internal/metadata/match/testdata/cases.json`; re-recording can shift popularity, so rerun `make test-server` and check the cases.
 
 Metadata performance (F005, 1,000 movies + 9,000 episodes against a 50 ms TMDB stub, not part of `make test`): `go -C server test -tags perf -run Perf -v -timeout 30m ./internal/metadata/`, or in the throttled container below with `./internal/metadata/`.
+
+Playback performance (F006, start, seek and transcode speed per method on generated 1080p H.264 and 4K HEVC clips, not part of `make test`): `go -C server test -tags perf -run Perf -v -timeout 30m ./internal/playback/`. It prints a table against the spec's NFRs; with a GPU it also measures the hardware transcode. For Pi-like numbers, build the clips once unthrottled, then run throttled with the same `TMPDIR` (the clips are cached there):
+```bash
+docker volume create plaid-perf
+docker run --rm -v "$PWD/server":/src:ro -v plaid-perf:/work -e GOCACHE=/work/gocache -e GOPATH=/work/gopath -e TMPDIR=/work/tmp -e GOFLAGS=-buildvcs=false -w /src golang:1.26 bash -c 'mkdir -p /work/tmp && apt-get update -qq && apt-get install -y -qq ffmpeg && go test -tags perf -run Perf -timeout 30m ./internal/playback/'
+docker run --rm --cpus 0.5 --memory 1g -v "$PWD/server":/src:ro -v plaid-perf:/work -e GOCACHE=/work/gocache -e GOPATH=/work/gopath -e TMPDIR=/work/tmp -e GOFLAGS=-buildvcs=false -w /src golang:1.26 bash -c 'apt-get update -qq && apt-get install -y -qq ffmpeg && go test -count=1 -tags perf -run Perf -v -timeout 30m ./internal/playback/'
+```
 
 Library scan performance (F004, 10,000 sparse files, not part of `make test`): `go -C server test -tags perf -run Perf -v ./internal/library/`. For Pi-like numbers, run it in a throttled container: `docker run --rm --cpus 0.5 --memory 1g -v "$PWD/server":/src:ro -e GOCACHE=/tmp/gocache -e GOPATH=/tmp/gopath -w /src golang:1.26 go test -tags perf -run Perf -v ./internal/library/`.
 A single `make test` target must pass before any PR.

@@ -206,6 +206,16 @@ func (m *Manager) SegmentPosition(id string, ms int64) {
 	}
 }
 
+// SetHWAccel records the accelerator a session's transcode runs on now,
+// "" after a fall back to software (R24).
+func (m *Manager) SetHWAccel(id, accel string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if s, ok := m.byID[id]; ok {
+		s.Decision.HWAccel = accel
+	}
+}
+
 // Rekey changes a session and gives it a new token: its old URLs stop
 // working at once (R6, spec revision 3).
 func (m *Manager) Rekey(id string, change func(*Session)) (Session, error) {

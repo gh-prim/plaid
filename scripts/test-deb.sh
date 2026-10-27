@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Tests the PLAID .deb inside Docker with a real systemd (PID 1): install,
 # service, upgrade with edited config, install script, tampered package,
-# restart (reboot-like), remove, purge, plus cold start and idle memory, and
-# a media library scanned and analyzed with ffprobe by the hardened service.
+# restart (reboot-like), remove, purge, plus cold start and idle memory, a
+# media library scanned and analyzed with ffprobe by the hardened service,
+# and a remux and a software transcode played through the API (F006).
 #
 # Usage: scripts/test-deb.sh [image] [arch]
 #   scripts/test-deb.sh ubuntu:24.04 arm64
@@ -54,17 +55,19 @@ docker cp "$root/packaging/install.sh" "$name:/pkg/"
 helpers='
 set -u
 fail=0
-check() { local d="$1"; shift; if "$@" >/dev/null 2>&1; then echo "  ✅ $d"; else echo "  ❌ $d"; fail=1; fi; }
+check() { local d="$1"; shift; if "$@" >/dev/null 2>/tmp/check.err; then echo "  ✅ $d"; else echo "  ❌ $d"; sed "s/^/     /" /tmp/check.err; fail=1; fi; }
 healthy() { for _ in $(seq 1 100); do curl -fsS localhost:32500/api/v1/health >/dev/null 2>&1 && return 0; sleep 0.1; done; return 1; }
 not_active() { ! systemctl is-active --quiet plaid; }
-# Creates the admin and a Movies library on a generated 2 s video, waits for
-# the scan, and checks ffprobe analyzed it from inside the hardened unit
-# (MemoryDenyWriteExecute, syscall filter) without the service restarting.
+api=http://localhost:32500/api/v1
+# Creates the admin and a Movies library on a generated 20-minute H.264 MKV,
+# waits for the scan, and checks ffprobe analyzed it from inside the
+# hardened unit (MemoryDenyWriteExecute, syscall filter) without the service
+# restarting. Leaves the admin token and the item id in /tmp.
 scan_sample() {
-  local dir="/srv/media/movies/Plaid Test (2024)" api=http://localhost:32500/api/v1 token lib item
+  local dir="/srv/media/movies/Plaid Test (2024)" token lib item
   mkdir -p "$dir" || return 1
-  ffmpeg -nostdin -loglevel error -y -f lavfi -i testsrc2=size=640x360:rate=24:duration=2 -f lavfi -i sine=duration=2 \
-    -c:v mpeg4 -c:a aac "$dir/Plaid Test (2024).mkv" || return 1
+  ffmpeg -nostdin -loglevel error -y -f lavfi -i testsrc2=size=320x180:rate=12:duration=1200 -f lavfi -i sine=duration=1200 \
+    -c:v libx264 -preset ultrafast -g 24 -c:a aac "$dir/Plaid Test (2024).mkv" || return 1
   chmod -R o+rX /srv/media
   token=$(curl -fsS -X POST $api/setup/admin -H "Content-Type: application/json" \
     -d "{\"displayName\":\"Admin\",\"username\":\"admin\",\"password\":\"plaid and chill forever\"}" | jq -er .token) || return 1
@@ -77,7 +80,42 @@ scan_sample() {
   done
   item=$(curl -fsS "${auth[@]}" $api/libraries/$lib/items | jq -er ".items[0].id") || return 1
   curl -fsS "${auth[@]}" $api/items/$item | jq -e ".files[0].probeStatus == \"ok\"" || return 1
+  echo "$token" >/tmp/plaid-token && echo "$item" >/tmp/plaid-item
   test "$(systemctl show -p NRestarts --value plaid)" = 0
+}
+# Starts an HLS session on the sample with a browser-like profile and a
+# forced method, and checks its first segment decodes as H.264. Prints
+# the session id.
+play_sample() {
+  local method="$1" token item session url
+  token=$(cat /tmp/plaid-token) && item=$(cat /tmp/plaid-item) || return 1
+  session=$(curl -fsS -X POST "$api/items/$item/playback" -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
+    -d "{\"forceMethod\":\"$method\",\"profile\":{\"protocols\":[\"http\",\"hls\"],\"containers\":[\"mp4\"],\"video\":[{\"codec\":\"h264\"}],\"audio\":[{\"codec\":\"aac\",\"maxChannels\":2}]}}") || return 1
+  jq -e ".method == \"$method\"" <<<"$session" >/dev/null || return 1
+  url="http://localhost:32500$(jq -r .url <<<"$session")"
+  url="${url%/master.m3u8}"
+  curl -fsS "$url/master.m3u8" | grep -q video/index.m3u8 || return 1
+  curl -fsS "$url/video/index.m3u8" | grep -q "^0.m4s" || return 1
+  { curl -fsS "$url/video/init.mp4" && curl -fsS "$url/video/0.m4s"; } >/tmp/plaid-segment.mp4 || return 1
+  ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 /tmp/plaid-segment.mp4 | grep -qx h264 || return 1
+  jq -r .id <<<"$session"
+}
+end_session() {
+  curl -fsS -X DELETE "$api/playback/$1" -H "Authorization: Bearer $(cat /tmp/plaid-token)"
+}
+remux_and_transcode() {
+  local id
+  id=$(play_sample direct_stream) && end_session "$id" || return 1
+  id=$(play_sample transcode) && end_session "$id" || return 1
+  test "$(systemctl show -p NRestarts --value plaid)" = 0
+}
+# A transcode is left running (throttled 2 minutes ahead), then the service
+# stops: no FFmpeg may survive it (R28).
+no_ffmpeg_after_stop() {
+  play_sample transcode >/dev/null || { echo "no transcode" >&2; return 1; }
+  pgrep -x ffmpeg >/dev/null || { echo "no ffmpeg running" >&2; return 1; }
+  systemctl stop plaid
+  ! pgrep -a -x ffmpeg >&2
 }
 '
 
@@ -110,6 +148,9 @@ check "install script: tampered package refused" bash -c '! PLAID_DEB_URL=file:/
 check "hardening exposure below 2.0" bash -c 'systemd-analyze security plaid 2>/dev/null | tail -1 | grep -Eq "level for plaid.service: (0|1)\.[0-9]"'
 check "ffprobe installed with the package" command -v ffprobe
 check "sample library scanned and probed by the service" scan_sample
+check "ffmpeg installed with the package" command -v ffmpeg
+check "remux and software transcode by the hardened service" remux_and_transcode
+check "no ffmpeg left after stop" no_ffmpeg_after_stop
 exit \$fail
 PHASE1
 
