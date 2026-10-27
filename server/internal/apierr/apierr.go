@@ -267,6 +267,12 @@ func ProfileRequired() *Error {
 	return New(http.StatusForbidden, "profile_required", "pick a profile first")
 }
 
+// HWAccelUnavailable means the hardware acceleration chosen in the
+// playback settings failed its test encode (F006 R24).
+func HWAccelUnavailable() *Error {
+	return New(http.StatusUnprocessableEntity, "hw_accel_unavailable", "the chosen hardware acceleration failed its test encode")
+}
+
 // FFmpegMissing means the file needs FFmpeg, which isn't available.
 func FFmpegMissing() *Error {
 	return New(http.StatusServiceUnavailable, "ffmpeg_missing", "this file needs FFmpeg to play on this client")

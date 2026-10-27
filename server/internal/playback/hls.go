@@ -55,6 +55,8 @@ type hlsStream struct {
 	lastSegAt time.Time
 	keptFrom  int  // segments before it were deleted
 	slot      bool // holds a transcode slot (R26)
+	hw        *HWConfig
+	slowRun   int // the run last logged as slower than real time
 }
 
 func (st *hlsStream) piece(n int) string { return filepath.Join(st.dir, strconv.Itoa(n)+".m4s") }
@@ -100,6 +102,9 @@ func (s *Service) newStream(sess Session, gen int, slot bool) {
 		sessionID: sess.ID, dir: s.storage.SessionDir(sess.ID, gen), layout: layoutOf(sess.Decision),
 		decision: sess.Decision, preset: s.config().EncoderPreset, slot: slot, lastSegAt: s.o.Now(),
 		lastSeg: layoutOf(sess.Decision).SegmentAt(sess.StartPositionMs),
+	}
+	if hw := s.hwConfig(); hw != nil && sess.Decision.HWAccel == hw.Accel {
+		st.hw = hw
 	}
 	s.mu.Lock()
 	s.streams[sess.ID] = st
@@ -154,7 +159,7 @@ func (s *Service) startRun(st *hlsStream, piece int) (*Run, error) {
 		return nil, ErrTranscodeStorage
 	}
 	st.runs++
-	spec := RunSpec{Decision: st.decision, Layout: st.layout, StartPiece: piece, Dir: st.dir, RunID: st.runs, Preset: st.preset}
+	spec := RunSpec{Decision: st.decision, Layout: st.layout, StartPiece: piece, Dir: st.dir, RunID: st.runs, Preset: st.preset, HW: st.hw}
 	run, err := StartRun(s.o.FFmpeg.Path, spec)
 	if err != nil {
 		return nil, err
@@ -167,14 +172,63 @@ func (s *Service) startRun(st *hlsStream, piece int) (*Run, error) {
 	return run, nil
 }
 
-// watchRun logs how a run ended.
+// watchRun logs how a run ended, and restarts a failed hardware run in
+// software (R24).
 func (s *Service) watchRun(st *hlsStream, run *Run) {
 	<-run.Done()
 	if err := run.Err(); err != nil {
-		s.o.Log.Error("ffmpeg run failed", "playback_id", st.sessionID, "run", run.Spec.RunID, "err", err)
+		if s.fallBack(st, run) == nil {
+			s.o.Log.Error("ffmpeg run failed", "playback_id", st.sessionID, "run", run.Spec.RunID, "err", err)
+		}
 		return
 	}
 	s.o.Log.Info("ffmpeg run ended", "playback_id", st.sessionID, "run", run.Spec.RunID, "produced", run.Produced())
+}
+
+// fallBack replaces a failed run: a hardware run that failed in its first
+// 10 seconds restarts in software where it stopped (R24). It returns the
+// stream's current run when another caller already replaced it, and nil
+// when the failure stands. Both the run's watcher and the requests
+// waiting on it call it; the first one does the work.
+func (s *Service) fallBack(st *hlsStream, failed *Run) *Run {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	if st.run != failed {
+		return st.alive()
+	}
+	if failed.Spec.HW == nil || failed.Err() == nil || failed.Ran() > hwEarlyFailure {
+		return nil
+	}
+	accel := failed.Spec.HW.Accel
+	s.o.Log.Warn("hardware transcode failed; restarting in software", "code", "hw_fallback", "playback_id", st.sessionID,
+		"run", failed.Spec.RunID, "accel", accel, "err", failed.Err())
+	s.hwFailed(accel)
+	st.hw = nil
+	s.manager.SetHWAccel(st.sessionID, "")
+	run, err := s.startRun(st, max(failed.Produced()+1, failed.Spec.StartPiece))
+	if err != nil {
+		s.o.Log.Error("software restart failed", "playback_id", st.sessionID, "err", err)
+		return nil
+	}
+	return run
+}
+
+// waitPiece waits for piece n of a run, following it to its software
+// replacement when a hardware run fails (R24).
+func (s *Service) waitPiece(ctx context.Context, st *hlsStream, run *Run, n int) error {
+	for {
+		if run.WaitPiece(ctx, n) {
+			return nil
+		}
+		if run.Err() == nil {
+			return ErrSegmentNotReady
+		}
+		next := s.fallBack(st, run)
+		if next == nil {
+			return run.Err()
+		}
+		run = next
+	}
 }
 
 // Segment returns the files of HLS segment n, in order, waiting for them
@@ -213,11 +267,8 @@ func (s *Service) Segment(ctx context.Context, sess Session, n int) ([]string, e
 
 	wctx, cancel := context.WithTimeout(ctx, s.t.SegmentWait)
 	defer cancel()
-	if !run.WaitPiece(wctx, seg.Last-1) {
-		if err := run.Err(); err != nil {
-			return nil, err
-		}
-		return nil, ErrSegmentNotReady
+	if err := s.waitPiece(wctx, st, run, seg.Last-1); err != nil {
+		return nil, err
 	}
 	st.mu.Lock()
 	defer st.mu.Unlock()
@@ -265,11 +316,8 @@ func (s *Service) Init(ctx context.Context, sess Session) (string, error) {
 	st.mu.Unlock()
 	wctx, cancel := context.WithTimeout(ctx, s.t.SegmentWait)
 	defer cancel()
-	if !run.WaitPiece(wctx, run.Spec.StartPiece) {
-		if err := run.Err(); err != nil {
-			return "", err
-		}
-		return "", ErrSegmentNotReady
+	if err := s.waitPiece(wctx, st, run, run.Spec.StartPiece); err != nil {
+		return "", err
 	}
 	if _, err := os.Stat(st.initPath()); err != nil {
 		return "", ErrSegmentNotReady
@@ -331,6 +379,7 @@ func (s *Service) housekeep() {
 			case ahead < s.t.ResumeAhead:
 				run.Resume()
 			}
+			s.checkSpeed(st, run, now)
 		}
 		if st.slot && st.alive() == nil && (!ok || now.Sub(lastActive) >= s.t.SlotIdle) {
 			st.slot = false
@@ -341,6 +390,44 @@ func (s *Service) housekeep() {
 		total += dirSize(st.dir)
 	}
 	s.enforceCap(streams, total)
+}
+
+// slowSpeed is the transcode speed under which a run is flagged (NFR).
+const slowSpeed = 1.2
+
+// checkSpeed logs, once per run, a transcode that doesn't keep up with
+// real time after its first 15 seconds. A throttled run is fast enough
+// by definition. Callers hold st.mu.
+func (s *Service) checkSpeed(st *hlsStream, run *Run, now time.Time) {
+	if st.decision.Method != Transcode || st.slowRun == run.Spec.RunID || run.Paused() || now.Sub(run.Started) < 15*time.Second {
+		return
+	}
+	if speed := run.Speed(); speed > 0 && speed < slowSpeed {
+		st.slowRun = run.Spec.RunID
+		accel := "software"
+		if run.Spec.HW != nil {
+			accel = run.Spec.HW.Accel
+		}
+		s.o.Log.Warn("transcode slower than real time", "code", "transcode_too_slow", "playback_id", st.sessionID,
+			"run", run.Spec.RunID, "speed", speed, "accel", accel, "width", st.decision.Width, "height", st.decision.Height)
+	}
+}
+
+// Speed is the transcode speed of a session's running FFmpeg (1.0 is
+// real time), for the admin list (R29); false when nothing runs.
+func (s *Service) Speed(sessionID string) (float64, bool) {
+	st := s.stream(sessionID)
+	if st == nil {
+		return 0, false
+	}
+	st.mu.Lock()
+	run := st.alive()
+	st.mu.Unlock()
+	if run == nil {
+		return 0, false
+	}
+	speed := run.Speed()
+	return speed, speed > 0
 }
 
 // enforceCap deletes the segments furthest behind each session's position
@@ -404,7 +491,7 @@ func (s *Service) maxTranscodes() int {
 	if n := s.config().MaxTranscodes; n > 0 {
 		return n
 	}
-	return DefaultMaxTranscodes(cpuCount(), false)
+	return DefaultMaxTranscodes(cpuCount(), s.Hardware().Active != "")
 }
 
 func (s *Service) acquireSlot() bool {

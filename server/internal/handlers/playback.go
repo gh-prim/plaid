@@ -121,13 +121,20 @@ func (h *Handlers) UpdatePlaybackSettings(ctx context.Context, req api.UpdatePla
 		preset := string(*b.EncoderPreset)
 		u.EncoderPreset = &preset
 	}
+	if b.HwAccel != nil {
+		hw := string(*b.HwAccel)
+		u.HWAccel = &hw
+	}
+	if set, v := fromNullable(b.HwDevice); set {
+		u.HWDevice, u.ResetHWDevice = v, v == nil
+	}
 	view, err := h.playback.SaveSettings(ctx, u)
 	var fe *playback.FieldError
 	if errors.As(err, &fe) {
 		return nil, apierr.ValidationFailed(apierr.Detail{Field: fe.Field, Code: fe.Code})
 	}
 	if err != nil {
-		return nil, err
+		return nil, playbackErr(err)
 	}
 	return api.UpdatePlaybackSettings200JSONResponse(toPlaybackSettings(view)), nil
 }
@@ -142,7 +149,32 @@ func toPlaybackSettings(v playback.SettingsView) api.PlaybackSettings {
 		RemoteMaxBitrate: v.RemoteMaxBitrate, LocalNetworks: nets,
 		TranscodeDirMaxBytes: v.TranscodeDirMaxBytesEffective, TranscodeDirMaxBytesDefault: v.TranscodeDirMaxBytesDefault,
 		EncoderPreset: api.EncoderPreset(v.EncoderPreset),
+		HwAccel:       api.HwAccelSetting(v.HWAccel), HwDevice: optional(v.HWDevice),
+		Hardware: toHardwareStatus(v.Hardware),
 	}
+}
+
+// toHardwareStatus is the hardware test result (R24, R31).
+func toHardwareStatus(st playback.HWStatus) api.HardwareStatus {
+	out := api.HardwareStatus{
+		Configured: api.HwAccelSetting(st.Configured), Device: optional(st.Device), Tonemap: st.Tonemap,
+		Encoders: st.Encoders, Decoders: st.Decoders,
+	}
+	if out.Encoders == nil {
+		out.Encoders = []string{}
+	}
+	if out.Decoders == nil {
+		out.Decoders = []string{}
+	}
+	if st.Active != "" {
+		a := api.HardwareStatusActive(st.Active)
+		out.Active = &a
+	}
+	if st.DisabledReason != "" {
+		r := api.HardwareStatusDisabledReason(st.DisabledReason)
+		out.DisabledReason = &r
+	}
+	return out
 }
 
 // StopPlayback ends a playback session and saves its last position (R8, R32).
@@ -210,6 +242,9 @@ func (h *Handlers) ListPlaybackSessions(ctx context.Context, _ api.ListPlaybackS
 		if s.State != "" {
 			st := api.PlaybackState(s.State)
 			a.State = &st
+		}
+		if speed, ok := h.playback.Speed(s.ID); ok {
+			a.Speed = &speed
 		}
 		out.Sessions = append(out.Sessions, a)
 	}
@@ -355,6 +390,8 @@ func playbackErr(err error) error {
 		return apierr.FileNotAnalyzed()
 	case errors.Is(err, playback.ErrFFmpegMissing):
 		return apierr.FFmpegMissing()
+	case errors.Is(err, playback.ErrHWAccelUnavailable):
+		return apierr.HWAccelUnavailable()
 	case errors.Is(err, playback.ErrSessionNotFound):
 		return apierr.PlaybackSessionNotFound()
 	case errors.Is(err, playback.ErrTranscodeLimit):
@@ -492,6 +529,10 @@ func toPlaybackSession(s playback.Session) api.PlaybackSession {
 	}
 	if out.Reasons == nil {
 		out.Reasons = []string{}
+	}
+	if d.HWAccel != "" {
+		hw := api.PlaybackSessionHardwareAcceleration(d.HWAccel)
+		out.HardwareAcceleration = &hw
 	}
 	if out.Warnings == nil {
 		out.Warnings = []string{}

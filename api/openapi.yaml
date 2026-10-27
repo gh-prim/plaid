@@ -1312,7 +1312,11 @@ paths:
     patch:
       operationId: updatePlaybackSettings
       summary: Change playback settings (admin, F006 R30)
-      description: Absent fields keep their value; `null` on `maxTranscodes` or `transcodeDirMaxBytes` goes back to the computed default.
+      description: >-
+        Absent fields keep their value; `null` on `maxTranscodes`, `transcodeDirMaxBytes` or `hwDevice` goes back to the
+        default. Changing `hwAccel` or `hwDevice` runs the hardware test first (a few seconds): an explicit accelerator
+        that fails it answers 422 `hw_accel_unavailable` and nothing is saved; `auto` falls back to software, and
+        `hardware` says so (F006 R24).
       tags: [playback]
       requestBody:
         required: true
@@ -1507,6 +1511,46 @@ paths:
             text/x-ssa:
               schema:
                 type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/artwork/{kind}:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [poster, backdrop, still]
+    get:
+      operationId: streamArtwork
+      summary: The playing item's artwork, through the playback token (F006 R40)
+      description: >-
+        For players that can't send a session (lock screen, "now playing", external players). An episode without its own
+        image of that kind uses its season's, then its show's. Same widths and formats as `GET /images/{imageId}`. Only
+        this item's artwork, and only while the session lives.
+      tags: [stream]
+      security: []
+      parameters:
+        - name: w
+          in: query
+          description: Wanted width in pixels; defaults to 342.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3840
+      responses:
+        "200":
+          description: The image
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
         default:
           $ref: "#/components/responses/Error"
   /fs/browse:
@@ -3175,7 +3219,10 @@ components:
             $ref: "#/components/schemas/Quality"
         hardwareAcceleration:
           type: string
-          description: The accelerator in use for a transcode, absent in software or without transcoding.
+          enum: [vaapi, qsv, nvenc, v4l2m2m, videotoolbox]
+          description: >-
+            The accelerator a transcode runs on, absent in software or without transcoding. It disappears when a
+            hardware run fails and the session continues in software (F006 R24).
         warnings:
           type: array
           description: Stable keys, e.g. colors_may_be_wrong.
@@ -3237,9 +3284,52 @@ components:
       enum: [fast, balanced, quality]
       x-enum-varnames: [EncoderPresetFast, EncoderPresetBalanced, EncoderPresetQuality]
       description: Encoder speed against quality (libx264 veryfast, faster, medium).
+    HwAccelSetting:
+      type: string
+      enum: [auto, none, vaapi, qsv, nvenc, v4l2m2m, videotoolbox]
+      x-enum-varnames: [HwAccelAuto, HwAccelNone, HwAccelVaapi, HwAccelQsv, HwAccelNvenc, HwAccelV4l2m2m, HwAccelVideotoolbox]
+      description: >-
+        Hardware acceleration (F006 R24). `auto` tries vaapi, qsv, nvenc, v4l2m2m, then videotoolbox (macOS, development
+        only) and keeps the first that passes a test encode.
+    HardwareStatus:
+      type: object
+      required: [configured, encoders, decoders, tonemap]
+      description: The result of the last hardware test (F006 R24, R31).
+      properties:
+        configured:
+          $ref: "#/components/schemas/HwAccelSetting"
+        active:
+          type: string
+          description: The accelerator transcodes run on; absent in software.
+          enum: [vaapi, qsv, nvenc, v4l2m2m, videotoolbox]
+        device:
+          type: string
+          description: The render node in use (VAAPI, QSV).
+          examples: ["/dev/dri/renderD128"]
+        encoders:
+          type: array
+          description: Encoders that passed the test.
+          items:
+            type: string
+          examples: [["h264_vaapi", "hevc_vaapi"]]
+        decoders:
+          type: array
+          description: Codecs decoded on the GPU.
+          items:
+            type: string
+          examples: [["h264", "hevc"]]
+        tonemap:
+          type: boolean
+          description: The accelerator tone maps HDR on the GPU; otherwise it's done in software.
+        disabledReason:
+          type: string
+          enum: [not_found, repeated_failures]
+          description: >-
+            Why hardware isn't in use although it's wanted: the test found nothing that works, or 3 transcodes failed on
+            it within 10 minutes (until the next restart or settings change).
     PlaybackSettings:
       type: object
-      required: [maxTranscodes, maxTranscodesDefault, remoteMaxBitrate, localNetworks, transcodeDirMaxBytes, transcodeDirMaxBytesDefault, encoderPreset]
+      required: [maxTranscodes, maxTranscodesDefault, remoteMaxBitrate, localNetworks, transcodeDirMaxBytes, transcodeDirMaxBytesDefault, encoderPreset, hwAccel, hardware]
       properties:
         maxTranscodes:
           type: integer
@@ -3266,6 +3356,13 @@ components:
           description: The default computed at startup from the folder's free space.
         encoderPreset:
           $ref: "#/components/schemas/EncoderPreset"
+        hwAccel:
+          $ref: "#/components/schemas/HwAccelSetting"
+        hwDevice:
+          type: string
+          description: The render node set by the admin; absent for the default (the first /dev/dri/renderD*).
+        hardware:
+          $ref: "#/components/schemas/HardwareStatus"
     PlaybackSettingsUpdate:
       type: object
       properties:
@@ -3287,6 +3384,11 @@ components:
           minimum: 1
         encoderPreset:
           $ref: "#/components/schemas/EncoderPreset"
+        hwAccel:
+          $ref: "#/components/schemas/HwAccelSetting"
+        hwDevice:
+          type: [string, "null"]
+          description: An absolute device path, e.g. /dev/dri/renderD129.
     ActivePlayback:
       type: object
       required: [session, userId, username, profileId, profileName, deviceName, itemTitle, positionMs, remote, startedAt, lastActivityAt]
@@ -3313,6 +3415,12 @@ components:
         remote:
           type: boolean
           description: The client is outside the local networks (R22).
+        speed:
+          type: number
+          format: double
+          description: >-
+            Speed of the running FFmpeg against real time (1.0 = real time), absent when none runs. A transcode under 1.2
+            can't keep up and is logged (`transcode_too_slow`). Hardware or software is `session.hardwareAcceleration`.
         startedAt:
           type: string
           format: date-time
@@ -3329,8 +3437,10 @@ components:
             $ref: "#/components/schemas/ActivePlayback"
     Capabilities:
       type: object
-      required: [ffprobe, ffmpeg, inotifyLimit, inotifyUsed, watchLimitReached]
+      required: [ffprobe, ffmpeg, hwAccel, inotifyLimit, inotifyUsed, watchLimitReached]
       properties:
+        hwAccel:
+          $ref: "#/components/schemas/HardwareStatus"
         ffmpeg:
           type: object
           required: [found]

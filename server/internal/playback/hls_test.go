@@ -43,7 +43,12 @@ func (s *syncBuffer) String() string {
 // timings, without a library: tests add sessions to its manager directly.
 func hlsService(t *testing.T, timings Timings) (*Service, *syncBuffer) {
 	t.Helper()
-	path := testmedia.FFmpeg(t)
+	return hlsServiceWith(t, timings, &FFmpeg{Path: testmedia.FFmpeg(t)})
+}
+
+// hlsServiceWith is hlsService with a given FFmpeg.
+func hlsServiceWith(t *testing.T, timings Timings, ff *FFmpeg) (*Service, *syncBuffer) {
+	t.Helper()
 	logs := &syncBuffer{}
 	database, err := db.Open(context.Background(), t.TempDir())
 	if err != nil {
@@ -52,7 +57,7 @@ func hlsService(t *testing.T, timings Timings) (*Service, *syncBuffer) {
 	t.Cleanup(func() { _ = database.Close() })
 	s := New(Options{
 		DB: database, Settings: settings.New(database),
-		FFmpeg: &FFmpeg{Path: path}, TranscodeDir: filepath.Join(t.TempDir(), "transcodes"), CacheDir: t.TempDir(),
+		FFmpeg: ff, TranscodeDir: filepath.Join(t.TempDir(), "transcodes"), CacheDir: t.TempDir(),
 		Free: func(string) (uint64, error) { return 100 << 30, nil }, Timings: &timings,
 		Log: slog.New(slog.NewTextHandler(logs, nil)),
 	})

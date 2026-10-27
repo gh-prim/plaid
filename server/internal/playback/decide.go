@@ -33,7 +33,8 @@ const (
 )
 
 // WarningColors flags a transcode whose colors can't be mapped right
-// (Dolby Vision without an HDR10 base layer, R23).
+// (Dolby Vision without an HDR10 base layer, or an FFmpeg without
+// zscale, R23).
 const WarningColors = "colors_may_be_wrong"
 
 // Subtitle deliveries (R16, R17).
@@ -89,6 +90,8 @@ type Limits struct {
 	// RemoteMaxBitrate applies when Remote is set (R22); 0 for no limit.
 	RemoteMaxBitrate int64
 	Remote           bool
+	// Tonemap: FFmpeg can tone map HDR to SDR (zscale and tonemap, R23).
+	Tonemap bool
 }
 
 // Decision is how a file is played.
@@ -114,6 +117,11 @@ type Decision struct {
 	Width, Height int
 	VideoBitrate  int64
 	VideoCodec    string
+	// Tonemap maps an HDR source to SDR (R23).
+	Tonemap bool
+	// HWAccel is the accelerator a transcode runs on, "" in software. The
+	// service sets it; it can drop to "" after a hardware failure (R24).
+	HWAccel string
 
 	MaxBitrate int64 // the effective limit, 0 for none
 	Warnings   []string
@@ -278,8 +286,15 @@ func Decide(m Media, req Request, p Profile, lim Limits) (Decision, error) {
 	if m.Bitrate > 0 && d.VideoBitrate > m.Bitrate {
 		d.VideoBitrate = m.Bitrate
 	}
-	if m.HDR == library.DolbyVision && m.DVCompat == 0 {
+	// The output is SDR (R20): HDR10, HDR10+, HLG and Dolby Vision with
+	// an HDR10 or HLG base layer are tone mapped; Dolby Vision 5 has no
+	// base layer to map and 8.2 is SDR already (R23).
+	switch {
+	case m.HDR == "" || (m.HDR == library.DolbyVision && m.DVCompat == 2):
+	case m.HDR == library.DolbyVision && m.DVCompat == 0, !lim.Tonemap:
 		d.Warnings = append(d.Warnings, WarningColors)
+	default:
+		d.Tonemap = true
 	}
 	if d.Warnings == nil {
 		d.Warnings = []string{}

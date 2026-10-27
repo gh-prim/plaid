@@ -30,7 +30,7 @@ What you get:
 | `/var/lib/plaid` | Data: database, caches. **Never deleted automatically.** |
 | `plaid.service` | systemd service, enabled and started, runs as the `plaid` user |
 
-The package depends on your distribution's `ffmpeg`, which apt installs with it: PLAID uses `ffprobe` to analyze media files.
+The package depends on your distribution's `ffmpeg`, which apt installs with it: PLAID uses `ffprobe` to analyze media files and `ffmpeg` to convert them for players that can't play them as they are.
 
 Everyday commands:
 
@@ -61,7 +61,7 @@ git clone https://github.com/gh-prim/plaid.git && cd plaid
 docker compose up -d
 ```
 
-Edit `docker-compose.yml` to mount your media folders read-only (`/path/to/movies:/media/movies:ro`), then use the paths **inside the container** (`/media/movies`) when you create a library. Data lives in the `plaid-data` volume. The container runs as a non-root user (uid 1000) and ships FFmpeg.
+Edit `docker-compose.yml` to mount your media folders read-only (`/path/to/movies:/media/movies:ro`), then use the paths **inside the container** (`/media/movies`) when you create a library. Data lives in the `plaid-data` volume. The container runs as a non-root user (uid 1000) and ships FFmpeg (with the Intel and AMD video drivers on `amd64`). To give it a GPU for transcoding, see [Hardware transcoding](#hardware-transcoding).
 
 ## Configuration
 
@@ -78,6 +78,7 @@ All settings are environment variables (in `/etc/plaid/plaid.env` for the native
 | `PLAID_TRUSTED_PROXIES` | empty | Reverse proxies (IPs or CIDRs, comma-separated) whose `X-Forwarded-For` / `X-Forwarded-Proto` headers PLAID believes. See below |
 | `PLAID_FFPROBE_PATH` | `ffprobe` on `PATH` | ffprobe used to analyze media files. Without one, files are listed but not analyzed |
 | `PLAID_FFMPEG_PATH` | `ffmpeg` on `PATH` | ffmpeg used to convert files for players that can't play them as they are. Without one, only Direct Play works |
+| `PLAID_TRANSCODE_DIR` | `<data dir>/transcodes` | Temporary video segments while converting. Emptied at every start. See [Where conversions are written](#where-conversions-are-written) |
 | `PLAID_BROWSE_ROOTS` | empty (whole disk) | Folders the library folder picker may show, colon-separated absolute paths, e.g. `/srv/media:/mnt` |
 | `PLAID_TMDB_API_KEY` | the key built into release binaries | Your own [TMDB](https://www.themoviedb.org/settings/api) key for posters and synopses. See [Metadata](#metadata-posters-and-synopses) |
 | `PLAID_FANART_API_KEY` | the key built into release binaries | Your own [fanart.tv](https://fanart.tv/get-an-api-key/) project key for logos and clearart |
@@ -199,5 +200,89 @@ The web player arrives with the web app. Until then, any player that opens a URL
 
 The link carries its own key: anyone who has it can play that movie until the session ends, so don't share it. It stops working when you end it (`DELETE /api/v1/playback/<id>`), 24 hours after it was last used, 7 days after it was made at the latest, or as soon as the device that made it is signed out.
 
-Files a player can't play as they are need FFmpeg and arrive with a later version of PLAID; until then, PLAID answers `ffmpeg_missing` for them.
+Other players say what they can play in the `profile` instead of `external`, and PLAID picks how to send each file: see [Playback](#playback).
+
+## Playback
+
+For each file and player, PLAID picks the lightest way that works and says why in the session's `method` and `reasons`:
+
+| Method | What happens | Cost on the server |
+|--------|--------------|--------------------|
+| **Direct Play** | The file as it is, over HTTP with ranges (`…/file`). | Almost nothing: no FFmpeg. |
+| **Direct Stream** | The video is copied as it is; the container (and the audio, if the player can't decode it) is converted, served as HLS (`…/master.m3u8`). | Light: no video decoding. |
+| **Transcode** | The video is re-encoded to H.264 at a quality that fits the player and the connection, served as HLS. | Heavy: one CPU core or more per stream in software, little with a GPU. |
+
+Admins tune it with `GET`/`PATCH /api/v1/settings/playback`: simultaneous conversions (`maxTranscodes`, 1 by default on 4 cores or fewer, 2 above, 4 with a GPU), a bitrate cap for clients outside the home network (`remoteMaxBitrate`), extra networks counted as home (`localNetworks`, e.g. `100.64.0.0/10` for Tailscale), the encoder speed (`encoderPreset`) and the GPU (`hwAccel`, below). `GET /api/v1/playback` lists who is watching what, how, and how fast conversions run.
+
+### Hardware transcoding
+
+PLAID uses the GPU when it can (`hwAccel: auto`, the default): at start, it tries VAAPI, QSV, NVENC and V4L2 M2M in that order with a 1-second test encode, and keeps the first that works. `GET /api/v1/server/capabilities` shows the result under `hwAccel`. If a conversion fails on the GPU, it restarts in software; after 3 failures in 10 minutes, PLAID stays in software until it restarts or the setting changes (`disabledReason: repeated_failures`).
+
+What works with your distribution's FFmpeg:
+
+| System | Intel / AMD (VAAPI) | Intel (QSV) | NVIDIA (NVENC) | Raspberry Pi (V4L2 M2M) |
+|--------|---------------------|-------------|----------------|--------------------------|
+| Debian 13, Ubuntu 24.04+ (`amd64`) | ✅ | ✅ | ✅ with the NVIDIA driver | — |
+| Debian 12 (`amd64`) | ✅ | ⚠️ older Intel GPUs only | ✅ with the NVIDIA driver | — |
+| Raspberry Pi 4 (`arm64`) | — | — | — | ⚠️ H.264 encoding only: software in practice |
+| Raspberry Pi 5 (`arm64`) | — | — | — | ❌ no video encoder: software only |
+| Docker image | ✅ (`amd64`) | ✅ (`amd64`) | ✅ with the NVIDIA Container Toolkit | — |
+
+To choose one yourself, `PATCH /api/v1/settings/playback` with `{"hwAccel": "vaapi"}` (or `qsv`, `nvenc`, `v4l2m2m`, `none`), and `"hwDevice": "/dev/dri/renderD129"` when the machine has several GPUs (the first `/dev/dri/renderD*` otherwise). PLAID tests it first and answers `422 hw_accel_unavailable` if it doesn't work, without changing anything.
+
+**Native package.** The package adds the `plaid` user to the `video` and `render` groups, so Intel and AMD GPUs work with nothing to do: check that `ls -l /dev/dri` shows `renderD128` owned by the `render` group. Install the VAAPI driver if your system doesn't have it (`intel-media-va-driver` for Intel since 2015, `mesa-va-drivers` for AMD). The service is hardened with `MemoryDenyWriteExecute`, which the NVIDIA driver (and the odd other one) doesn't support. If the GPU test fails with an NVIDIA card, or the logs show `hw_accel_unavailable`, allow it for PLAID only:
+
+```bash
+sudo systemctl edit plaid
+```
+
+```ini
+[Service]
+MemoryDenyWriteExecute=false
+```
+
+then `sudo systemctl restart plaid`.
+
+**Docker.** Pass the GPU to the container. For Intel and AMD, add the device and the host's `render` group, whose number you get with `getent group render | cut -d: -f3`:
+
+```yaml
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "993"   # your render group's number
+```
+
+For NVIDIA, install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) on the host and add:
+
+```yaml
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, video]
+```
+
+Both are in `docker-compose.yml`, commented out.
+
+### Where conversions are written
+
+While converting, FFmpeg writes short video segments to `PLAID_TRANSCODE_DIR` (`/var/lib/plaid/transcodes` for the package, `/data/transcodes` in Docker): one folder per playback, removed when it ends, segments more than 5 minutes behind the player deleted as it goes, and everything emptied at start. The folder is capped at 10 GiB, or 20% of the free space when that's less (never under 1 GiB); `transcodeDirMaxBytes` in the playback settings changes it. When it's full, new conversions are refused with `transcode_storage_full`.
+
+A folder in memory saves disk writes, if the machine has RAM to spare (allow about 1 GiB per simultaneous conversion). With the package, the service may only write to `/var/lib/plaid`, so any other folder also needs a `ReadWritePaths=` line. For a 4 GiB folder in memory:
+
+```bash
+sudo mkdir -p /mnt/plaid-transcodes
+echo "tmpfs /mnt/plaid-transcodes tmpfs size=4G,mode=0750,uid=$(id -u plaid),gid=$(id -g plaid) 0 0" | sudo tee -a /etc/fstab
+sudo mount /mnt/plaid-transcodes
+sudo systemctl edit plaid
+```
+
+```ini
+[Service]
+ReadWritePaths=/mnt/plaid-transcodes
+```
+
+then set `PLAID_TRANSCODE_DIR=/mnt/plaid-transcodes` in `/etc/plaid/plaid.env` and `sudo systemctl restart plaid`. In Docker, the `tmpfs:` example in `docker-compose.yml` does the same.
 

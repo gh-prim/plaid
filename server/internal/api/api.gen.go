@@ -242,6 +242,51 @@ func (e EncoderPreset) Valid() bool {
 	}
 }
 
+// Defines values for HardwareStatusActive.
+const (
+	HardwareStatusActiveNvenc        HardwareStatusActive = "nvenc"
+	HardwareStatusActiveQsv          HardwareStatusActive = "qsv"
+	HardwareStatusActiveV4l2m2m      HardwareStatusActive = "v4l2m2m"
+	HardwareStatusActiveVaapi        HardwareStatusActive = "vaapi"
+	HardwareStatusActiveVideotoolbox HardwareStatusActive = "videotoolbox"
+)
+
+// Valid indicates whether the value is a known member of the HardwareStatusActive enum.
+func (e HardwareStatusActive) Valid() bool {
+	switch e {
+	case HardwareStatusActiveNvenc:
+		return true
+	case HardwareStatusActiveQsv:
+		return true
+	case HardwareStatusActiveV4l2m2m:
+		return true
+	case HardwareStatusActiveVaapi:
+		return true
+	case HardwareStatusActiveVideotoolbox:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HardwareStatusDisabledReason.
+const (
+	NotFound         HardwareStatusDisabledReason = "not_found"
+	RepeatedFailures HardwareStatusDisabledReason = "repeated_failures"
+)
+
+// Valid indicates whether the value is a known member of the HardwareStatusDisabledReason enum.
+func (e HardwareStatusDisabledReason) Valid() bool {
+	switch e {
+	case NotFound:
+		return true
+	case RepeatedFailures:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for HealthDatabase.
 const (
 	HealthDatabaseError HealthDatabase = "error"
@@ -272,6 +317,39 @@ func (e HealthStatus) Valid() bool {
 	case HealthStatusDegraded:
 		return true
 	case HealthStatusOk:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HwAccelSetting.
+const (
+	HwAccelAuto         HwAccelSetting = "auto"
+	HwAccelNone         HwAccelSetting = "none"
+	HwAccelNvenc        HwAccelSetting = "nvenc"
+	HwAccelQsv          HwAccelSetting = "qsv"
+	HwAccelV4l2m2m      HwAccelSetting = "v4l2m2m"
+	HwAccelVaapi        HwAccelSetting = "vaapi"
+	HwAccelVideotoolbox HwAccelSetting = "videotoolbox"
+)
+
+// Valid indicates whether the value is a known member of the HwAccelSetting enum.
+func (e HwAccelSetting) Valid() bool {
+	switch e {
+	case HwAccelAuto:
+		return true
+	case HwAccelNone:
+		return true
+	case HwAccelNvenc:
+		return true
+	case HwAccelQsv:
+		return true
+	case HwAccelV4l2m2m:
+		return true
+	case HwAccelVaapi:
+		return true
+	case HwAccelVideotoolbox:
 		return true
 	default:
 		return false
@@ -623,6 +701,33 @@ func (e PlaybackRequestForceMethod) Valid() bool {
 	case PlaybackRequestForceMethodDirectStream:
 		return true
 	case PlaybackRequestForceMethodTranscode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PlaybackSessionHardwareAcceleration.
+const (
+	PlaybackSessionHardwareAccelerationNvenc        PlaybackSessionHardwareAcceleration = "nvenc"
+	PlaybackSessionHardwareAccelerationQsv          PlaybackSessionHardwareAcceleration = "qsv"
+	PlaybackSessionHardwareAccelerationV4l2m2m      PlaybackSessionHardwareAcceleration = "v4l2m2m"
+	PlaybackSessionHardwareAccelerationVaapi        PlaybackSessionHardwareAcceleration = "vaapi"
+	PlaybackSessionHardwareAccelerationVideotoolbox PlaybackSessionHardwareAcceleration = "videotoolbox"
+)
+
+// Valid indicates whether the value is a known member of the PlaybackSessionHardwareAcceleration enum.
+func (e PlaybackSessionHardwareAcceleration) Valid() bool {
+	switch e {
+	case PlaybackSessionHardwareAccelerationNvenc:
+		return true
+	case PlaybackSessionHardwareAccelerationQsv:
+		return true
+	case PlaybackSessionHardwareAccelerationV4l2m2m:
+		return true
+	case PlaybackSessionHardwareAccelerationVaapi:
+		return true
+	case PlaybackSessionHardwareAccelerationVideotoolbox:
 		return true
 	default:
 		return false
@@ -1032,12 +1137,15 @@ type ActivePlayback struct {
 	ProfileName    string    `json:"profileName"`
 
 	// Remote The client is outside the local networks (R22).
-	Remote    bool            `json:"remote"`
-	Session   PlaybackSession `json:"session"`
-	StartedAt time.Time       `json:"startedAt"`
-	State     *PlaybackState  `json:"state,omitempty"`
-	UserId    string          `json:"userId"`
-	Username  string          `json:"username"`
+	Remote  bool            `json:"remote"`
+	Session PlaybackSession `json:"session"`
+
+	// Speed Speed of the running FFmpeg against real time (1.0 = real time), absent when none runs. A transcode under 1.2 can't keep up and is logged (`transcode_too_slow`). Hardware or software is `session.hardwareAcceleration`.
+	Speed     *float64       `json:"speed,omitempty"`
+	StartedAt time.Time      `json:"startedAt"`
+	State     *PlaybackState `json:"state,omitempty"`
+	UserId    string         `json:"userId"`
+	Username  string         `json:"username"`
 }
 
 // ActivePlaybackList defines model for ActivePlaybackList.
@@ -1183,6 +1291,9 @@ type Capabilities struct {
 		// Version Examples: 7.1.1
 		Version *string `json:"version,omitempty"`
 	} `json:"ffprobe"`
+
+	// HwAccel The result of the last hardware test (F006 R24, R31).
+	HwAccel HardwareStatus `json:"hwAccel"`
 
 	// InotifyLimit Per-user watch limit, 0 when unknown or not Linux.
 	InotifyLimit int `json:"inotifyLimit"`
@@ -1369,6 +1480,42 @@ type Error struct {
 	} `json:"error"`
 }
 
+// HardwareStatus The result of the last hardware test (F006 R24, R31).
+type HardwareStatus struct {
+	// Active The accelerator transcodes run on; absent in software.
+	Active *HardwareStatusActive `json:"active,omitempty"`
+
+	// Configured Hardware acceleration (F006 R24). `auto` tries vaapi, qsv, nvenc, v4l2m2m, then videotoolbox (macOS, development only) and keeps the first that passes a test encode.
+	Configured HwAccelSetting `json:"configured"`
+
+	// Decoders Codecs decoded on the GPU.
+	//
+	// Examples: ["h264","hevc"]
+	Decoders []string `json:"decoders"`
+
+	// Device The render node in use (VAAPI, QSV).
+	//
+	// Examples: /dev/dri/renderD128
+	Device *string `json:"device,omitempty"`
+
+	// DisabledReason Why hardware isn't in use although it's wanted: the test found nothing that works, or 3 transcodes failed on it within 10 minutes (until the next restart or settings change).
+	DisabledReason *HardwareStatusDisabledReason `json:"disabledReason,omitempty"`
+
+	// Encoders Encoders that passed the test.
+	//
+	// Examples: ["h264_vaapi","hevc_vaapi"]
+	Encoders []string `json:"encoders"`
+
+	// Tonemap The accelerator tone maps HDR on the GPU; otherwise it's done in software.
+	Tonemap bool `json:"tonemap"`
+}
+
+// HardwareStatusActive The accelerator transcodes run on; absent in software.
+type HardwareStatusActive string
+
+// HardwareStatusDisabledReason Why hardware isn't in use although it's wanted: the test found nothing that works, or 3 transcodes failed on it within 10 minutes (until the next restart or settings change).
+type HardwareStatusDisabledReason string
+
 // Health defines model for Health.
 type Health struct {
 	// Commit Examples: 02ec07a
@@ -1386,6 +1533,9 @@ type HealthDatabase string
 
 // HealthStatus defines model for Health.Status.
 type HealthStatus string
+
+// HwAccelSetting Hardware acceleration (F006 R24). `auto` tries vaapi, qsv, nvenc, v4l2m2m, then videotoolbox (macOS, development only) and keeps the first that passes a test encode.
+type HwAccelSetting string
 
 // IdentifyRequest defines model for IdentifyRequest.
 type IdentifyRequest struct {
@@ -1891,13 +2041,13 @@ type PlaybackSession struct {
 	ExpiresAfterIdleSeconds int                  `json:"expiresAfterIdleSeconds"`
 	FileId                  string               `json:"fileId"`
 
-	// HardwareAcceleration The accelerator in use for a transcode, absent in software or without transcoding.
-	HardwareAcceleration *string        `json:"hardwareAcceleration,omitempty"`
-	Id                   string         `json:"id"`
-	ItemId               string         `json:"itemId"`
-	Method               PlaybackMethod `json:"method"`
-	Qualities            []Quality      `json:"qualities"`
-	Quality              Quality        `json:"quality"`
+	// HardwareAcceleration The accelerator a transcode runs on, absent in software or without transcoding. It disappears when a hardware run fails and the session continues in software (F006 R24).
+	HardwareAcceleration *PlaybackSessionHardwareAcceleration `json:"hardwareAcceleration,omitempty"`
+	Id                   string                               `json:"id"`
+	ItemId               string                               `json:"itemId"`
+	Method               PlaybackMethod                       `json:"method"`
+	Qualities            []Quality                            `json:"qualities"`
+	Quality              Quality                              `json:"quality"`
 
 	// Reasons Why the method isn't Direct Play, as stable keys: container_not_supported, video_codec_not_supported, video_profile_not_supported, resolution_too_high, bit_depth_not_supported, hdr_not_supported, audio_codec_not_supported, audio_channels_too_many, audio_track_switch_unsupported, subtitle_burn_in, bitrate_too_high, keyframe_index_missing, forced_by_client.
 	Reasons         []string           `json:"reasons"`
@@ -1911,10 +2061,22 @@ type PlaybackSession struct {
 	Warnings []string `json:"warnings"`
 }
 
+// PlaybackSessionHardwareAcceleration The accelerator a transcode runs on, absent in software or without transcoding. It disappears when a hardware run fails and the session continues in software (F006 R24).
+type PlaybackSessionHardwareAcceleration string
+
 // PlaybackSettings defines model for PlaybackSettings.
 type PlaybackSettings struct {
 	// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium).
 	EncoderPreset EncoderPreset `json:"encoderPreset"`
+
+	// Hardware The result of the last hardware test (F006 R24, R31).
+	Hardware HardwareStatus `json:"hardware"`
+
+	// HwAccel Hardware acceleration (F006 R24). `auto` tries vaapi, qsv, nvenc, v4l2m2m, then videotoolbox (macOS, development only) and keeps the first that passes a test encode.
+	HwAccel HwAccelSetting `json:"hwAccel"`
+
+	// HwDevice The render node set by the admin; absent for the default (the first /dev/dri/renderD*).
+	HwDevice *string `json:"hwDevice,omitempty"`
 
 	// LocalNetworks Extra CIDRs counted as local, e.g. 100.64.0.0/10 for Tailscale.
 	LocalNetworks []string `json:"localNetworks"`
@@ -1938,11 +2100,17 @@ type PlaybackSettings struct {
 // PlaybackSettingsUpdate defines model for PlaybackSettingsUpdate.
 type PlaybackSettingsUpdate struct {
 	// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium).
-	EncoderPreset        *EncoderPreset           `json:"encoderPreset,omitempty"`
-	LocalNetworks        *[]string                `json:"localNetworks,omitempty"`
-	MaxTranscodes        nullable.Nullable[int]   `json:"maxTranscodes,omitempty"`
-	RemoteMaxBitrate     *int64                   `json:"remoteMaxBitrate,omitempty"`
-	TranscodeDirMaxBytes nullable.Nullable[int64] `json:"transcodeDirMaxBytes,omitempty"`
+	EncoderPreset *EncoderPreset `json:"encoderPreset,omitempty"`
+
+	// HwAccel Hardware acceleration (F006 R24). `auto` tries vaapi, qsv, nvenc, v4l2m2m, then videotoolbox (macOS, development only) and keeps the first that passes a test encode.
+	HwAccel *HwAccelSetting `json:"hwAccel,omitempty"`
+
+	// HwDevice An absolute device path, e.g. /dev/dri/renderD129.
+	HwDevice             nullable.Nullable[string] `json:"hwDevice,omitempty"`
+	LocalNetworks        *[]string                 `json:"localNetworks,omitempty"`
+	MaxTranscodes        nullable.Nullable[int]    `json:"maxTranscodes,omitempty"`
+	RemoteMaxBitrate     *int64                    `json:"remoteMaxBitrate,omitempty"`
+	TranscodeDirMaxBytes nullable.Nullable[int64]  `json:"transcodeDirMaxBytes,omitempty"`
 }
 
 // PlaybackState defines model for PlaybackState.

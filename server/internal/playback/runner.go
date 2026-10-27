@@ -39,8 +39,11 @@ type Run struct {
 	outMs    int64
 	speed    float64
 	paused   bool
+	pausedAt time.Time
+	idle     time.Duration // time spent paused
 	stopping bool
 	exited   bool // reaped: its pid may belong to someone else now
+	ended    time.Time
 	exitErr  error
 	changed  chan struct{} // closed and replaced whenever produced moves or the run ends
 	initDone bool
@@ -104,7 +107,7 @@ func (r *Run) watch(stdout io.Reader) {
 	_, _ = io.Copy(io.Discard, stdout)
 	err := r.cmd.Wait()
 	r.mu.Lock()
-	r.exited = true
+	r.exited, r.ended = true, time.Now()
 	r.mu.Unlock()
 	r.scan()
 	r.mu.Lock()
@@ -173,6 +176,47 @@ func (r *Run) Progress() (outMs int64, speed float64) {
 	return r.outMs, r.speed
 }
 
+// Ran is how long the process ran, so far if it still runs.
+func (r *Run) Ran() time.Duration {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.exited {
+		return r.ended.Sub(r.Started)
+	}
+	return time.Since(r.Started)
+}
+
+// Speed is how fast the run encodes against real time: FFmpeg's own
+// figure, else (a run throttled before its first progress report) the
+// media time of its pieces over the time it wasn't paused.
+func (r *Run) Speed() float64 {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.speed > 0 {
+		return r.speed
+	}
+	if r.produced < r.Spec.StartPiece {
+		return 0
+	}
+	end := time.Now()
+	switch {
+	case r.exited:
+		end = r.ended
+	case r.paused:
+		end = r.pausedAt
+	}
+	active := end.Sub(r.Started) - r.idle
+	l := r.Spec.Layout
+	media := l.Segments[len(l.Segments)-1].EndMs - l.PieceStartMs[r.Spec.StartPiece]
+	if r.produced+1 < len(l.PieceStartMs) {
+		media = l.PieceStartMs[r.produced+1] - l.PieceStartMs[r.Spec.StartPiece]
+	}
+	if active <= 0 {
+		return 0
+	}
+	return float64(media) / float64(active.Milliseconds()+1)
+}
+
 // Done is closed when the process has exited.
 func (r *Run) Done() <-chan struct{} { return r.done }
 
@@ -212,6 +256,7 @@ func (r *Run) Pause() {
 	defer r.mu.Unlock()
 	if !r.paused && !r.stopping {
 		r.paused = r.signal(syscall.SIGSTOP) == nil
+		r.pausedAt = time.Now()
 	}
 }
 
@@ -222,6 +267,7 @@ func (r *Run) Resume() {
 	if r.paused {
 		_ = r.signal(syscall.SIGCONT)
 		r.paused = false
+		r.idle += time.Since(r.pausedAt)
 	}
 }
 

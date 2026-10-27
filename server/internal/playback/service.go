@@ -61,8 +61,11 @@ type Options struct {
 	// Free reports a file system's free bytes; nil uses statfs.
 	Free    func(dir string) (uint64, error)
 	Timings *Timings // nil: DefaultTimings
-	Log     *slog.Logger
-	Now     func() time.Time
+	// ProbeHardware runs the hardware test at Start (R24). Off, every
+	// transcode runs in software until a settings change asks for a test.
+	ProbeHardware bool
+	Log           *slog.Logger
+	Now           func() time.Time
 }
 
 // subtitleCacheMax caps the converted subtitles (R27).
@@ -81,6 +84,10 @@ type Service struct {
 
 	cfgMu sync.Mutex
 	cfg   Config
+
+	hwMu    sync.Mutex
+	hw      HWStatus
+	hwFails []time.Time // hardware runs that failed early (R24)
 
 	mu      sync.Mutex
 	streams map[string]*hlsStream // by session id
@@ -105,7 +112,8 @@ func New(o Options) *Service {
 		keyframes: &keyframes.Store{DB: o.DB, Now: o.Now},
 		storage:   &Storage{Dir: o.TranscodeDir, Free: o.Free},
 		subtitles: &fileCache{Dir: filepath.Join(o.CacheDir, "subtitles"), Max: subtitleCacheMax},
-		cfg:       Config{EncoderPreset: PresetFast},
+		cfg:       Config{EncoderPreset: PresetFast, HWAccel: HWAuto},
+		hw:        HWStatus{Configured: HWAuto},
 		streams:   map[string]*hlsStream{},
 	}
 	s.manager.Now, s.manager.Log = o.Now, o.Log
@@ -132,6 +140,16 @@ func (s *Service) Start(ctx context.Context) {
 			s.o.Log.Info("transcode folder ready", "dir", s.o.TranscodeDir, "purged", purged,
 				"default_cap", formatBytes(s.storage.DefaultCap()), "max_transcodes", s.maxTranscodes())
 		}
+	}
+	cfg := s.config()
+	s.setHardware(HWStatus{Configured: cfg.HWAccel})
+	if s.o.ProbeHardware && s.o.FFmpeg != nil {
+		// In the background: Direct Play and software work meanwhile.
+		go func() {
+			st, err := ProbeHardware(ctx, s.o.FFmpeg, cfg.HWAccel, cfg.HWDevice)
+			s.setHardware(st)
+			s.logHardware(st, err)
+		}()
 	}
 	go s.manager.Run(ctx)
 	go func() {
@@ -178,6 +196,56 @@ func (s *Service) ReloadConfig(ctx context.Context) error {
 	return nil
 }
 
+// Hardware returns the result of the last hardware test (R24, R31).
+func (s *Service) Hardware() HWStatus {
+	s.hwMu.Lock()
+	defer s.hwMu.Unlock()
+	st := s.hw
+	st.Encoders, st.Decoders = slices.Clone(st.Encoders), slices.Clone(st.Decoders)
+	return st
+}
+
+func (s *Service) setHardware(st HWStatus) {
+	s.hwMu.Lock()
+	defer s.hwMu.Unlock()
+	s.hw, s.hwFails = st, nil
+}
+
+// hwConfig is the hardware transcodes run on now, nil for software.
+func (s *Service) hwConfig() *HWConfig {
+	s.hwMu.Lock()
+	defer s.hwMu.Unlock()
+	return s.hw.config()
+}
+
+func (s *Service) logHardware(st HWStatus, err error) {
+	switch {
+	case st.Active != "":
+		s.o.Log.Info("hardware acceleration ready", "accel", st.Active, "device", st.Device,
+			"encoders", st.Encoders, "decoders", st.Decoders, "tonemap", st.Tonemap)
+	case st.Configured == HWNone:
+		s.o.Log.Info("hardware acceleration off: transcoding in software")
+	default:
+		s.o.Log.Warn("no working hardware acceleration: transcoding in software", "code", "hw_accel_unavailable",
+			"configured", st.Configured, "err", err)
+	}
+}
+
+// hwFailed counts a hardware run that failed early; the third within
+// hwFailWindow disables hardware until the next restart or settings
+// change (R24).
+func (s *Service) hwFailed(accel string) {
+	now := s.o.Now()
+	s.hwMu.Lock()
+	defer s.hwMu.Unlock()
+	s.hwFails = slices.DeleteFunc(append(s.hwFails, now), func(t time.Time) bool { return now.Sub(t) >= hwFailWindow })
+	if len(s.hwFails) >= hwMaxFailures && s.hw.Active == accel {
+		s.hw.Active, s.hw.DisabledReason = "", HWReasonRepeatedFailures
+		s.o.Log.Warn("hardware acceleration disabled after repeated failures: transcoding in software until restart or a settings change",
+			"code", "hw_accel_unavailable", "accel", accel, "failures", len(s.hwFails))
+	}
+}
+
 // SettingsView is the settings in effect with their defaults (R30).
 type SettingsView struct {
 	Config
@@ -185,13 +253,15 @@ type SettingsView struct {
 	MaxTranscodesDefault          int
 	TranscodeDirMaxBytesEffective int64
 	TranscodeDirMaxBytesDefault   int64
+	Hardware                      HWStatus
 }
 
 // Settings returns the settings in effect.
 func (s *Service) Settings() SettingsView {
 	c := s.config()
-	v := SettingsView{Config: c, MaxTranscodesDefault: DefaultMaxTranscodes(cpuCount(), false),
-		TranscodeDirMaxBytesDefault: s.storage.DefaultCap()}
+	hw := s.Hardware()
+	v := SettingsView{Config: c, MaxTranscodesDefault: DefaultMaxTranscodes(cpuCount(), hw.Active != ""),
+		TranscodeDirMaxBytesDefault: s.storage.DefaultCap(), Hardware: hw}
 	v.MaxTranscodesEffective, v.TranscodeDirMaxBytesEffective = s.maxTranscodes(), c.TranscodeDirMaxBytes
 	if v.TranscodeDirMaxBytesEffective == 0 {
 		v.TranscodeDirMaxBytesEffective = v.TranscodeDirMaxBytesDefault
@@ -199,13 +269,44 @@ func (s *Service) Settings() SettingsView {
 	return v
 }
 
-// SaveSettings validates and stores a change, then applies it.
+// SaveSettings validates and stores a change, then applies it. A change
+// of hwAccel or hwDevice runs the hardware test first: an explicit
+// accelerator that fails it is refused (ErrHWAccelUnavailable) and nothing
+// is saved; auto falls back to software (R24, R30).
 func (s *Service) SaveSettings(ctx context.Context, u ConfigUpdate) (SettingsView, error) {
+	if err := u.validate(); err != nil {
+		return SettingsView{}, err
+	}
+	var probed *HWStatus
+	if u.HWAccel != nil || u.HWDevice != nil || u.ResetHWDevice {
+		c := s.config()
+		choice, device := c.HWAccel, c.HWDevice
+		if u.HWAccel != nil {
+			choice = *u.HWAccel
+		}
+		switch {
+		case u.ResetHWDevice:
+			device = ""
+		case u.HWDevice != nil:
+			device = *u.HWDevice
+		}
+		st, err := ProbeHardware(ctx, s.o.FFmpeg, choice, device)
+		if err != nil {
+			s.o.Log.Warn("hardware acceleration test failed; settings unchanged", "code", "hw_accel_unavailable",
+				"accel", choice, "device", device, "err", err)
+			return SettingsView{}, err
+		}
+		probed = &st
+	}
 	if err := SaveConfig(ctx, s.o.Settings, u); err != nil {
 		return SettingsView{}, err
 	}
 	if err := s.ReloadConfig(ctx); err != nil {
 		return SettingsView{}, err
+	}
+	if probed != nil {
+		s.setHardware(*probed)
+		s.logHardware(*probed, nil)
 	}
 	s.o.Log.Info("playback settings changed")
 	return s.Settings(), nil
@@ -251,6 +352,7 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 	if err != nil {
 		return Session{}, err
 	}
+	d.HWAccel = s.accelFor(d)
 	owner, err := s.o.Accounts.SessionOwner(ctx, p)
 	if err != nil {
 		if slot {
@@ -270,7 +372,8 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 		s.newStream(sess, 0, slot)
 	}
 	s.o.Log.Info("playback started", "playback_id", sess.ID, "user_id", p.UserID, "item_id", item.ID,
-		"file_id", m.FileID, "method", d.Method, "reasons", d.Reasons, "quality", d.Quality, "remote", lim.Remote)
+		"file_id", m.FileID, "method", d.Method, "reasons", d.Reasons, "quality", d.Quality, "remote", lim.Remote,
+		"hw_accel", d.HWAccel)
 	return sess, nil
 }
 
@@ -308,7 +411,16 @@ func (s *Service) limits(ctx context.Context, client clientinfo.Info) (Limits, e
 	if err != nil {
 		return Limits{}, err
 	}
-	return Limits{RemoteMaxBitrate: cfg.RemoteMaxBitrate, Remote: IsRemote(client.IP, cfg.LocalNetworks)}, nil
+	return Limits{RemoteMaxBitrate: cfg.RemoteMaxBitrate, Remote: IsRemote(client.IP, cfg.LocalNetworks),
+		Tonemap: s.o.FFmpeg.HasFilter("zscale") && s.o.FFmpeg.HasFilter("tonemap")}, nil
+}
+
+// accelFor is the accelerator a new stream of d runs on: transcodes only.
+func (s *Service) accelFor(d Decision) string {
+	if hw := s.hwConfig(); hw != nil && d.Method == Transcode {
+		return hw.Accel
+	}
+	return ""
 }
 
 // decide runs the decider, reading the file's keyframe index only when a
@@ -426,6 +538,7 @@ func (s *Service) ChangeSession(ctx context.Context, p auth.Principal, client cl
 		}
 		keepSlot = slot
 	}
+	d.HWAccel = s.accelFor(d)
 	s.closeStream(id, keepSlot)
 	gen := 0
 	if st != nil {
@@ -534,6 +647,12 @@ func (s *Service) saveFinal(sess Session) {
 		sess.PositionMs, sess.Decision.Media.DurationMs, watched, watched && !sess.counted); err != nil {
 		s.o.Log.Warn("saving the last position failed", "playback_id", sess.ID, "err", err)
 	}
+}
+
+// AccessLimit is the age limit of a session's profile now (R9), for the
+// artwork served through its token (R40).
+func (s *Service) AccessLimit(ctx context.Context, sess Session) (access.Limit, error) {
+	return s.o.Accounts.AccessLimit(ctx, auth.Principal{UserID: sess.UserID, SessionID: sess.AuthSessionID, ProfileID: sess.ProfileID})
 }
 
 // StreamSession resolves a stream request's token (R25). When checkAuth

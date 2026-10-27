@@ -38,6 +38,14 @@ func TestCommandGoldens(t *testing.T) {
 		keyframes[i] = int64(i) * 2002
 	}
 	ds := StreamLayout(keyframes, m.DurationMs)
+	vaapi := &HWConfig{Accel: HWVAAPI, Device: "/dev/dri/renderD128", Decoders: []string{"h264", "hevc"}}
+	hdrMedia := m
+	hdrMedia.Video = &library.Stream{Index: 0, Type: "video", Codec: "hevc", Width: 3840, Height: 2160, BitDepth: 10}
+	hdrMedia.HDR = library.HDR10
+	hdr := func(d Decision) Decision {
+		d.Tonemap, d.Width, d.Height, d.VideoBitrate = true, 1920, 1080, 8_000_000
+		return d
+	}
 	tc := TranscodeLayout(m.DurationMs)
 	transcode := func(mm Media, sub *Subtitle, delivery string) Decision {
 		return Decision{Method: Transcode, Media: mm, Audio: &mm.Audio[0], AudioCodec: "aac", AudioChannels: 2,
@@ -70,6 +78,22 @@ func TestCommandGoldens(t *testing.T) {
 			d.Audio = nil
 			return d
 		}()}},
+		// Hardware (R24, plan step 25).
+		{"vaapi", RunSpec{Layout: tc, StartPiece: 1020, Decision: transcode(m, nil, ""), HW: vaapi}},
+		{"vaapi-software-decode", RunSpec{Layout: tc, Decision: transcode(m, nil, ""), HW: &HWConfig{Accel: HWVAAPI, Device: vaapi.Device, Decoders: []string{"hevc"}}}},
+		{"vaapi-burn-pgs", RunSpec{Layout: tc, Decision: transcode(m, &m.Subtitles[1], DeliveryBurnIn), HW: vaapi}},
+		{"vaapi-burn-ass", RunSpec{Layout: tc, Decision: transcode(m, &m.Subtitles[2], DeliveryBurnIn), HW: vaapi}},
+		{"qsv", RunSpec{Layout: tc, Preset: PresetBalanced, Decision: transcode(m, nil, ""), HW: &HWConfig{Accel: HWQSV, Device: vaapi.Device, Decoders: []string{"h264", "hevc"}}}},
+		{"nvenc", RunSpec{Layout: tc, Preset: PresetQuality, Decision: transcode(m, nil, ""), HW: &HWConfig{Accel: HWNVENC, Decoders: []string{"h264"}}}},
+		{"nvenc-burn-pgs", RunSpec{Layout: tc, Decision: transcode(m, &m.Subtitles[1], DeliveryBurnIn), HW: &HWConfig{Accel: HWNVENC, Decoders: []string{"h264"}}}},
+		{"v4l2m2m", RunSpec{Layout: tc, Decision: transcode(m, nil, ""), HW: &HWConfig{Accel: HWV4L2M2M}}},
+		{"videotoolbox", RunSpec{Layout: tc, Decision: transcode(m, nil, ""), HW: &HWConfig{Accel: HWVideoToolbox, Decoders: []string{"h264", "hevc"}}}},
+		{"direct-stream-ignores-hw", RunSpec{Layout: ds, Decision: Decision{Method: DirectStream, Media: m, VideoCopy: true, Audio: &m.Audio[0], AudioCodec: "aac", AudioChannels: 2}, HW: vaapi}},
+		// HDR to SDR (R23, plan step 26).
+		{"tonemap-software", RunSpec{Layout: tc, Decision: hdr(transcode(hdrMedia, nil, ""))}},
+		{"tonemap-vaapi", RunSpec{Layout: tc, Decision: hdr(transcode(hdrMedia, nil, "")), HW: &HWConfig{Accel: HWVAAPI, Device: vaapi.Device, Decoders: []string{"h264", "hevc"}, Tonemap: true}}},
+		{"tonemap-vaapi-without-filter", RunSpec{Layout: tc, Decision: hdr(transcode(hdrMedia, nil, "")), HW: &HWConfig{Accel: HWVAAPI, Device: vaapi.Device, Decoders: []string{"h264", "hevc"}}}},
+		{"tonemap-qsv", RunSpec{Layout: tc, Decision: hdr(transcode(hdrMedia, nil, "")), HW: &HWConfig{Accel: HWQSV, Device: vaapi.Device, Decoders: []string{"hevc"}, Tonemap: true}}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			c.spec.Dir = "/var/lib/plaid/transcodes/plaid-0193"

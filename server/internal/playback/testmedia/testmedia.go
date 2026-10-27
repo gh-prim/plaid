@@ -20,13 +20,16 @@ import (
 
 // Clip names.
 const (
-	MP4      = "h264-aac.mp4"      // 60 s H.264/AAC MP4 (B-frames, edit list)
-	MKV      = "h264-ac3-subs.mkv" // 60 s H.264/AC-3 (French) MKV with an SRT (fre) and an ASS (eng) track
-	HEVCHDR  = "hevc-main10-hdr10.mkv"
-	TS       = "h264.ts"  // 30 s MPEG-TS: no keyframe index
-	Long     = "long.mkv" // 20 min 240p H.264/AAC MKV, keyframes every 2 s
-	ExtSRT   = "external.fr.forced.srt"
-	GOPEvery = 2 * time.Second // keyframe interval of every clip
+	MP4     = "h264-aac.mp4"      // 60 s H.264/AAC MP4 (B-frames, edit list)
+	MKV     = "h264-ac3-subs.mkv" // 60 s H.264/AC-3 (French) MKV with an SRT (fre) and an ASS (eng) track
+	HEVCHDR = "hevc-main10-hdr10.mkv"
+	TS      = "h264.ts"  // 30 s MPEG-TS: no keyframe index
+	Long    = "long.mkv" // 20 min 240p H.264/AAC MKV, keyframes every 2 s
+	ExtSRT  = "external.fr.forced.srt"
+	// Performance clips (-tags perf only, large).
+	Perf1080p = "perf-1080p-h264.mkv" // 60 s 1080p24 H.264/AAC, 8 Mbps
+	Perf2160p = "perf-2160p-hevc.mkv" // 30 s 4K HEVC Main 10/AAC, 20 Mbps
+	GOPEvery  = 2 * time.Second       // keyframe interval of every clip
 )
 
 // recipe builds one clip. args go after "ffmpeg -y"; {out} and {dir} are
@@ -56,6 +59,12 @@ var recipes = map[string]recipe{
 	TS: {args: cat(src, tone, []string{"-t", "30", "-map", "0:v", "-map", "1:a",
 		"-c:v", "libx264", "-preset", "ultrafast", "-g", "48", "-crf", "32", "-pix_fmt", "yuv420p",
 		"-c:a", "aac", "-b:a", "64k", "{out}"})},
+	Perf1080p: {args: cat([]string{"-f", "lavfi", "-i", "testsrc2=size=1920x1080:rate=24"}, tone, []string{"-t", "60",
+		"-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "ultrafast", "-g", "48", "-b:v", "8M", "-pix_fmt", "yuv420p",
+		"-c:a", "aac", "-b:a", "128k", "{out}"})},
+	Perf2160p: {encoder: "libx265", args: cat([]string{"-f", "lavfi", "-i", "testsrc2=size=3840x2160:rate=24"}, tone, []string{"-t", "30",
+		"-map", "0:v", "-map", "1:a", "-c:v", "libx265", "-preset", "ultrafast", "-b:v", "20M", "-pix_fmt", "yuv420p10le",
+		"-x265-params", "log-level=error:keyint=48:min-keyint=48", "-c:a", "aac", "-b:a", "128k", "{out}"})},
 	Long: {args: cat([]string{"-f", "lavfi", "-i", "testsrc=size=426x240:rate=12"}, tone, []string{"-t", "1200",
 		"-map", "0:v", "-map", "1:a",
 		"-c:v", "libx264", "-preset", "ultrafast", "-g", "24", "-crf", "36", "-pix_fmt", "yuv420p",

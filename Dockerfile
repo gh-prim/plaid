@@ -29,15 +29,21 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       -o /out/plaid ./cmd/plaid
 
 # --- Runtime: Debian slim with the distro FFmpeg (ADR 0006): ffprobe analyzes
-# media (F004), ffmpeg transcodes (F006) ---
+# media (F004), ffmpeg transcodes (F006). On amd64, the VAAPI drivers for
+# Intel (iHD) and AMD (radeonsi) GPUs; the GPU itself is passed at run time
+# (docker-compose.yml, docs/install.md) ---
 FROM debian:trixie-slim
+ARG TARGETARCH
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates tzdata ffmpeg \
+ && if [ "$TARGETARCH" = amd64 ]; then \
+      apt-get install -y --no-install-recommends intel-media-va-driver mesa-va-drivers; \
+    fi \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --system --gid 1000 plaid \
  && useradd --system --uid 1000 --gid plaid --home-dir /data --shell /usr/sbin/nologin plaid \
- && mkdir -p /data /media \
- && chown plaid:plaid /data
+ && mkdir -p /data/transcodes /media \
+ && chown -R plaid:plaid /data
 COPY --from=server /out/plaid /usr/bin/plaid
 
 ENV PLAID_DATA_DIR=/data \
