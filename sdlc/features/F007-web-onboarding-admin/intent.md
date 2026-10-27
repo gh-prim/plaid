@@ -1,9 +1,9 @@
 ---
 id: F007
 title: Web — onboarding and administration
-owner: TBD
+owner: gh-prim
 reviewer: TBD
-status: draft
+status: accepted
 phase: 2
 apps: [web]
 created: 2026-10-26
