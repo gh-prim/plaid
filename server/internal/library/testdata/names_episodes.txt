@@ -1,0 +1,45 @@
+# Episode parser table: path | show | season | episodes | air date
+# episodes comma-separated, "-" = none. An empty show means unrecognized.
+Breaking Bad/Season 01/Breaking.Bad.S01E02.720p.mkv | Breaking Bad | 1 | 2 | -
+Dark/Saison 2/Dark - 2x05.mkv | Dark | 2 | 5 | -
+Lost/Staffel 1/Lost S01E01-E02.mkv | Lost | 1 | 1,2 | -
+The Daily Show/2024-10-27.mkv | The Daily Show | 2024 | - | 2024-10-27
+Show/Specials/Show S00E01.mkv | Show | 0 | 1 | -
+Show/Season 1/Show S01E03.mkv | Show | 1 | 3 | -
+Show/S01/Show S01E03.mkv | Show | 1 | 3 | -
+Show/S1/s1e3.mkv | Show | 1 | 3 | -
+Show/Season 01/s01e03.mkv | Show | 1 | 3 | -
+Show/Show S02E01.mkv | Show | 2 | 1 | -
+Show/Season 1/Show S02E01.mkv | Show | 2 | 1 | -
+Show/Season 1/Show 1x02.mkv | Show | 1 | 2 | -
+Show/Season 10/Show 10x12.mkv | Show | 10 | 12 | -
+Show/Season 1/Show S01E01-E03.mkv | Show | 1 | 1,2,3 | -
+Show/Season 1/Show S01E01E02.mkv | Show | 1 | 1,2 | -
+Show/Season 1/Show.S01E01.E02.mkv | Show | 1 | 1,2 | -
+Show/Season 1/Show S01E01-E02-E03.mkv | Show | 1 | 1,2,3 | -
+Show/Сезон 2/Show S02E04.mkv | Show | 2 | 4 | -
+Show/Сезон 2/episode 1x04.mkv | Show | 1 | 4 | -
+Show/Temporada 3/Show 3x01.mkv | Show | 3 | 1 | -
+Show/Stagione 4/Show S04E01.mkv | Show | 4 | 1 | -
+Show/Seizoen 5/Show S05E01.mkv | Show | 5 | 1 | -
+Show/Sezon 6/Show S06E01.mkv | Show | 6 | 1 | -
+Show/Säsong 7/Show S07E01.mkv | Show | 7 | 1 | -
+Show/Sæson 8/Show S08E01.mkv | Show | 8 | 1 | -
+Show/Kausi 9/Show S09E01.mkv | Show | 9 | 1 | -
+Show/saison 02/Show 2x01.mkv | Show | 2 | 1 | -
+Show/SEASON 03/SHOW.S03E01.mkv | Show | 3 | 1 | -
+Show/Special/Show S00E02.mkv | Show | 0 | 2 | -
+Doctor Who (2005)/Season 1/Doctor.Who.2005.S01E01.Rose.720p.mkv | Doctor Who | 1 | 1 | -
+The Office (US)/Season 2/The Office (US) - S02E01 - The Dundies.mkv | The Office (US) | 2 | 1 | -
+Game of Thrones/Season 08/Game.of.Thrones.S08E06.1080p.WEB.H264-MEMENTO.mkv | Game of Thrones | 8 | 6 | -
+Mr. Robot/Season 4/mr.robot.s04e13.1080p.mkv | Mr. Robot | 4 | 13 | -
+Last Week Tonight/Season 2024/Last.Week.Tonight.2024.10.27.1080p.mkv | Last Week Tonight | 2024 | - | 2024-10-27
+The Daily Show/2024.10.28.mkv | The Daily Show | 2024 | - | 2024-10-28
+Breaking.Bad.S05E14.720p.mkv | Breaking Bad | 5 | 14 | -
+Dark 1x01.mkv | Dark | 1 | 1 | -
+Show/Season 1/Show S01E100.mkv | Show | 1 | 100 | -
+Show/Season 1/Show 1920x1080 S01E04.mkv | Show | 1 | 4 | -
+Show/Season 1/Show 1920x1080.mkv |  | 1 | - | -
+Show/Season 1/Episode One.mkv |  | 1 | - | -
+S01E01.mkv |  | 1 | 1 | -
+Show/Season 1/Show 2024-13-45.mkv |  | 1 | - | -
