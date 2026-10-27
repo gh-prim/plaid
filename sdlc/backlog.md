@@ -44,7 +44,7 @@ Ideas waiting for an `intent.md`. Nothing here is committed to: pick an item, ru
 
 | # | Feature |
 |---|---------|
-| 25 | Jellyfin and Subsonic API compatibility, so Infuse, Swiftfin, Finamp and Symfonium work on day one. Most strategic item |
+| 25 | ~~Jellyfin and Subsonic API compatibility~~ **Rejected** by [ADR 0005](decisions/0005-no-jellyfin-api-compatibility.md): PLAID ships its own apps. Subsonic for music players may get its own ADR when music is scoped. |
 | 26 | Remote access without port forwarding (built-in WireGuard tunnel), see [ADR 0003](decisions/0003-remote-access-v1.md) |
 | 27 | Audiobooks and podcasts (Plex dropped podcasts) |
 | 28 | Music: synced lyrics, smart mixes |
