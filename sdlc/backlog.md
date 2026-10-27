@@ -175,3 +175,14 @@ Built into every Plaid app, so a request can be made straight from the TV.
 | 114 | Signed short-lived URLs for any artwork (casting, widgets), not only the playing item's |
 | 115 | Keep watch history when an item is deleted and comes back (match by TMDB id) |
 | 116 | Adaptive bitrate (several HLS variants at once) for servers with hardware encoding |
+
+## Onboarding and admin follow-ups (from F007)
+
+| # | Feature |
+|---|---------|
+| 117 | Rename the server from the admin (`PATCH /server`, stored in settings, shown to friends in F009) |
+| 118 | Server health in the admin: low disk space where PLAID keeps its data, Raspberry Pi throttling and temperature |
+| 119 | Tell a client why its playback session ended (`stopped_by_admin`), so F008 can say the admin stopped it |
+| 120 | Back-port F007's web components (folder row, scan thread, poster wall tile, stream card, settings group) to the F002 design system |
+| 121 | Update `vision.md` §5 to the revised design system (warm near-black, amber thread, tartan only in the thread) |
+| 122 | Warn on the setup-code screen when setup happens over plain HTTP from a public address |

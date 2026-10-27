@@ -3,7 +3,7 @@ id: F007
 title: Web — onboarding and administration
 owner: gh-prim
 reviewer: TBD
-status: draft
+status: approved
 intent: ./intent.md
 decisions: [0003, 0007]
 ---
@@ -11,7 +11,7 @@ decisions: [0003, 0007]
 # F007 — Spec: Web — onboarding and administration
 
 ## Summary
-F007 gives PLAID's web app its first two real surfaces. The **first-run wizard** takes the admin from a blank server to their own posters on screen: language, the setup code only when they come from outside the local network, the admin account, libraries picked from the server's own folders (with the fix for an unreadable folder right there), then a first scan where matched posters fill a wall and the last one's backdrop lights the room. The **admin area** opens on one sentence about the server's state and what needs the admin, then six sections: Playing now (with why each stream is converted), Libraries (folders, unrecognized files, items to review), People (users, profiles, devices, TV pairing), Transcoding, Metadata and Problems. Screens and copy come from the Claude Design canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz) (pages Onboarding and Admin). F007 is mostly web on top of the F003–F006 API; it adds four small server pieces the design needs: matched items in the scan stream, a GPU re-test, a problems feed and, optionally, a server name and health.
+F007 gives PLAID's web app its first two real surfaces. The **first-run wizard** takes the admin from a blank server to their own posters on screen: language, the setup code only when they come from outside the local network, the admin account, libraries picked from the server's own folders (with the fix for an unreadable folder right there), then a first scan where matched posters fill a wall and the last one's backdrop lights the room. The **admin area** opens on one sentence about the server's state and what needs the admin, then six sections: Playing now (with why each stream is converted), Libraries (folders, unrecognized files, items to review), People (users, profiles, devices, TV pairing), Transcoding, Metadata and Problems. Screens and copy come from the Claude Design canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz) (pages Onboarding and Admin). F007 is mostly web on top of the F003–F006 API; it adds three small server pieces the design needs: matched items in the scan stream, a GPU re-test and a problems feed.
 
 ## User journeys
 
@@ -67,7 +67,7 @@ F007 gives PLAID's web app its first two real surfaces. The **first-run wizard**
 | F007-R17 | Admin area under `/admin`, admin-only (members get the existing forbidden handling, F003-R13). Entry: a server strip in the library header (F008 owns the library; until then, a link on `Home`) and the account menu. Every admin screen has "Back to the library". | must |
 | F007-R18 | Admin home: the server name as title, one status sentence (quiet, N watching, one stream can't keep up, N things need you), the "needs you" list only when something does (unavailable or unreadable folders, a stream slower than 1.0×, hardware fallback, FFmpeg missing, open problems), then the six sections with a live one-line summary each. Data: `GET /playback`, `GET /libraries`, `GET /server/capabilities`, `GET /problems`. Polled every 10 s while visible. | must |
 | F007-R19 | Playing now (`GET /playback`, every 5 s while visible): one card per stream, slowest first: who (user · profile on device), what (poster, title, position of duration), method with its human label, hardware or software, speed ("Keeps up" / "Can't keep up (0.8×): it will buffer"), quality, at home or from outside, and each reason as one sentence (`reason.*`). Under a slow software transcode, the advice line. "Stop" asks for confirmation, then `DELETE /playback/{id}`. Header: conversions in use out of `maxTranscodes`. Empty state when nothing plays. | must |
-| F007-R20 | Libraries: each library with type, counts, last scan, scan state and progress, and its folders with status (`ok`, `unavailable`, `unreadable`), watched live or checked every N minutes, and file system type. Actions: Scan now, Full rescan (with how long it may take), add folder (the onboarding picker), remove folder, change metadata language and region (with what it refetches), add a library, delete a library (confirmation names what is forgotten and that files stay on disk). | must |
+| F007-R20 | Libraries: each library with type, counts, last scan, scan state and progress, and its folders with status (`ok`, `unavailable`, `unreadable`), watched live or checked every N minutes, and file system type. Actions: Scan now, Full rescan (with what it does), add folder (the onboarding picker), remove folder, change metadata language and region (with what it refetches), add a library, delete a library (confirmation names what is forgotten and that files stay on disk). | must |
 | F007-R21 | Not recognized: `GET /libraries/{id}/unrecognized`, paginated, file path and size; "Identify" opens a TMDB search (`GET /metadata/search`) and assigns with `POST /media-files/{id}/identify`. | must |
 | F007-R22 | To review: `GET /libraries/{id}/review`, each item with its reason (several candidates, not found on TMDB, duplicate), what was parsed from the file name, and its candidates (poster, title, year, `confidence` as a percentage). "This one" → `POST /items/{id}/match`; "Search TMDB" accepts a title, a year or a TMDB link; "None of these" leaves it unmatched. The same "Fix match" is reachable from any item's admin view. | must |
 | F007-R23 | People: users (`GET /users`) with role, disabled, must change password, profiles count; one person's view with their signed-in devices (`GET /users/{id}/sessions`) and Sign out per device; Add a person (temporary password, role); reset password, disable/enable, delete; `last_admin` explained. "Pair a TV" reuses the F003 `/pair` flow inside the admin. | must |
@@ -78,8 +78,8 @@ F007 gives PLAID's web app its first two real surfaces. The **first-run wizard**
 | F007-R27 | Scan events gain a `matched` event: `{type: "matched", item: {id, kind, title, year, posterImageId?, backdropImageId?}}`, sent on the library's existing `/scan/events` stream when F005 matches a movie or a show (not seasons or episodes) during or after that library's scan. Buffered per connection like other events; a slow client may miss some (the wall is a view, the counters stay exact). | must |
 | F007-R28 | `POST /server/capabilities/hardware-test` (admin) re-runs the hardware test (F006-R24) and clears a fallback, returning the new `HardwareStatus`. `409 hw_test_running` while one runs. | should |
 | F007-R29 | Problems feed: the server records actionable events in a `problems` table (code, params, first/last seen, resolved at): hardware fallback (F006-R24), FFmpeg run failed and restarted in software, a library folder unavailable or unreadable (F004), watch limit reached, provider key refused (F005). Same code + params updates the existing row instead of adding one. Rows older than 7 days after resolution are deleted. `GET /problems` (admin) lists them. | should |
-| F007-R30 | Server name: `PATCH /server` (admin) `{name}` (1–64 chars) stores `server.name` in the settings table; `GET /server` returns it, falling back to `PLAID_SERVER_NAME`, then the hostname (today's behavior). Editable in the admin home. Not asked during onboarding. | could |
-| F007-R31 | Health: `GET /server/health` (admin) returns free bytes on the file systems holding `PLAID_DATA_DIR` and `PLAID_TRANSCODE_DIR`, and on Linux the throttling state and SoC temperature when the platform exposes them (Raspberry Pi). The admin home shows a "needs you" entry under 5 GiB free or while throttled. | could |
+| F007-R30 | ~~Server name: `PATCH /server`~~. Moved to the backlog (#117) at approval: the design never asks for a name. | won't (v1) |
+| F007-R31 | ~~Health: `GET /server/health`~~. Moved to the backlog (#118) at approval. | won't (v1) |
 | **Cross-cutting** | | |
 | F007-R32 | Every string comes from the i18n catalogs (table below); plurals with i18next `_one`/`_other`, numbers, dates, durations and sizes with `Intl` through i18next formatters; language names with `Intl.DisplayNames`. The copy decks on the canvas are the source; the catalogs win over the canvas once merged. | must |
 | F007-R33 | Every screen works at 375 px and 1440 px with no horizontal page scroll, in the dark theme (default) and the light theme, and with German-length strings (+35 %). | must |
@@ -104,7 +104,7 @@ CREATE TABLE problems (
 CREATE INDEX problems_last_seen ON problems(last_seen);
 ```
 
-Settings key `server.name` (F005 `settings` table) for R30. No other schema change: the onboarding's position is derived (R10).
+No other schema change: the onboarding's position is derived (R10).
 
 ### API
 Carried into `api/openapi.yaml` first, then `make generate`.
@@ -114,15 +114,13 @@ Carried into `api/openapi.yaml` first, then `make generate`.
 | GET | `/libraries/{id}/scan/events` | admin | **Changed**: `ScanEvent.type` gains `matched`, with `item: MatchedItem` (R27) |
 | POST | `/server/capabilities/hardware-test` | admin | Re-run the hardware test, `200 HardwareStatus`, `409 hw_test_running` (R28) |
 | GET | `/problems` | admin | `{problems: [{id, code, params, firstSeen, lastSeen, count, resolvedAt?}]}`, last 7 days (R29) |
-| PATCH | `/server` | admin | `{name}` → `200 Server` (R30, could) |
-| GET | `/server/health` | admin | `{disks: [{path, role: data\|transcode, freeBytes, totalBytes}], throttled?, temperatureC?}` (R31, could) |
 
 Everything else F007 uses already exists: `/setup`, `/setup/admin`, `/server`, `/fs/browse`, `/libraries*`, `/metadata/*`, `/items/{id}/match`, `/media-files/{id}/identify`, `/users*`, `/pairing/claim`, `/playback*`, `/settings/playback`, `/server/capabilities`.
 
 New error code: `hw_test_running`.
 
 ### Behavior per app
-- **server**: the `matched` scan event (hook where F005 sets an item `matched`, publish on the library's event hub), the hardware re-test endpoint (reuses F006's test), the problems recorder (a small `internal/problems` package called from the places that already log those events with `slog`), and R30/R31 if kept.
+- **server**: the `matched` scan event (hook where F005 sets an item `matched`, publish on the library's event hub), the hardware re-test endpoint (reuses F006's test), the problems recorder (a small `internal/problems` package called from the places that already log those events with `slog`).
 - **web**: routes `/setup/*` (wizard) and `/admin/*`; components from the canvas built on the design system tokens; a typed SSE hook for scan events; polling hooks for Playing now and the admin home that pause when the tab is hidden; the existing `Setup` page replaced by the wizard; `Pair` reused inside People.
 - **apple / android**: out of scope.
 
@@ -271,7 +269,7 @@ Keys below come from the canvas copy decks, converted to the repo's i18next form
 | `scan.unrecognized_other` | {{count, number}} not recognized | {{count, number}} non reconnus |
 | `scan.metadata.pending` | Fetching posters and synopses from TMDB. | Récupération des affiches et résumés sur TMDB. |
 | `scan.metadata.summary` | {{matched, number}} matched · {{needsReview, number}} to review · {{unmatched, number}} not found | {{matched, number}} identifiés · {{needsReview, number}} à vérifier · {{unmatched, number}} introuvables |
-| `scan.slowShare` | On a network share, a library this size can take about an hour. Posters appear as titles are matched. | Sur un partage réseau, une bibliothèque de cette taille peut prendre environ une heure. Les affiches apparaissent au fil des identifications. |
+| `scan.slowShare` | On a network share, a library this size can take a while. Posters appear as titles are matched. | Sur un partage réseau, une bibliothèque de cette taille peut prendre un moment. Les affiches apparaissent au fil des identifications. |
 | `scan.complete_one` (serif, warm) | From {{oldestTitle}} to {{newestTitle}}, {{count, number}} movie is home. | De {{oldestTitle}} à {{newestTitle}}, {{count, number}} film est à la maison. |
 | `scan.complete_other` (serif, warm) | From {{oldestTitle}} to {{newestTitle}}, {{count, number}} movies are home. | De {{oldestTitle}} à {{newestTitle}}, {{count, number}} films sont à la maison. |
 | `scan.complete.shows` | And {{shows}}, {{episodes}}, on {{serverName}}. | Et {{shows}}, {{episodes}}, sur {{serverName}}. |
@@ -335,8 +333,8 @@ Keys below come from the canvas copy decks, converted to the repo's i18next form
 | `admin.nav.transcoding` | Transcoding | Transcodage |
 | `admin.nav.metadata` | Metadata | Métadonnées |
 | `admin.nav.problems` | Problems | Problèmes |
-| `admin.health.disk` (needs an API) | Less than {{free}} left on the disk that holds PLAID’s data. New conversions may fail. | Il reste moins de {{free}} sur le disque des données de PLAID. Les nouvelles conversions peuvent échouer. |
-| `admin.health.heat` (needs an API) | The Pi is slowing itself down because it’s hot ({{temp}}). Conversions will be slower until it cools. | Le Pi ralentit parce qu’il chauffe ({{temp}}). Les conversions seront plus lentes le temps qu’il refroidisse. |
+| `admin.health.disk` (not in v1, backlog #118: don't add to the catalogs) | Less than {{free}} left on the disk that holds PLAID’s data. New conversions may fail. | Il reste moins de {{free}} sur le disque des données de PLAID. Les nouvelles conversions peuvent échouer. |
+| `admin.health.heat` (not in v1, backlog #118: don't add to the catalogs) | The Pi is slowing itself down because it’s hot ({{temp}}). Conversions will be slower until it cools. | Le Pi ralentit parce qu’il chauffe ({{temp}}). Les conversions seront plus lentes le temps qu’il refroidisse. |
 
 **Playing now** (Answers “it’s buffering”)
 
@@ -358,7 +356,7 @@ Keys below come from the canvas copy decks, converted to the repo's i18next form
 | `playing.slow.advice.software` | {{server}} can’t convert this file in real time. Ask {{user}} to pick a lower quality, or play it on a device that reads {{codec}}. | {{server}} ne peut pas convertir ce fichier en temps réel. Demande à {{user}} de baisser la qualité, ou de le lire sur un appareil qui lit le {{codec}}. |
 | `playing.quality` | {{resolution}} · {{bitrate}} Mbps | {{resolution}} · {{bitrate}} Mb/s |
 | `playing.stop` | Stop | Arrêter |
-| `playing.stop.confirm` | Stop {{title}} for {{user}}? They’ll see that the admin stopped it. | Arrêter {{title}} pour {{user}} ? Il ou elle verra que l’admin l’a arrêté. |
+| `playing.stop.confirm` | Stop {{title}} for {{user}}? They’ll see that the admin stopped it. | Arrêter {{title}} pour {{user}} ? |
 | `playing.stop.confirm.action` | Stop stream | Arrêter le flux |
 | `playing.stop.confirm.cancel` | Keep playing | Laisser jouer |
 | `playing.stopped` (toast) | Stopped {{title}} for {{user}}. | {{title}} arrêté pour {{user}}. |
@@ -401,7 +399,7 @@ Keys below come from the canvas copy decks, converted to the repo's i18next form
 | `folder.fs` | Local disk (ext4) · Network share (NFS) · Network share (SMB) | Disque local (ext4) · Partage réseau (NFS) · Partage réseau (SMB) |
 | `libraries.scanNow` | Scan now | Analyser |
 | `libraries.fullRescan` | Full rescan | Tout réanalyser |
-| `libraries.fullRescan.help` | Reads every file again with ffprobe. On {{name}} that can take about an hour. | Relit chaque fichier avec ffprobe. Sur {{name}}, ça peut prendre environ une heure. |
+| `libraries.fullRescan.help` | Reads every file again with ffprobe. On {{name}} that can take a while. | Relit chaque fichier avec ffprobe. Sur {{name}}, ça peut prendre un moment. |
 | `libraries.addFolder` | Add folder | Ajouter un dossier |
 | `libraries.removeFolder` | Remove folder | Retirer le dossier |
 | `libraries.language` | Titles and synopses in {{language}}, {{region}} · Change | Titres et résumés en {{language}}, {{region}} · Modifier |
@@ -539,22 +537,22 @@ Keys below come from the canvas copy decks, converted to the repo's i18next form
 - **i18n**: no hardcoded string (`make check-i18n`); German-length layouts hold.
 
 ## ⚠️ Watch-outs
-Each one must be resolved or tracked before `approved`.
+Settled at approval (2026-10-28).
 
-- [ ] **Live posters need a server change (R27).** Scan events only carry counters today. The `matched` event is the smallest change; the alternative (polling items) has no "matched since" sort. Confirm R27, or drop the wall to counters plus a "recently matched" row fetched at the end.
-- [ ] **Problems feed (R26, R29)**: a new table and endpoint for a screen marked `should`. Keep it in F007, or ship F007 without the Problems screen (the "needs you" list then only uses live state) and track it in the backlog?
-- [ ] **Server name (R30, `could`)**: the design never asks for a name; everything shows `GET /server`'s name (the hostname by default). Keep R30 for F009, or drop it.
-- [ ] **Health (R31, `could`)**: disk space and Pi throttling. Reading throttling needs platform-specific code (`/sys/devices/platform/soc/soc:firmware/get_throttled` or `vcgencmd`), and the `.deb` service is hardened (`ProtectSystem`, F006). Keep, or backlog.
-- [ ] **The design's setup-code command was wrong.** It used `grep "setup code"`; the server logs `first_run_setup_code=…`. R5 fixes it; the canvas still shows the old line.
-- [ ] **Stopping a stream (R19)**: the confirmation says the person "will see that the admin stopped it". F006's `DELETE /playback/{id}` doesn't tell the client why the session ended. Either F008 shows a generic "playback ended", or F006 gains an end reason (`stopped_by_admin`). Until decided, the copy must not promise it.
-- [ ] **"About an hour" (`scan.slowShare`, `libraries.fullRescan.help`)**: there's no estimate in the API. Either the web computes one from the analysis rate after a minute, or the copy says "can take a long time" without a number.
-- [ ] **`fieldErrors.too_long_max`** needs the limit; `validation_failed` details carry only `field` and `code`. The web takes the limit from the generated schema per field; confirm that's acceptable, or the server adds `max` to the detail.
-- [ ] **F005 expected more from F007**: artwork choice per item and the About page with attributions (F005 web section). The canvas covers attributions on the Metadata screen but no artwork picker. Move artwork choice to F008's detail page, or add it here.
-- [ ] **Design system additions**: the canvas proposes new components (folder row, setup-code field, woven scan thread, poster wall tile, stream card, reason line, settings group with its own save, problem entry). Add them to the F002 design system before coding, or build them in `web/` and back-port.
-- [ ] **`sdlc/vision.md` §5 is out of date**: it still describes midnight blue, burgundy, a tartan texture and lines like "come back to snuggle in". The revised design system (warm near-black, amber thread, tartan only in the thread, no cute functional copy) governs F007. Update the vision in its own change.
-- [ ] **Canvas access**: the Claude Design canvas is private to its owner. The reviewer needs access, and the screens should be exported (PNG per screen) into the PR that builds them, since `plan.md` evidence must not depend on a private link.
-- [ ] **Remote setup over HTTP**: when `requiresSetupCode` is true the admin is, by definition, coming from outside; if that's plain HTTP, the password travels in clear. ADR 0003 leaves TLS to the reverse proxy. Should the code screen warn when `location.protocol` is `http:` and the host isn't private?
-- [ ] **Several libraries scanning at once** open one SSE connection each; browsers allow 6 per origin on HTTP/1.1. Fine for the wizard (rarely more than 3); the admin home uses polling, not streams.
+- [x] **Live posters need a server change (R27)** — ✅ Kept: the `matched` event on the scan stream.
+- [x] **Problems feed (R26, R29)** — ✅ Kept in F007.
+- [x] **Server name (R30)** — ⏸ Backlog #117. Everything shows `GET /server`'s name (`PLAID_SERVER_NAME`, then the hostname).
+- [x] **Health (R31)** — ⏸ Backlog #118. The `admin.health.*` keys stay out of the catalogs.
+- [x] **The design's setup-code command was wrong** — ✅ R5 uses `grep first_run_setup_code`, the key the server logs.
+- [x] **Stopping a stream** — ✅ Copy adapted: the confirmation no longer promises the person will see why. An end reason in F006 is backlog #119.
+- [x] **"About an hour"** — ✅ Copy adapted to "can take a while"; no estimate in v1.
+- [x] **`fieldErrors.too_long_max`** — ✅ The web takes the limit from the generated schema per field; the server's details stay `{field, code}`.
+- [x] **F005's artwork picker** — ⏸ Moves to F008's detail page. Attributions are on the Metadata screen (R25).
+- [x] **Design system additions** — ✅ Built in `web/` on the design system tokens, then back-ported to F002 (backlog #120).
+- [x] **`sdlc/vision.md` §5 out of date** — ⏸ Backlog #121, its own change. The revised design system governs F007.
+- [x] **Canvas access** — ✅ Each implementation PR attaches PNG exports of the screens it builds; `plan.md` evidence never depends on the private link.
+- [x] **Remote setup over plain HTTP** — ⏸ Backlog #122 (warn on the setup-code screen when the page is `http:` from a public address). ADR 0003 leaves TLS to the reverse proxy.
+- [x] **Several libraries scanning at once** — ✅ Accepted: one SSE stream per library in the wizard, polling in the admin.
 
 ## Acceptance criteria
 **Onboarding**
@@ -609,4 +607,4 @@ Each one must be resolved or tracked before `approved`.
 - [ ] Given `make check-i18n`, then no key is missing in `fr` and no screen has a hardcoded string.
 
 ## Revisions
-_None yet._
+- 2026-10-28: approved. R30 and R31 moved to the backlog; three strings adapted so the copy doesn't promise what the API can't do (`playing.stop.confirm`, `scan.slowShare`, `libraries.fullRescan.help`).
