@@ -31,7 +31,7 @@ Use the distro FFmpeg for F004 and early F006 (direct play, remux, software tran
 - ❌ A possible packaging change later (new dependency, bigger image).
 
 ## Decision
-We choose **C**. The server already locates the binaries through `PLAID_FFPROBE_PATH` / `PLAID_FFMPEG_PATH` (falling back to `PATH`), so switching to B later doesn't change the code.
+We choose **C**. The server locates the binaries through `PLAID_FFPROBE_PATH` / `PLAID_FFMPEG_PATH`, falling back to `PATH` (added by F004, R25), so switching to B later won't change the code.
 
 ## Consequences
 - `.goreleaser.yaml` nFPM: add `ffmpeg` to `dependencies`. Docker runtime: install `ffmpeg` (no recommends).
