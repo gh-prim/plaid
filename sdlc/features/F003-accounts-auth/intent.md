@@ -1,9 +1,9 @@
 ---
 id: F003
 title: Accounts and authentication
-owner: TBD
+owner: gh-prim
 reviewer: TBD
-status: draft
+status: accepted
 phase: 1
 apps: [server, web]
 created: 2026-10-26

@@ -14,6 +14,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [0003](decisions/0003-remote-access-v1.md) | Remote access v1: pure self-host | 📝 proposed |
 | [0004](decisions/0004-license.md) | License: MIT | ✅ accepted |
 | [0005](decisions/0005-no-jellyfin-api-compatibility.md) | No Jellyfin API compatibility, own apps | ✅ accepted |
+| [0006](decisions/0006-ffmpeg-distribution.md) | FFmpeg: distro package now, own build if F006 needs it | ✅ accepted |
 
 ## Features
 
@@ -21,8 +22,8 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 |----|---------|-------|------|-------|--------|------|------|
 | [F001](features/F001-monorepo-foundations/intent.md) | Monorepo foundations, CI, Docker | 0 | all | gh-prim | ✅ | [✅](features/F001-monorepo-foundations/spec.md) | [🚧](features/F001-monorepo-foundations/plan.md) |
 | [F002](features/F002-design-system/intent.md) | Design system and art direction | 0 | web, apple, android | ? | 📝 | — | — |
-| [F003](features/F003-accounts-auth/intent.md) | Accounts and authentication | 1 | server, web | ? | 📝 | — | — |
-| [F004](features/F004-library-scanning/intent.md) | Libraries and file scanning | 1 | server | ? | 📝 | — | — |
+| [F003](features/F003-accounts-auth/intent.md) | Accounts and authentication | 1 | server, web | gh-prim | ✅ | [✅](features/F003-accounts-auth/spec.md) | — |
+| [F004](features/F004-library-scanning/intent.md) | Libraries and file scanning | 1 | server | gh-prim | ✅ | [✅](features/F004-library-scanning/spec.md) | — |
 | [F005](features/F005-metadata/intent.md) | Metadata and artwork | 1 | server | ? | 📝 | — | — |
 | [F006](features/F006-playback-streaming/intent.md) | Playback: direct play and transcoding | 1 | server | ? | 📝 | — | — |
 | [F007](features/F007-web-onboarding-admin/intent.md) | Web: onboarding and administration | 2 | web | ? | 📝 | — | — |

@@ -1,9 +1,9 @@
 ---
 id: F004
 title: Libraries and file scanning
-owner: TBD
+owner: gh-prim
 reviewer: TBD
-status: draft
+status: accepted
 phase: 1
 apps: [server]
 created: 2026-10-26
