@@ -3,7 +3,7 @@ id: F003
 title: Accounts and authentication
 owner: gh-prim
 reviewer: TBD
-status: draft            # draft | approved
+status: approved         # draft | approved
 intent: ./intent.md
 decisions: [0002, 0003, 0005]
 ---
@@ -219,15 +219,17 @@ Every error `code` from the API maps to `errors.<code>`; unknown codes fall back
 - **i18n**: all strings as above, ICU plurals where counts appear.
 
 ## ⚠️ Watch-outs
-- [ ] **Sessions: opaque tokens vs JWT** (open question in the intent). Spec proposes **opaque tokens stored hashed**: instant revocation ("sign out this device" must work immediately, per the intent), no signing keys to manage or rotate, one indexed lookup per request is cheap on SQLite. JWTs would avoid that lookup but make revocation need a denylist anyway. Reviewer to confirm.
-- [ ] **Profile PIN: every time or once per device** (open question in the intent). Spec proposes **every time the profile is selected** (Netflix behavior), since a TV in the living room is shared by definition. Reviewer to confirm.
-- [ ] **First-run hijack**: a server exposed to the internet before setup could be claimed by a stranger (Plex and Jellyfin share this risk). R3 limits setup to private/loopback addresses unless the startup setup code is given. Behind a reverse proxy on the same machine, requests look local: the setup code is the safety net. Check this doesn't break Docker setups where the host IP looks private (it shouldn't: private is allowed).
-- [ ] **Cookie `Secure` behind a reverse proxy**: TLS usually ends at a proxy (Caddy, Traefik, Cloudflare Tunnel). Deciding HTTPS needs `X-Forwarded-Proto`, which must only be trusted from configured proxies (`PLAID_TRUSTED_PROXIES`). Default: trust none, so `Secure` is only set when the server itself sees HTTPS. Same for the client IP used by rate limiting.
-- [ ] **Overlap with F007**: F007's intent includes admin account creation in its wizard. Spec keeps a minimal setup page in F003 (needed to use the server at all) and leaves the full wizard and admin screens to F007, which reuses the same API. Update F007's intent when it's specified.
-- [ ] **Enforcing age limits**: F003 only stores them. Content ratings come from metadata (F005), and filtering happens in browsing and playback (F006, F008). Until then a "Kids" profile isn't actually restricted: don't advertise parental controls before F005/F008.
-- [ ] **Argon2id cost on small hardware**: m = 19 MiB, t = 2 is OWASP's minimum recommendation. Measure on a Pi 4 during the build; raise if fast enough (encoded parameters allow rehash on next login).
-- [ ] **Parallel work with F004**: F004's admin-only routes need F003's middleware. Deliver `auth.Principal` and `auth.RequireAdmin` first (plan step 1) so F004 can build against them, or F004 stubs them behind the same interface.
-- [ ] **Backlog items touched**: SSO/LDAP (#3), 2FA and activity log (#32), kids UI (#22), import users from Plex/Jellyfin (#18) are out of scope but the model doesn't block them: `users.password_hash` can become nullable for SSO accounts, auth events are already logged (R23) as a base for an activity log.
+Settled by gh-prim on 2026-10-27. ✅ = resolved, ⏸ = tracked elsewhere.
+
+- [x] **Sessions: opaque tokens vs JWT** — ✅ Opaque random tokens, stored as SHA-256 hashes (R8): instant revocation, no signing keys.
+- [x] **Profile PIN: every time or once per device** — ✅ Asked every time the profile is selected (R17).
+- [x] **First-run hijack** — ✅ Setup only from private/loopback addresses unless the one-time setup code from the log is given (R3).
+- [x] **Cookie `Secure` and client IP behind a reverse proxy** — ✅ `X-Forwarded-*` trusted only from `PLAID_TRUSTED_PROXIES` (default: none); `Secure` set when the server sees HTTPS.
+- [x] **Overlap with F007** — ⏸ F003 ships a minimal setup page; F007's wizard and admin screens reuse the same API. Update F007's intent when it's specified.
+- [x] **Enforcing age limits** — ⏸ Stored by F003, enforced by F005/F006/F008. Don't advertise parental controls before then.
+- [x] **Argon2id cost on small hardware** — ⏸ Measure on a Pi 4 (or the throttled `make test-deb` profile) during the build; raise parameters if fast enough.
+- [x] **Parallel work with F004** — ⏸ F003's plan delivers `auth.Principal` and `auth.RequireAdmin` first.
+- [x] **Backlog items touched** (SSO/LDAP, 2FA, activity log, kids UI, user import) — ⏸ Out of scope; the model doesn't block them.
 
 ## Acceptance criteria
 - [ ] Given a fresh server, when I `GET /setup`, then `setupComplete` is false; when I `POST /setup/admin` from localhost with valid fields, then I get `201`, a session, and `GET /me` shows role `admin` and one default profile.

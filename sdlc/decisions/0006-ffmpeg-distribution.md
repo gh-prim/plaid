@@ -1,7 +1,7 @@
 ---
 id: 0006
 title: How PLAID gets FFmpeg and ffprobe
-status: proposed
+status: accepted
 date: 2026-10-27
 deciders: [gh-prim]
 supersedes: null
@@ -31,7 +31,7 @@ Use the distro FFmpeg for F004 and early F006 (direct play, remux, software tran
 - ❌ A possible packaging change later (new dependency, bigger image).
 
 ## Decision
-Proposed: **C**. The server already locates the binaries through `PLAID_FFPROBE_PATH` / `PLAID_FFMPEG_PATH` (falling back to `PATH`), so switching to B later doesn't change the code.
+We choose **C**. The server already locates the binaries through `PLAID_FFPROBE_PATH` / `PLAID_FFMPEG_PATH` (falling back to `PATH`), so switching to B later doesn't change the code.
 
 ## Consequences
 - `.goreleaser.yaml` nFPM: add `ffmpeg` to `dependencies`. Docker runtime: install `ffmpeg` (no recommends).

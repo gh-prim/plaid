@@ -3,7 +3,7 @@ id: F004
 title: Libraries and file scanning
 owner: gh-prim
 reviewer: TBD
-status: draft            # draft | approved
+status: approved         # draft | approved
 intent: ./intent.md
 decisions: [0001, 0002, 0005, 0006]
 ---
@@ -200,16 +200,18 @@ No user-facing strings in F004 itself: error `code`s and scan states are transla
 - **Security**: folder browse and library management are admin-only; `/fs/browse` lists directory names only and rejects relative paths and `..`.
 
 ## ⚠️ Watch-outs
-- [ ] **ffprobe isn't installed today** (neither in the Docker image nor as a `.deb` dependency). F004 needs it; F006 needs FFmpeg. Proposed [ADR 0006](../../decisions/0006-ffmpeg-distribution.md) must be decided before F004's plan.
-- [ ] **Unrecognized files** (open question in the intent): spec proposes storing them with `parse_status = unrecognized` and listing them per library (R11); fixing them by hand ("this is *Alien* (1979)") is F005, since it means searching TMDB. Reviewer to confirm.
-- [ ] **Periodic scan interval for SMB/NFS** (open question in the intent): spec proposes **15 minutes** for unwatched folders and 6 hours for watched ones, configurable per library (R19). An unchanged 10,000-file share costs one directory walk (no probes), acceptable every 15 min.
-- [ ] **Unplugged drives** (R17) are the classic way media servers wipe libraries. The "folder unreachable or suddenly empty" guard and the 30-day grace period need dedicated tests, including a mount point that exists but is empty after an unmount.
-- [ ] **inotify limits**: big libraries can exceed `fs.inotify.max_user_watches` on older systems. R18 falls back to periodic scans and warns; `docs/install.md` should document raising the limit. The `.deb` could ship a `sysctl.d` drop-in: decide in the plan.
-- [ ] **Permissions**: the most common support issue (`plaid` user can't read `/home/…`). R2 checks readability at save time with a clear error; R3 shows readable/unreadable in the picker.
-- [ ] **Parallel work with F003**: admin-only routes depend on F003's `auth.RequireAdmin` and `Principal`. Agree on that interface first (F003 plan step 1).
-- [ ] **Scope against F005**: F004 stores parsed titles and hints only. Show folder names like `The Office (US)` or ambiguous movie titles are resolved by F005's matching, not by more parsing heuristics here.
-- [ ] **SSE through reverse proxies**: some proxies buffer `text/event-stream`. Send `X-Accel-Buffering: no` and a heartbeat every 15 s; the polling endpoint stays as a fallback.
-- [ ] **Anime absolute numbering and multi-part movies** (`Movie CD1/CD2`) aren't covered; they'll need their own items in the backlog if people ask.
+Settled by gh-prim on 2026-10-27. ✅ = resolved, ⏸ = tracked elsewhere.
+
+- [x] **ffprobe isn't installed today** — ✅ [ADR 0006](../../decisions/0006-ffmpeg-distribution.md) accepted (option C): distro `ffmpeg` as a `.deb` dependency and in the Docker image.
+- [x] **Unrecognized files** — ✅ Stored with `parse_status = unrecognized` and listed per library (R11); manual identification is F005.
+- [x] **Periodic scan interval for SMB/NFS** — ✅ 15 min for unwatched folders, 6 h for watched ones, configurable per library (R19).
+- [x] **Unplugged drives** — ⏸ R17's guard and the 30-day grace period get dedicated tests in the plan, including an empty mount point.
+- [x] **inotify limits** — ⏸ Periodic fallback and warning (R18); whether the `.deb` ships a `sysctl.d` drop-in is decided in the plan; document raising the limit in `docs/install.md`.
+- [x] **Permissions** — ✅ Readability checked on save (R2) and shown in the picker (R3).
+- [x] **Parallel work with F003** — ⏸ Build against F003's `auth.Principal` / `auth.RequireAdmin` interface.
+- [x] **Scope against F005** — ✅ F004 stores parsed titles and hints only; ambiguity is resolved by F005's matching.
+- [x] **SSE through reverse proxies** — ✅ `X-Accel-Buffering: no`, 15 s heartbeat, polling endpoint kept as fallback.
+- [x] **Anime absolute numbering, multi-part movies** — ⏸ Not covered; backlog items if requested.
 
 ## Acceptance criteria
 - [ ] Given a folder the server can't read, when I create a library with it, then `422 folder_unreadable` and nothing is created.
