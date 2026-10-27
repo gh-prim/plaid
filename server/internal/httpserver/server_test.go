@@ -145,8 +145,11 @@ func TestPanicIsRecovered(t *testing.T) {
 	}
 }
 
-// erroringHandlers returns err from every operation.
-type erroringHandlers struct{ err error }
+// erroringHandlers returns err from GetHealth; the other operations are unused.
+type erroringHandlers struct {
+	api.StrictServerInterface
+	err error
+}
 
 func (e erroringHandlers) GetHealth(context.Context, api.GetHealthRequestObject) (api.GetHealthResponseObject, error) {
 	return nil, e.err
@@ -167,7 +170,7 @@ func TestHandlerErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var logs bytes.Buffer
 			logger := slog.New(slog.NewTextHandler(&logs, nil))
-			rec := get(t, New(erroringHandlers{tc.err}, builtWeb, logger, Options{}), "/api/v1/health")
+			rec := get(t, New(erroringHandlers{err: tc.err}, builtWeb, logger, Options{}), "/api/v1/health")
 			if rec.Code != tc.status || !strings.Contains(rec.Body.String(), `"code":"`+tc.code+`"`) {
 				t.Errorf("status %d body %q, want %d %s", rec.Code, rec.Body, tc.status, tc.code)
 			}

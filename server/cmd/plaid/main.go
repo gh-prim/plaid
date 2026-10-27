@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/buildinfo"
 	"github.com/gh-prim/plaid/server/internal/config"
 	"github.com/gh-prim/plaid/server/internal/db"
@@ -48,8 +49,26 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	}
 	defer database.Close()
 
-	handler := httpserver.New(handlers.New(handlers.Deps{DB: database}), webui.FS(), logger, httpserver.Options{
+	accts := accounts.New(database, accounts.Options{Logger: logger})
+	code, err := accts.PrepareSetupCode(ctx)
+	if err != nil {
+		return err
+	}
+	if code != "" {
+		// The one secret meant for the log: it lets the owner finish setup
+		// from outside the local network (F003-R3, docs/install.md).
+		logger.Warn("no account yet: open PLAID in a browser to create the admin account",
+			"first_run_setup_code", code)
+	}
+	go accts.RunJanitor(ctx)
+
+	handler := httpserver.New(handlers.New(handlers.Deps{
+		DB:         database,
+		Accounts:   accts,
+		ServerName: cfg.ServerName,
+	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
+		Sessions:       accts,
 	})
 
 	ln, err := (&net.ListenConfig{}).Listen(ctx, "tcp", cfg.Addr())

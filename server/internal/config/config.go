@@ -19,6 +19,8 @@ type Config struct {
 	LogFormat string
 	// TrustedProxies are the peers whose X-Forwarded-* headers are believed.
 	TrustedProxies []netip.Prefix
+	// ServerName is shown to clients by GET /server. Defaults to the hostname.
+	ServerName string
 }
 
 // Addr returns the host:port the HTTP server listens on.
@@ -41,6 +43,13 @@ func Load(getenv func(string) string) (Config, error) {
 		DataDir:   get("PLAID_DATA_DIR", "./data"),
 		LogLevel:  get("PLAID_LOG_LEVEL", "info"),
 		LogFormat: get("PLAID_LOG_FORMAT", "text"),
+	}
+	cfg.ServerName = getenv("PLAID_SERVER_NAME")
+	if cfg.ServerName == "" {
+		cfg.ServerName, _ = os.Hostname()
+	}
+	if cfg.ServerName == "" {
+		cfg.ServerName = "PLAID"
 	}
 
 	port, err := strconv.Atoi(get("PLAID_PORT", "32500"))

@@ -1,8 +1,84 @@
 {
+  "account": {
+    "label": "Compte",
+    "watchingAs": "Profil : {{name}}"
+  },
+  "auth": {
+    "changePassword": {
+      "submit": "Enregistrer le mot de passe",
+      "title": "Choisis un nouveau mot de passe"
+    },
+    "confirmPassword": "Confirme le mot de passe",
+    "createAdmin": "Créer le compte",
+    "currentPassword": "Mot de passe actuel",
+    "displayName": "Nom",
+    "newPassword": "Nouveau mot de passe",
+    "password": "Mot de passe",
+    "passwordHint": "Au moins 8 caractères.",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "username": "Nom d'utilisateur",
+    "usernameHint": "3 à 32 caractères : lettres minuscules, chiffres, points, tirets ou tirets bas."
+  },
+  "common": {
+    "back": "Retour",
+    "cancel": "Annuler",
+    "retry": "Réessayer"
+  },
+  "device": {
+    "webName": "{{browser}} sur {{os}}"
+  },
+  "errors": {
+    "csrf": "Cette requête a été bloquée. Recharge la page et réessaie.",
+    "forbidden": "Tu n'as pas le droit de faire ça.",
+    "generic": "Une erreur s'est produite. Réessaie.",
+    "invalid_credentials": "Nom d'utilisateur ou mot de passe incorrect.",
+    "invalid_pin": "Code PIN incorrect. Réessaie.",
+    "last_admin": "Ce serveur a besoin d'au moins un administrateur.",
+    "last_profile": "Un compte a besoin d'au moins un profil.",
+    "pairing_expired": "Ce code a expiré. Demande-en un nouveau sur la TV.",
+    "pairing_not_found": "Aucune TV n'affiche ce code. Vérifie-le et réessaie.",
+    "password_change_required": "Choisis d'abord un nouveau mot de passe.",
+    "password_mismatch": "Les mots de passe ne correspondent pas.",
+    "profile_locked": "Trop de codes PIN incorrects. Réessaie dans {{minutes, number}} min.",
+    "setup_code_required": "Saisis le code d'installation du journal du serveur.",
+    "setup_complete": "Ce serveur est déjà configuré. Connecte-toi.",
+    "too_many_attempts": "Trop de tentatives. Réessaie dans {{minutes, number}} min.",
+    "unauthorized": "Ta session est terminée. Reconnecte-toi.",
+    "username_taken": "Ce nom d'utilisateur est déjà pris.",
+    "validation_failed": "Certains champs sont à corriger.",
+    "weak_password": "Choisis un mot de passe plus long ou moins courant."
+  },
+  "fieldErrors": {
+    "invalid": "Invalide.",
+    "required": "Obligatoire.",
+    "too_common": "Trop courant. Choisis-en un autre.",
+    "too_long": "Trop long.",
+    "too_short": "Trop court."
+  },
   "language": {
     "en": "English",
     "fr": "Français",
     "label": "Langue"
+  },
+  "pairing": {
+    "codeLabel": "Code affiché sur la TV",
+    "confirm": "Associer",
+    "done": "{{device}} est connectée.",
+    "startProfile": "Profil de départ",
+    "title": "Associer une TV"
+  },
+  "profiles": {
+    "enterPin": "Saisis le code PIN de {{name}}",
+    "open": "Ouvrir le profil",
+    "switch": "Changer de profil",
+    "whoIsWatching": "Qui regarde ?"
+  },
+  "setup": {
+    "setupCode": "Code d'installation",
+    "setupCodeHint": "Tu n'es pas sur le réseau local du serveur. Le code est dans le journal du serveur, sur la ligne first_run_setup_code.",
+    "subtitle": "Crée le compte administrateur de ce serveur.",
+    "title": "Bienvenue sur PLAID."
   },
   "welcome": {
     "status": {
