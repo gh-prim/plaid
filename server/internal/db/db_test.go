@@ -40,7 +40,6 @@ func TestMigrationsAreIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	for i := range 2 {
 		d, err := Open(ctx, dir)
 		if err != nil {
@@ -70,6 +69,7 @@ func TestMigrationsApplyIncrementally(t *testing.T) {
 	for _, stmt := range []string{
 		"DROP TABLE media_streams", "DROP TABLE item_files", "DROP TABLE media_files",
 		"DROP TABLE items", "DROP TABLE library_folders", "DROP TABLE libraries",
+		"DROP TABLE pairing_codes", "DROP TABLE sessions", "DROP TABLE profiles", "DROP TABLE users",
 		"DELETE FROM schema_migrations WHERE name <> 'migrations/0001_init.sql'",
 	} {
 		if _, err := d.ExecContext(ctx, stmt); err != nil {
@@ -89,5 +89,40 @@ func TestMigrationsApplyIncrementally(t *testing.T) {
 	}
 	if n != 1 {
 		t.Error("media_files missing after upgrade")
+	}
+}
+
+func TestAccountsSchema(t *testing.T) {
+	ctx := context.Background()
+	d, err := Open(ctx, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	exec := func(q string, args ...any) {
+		t.Helper()
+		if _, err := d.ExecContext(ctx, q, args...); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	now := "2026-10-27T12:00:00.000Z"
+	exec(`INSERT INTO users (id, username, display_name, password_hash, role, created_at, updated_at) VALUES ('u1', 'Bob', 'Bob', 'h', 'admin', ?, ?)`, now, now)
+	if _, err := d.ExecContext(ctx, `INSERT INTO users (id, username, display_name, password_hash, role, created_at, updated_at) VALUES ('u2', 'bob', 'Bob 2', 'h', 'member', ?, ?)`, now, now); err == nil {
+		t.Error("usernames differing only by case were both accepted")
+	}
+	exec(`INSERT INTO profiles (id, user_id, name, is_default, created_at, updated_at) VALUES ('p1', 'u1', 'Bob', 1, ?, ?)`, now, now)
+	if _, err := d.ExecContext(ctx, `INSERT INTO profiles (id, user_id, name, is_default, created_at, updated_at) VALUES ('p2', 'u1', 'Kids', 1, ?, ?)`, now, now); err == nil {
+		t.Error("two default profiles accepted for one user")
+	}
+	exec(`INSERT INTO sessions (id, user_id, profile_id, token_hash, device_name, device_type, created_at, last_seen_at, expires_at) VALUES ('s1', 'u1', 'p1', x'00', 'Firefox', 'web', ?, ?, ?)`, now, now, now)
+	exec(`DELETE FROM profiles WHERE id = 'p1'`)
+	var profileID *string
+	if err := d.QueryRowContext(ctx, `SELECT profile_id FROM sessions WHERE id = 's1'`).Scan(&profileID); err != nil || profileID != nil {
+		t.Errorf("deleting a profile: session profile_id = %v (%v), want NULL", profileID, err)
+	}
+	exec(`DELETE FROM users WHERE id = 'u1'`)
+	var n int
+	if err := d.QueryRowContext(ctx, `SELECT COUNT(*) FROM sessions`).Scan(&n); err != nil || n != 0 {
+		t.Errorf("deleting a user left %d sessions (%v)", n, err)
 	}
 }

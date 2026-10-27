@@ -72,6 +72,34 @@ All settings are environment variables (in `/etc/plaid/plaid.env` for the native
 | `PLAID_DATA_DIR` | `/var/lib/plaid` (package), `/data` (Docker) | Database and caches |
 | `PLAID_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
 | `PLAID_LOG_FORMAT` | `text` (package), `json` (Docker) | `text` or `json` |
+| `PLAID_SERVER_NAME` | the machine's hostname | Name the apps show for this server |
+| `PLAID_TRUSTED_PROXIES` | empty | Reverse proxies (IPs or CIDRs, comma-separated) whose `X-Forwarded-For` / `X-Forwarded-Proto` headers PLAID believes. See below |
+
+## First launch: creating the admin account
+
+Open `http://<server>:32500` in a browser. While the server has no account, PLAID asks you to create the admin account; after that, the page is gone for good.
+
+For safety, this only works from your local network (a private or loopback address). If you're setting PLAID up from elsewhere, for example over a VPN that doesn't look local or through a reverse proxy, the page asks for the **setup code** that PLAID prints in its log at startup while it has no account:
+
+```bash
+sudo journalctl -u plaid | grep first_run_setup_code   # native package
+docker compose logs plaid | grep first_run_setup_code  # Docker
+```
+
+The code is the only secret PLAID ever writes to its log. It changes at every restart and stops working once the admin account exists.
+
+## Behind a reverse proxy
+
+If PLAID sits behind nginx, Caddy or Traefik, tell it which proxy to trust, or every request will look like it comes from the proxy:
+
+```bash
+PLAID_TRUSTED_PROXIES=127.0.0.1,::1   # proxy on the same machine
+PLAID_TRUSTED_PROXIES=172.18.0.0/16   # proxy in a Docker network
+```
+
+The proxy must forward the original `Host` header (the default for Caddy and Traefik, `proxy_set_header Host $host;` for nginx) and set `X-Forwarded-For` and `X-Forwarded-Proto`. PLAID checks that the web app's requests come from the address you typed in the browser; a rewritten `Host` makes them fail with `403 csrf`.
+
+Until `PLAID_TRUSTED_PROXIES` is set, first-run setup through a proxy asks for the setup code (see above), even if the proxy runs on the same machine.
 
 ## Letting PLAID read your media folders
 

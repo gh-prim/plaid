@@ -19,7 +19,11 @@ var migrations embed.FS
 // Open opens (or creates) dataDir/plaid.db in WAL mode and runs pending migrations.
 func Open(ctx context.Context, dataDir string) (*sql.DB, error) {
 	path := filepath.Join(dataDir, "plaid.db")
-	dsn := "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)"
+	// Transactions take the write lock up front (_txlock=immediate): a
+	// deferred transaction that reads then writes can fail with SQLITE_BUSY
+	// on the lock upgrade, which busy_timeout doesn't retry. It also makes
+	// check-then-write transactions (first-run setup, last admin) atomic.
+	dsn := "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)&_txlock=immediate"
 
 	d, err := sql.Open("sqlite", dsn)
 	if err != nil {

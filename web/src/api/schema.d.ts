@@ -21,6 +21,404 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/server': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Identify a PLAID server */
+    get: operations['getServerInfo']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/setup': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** First-run setup state */
+    get: operations['getSetup']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/setup/admin': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Create the first admin account and sign in
+     * @description Only while no account exists (`409 setup_complete` after). Accepted from
+     *     a private or loopback address, or with the setup code from the server log
+     *     (`403 setup_code_required`). Web clients (`X-Plaid-Client: web`) get the
+     *     session as a cookie, others get the token in the body.
+     */
+    post: operations['createFirstAdmin']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/auth/login': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Sign in with username and password
+     * @description Errors never say whether the username exists (`401 invalid_credentials`).
+     *     Repeated failures return `429 too_many_attempts` with `Retry-After`.
+     */
+    post: operations['login']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/auth/logout': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** End the current session */
+    post: operations['logout']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** The signed-in account, its profiles and the active one */
+    get: operations['getMe']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    /** Update own display name or locale */
+    patch: operations['updateMe']
+    trace?: never
+  }
+  '/me/password': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Change own password
+     * @description Ends every other session of the account. The current one keeps working.
+     */
+    post: operations['changeMyPassword']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/profiles': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Profiles of the account */
+    get: operations['listMyProfiles']
+    put?: never
+    /** Add a profile (8 at most) */
+    post: operations['createMyProfile']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/profiles/{profileId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Delete a profile (not the last one) */
+    delete: operations['deleteMyProfile']
+    options?: never
+    head?: never
+    /**
+     * Update a profile
+     * @description Changing `pin`, `maxAge` or `allowUnrated` needs `currentPin` (when the
+     *     profile has a PIN) or the account `password`.
+     */
+    patch: operations['updateMyProfile']
+    trace?: never
+  }
+  '/session/profile': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Set the active profile of the current session
+     * @description A PIN-protected profile needs its PIN every time. 5 wrong PINs lock it for 5 minutes on this session.
+     */
+    post: operations['selectProfile']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/sessions': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Signed-in devices of the account */
+    get: operations['listMySessions']
+    put?: never
+    post?: never
+    /** Sign out every other device */
+    delete: operations['revokeMyOtherSessions']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/sessions/{sessionId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sessionId: components['parameters']['SessionId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Sign out one device */
+    delete: operations['revokeMySession']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/users': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** All accounts (admin) */
+    get: operations['listUsers']
+    put?: never
+    /** Create an account with a temporary password (admin) */
+    post: operations['createUser']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/users/{userId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Delete an account, its profiles and sessions (admin) */
+    delete: operations['deleteUser']
+    options?: never
+    head?: never
+    /**
+     * Update an account (admin)
+     * @description Demoting, disabling or deleting the last active admin returns `409 last_admin`. Disabling ends every session of the account.
+     */
+    patch: operations['updateUser']
+    trace?: never
+  }
+  '/users/{userId}/password': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Set a temporary password (admin)
+     * @description Ends every session of the account; the user must choose a new password at next sign-in.
+     */
+    post: operations['resetUserPassword']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/users/{userId}/sessions': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+      }
+      cookie?: never
+    }
+    /** Signed-in devices of an account (admin) */
+    get: operations['listUserSessions']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/users/{userId}/sessions/{sessionId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+        sessionId: components['parameters']['SessionId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Sign out one device of an account (admin) */
+    delete: operations['revokeUserSession']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/pairing': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Get a code to pair a TV
+     * @description The TV shows `code` and polls `GET /pairing/{id}` with `pollSecret`. Expires after 10 minutes.
+     */
+    post: operations['startPairing']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/pairing/{pairingId}': {
+    parameters: {
+      query?: never
+      header: {
+        /** @description The `pollSecret` returned when the pairing started. */
+        'X-Pairing-Secret': string
+      }
+      path: {
+        pairingId: string
+      }
+      cookie?: never
+    }
+    /**
+     * Poll a pairing until it is claimed
+     * @description Not authenticated by a session but by the poll secret. `202` while
+     *     waiting; `200` with the session token exactly once after the claim;
+     *     `404 pairing_not_found` after that or for a wrong secret.
+     */
+    get: operations['pollPairing']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/pairing/claim': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Sign a TV in with the code it shows */
+    post: operations['claimPairing']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -36,6 +434,185 @@ export interface components {
       uptimeSeconds: number
       /** @enum {string} */
       database: 'ok' | 'error'
+    }
+    ServerInfo: {
+      /** @example living-room-nas */
+      name: string
+      version: string
+      setupComplete: boolean
+    }
+    SetupState: {
+      setupComplete: boolean
+      /** @description True when this client isn't on a private network and must give the setup code from the server log. */
+      requiresSetupCode: boolean
+    }
+    /** @enum {string} */
+    Role: 'admin' | 'member'
+    /** @enum {string} */
+    DeviceType: 'web' | 'ios' | 'ipados' | 'tvos' | 'android' | 'androidtv' | 'other'
+    Device: {
+      /** @example Firefox on macOS */
+      name: string
+      type: components['schemas']['DeviceType']
+      clientVersion?: string
+    }
+    SetupAdminRequest: {
+      displayName: string
+      username: string
+      password: string
+      /** @example fr */
+      locale?: string
+      setupCode?: string
+      device?: components['schemas']['Device']
+    }
+    LoginRequest: {
+      username: string
+      password: string
+      device: components['schemas']['Device']
+    }
+    SessionInfo: {
+      id: string
+      deviceName: string
+      deviceType: components['schemas']['DeviceType']
+    }
+    AuthResult: {
+      /** @description Session token for `Authorization: Bearer`. Absent for web clients, which get the `plaid_session` cookie instead. */
+      token?: string
+      /** Format: date-time */
+      expiresAt: string
+      session: components['schemas']['SessionInfo']
+      user: components['schemas']['User']
+      profiles: components['schemas']['Profile'][]
+      activeProfile?: components['schemas']['Profile']
+    }
+    User: {
+      id: string
+      username: string
+      displayName: string
+      role: components['schemas']['Role']
+      locale: string
+      mustChangePassword: boolean
+    }
+    AdminUser: {
+      id: string
+      username: string
+      displayName: string
+      role: components['schemas']['Role']
+      locale: string
+      mustChangePassword: boolean
+      disabled: boolean
+      /** Format: date-time */
+      createdAt: string
+    }
+    Profile: {
+      id: string
+      name: string
+      /** @description Index of the `party-*` design token. */
+      avatarColor: number
+      hasPin: boolean
+      /** @description Age limit, one of 0, 7, 10, 12, 13, 16 or 18; null means no limit. Enforced by the browsing and playback features. */
+      maxAge: number | null
+      allowUnrated: boolean
+      /** @description Overrides the account locale; null uses the account's. */
+      locale: string | null
+      isDefault: boolean
+    }
+    Me: {
+      user: components['schemas']['User']
+      profiles: components['schemas']['Profile'][]
+      activeProfile?: components['schemas']['Profile']
+    }
+    UpdateMeRequest: {
+      displayName?: string
+      locale?: string
+    }
+    ChangePasswordRequest: {
+      currentPassword: string
+      newPassword: string
+    }
+    CreateProfileRequest: {
+      name: string
+      avatarColor?: number
+      /** @description 4 digits. */
+      pin?: string
+      maxAge?: number
+      /** @description Defaults to false when `maxAge` is set, true otherwise. */
+      allowUnrated?: boolean
+      locale?: string
+    }
+    /** @description Absent fields are unchanged; `null` clears `pin`, `maxAge` or `locale`. */
+    UpdateProfileRequest: {
+      name?: string
+      avatarColor?: number
+      pin?: string | null
+      maxAge?: number | null
+      allowUnrated?: boolean
+      locale?: string | null
+      /** @description Only `true` is meaningful; it moves the default flag to this profile. */
+      isDefault?: boolean
+      /** @description Proof for sensitive changes, when the profile has a PIN. */
+      currentPin?: string
+      /** @description Account password, the other proof for sensitive changes. */
+      password?: string
+    }
+    SelectProfileRequest: {
+      profileId: string
+      pin?: string
+    }
+    SessionListItem: {
+      id: string
+      deviceName: string
+      deviceType: components['schemas']['DeviceType']
+      clientVersion?: string
+      lastIp?: string
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      lastSeenAt: string
+      /** @description True for the session making the request. */
+      current: boolean
+    }
+    CreateUserRequest: {
+      displayName: string
+      username: string
+      temporaryPassword: string
+      role: components['schemas']['Role']
+      locale?: string
+    }
+    UpdateUserRequest: {
+      displayName?: string
+      role?: components['schemas']['Role']
+      locale?: string
+      disabled?: boolean
+    }
+    ResetPasswordRequest: {
+      temporaryPassword: string
+    }
+    StartPairingRequest: {
+      device: components['schemas']['Device']
+    }
+    PairingStarted: {
+      id: string
+      /**
+       * @description Shown on the TV as `XXX-XXX`.
+       * @example K7P-4QX
+       */
+      code: string
+      pollSecret: string
+      /** Format: date-time */
+      expiresAt: string
+    }
+    PairingPending: {
+      /** @enum {string} */
+      status: 'pending'
+    }
+    ClaimPairingRequest: {
+      /** @description Case-insensitive, with or without the dash. */
+      code: string
+      /** @description Profile the TV starts on. */
+      profileId: string
+      /** @description Needed when that profile has a PIN. */
+      pin?: string
     }
     Error: {
       error: {
@@ -59,8 +636,22 @@ export interface components {
       }
     }
   }
-  responses: never
-  parameters: never
+  responses: {
+    /** @description Error. `error.code` is a stable key clients translate. */
+    Error: {
+      headers: {
+        [name: string]: unknown
+      }
+      content: {
+        'application/json': components['schemas']['Error']
+      }
+    }
+  }
+  parameters: {
+    ProfileId: string
+    SessionId: string
+    UserId: string
+  }
   requestBodies: never
   headers: never
   pathItems: never
@@ -94,6 +685,615 @@ export interface operations {
           'application/json': components['schemas']['Health']
         }
       }
+    }
+  }
+  getServerInfo: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Server identity */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ServerInfo']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getSetup: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Setup state */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SetupState']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  createFirstAdmin: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetupAdminRequest']
+      }
+    }
+    responses: {
+      /** @description Admin created and signed in */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AuthResult']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  login: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LoginRequest']
+      }
+    }
+    responses: {
+      /** @description Signed in */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AuthResult']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  logout: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Signed out */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getMe: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Current account */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Me']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateMe: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateMeRequest']
+      }
+    }
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Me']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  changeMyPassword: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ChangePasswordRequest']
+      }
+    }
+    responses: {
+      /** @description Password changed */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listMyProfiles: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Profiles, default first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Profile'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  createMyProfile: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateProfileRequest']
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Profile']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  deleteMyProfile: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Deleted */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateMyProfile: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateProfileRequest']
+      }
+    }
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Profile']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  selectProfile: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SelectProfileRequest']
+      }
+    }
+    responses: {
+      /** @description Profile selected */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Me']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listMySessions: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Sessions, most recently seen first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SessionListItem'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  revokeMyOtherSessions: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Other sessions ended */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  revokeMySession: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sessionId: components['parameters']['SessionId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Session ended */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listUsers: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Accounts, oldest first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AdminUser'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  createUser: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateUserRequest']
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AdminUser']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  deleteUser: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Deleted */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateUser: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateUserRequest']
+      }
+    }
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AdminUser']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  resetUserPassword: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResetPasswordRequest']
+      }
+    }
+    responses: {
+      /** @description Password reset */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listUserSessions: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Sessions, most recently seen first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SessionListItem'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  revokeUserSession: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: components['parameters']['UserId']
+        sessionId: components['parameters']['SessionId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Session ended */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  startPairing: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StartPairingRequest']
+      }
+    }
+    responses: {
+      /** @description Pairing started */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PairingStarted']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  pollPairing: {
+    parameters: {
+      query?: never
+      header: {
+        /** @description The `pollSecret` returned when the pairing started. */
+        'X-Pairing-Secret': string
+      }
+      path: {
+        pairingId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Claimed; the TV is signed in */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AuthResult']
+        }
+      }
+      /** @description Not claimed yet */
+      202: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PairingPending']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  claimPairing: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ClaimPairingRequest']
+      }
+    }
+    responses: {
+      /** @description Claimed; the TV gets its session on its next poll */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SessionInfo']
+        }
+      }
+      default: components['responses']['Error']
     }
   }
 }

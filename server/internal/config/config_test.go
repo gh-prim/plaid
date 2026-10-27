@@ -103,3 +103,14 @@ func TestNoTrustedProxiesByDefault(t *testing.T) {
 		t.Errorf("TrustedProxies = %v, want none", cfg.TrustedProxies)
 	}
 }
+
+func TestServerName(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"PLAID_DATA_DIR": t.TempDir(), "PLAID_SERVER_NAME": "Living room"}))
+	if err != nil || cfg.ServerName != "Living room" {
+		t.Errorf("ServerName = %q (%v), want Living room", cfg.ServerName, err)
+	}
+	cfg, err = Load(env(map[string]string{"PLAID_DATA_DIR": t.TempDir()}))
+	if err != nil || cfg.ServerName == "" {
+		t.Errorf("default ServerName = %q (%v), want the hostname", cfg.ServerName, err)
+	}
+}

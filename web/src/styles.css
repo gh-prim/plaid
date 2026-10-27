@@ -27,3 +27,126 @@
   gap: 0.5rem;
   align-items: center;
 }
+
+/* F003 pages: plain until the design system is adopted. */
+.page {
+  min-height: 100vh;
+  max-width: 24rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.page h1 {
+  margin: 0;
+}
+
+.page form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field input,
+.field select,
+.page button {
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+}
+
+.field__hint,
+.field__error,
+.form-error,
+.form-success {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.field__hint {
+  opacity: 0.7;
+}
+
+.field__error,
+.form-error {
+  color: #ff8a80;
+}
+
+.field input[aria-invalid='true'] {
+  outline: 2px solid #ff8a80;
+}
+
+.pin-input input {
+  width: 8ch;
+  letter-spacing: 0.75em;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.profile-tiles {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.profile-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 2px solid transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.profile-tile[aria-pressed='true'],
+.profile-tile:focus-visible {
+  border-color: currentColor;
+}
+
+.profile-tile__avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.5rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  background: #444;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.account-bar {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.account-bar a {
+  color: inherit;
+}
+
+.account-bar button {
+  font: inherit;
+}
