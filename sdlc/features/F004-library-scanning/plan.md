@@ -3,7 +3,7 @@ id: F004
 title: Libraries and file scanning
 owner: gh-prim
 reviewer: TBD
-status: approved         # draft | approved | in-progress | done
+status: in-progress      # draft | approved | in-progress | done
 spec: ./spec.md
 branch: feat/F004-library-scanning
 ---
