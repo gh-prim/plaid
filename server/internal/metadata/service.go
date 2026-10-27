@@ -172,7 +172,7 @@ func (s *Service) ReloadKeys(ctx context.Context) error {
 	s.mu.Lock()
 	s.fan, s.fanHTTP = nil, nil
 	if fanKey != "" {
-		s.fanHTTP = httpx.New(httpx.Options{Name: "fanart", Hosts: fanart.Hosts, RPS: fanartRPS, Burst: fanartRPS, Log: s.log})
+		s.fanHTTP = httpx.New(httpx.Options{Name: "fanart", Hosts: fanart.Hosts, RPS: fanartRPS, Burst: 1, Log: s.log})
 		s.fan = fanart.New(s.fanHTTP, fanart.BaseURL, fanKey, personal)
 	}
 	s.mu.Unlock()
@@ -188,7 +188,8 @@ func (s *Service) ReloadKeys(ctx context.Context) error {
 		s.log.Warn("no TMDB API key: metadata comes from .nfo files only; set PLAID_TMDB_API_KEY", "code", "no_api_key")
 		return nil
 	}
-	s.http = httpx.New(httpx.Options{Name: "tmdb", Hosts: tmdb.Hosts, RPS: tmdbRPS, Burst: tmdbRPS, Log: s.log})
+	// Burst 1: a smooth 20 requests/s, never more in any second (R32).
+	s.http = httpx.New(httpx.Options{Name: "tmdb", Hosts: tmdb.Hosts, RPS: tmdbRPS, Burst: 1, Log: s.log})
 	s.prov = tmdb.New(s.http, tmdb.BaseURL, key)
 	return nil
 }

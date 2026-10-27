@@ -32,12 +32,28 @@ import (
 //
 //	go -C server test -tags perf -run Perf -v -timeout 30m ./internal/metadata/
 const (
-	perfMovies   = 1000
-	perfShows    = 100
 	perfSeasons  = 9
 	perfEpisodes = 10
 	stubLatency  = 50 * time.Millisecond
 )
+
+// PERF_SMALL=1 runs a 60-movie, 5-show version with logs, for debugging.
+var (
+	perfMovies = pick(1000, 60)
+	perfShows  = pick(100, 5)
+)
+
+func pick(full, small int) int {
+	if os.Getenv("PERF_SMALL") != "" {
+		return small
+	}
+	return full
+}
+
+// perfLog keeps warnings: a silent failure would look like slowness.
+func perfLog() *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
+}
 
 // dynamicTMDB answers every title the perf library has, with 50 ms of
 // latency, and records requests per second.
@@ -112,8 +128,8 @@ func TestPerfReferenceLibrary(t *testing.T) {
 	defer api.Close()
 	images := tmdbtest.New(t)
 	h := httpx.New(httpx.Options{Name: "tmdb", Hosts: []string{"127.0.0.1"}, Transport: api.Client().Transport,
-		RPS: tmdbRPS, Burst: tmdbRPS, Log: slog.New(slog.NewTextHandler(io.Discard, nil))})
-	svc := New(Options{DB: d, Provider: tmdb.New(h, api.URL, "k"), Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+		RPS: tmdbRPS, Burst: 1, Log: slog.New(slog.NewTextHandler(io.Discard, nil))})
+	svc := New(Options{DB: d, Provider: tmdb.New(h, api.URL, "k"), Log: perfLog(),
 		DataDir: dir, ImageHTTP: images.HTTP(), ImageHosts: images.ImageHosts(), QueueIdle: 50 * time.Millisecond})
 
 	root := t.TempDir()
@@ -122,10 +138,11 @@ func TestPerfReferenceLibrary(t *testing.T) {
 		_ = os.MkdirAll(filepath.Dir(p), 0o755)
 		_ = os.WriteFile(p, []byte("x"), 0o644)
 	}
-	for i := range perfMovies {
+	// Titles start at 1: the stub gives "Movie N" TMDB id N, and 0 isn't one.
+	for i := 1; i <= perfMovies; i++ {
 		write(fmt.Sprintf("movies/Movie %d (2000)/Movie %d (2000).mkv", i, i))
 	}
-	for s := range perfShows {
+	for s := 1; s <= perfShows; s++ {
 		for se := 1; se <= perfSeasons; se++ {
 			for e := 1; e <= perfEpisodes; e++ {
 				write(fmt.Sprintf("shows/Show %d/Season %d/Show %d S%02dE%02d.mkv", s, se, s, se, e))
@@ -168,13 +185,19 @@ func TestPerfReferenceLibrary(t *testing.T) {
 		return n
 	}
 	var postersAt time.Duration
+	posters := 0
 	for time.Since(start) < 45*time.Minute {
 		time.Sleep(time.Second)
-		posters := count(`SELECT COUNT(*) FROM artwork a JOIN items i ON i.id = a.owner_id WHERE i.kind = 'movie' AND a.kind = 'poster' AND a.selected = 1 AND a.sha256 IS NOT NULL`)
+		posters = count(`SELECT COUNT(*) FROM artwork a JOIN items i ON i.id = a.owner_id WHERE i.kind = 'movie' AND a.kind = 'poster' AND a.selected = 1 AND a.sha256 IS NOT NULL`)
 		if postersAt == 0 && posters == perfMovies {
 			postersAt = time.Since(start)
 		}
-		if count(`SELECT COUNT(*) FROM item_metadata WHERE state = 'pending'`) == 0 && postersAt > 0 {
+		pending := count(`SELECT COUNT(*) FROM item_metadata WHERE state = 'pending'`)
+		if int(time.Since(start).Seconds())%30 == 0 {
+			t.Logf("%v: pending %d, matched %d, movie posters %d", time.Since(start).Round(time.Second), pending,
+				count(`SELECT COUNT(*) FROM item_metadata WHERE state = 'matched'`), posters)
+		}
+		if pending == 0 {
 			break
 		}
 	}
@@ -187,11 +210,11 @@ func TestPerfReferenceLibrary(t *testing.T) {
 		maxRate = max(maxRate, n)
 	}
 	stub.mu.Unlock()
-	t.Logf("all %d movie posters after %v; everything (%d items) after %v", perfMovies, postersAt.Round(time.Second),
-		count(`SELECT COUNT(*) FROM items`), total.Round(time.Second))
+	t.Logf("%d of %d movie posters (all of them after %v); everything (%d items) after %v", posters, perfMovies,
+		postersAt.Round(time.Second), count(`SELECT COUNT(*) FROM items`), total.Round(time.Second))
 	t.Logf("%d TMDB requests, at most %d in one second; peak heap in use %d MB", stub.total.Load(), maxRate, peak.Load()>>20)
-	if postersAt == 0 || postersAt > 10*time.Minute {
-		t.Errorf("posters took %v, budget 10 min", postersAt)
+	if posters < perfMovies*99/100 || postersAt > 10*time.Minute {
+		t.Errorf("%d posters, all of them after %v; budget: every poster within 10 min", posters, postersAt)
 	}
 	if total > 45*time.Minute {
 		t.Errorf("enrichment took %v, budget 45 min", total)
