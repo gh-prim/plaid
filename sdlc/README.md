@@ -42,6 +42,7 @@ sdlc/
 ├── README.md            # this file: the process
 ├── vision.md            # product vision, apps, roadmap, art direction
 ├── roadmap.md           # index of all features and their status
+├── backlog.md           # feature ideas waiting for an intent
 ├── decisions/           # ADRs: architecture decisions, one per file
 │   └── NNNN-title.md
 ├── features/            # one feature = one folder

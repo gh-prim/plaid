@@ -2,6 +2,8 @@
 
 Index of all features. Update it whenever an artifact's status changes.
 
+Ideas not yet turned into a feature live in [backlog.md](backlog.md).
+
 **Legend:** — = not written yet · 📝 draft · ✅ accepted / approved · 🚧 in progress · ✔️ done
 
 ## Decisions (ADRs)
