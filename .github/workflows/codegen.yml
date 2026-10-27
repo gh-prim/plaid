@@ -1,11 +1,8 @@
 name: codegen
 
+# Called by ci.yml when the API contract or generated code change.
 on:
-  push:
-    branches: [main]
-    paths: [api/**, server/internal/api/**, web/src/api/**, scripts/check-codegen.sh, .github/workflows/codegen.yml]
-  pull_request:
-    paths: [api/**, server/internal/api/**, web/src/api/**, scripts/check-codegen.sh, .github/workflows/codegen.yml]
+  workflow_call:
 
 permissions:
   contents: read
