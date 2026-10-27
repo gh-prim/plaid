@@ -3,4 +3,6 @@ generate:
   std-http-server: true
   strict-server: true
   models: true
+output-options:
+  nullable-type: true
 output: api.gen.go

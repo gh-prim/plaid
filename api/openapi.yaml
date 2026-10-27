@@ -32,7 +32,492 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Health"
+  /server:
+    get:
+      operationId: getServerInfo
+      summary: Identify a PLAID server
+      tags: [system]
+      security: []
+      responses:
+        "200":
+          description: Server identity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerInfo"
+        default:
+          $ref: "#/components/responses/Error"
+  /setup:
+    get:
+      operationId: getSetup
+      summary: First-run setup state
+      tags: [setup]
+      security: []
+      responses:
+        "200":
+          description: Setup state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetupState"
+        default:
+          $ref: "#/components/responses/Error"
+  /setup/admin:
+    post:
+      operationId: createFirstAdmin
+      summary: Create the first admin account and sign in
+      description: |
+        Only while no account exists (`409 setup_complete` after). Accepted from
+        a private or loopback address, or with the setup code from the server log
+        (`403 setup_code_required`). Web clients (`X-Plaid-Client: web`) get the
+        session as a cookie, others get the token in the body.
+      tags: [setup]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetupAdminRequest"
+      responses:
+        "201":
+          description: Admin created and signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        default:
+          $ref: "#/components/responses/Error"
+  /auth/login:
+    post:
+      operationId: login
+      summary: Sign in with username and password
+      description: |
+        Errors never say whether the username exists (`401 invalid_credentials`).
+        Repeated failures return `429 too_many_attempts` with `Retry-After`.
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        default:
+          $ref: "#/components/responses/Error"
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: End the current session
+      tags: [auth]
+      responses:
+        "204":
+          description: Signed out
+        default:
+          $ref: "#/components/responses/Error"
+  /me:
+    get:
+      operationId: getMe
+      summary: The signed-in account, its profiles and the active one
+      tags: [me]
+      responses:
+        "200":
+          description: Current account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updateMe
+      summary: Update own display name or locale
+      tags: [me]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMeRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        default:
+          $ref: "#/components/responses/Error"
+  /me/password:
+    post:
+      operationId: changeMyPassword
+      summary: Change own password
+      description: Ends every other session of the account. The current one keeps working.
+      tags: [me]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "204":
+          description: Password changed
+        default:
+          $ref: "#/components/responses/Error"
+  /me/profiles:
+    get:
+      operationId: listMyProfiles
+      summary: Profiles of the account
+      tags: [profiles]
+      responses:
+        "200":
+          description: Profiles, default first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Profile"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createMyProfile
+      summary: Add a profile (8 at most)
+      tags: [profiles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProfileRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        default:
+          $ref: "#/components/responses/Error"
+  /me/profiles/{profileId}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    patch:
+      operationId: updateMyProfile
+      summary: Update a profile
+      description: |
+        Changing `pin`, `maxAge` or `allowUnrated` needs `currentPin` (when the
+        profile has a PIN) or the account `password`.
+      tags: [profiles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteMyProfile
+      summary: Delete a profile (not the last one)
+      tags: [profiles]
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /session/profile:
+    post:
+      operationId: selectProfile
+      summary: Set the active profile of the current session
+      description: A PIN-protected profile needs its PIN every time. 5 wrong PINs lock it for 5 minutes on this session.
+      tags: [profiles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelectProfileRequest"
+      responses:
+        "200":
+          description: Profile selected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        default:
+          $ref: "#/components/responses/Error"
+  /me/sessions:
+    get:
+      operationId: listMySessions
+      summary: Signed-in devices of the account
+      tags: [sessions]
+      responses:
+        "200":
+          description: Sessions, most recently seen first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionListItem"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: revokeMyOtherSessions
+      summary: Sign out every other device
+      tags: [sessions]
+      responses:
+        "204":
+          description: Other sessions ended
+        default:
+          $ref: "#/components/responses/Error"
+  /me/sessions/{sessionId}:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    delete:
+      operationId: revokeMySession
+      summary: Sign out one device
+      tags: [sessions]
+      responses:
+        "204":
+          description: Session ended
+        default:
+          $ref: "#/components/responses/Error"
+  /users:
+    get:
+      operationId: listUsers
+      summary: All accounts (admin)
+      tags: [users]
+      responses:
+        "200":
+          description: Accounts, oldest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createUser
+      summary: Create an account with a temporary password (admin)
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        default:
+          $ref: "#/components/responses/Error"
+  /users/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    patch:
+      operationId: updateUser
+      summary: Update an account (admin)
+      description: Demoting, disabling or deleting the last active admin returns `409 last_admin`. Disabling ends every session of the account.
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteUser
+      summary: Delete an account, its profiles and sessions (admin)
+      tags: [users]
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /users/{userId}/password:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      operationId: resetUserPassword
+      summary: Set a temporary password (admin)
+      description: Ends every session of the account; the user must choose a new password at next sign-in.
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "204":
+          description: Password reset
+        default:
+          $ref: "#/components/responses/Error"
+  /users/{userId}/sessions:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      operationId: listUserSessions
+      summary: Signed-in devices of an account (admin)
+      tags: [users]
+      responses:
+        "200":
+          description: Sessions, most recently seen first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionListItem"
+        default:
+          $ref: "#/components/responses/Error"
+  /users/{userId}/sessions/{sessionId}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/SessionId"
+    delete:
+      operationId: revokeUserSession
+      summary: Sign out one device of an account (admin)
+      tags: [users]
+      responses:
+        "204":
+          description: Session ended
+        default:
+          $ref: "#/components/responses/Error"
+  /pairing:
+    post:
+      operationId: startPairing
+      summary: Get a code to pair a TV
+      description: The TV shows `code` and polls `GET /pairing/{id}` with `pollSecret`. Expires after 10 minutes.
+      tags: [pairing]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartPairingRequest"
+      responses:
+        "201":
+          description: Pairing started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PairingStarted"
+        default:
+          $ref: "#/components/responses/Error"
+  /pairing/{pairingId}:
+    parameters:
+      - name: pairingId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: X-Pairing-Secret
+        in: header
+        required: true
+        description: The `pollSecret` returned when the pairing started.
+        schema:
+          type: string
+    get:
+      operationId: pollPairing
+      summary: Poll a pairing until it is claimed
+      description: |
+        Not authenticated by a session but by the poll secret. `202` while
+        waiting; `200` with the session token exactly once after the claim;
+        `404 pairing_not_found` after that or for a wrong secret.
+      tags: [pairing]
+      security: []
+      responses:
+        "200":
+          description: Claimed; the TV is signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "202":
+          description: Not claimed yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PairingPending"
+        default:
+          $ref: "#/components/responses/Error"
+  /pairing/claim:
+    post:
+      operationId: claimPairing
+      summary: Sign a TV in with the code it shows
+      tags: [pairing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimPairingRequest"
+      responses:
+        "204":
+          description: Claimed; the TV gets its session on its next poll
+        default:
+          $ref: "#/components/responses/Error"
 components:
+  parameters:
+    ProfileId:
+      name: profileId
+      in: path
+      required: true
+      schema:
+        type: string
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    Error:
+      description: Error. `error.code` is a stable key clients translate.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   securitySchemes:
     bearerAuth:
       type: http
@@ -64,6 +549,338 @@ components:
         database:
           type: string
           enum: [ok, error]
+    ServerInfo:
+      type: object
+      required: [name, version, setupComplete]
+      properties:
+        name:
+          type: string
+          examples: ["living-room-nas"]
+        version:
+          type: string
+        setupComplete:
+          type: boolean
+    SetupState:
+      type: object
+      required: [setupComplete, requiresSetupCode]
+      properties:
+        setupComplete:
+          type: boolean
+        requiresSetupCode:
+          type: boolean
+          description: True when this client isn't on a private network and must give the setup code from the server log.
+    Role:
+      type: string
+      enum: [admin, member]
+    DeviceType:
+      type: string
+      enum: [web, ios, ipados, tvos, android, androidtv, other]
+    Device:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          examples: ["Firefox on macOS"]
+        type:
+          $ref: "#/components/schemas/DeviceType"
+        clientVersion:
+          type: string
+          maxLength: 32
+    SetupAdminRequest:
+      type: object
+      required: [displayName, username, password]
+      properties:
+        displayName:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        locale:
+          type: string
+          examples: ["fr"]
+        setupCode:
+          type: string
+        device:
+          $ref: "#/components/schemas/Device"
+    LoginRequest:
+      type: object
+      required: [username, password, device]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        device:
+          $ref: "#/components/schemas/Device"
+    SessionInfo:
+      type: object
+      required: [id, deviceName, deviceType]
+      properties:
+        id:
+          type: string
+        deviceName:
+          type: string
+        deviceType:
+          $ref: "#/components/schemas/DeviceType"
+    AuthResult:
+      type: object
+      required: [expiresAt, session, user, profiles]
+      properties:
+        token:
+          type: string
+          description: "Session token for `Authorization: Bearer`. Absent for web clients, which get the `plaid_session` cookie instead."
+        expiresAt:
+          type: string
+          format: date-time
+        session:
+          $ref: "#/components/schemas/SessionInfo"
+        user:
+          $ref: "#/components/schemas/User"
+        profiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Profile"
+        activeProfile:
+          $ref: "#/components/schemas/Profile"
+    User:
+      type: object
+      required: [id, username, displayName, role, locale, mustChangePassword]
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        role:
+          $ref: "#/components/schemas/Role"
+        locale:
+          type: string
+        mustChangePassword:
+          type: boolean
+    AdminUser:
+      type: object
+      required: [id, username, displayName, role, locale, mustChangePassword, disabled, createdAt]
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        role:
+          $ref: "#/components/schemas/Role"
+        locale:
+          type: string
+        mustChangePassword:
+          type: boolean
+        disabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    Profile:
+      type: object
+      required: [id, name, avatarColor, hasPin, maxAge, allowUnrated, locale, isDefault]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        avatarColor:
+          type: integer
+          minimum: 0
+          maximum: 7
+          description: Index of the `party-*` design token.
+        hasPin:
+          type: boolean
+        maxAge:
+          type: [integer, "null"]
+          description: Age limit, one of 0, 7, 10, 12, 13, 16 or 18; null means no limit. Enforced by the browsing and playback features.
+        allowUnrated:
+          type: boolean
+        locale:
+          type: [string, "null"]
+          description: Overrides the account locale; null uses the account's.
+        isDefault:
+          type: boolean
+    Me:
+      type: object
+      required: [user, profiles]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        profiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Profile"
+        activeProfile:
+          $ref: "#/components/schemas/Profile"
+    UpdateMeRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+        locale:
+          type: string
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+    CreateProfileRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        avatarColor:
+          type: integer
+        pin:
+          type: string
+          description: 4 digits.
+        maxAge:
+          type: integer
+        allowUnrated:
+          type: boolean
+          description: Defaults to false when `maxAge` is set, true otherwise.
+        locale:
+          type: string
+    UpdateProfileRequest:
+      type: object
+      description: Absent fields are unchanged; `null` clears `pin`, `maxAge` or `locale`.
+      properties:
+        name:
+          type: string
+        avatarColor:
+          type: integer
+        pin:
+          type: [string, "null"]
+        maxAge:
+          type: [integer, "null"]
+        allowUnrated:
+          type: boolean
+        locale:
+          type: [string, "null"]
+        isDefault:
+          type: boolean
+          description: Only `true` is meaningful; it moves the default flag to this profile.
+        currentPin:
+          type: string
+          description: Proof for sensitive changes, when the profile has a PIN.
+        password:
+          type: string
+          description: Account password, the other proof for sensitive changes.
+    SelectProfileRequest:
+      type: object
+      required: [profileId]
+      properties:
+        profileId:
+          type: string
+        pin:
+          type: string
+    SessionListItem:
+      type: object
+      required: [id, deviceName, deviceType, createdAt, lastSeenAt, current]
+      properties:
+        id:
+          type: string
+        deviceName:
+          type: string
+        deviceType:
+          $ref: "#/components/schemas/DeviceType"
+        clientVersion:
+          type: string
+        lastIp:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        current:
+          type: boolean
+          description: True for the session making the request.
+    CreateUserRequest:
+      type: object
+      required: [displayName, username, temporaryPassword, role]
+      properties:
+        displayName:
+          type: string
+        username:
+          type: string
+        temporaryPassword:
+          type: string
+        role:
+          $ref: "#/components/schemas/Role"
+        locale:
+          type: string
+    UpdateUserRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+        role:
+          $ref: "#/components/schemas/Role"
+        locale:
+          type: string
+        disabled:
+          type: boolean
+    ResetPasswordRequest:
+      type: object
+      required: [temporaryPassword]
+      properties:
+        temporaryPassword:
+          type: string
+    StartPairingRequest:
+      type: object
+      required: [device]
+      properties:
+        device:
+          $ref: "#/components/schemas/Device"
+    PairingStarted:
+      type: object
+      required: [id, code, pollSecret, expiresAt]
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+          description: Shown on the TV as `XXX-XXX`.
+          examples: ["K7P-4QX"]
+        pollSecret:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    PairingPending:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending]
+    ClaimPairingRequest:
+      type: object
+      required: [code, profileId]
+      properties:
+        code:
+          type: string
+          description: Case-insensitive, with or without the dash.
+        profileId:
+          type: string
+          description: Profile the TV starts on.
+        pin:
+          type: string
+          description: Needed when that profile has a PIN.
     Error:
       type: object
       required: [error]
