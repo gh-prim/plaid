@@ -157,3 +157,12 @@ Built into every Plaid app, so a request can be made straight from the TV.
 | 106 | Adding to the watchlist creates a request |
 | 107 | Blocklist of titles that cannot be requested |
 | 108 | Users vote on requests to prioritize them |
+
+## Metadata follow-ups (from F005)
+
+| # | Feature |
+|---|---------|
+| 109 | Metadata language per profile, not just per library |
+| 110 | WebP or AVIF image variants (through FFmpeg, since the server builds without CGO) |
+| 111 | High-resolution backdrops setting (`original` instead of `w1280`) for 4K TV apps |
+| 112 | TVDB provider, anime absolute numbering and alternative episode orderings |

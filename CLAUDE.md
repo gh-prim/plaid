@@ -51,7 +51,7 @@ Generated files (`api.gen.go`, `schema.d.ts`) are never edited by hand. Web uses
 - **Everything in the repo is in English**: code, identifiers, comments, commit messages, branch names, PR descriptions, API and logs, as well as docs, specs, ADRs and skills. The team may chat in French.
 - **No user-facing string is hardcoded.** Every UI text goes through i18n:
   - English (`en`) is the source locale; French (`fr`) is the first translation.
-  - Web: i18n keys + JSON catalogs. Apple: String Catalogs (`.xcstrings`). Android: `strings.xml`. Server: localized error messages and metadata language follow the user's locale.
+  - Web: i18n keys + JSON catalogs. Apple: String Catalogs (`.xcstrings`). Android: `strings.xml`. Server: localized error messages follow the user's locale; metadata (synopses, titles) comes in each library's metadata language (F005), with English as the fallback.
   - Keys are semantic (`home.continueWatching.title`), never the English sentence itself.
   - Plurals, dates, durations and numbers use the platform's locale formatters, never manual concatenation.
 - Every API change goes through `api/openapi.yaml` first.

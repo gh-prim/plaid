@@ -29,7 +29,7 @@ A home screen with rows ("Continue watching", "Recently added", by genre), immer
 - [ ] hls.js player: quality, audio tracks, subtitles, keyboard shortcuts, auto next episode.
 
 ## Constraints
-Follows the F002 design system. Smooth with several thousand posters (virtualization).
+Follows the F002 design system. Smooth with several thousand posters (virtualization). Search and filters apply F005's age-limit predicate (F005-R25).
 
 ## Out of scope
 Plaid Party (F010), downloads.
