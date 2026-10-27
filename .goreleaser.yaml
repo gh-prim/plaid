@@ -1,5 +1,5 @@
 # Builds Linux binaries and .deb packages. `make deb` runs a local snapshot;
-# pushing a v* tag runs release.yml and attaches everything to a draft GitHub release.
+# every push to main tags the next version and release.yml publishes a GitHub release from that tag.
 version: 2
 project_name: plaid
 
@@ -59,7 +59,11 @@ snapshot:
   version_template: "{{ incpatch .Version }}~snapshot+{{ .ShortCommit }}"
 
 release:
-  draft: true
+  draft: false
+  prerelease: auto
 
 changelog:
   sort: asc
+  filters:
+    exclude:
+      - "^Merge pull request"
