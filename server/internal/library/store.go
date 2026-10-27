@@ -423,6 +423,10 @@ type Patch struct {
 	ScanIntervalS *int64
 	// Folders, when set, is the new full list of cleaned paths.
 	Folders []string
+	// MetadataLanguage and MetadataRegion, when set, change the language
+	// F005 fetches metadata in (R10).
+	MetadataLanguage *string
+	MetadataRegion   *string
 }
 
 // UpdateLibrary applies p and returns the ids of folders it added. Removed
@@ -450,6 +454,16 @@ func (s *Store) UpdateLibrary(ctx context.Context, id string, p Patch) (added []
 	if p.SetInterval {
 		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET scan_interval_s = ? WHERE id = ?`,
 			nullInt64Ptr(p.ScanIntervalS), id); err != nil {
+			return nil, err
+		}
+	}
+	if p.MetadataLanguage != nil {
+		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET metadata_language = ? WHERE id = ?`, *p.MetadataLanguage, id); err != nil {
+			return nil, err
+		}
+	}
+	if p.MetadataRegion != nil {
+		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET metadata_region = ? WHERE id = ?`, *p.MetadataRegion, id); err != nil {
 			return nil, err
 		}
 	}

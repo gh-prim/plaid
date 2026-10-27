@@ -1,0 +1,1133 @@
+{
+  "adult": false,
+  "backdrop_path": "/6n53UI4mX9QMfe2S0Pgt8mGebY1.jpg",
+  "belongs_to_collection": null,
+  "budget": 10000000,
+  "genres": [
+    {
+      "id": 35,
+      "name": "Comédie"
+    },
+    {
+      "id": 10749,
+      "name": "Romance"
+    }
+  ],
+  "homepage": "https://www.miramax.com/movie/amelie/",
+  "id": 194,
+  "imdb_id": "tt0211915",
+  "origin_country": [
+    "FR"
+  ],
+  "original_language": "fr",
+  "original_title": "Le Fabuleux Destin d'Amélie Poulain",
+  "overview": "Amélie, une jeune serveuse dans un bar de Montmartre, passe son temps à observer les gens et à laisser son imagination divaguer. Elle s'est fixée un but : faire le bien de ceux qui l'entourent. Elle invente alors des stratagèmes pour intervenir incognito dans leur existence. Le chemin d'Amélie est jalonné de rencontres: Georgette, la buraliste hypocondriaque, Lucien, le commis d'épicerie, Madeleine Wallace, la concierge portée sur le porto et les chiens empaillés, ou encore Raymond Dufayel alias « l'homme de verre », son voisin qui ne vit qu'à travers une reproduction d'un tableau de Renoir. Cette quête du bonheur amène Amélie à faire la connaissance de Nino Quincampoix, un étrange « prince charmant ». Celui-ci partage son temps entre un train fantôme et un sex-shop, et cherche à identifier un inconnu dont la photo réapparaît sans cesse dans plusieurs cabines de photomaton.",
+  "popularity": 23.4623,
+  "poster_path": "/tdXtLG6L1QMwrv0MNdW6B9IwC8B.jpg",
+  "production_companies": [
+    {
+      "id": 25020,
+      "name": "Victoires Productions",
+      "origin_country": "FR"
+    },
+    {
+      "id": 12000,
+      "name": "Tapioca Films",
+      "origin_country": "FR"
+    },
+    {
+      "id": 591,
+      "name": "France 3 Cinéma",
+      "origin_country": "FR"
+    },
+    {
+      "id": 4411,
+      "name": "MMC Independent",
+      "origin_country": "DE"
+    },
+    {
+      "id": 581,
+      "name": "UGC",
+      "origin_country": "FR"
+    }
+  ],
+  "release_date": "2001-04-25",
+  "revenue": 173921954,
+  "runtime": 120,
+  "softcore": false,
+  "status": "Released",
+  "tagline": "Une personne peut changer votre vie pour toujours.",
+  "title": "Le Fabuleux Destin d'Amélie Poulain",
+  "video": false,
+  "vote_average": 7.9,
+  "vote_count": 12773,
+  "credits": {
+    "cast": [
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2405,
+        "known_for_department": "Acting",
+        "name": "Audrey Tautou",
+        "original_name": "Audrey Tautou",
+        "popularity": 2.5996,
+        "profile_path": "/d1HVrV8zXy1FJVptmOCkHWG8Jf2.jpg",
+        "cast_id": 4,
+        "character": "Amélie Poulain",
+        "credit_id": "52fe4225c3a36847f800779b",
+        "order": 0
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2406,
+        "known_for_department": "Acting",
+        "name": "Mathieu Kassovitz",
+        "original_name": "Mathieu Kassovitz",
+        "popularity": 1.7632,
+        "profile_path": "/3FRBEdKKlxhvPWPt0jzgmSjeHwn.jpg",
+        "cast_id": 28,
+        "character": "Nino Quincampoix",
+        "credit_id": "52fe4225c3a36847f8007805",
+        "order": 1
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2407,
+        "known_for_department": "Acting",
+        "name": "Rufus",
+        "original_name": "Rufus",
+        "popularity": 1.3269,
+        "profile_path": "/aC6rEJrBgCNjeG6vetJPBdgj5h3.jpg",
+        "cast_id": 6,
+        "character": "Raphaël Poulain",
+        "credit_id": "52fe4225c3a36847f800779f",
+        "order": 2
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2410,
+        "known_for_department": "Acting",
+        "name": "Serge Merlin",
+        "original_name": "Serge Merlin",
+        "popularity": 1.167,
+        "profile_path": "/90Kwb8hfORDXcEeA1lzikAubcQe.jpg",
+        "cast_id": 9,
+        "character": "Raymond Dufayel",
+        "credit_id": "52fe4225c3a36847f80077ab",
+        "order": 3
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2408,
+        "known_for_department": "Acting",
+        "name": "Jamel Debbouze",
+        "original_name": "Jamel Debbouze",
+        "popularity": 1.7637,
+        "profile_path": "/aiqWSWbRJ6rrjxxVE6y2Xb3KdSp.jpg",
+        "cast_id": 7,
+        "character": "Lucien",
+        "credit_id": "52fe4225c3a36847f80077a3",
+        "order": 4
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2411,
+        "known_for_department": "Acting",
+        "name": "Clotilde Mollet",
+        "original_name": "Clotilde Mollet",
+        "popularity": 1.2688,
+        "profile_path": "/pu1sHxq0mvv61gTJGRhYGfMbZ18.jpg",
+        "cast_id": 10,
+        "character": "Gina",
+        "credit_id": "52fe4225c3a36847f80077af",
+        "order": 5
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1654,
+        "known_for_department": "Acting",
+        "name": "Claire Maurier",
+        "original_name": "Claire Maurier",
+        "popularity": 0.9347,
+        "profile_path": "/rlMYKpiTIzZCw2ee3YGENJZQKPC.jpg",
+        "cast_id": 11,
+        "character": "Suzanne",
+        "credit_id": "52fe4225c3a36847f80077b3",
+        "order": 6
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2412,
+        "known_for_department": "Acting",
+        "name": "Isabelle Nanty",
+        "original_name": "Isabelle Nanty",
+        "popularity": 1.5055,
+        "profile_path": "/9EQOZfhnqTL8enSFGFHMVU99q2P.jpg",
+        "cast_id": 12,
+        "character": "Georgette",
+        "credit_id": "52fe4225c3a36847f80077b7",
+        "order": 7
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2413,
+        "known_for_department": "Acting",
+        "name": "Dominique Pinon",
+        "original_name": "Dominique Pinon",
+        "popularity": 1.2068,
+        "profile_path": "/rIPUhNwGSglgKLgMQWz0JNCqIzf.jpg",
+        "cast_id": 13,
+        "character": "Joseph",
+        "credit_id": "52fe4225c3a36847f80077bb",
+        "order": 8
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2414,
+        "known_for_department": "Acting",
+        "name": "Artus de Penguern",
+        "original_name": "Artus de Penguern",
+        "popularity": 0.7494,
+        "profile_path": "/aSiprhwozCkCe4hHfQ34YVM6lIo.jpg",
+        "cast_id": 14,
+        "character": "Hipolito",
+        "credit_id": "52fe4225c3a36847f80077bf",
+        "order": 9
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2415,
+        "known_for_department": "Acting",
+        "name": "Yolande Moreau",
+        "original_name": "Yolande Moreau",
+        "popularity": 0.9821,
+        "profile_path": "/hh5gwfxXuvAqljjiJ3IsJlFO0QU.jpg",
+        "cast_id": 15,
+        "character": "Madeleine Wallace",
+        "credit_id": "52fe4225c3a36847f80077c3",
+        "order": 10
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2416,
+        "known_for_department": "Acting",
+        "name": "Urbain Cancelier",
+        "original_name": "Urbain Cancelier",
+        "popularity": 1.1448,
+        "profile_path": "/zN1V9NmbaX6uNTjSgu1ilURaN3b.jpg",
+        "cast_id": 16,
+        "character": "Collignon",
+        "credit_id": "52fe4225c3a36847f80077c7",
+        "order": 11
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2409,
+        "known_for_department": "Acting",
+        "name": "Lorella Cravotta",
+        "original_name": "Lorella Cravotta",
+        "popularity": 0.6468,
+        "profile_path": "/yhg52W7DcDMTYEFxxiOiqz9ba7A.jpg",
+        "cast_id": 8,
+        "character": "Amandine Poulain",
+        "credit_id": "52fe4225c3a36847f80077a7",
+        "order": 12
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2417,
+        "known_for_department": "Acting",
+        "name": "Maurice Bénichou",
+        "original_name": "Maurice Bénichou",
+        "popularity": 0.6802,
+        "profile_path": "/qAE6S18DpcODCuYm5Q5YyHvJAKs.jpg",
+        "cast_id": 17,
+        "character": "Dominique Bretodeau",
+        "credit_id": "52fe4225c3a36847f80077cb",
+        "order": 13
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 32092,
+        "known_for_department": "Acting",
+        "name": "Michel Robin",
+        "original_name": "Michel Robin",
+        "popularity": 1.5239,
+        "profile_path": "/vjn7TVCPCfzSPmx0ECP5g7tQsbW.jpg",
+        "cast_id": 29,
+        "character": "Mr. Collignon",
+        "credit_id": "53b1a9dec3a3682ef1006789",
+        "order": 14
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 231607,
+        "known_for_department": "Acting",
+        "name": "Andrée Damant",
+        "original_name": "Andrée Damant",
+        "popularity": 0.5982,
+        "profile_path": "/595T51UgSlLAsIfSpusTFtRGnD9.jpg",
+        "cast_id": 30,
+        "character": "Mrs. Collignon",
+        "credit_id": "53b1aa37c3a3682eea0068e9",
+        "order": 15
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 119199,
+        "known_for_department": "Acting",
+        "name": "Claude Perron",
+        "original_name": "Claude Perron",
+        "popularity": 1.0258,
+        "profile_path": "/dyR2HjTzWo5qBqUs5msvowQpeu5.jpg",
+        "cast_id": 31,
+        "character": "Eva",
+        "credit_id": "53b1aa52c3a3682eea0068eb",
+        "order": 16
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 77736,
+        "known_for_department": "Acting",
+        "name": "Armelle",
+        "original_name": "Armelle",
+        "popularity": 0.7799,
+        "profile_path": "/xVZiHESqfiQs1BBbbnfAQU74iLn.jpg",
+        "cast_id": 32,
+        "character": "Philomène",
+        "credit_id": "53b1aa68c3a3682ef1006794",
+        "order": 17
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 13689,
+        "known_for_department": "Acting",
+        "name": "Ticky Holgado",
+        "original_name": "Ticky Holgado",
+        "popularity": 0.6838,
+        "profile_path": "/lWrhoM6snzSFi22B401iiXRUUoi.jpg",
+        "cast_id": 33,
+        "character": "Man in Photo",
+        "credit_id": "53b1aa7cc3a3682eee0068cc",
+        "order": 18
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 18177,
+        "known_for_department": "Acting",
+        "name": "André Dussollier",
+        "original_name": "André Dussollier",
+        "popularity": 0.8063,
+        "profile_path": "/rw3J5sNFr7VYvTKAPak9d14F7R6.jpg",
+        "cast_id": 45,
+        "character": "Narrator (voice)",
+        "credit_id": "5604263292514122c3004f22",
+        "order": 19
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1145445,
+        "known_for_department": "Acting",
+        "name": "Eugène Berthier",
+        "original_name": "Eugène Berthier",
+        "popularity": 0.644,
+        "profile_path": "/97WrmmYkpstVZxKA1b4wBSUcoc.jpg",
+        "cast_id": 46,
+        "character": "Eugène Koler",
+        "credit_id": "56042667c3a3685532004c21",
+        "order": 20
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1377960,
+        "known_for_department": "Acting",
+        "name": "Charles-Roger Bour",
+        "original_name": "Charles-Roger Bour",
+        "popularity": 0.5258,
+        "profile_path": "/sTD4uytaGkd2GDdlzi63TYYzpdi.jpg",
+        "cast_id": 47,
+        "character": "Man with Pissoir",
+        "credit_id": "5604272bc3a3685521005d37",
+        "order": 21
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1952050,
+        "known_for_department": "Acting",
+        "name": "Kevin Dias",
+        "original_name": "Kevin Dias",
+        "popularity": 0.7531,
+        "profile_path": "/qZcsPLxIfXy5eepwk9VyhRUYwq7.jpg",
+        "cast_id": 164,
+        "character": "Young Dominique",
+        "credit_id": "5ecacbeae635710022d4be26",
+        "order": 22
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2652267,
+        "known_for_department": "Acting",
+        "name": "Flora Guiet",
+        "original_name": "Flora Guiet",
+        "popularity": 0.319,
+        "profile_path": "/1e7H7AMYniwXtQLK8I5777Qf57A.jpg",
+        "cast_id": 165,
+        "character": "Young Amélie",
+        "credit_id": "5ecacc3b8e8d30001fe1b7d0",
+        "order": 23
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2652268,
+        "known_for_department": "Acting",
+        "name": "Amaury Babault",
+        "original_name": "Amaury Babault",
+        "popularity": 0.2997,
+        "profile_path": "/9mMvgE7oiCqFbh6cHTpvRBetCjK.jpg",
+        "cast_id": 166,
+        "character": "Young Nino",
+        "credit_id": "5ecacc4b8e2e00002025acd8",
+        "order": 24
+      }
+    ],
+    "crew": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2419,
+        "known_for_department": "Directing",
+        "name": "Jean-Pierre Jeunet",
+        "original_name": "Jean-Pierre Jeunet",
+        "popularity": 1.4779,
+        "profile_path": "/4DhPaNaxYnkgxVJHVLyL5gKmKpG.jpg",
+        "credit_id": "52fe4225c3a36847f8007801",
+        "department": "Directing",
+        "job": "Director"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2420,
+        "known_for_department": "Writing",
+        "name": "Guillaume Laurant",
+        "original_name": "Guillaume Laurant",
+        "popularity": 0.7021,
+        "profile_path": "/4l92fKi1WuJmTlS8lrTVVSSK2XG.jpg",
+        "credit_id": "6986442252f819f56a6b5a55",
+        "department": "Writing",
+        "job": "Screenplay"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2419,
+        "known_for_department": "Directing",
+        "name": "Jean-Pierre Jeunet",
+        "original_name": "Jean-Pierre Jeunet",
+        "popularity": 1.4779,
+        "profile_path": "/4DhPaNaxYnkgxVJHVLyL5gKmKpG.jpg",
+        "credit_id": "698644287ff989bd3d29a9ab",
+        "department": "Writing",
+        "job": "Screenplay"
+      }
+    ]
+  },
+  "videos": {
+    "results": [
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "How 'Amélie' Convinced Eva Longoria She Was in Paris!",
+        "key": "LqZ3eW33oRw",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6a5227ae40554f7ebe595b90",
+        "published_at": "2026-07-01T16:00:15.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Behind the scenes with Javi Aznarez, illustrator of the AMÉLIE 25th anniversary poster",
+        "key": "I-WJ8Hwp7vU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6a078de510414e512c0fcd61",
+        "published_at": "2026-05-05T13:28:32.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "One-Word Reactions.",
+        "key": "KKroz2iyjUM",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "69ebc68fdd8e1736a115015a",
+        "published_at": "2026-04-21T11:52:50.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "25 years of Amélie (2001)",
+        "key": "plJwBl7uDls",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "69d368c48e2ea59ac64d967b",
+        "published_at": "2026-04-03T11:01:25.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Wait is Over! It's time to get (re)Acquainted with AMÉLIE. [Subtitled]",
+        "key": "j0aotpJRPgc",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Teaser",
+        "official": true,
+        "id": "69d0d79c85fd8a43464d29e0",
+        "published_at": "2026-04-03T07:45:02.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "AMÉLIE Is Coming Back to The Big Screen on 3 April [Subtitled]",
+        "key": "NkvJh8cpVCE",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Teaser",
+        "official": true,
+        "id": "69b2b94d0f132ad972a76f8d",
+        "published_at": "2026-03-11T11:30:17.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "25th Anniversary | Official UK & IRE Trailer [Subtitled]",
+        "key": "555A7T_kmIc",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "69a01508b967d1f25af5cdcf",
+        "published_at": "2026-02-24T12:00:06.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Official Trailer",
+        "key": "Py7cDXQae2U",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "658588af3acd2054717b5c24",
+        "published_at": "2023-12-20T19:30:01.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Bande annonce Le fabuleux destin d'Amélie Poulain",
+        "key": "_cZyjM_R6-E",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Trailer",
+        "official": false,
+        "id": "63c1a3f3df857c009f44202a",
+        "published_at": "2020-03-28T19:02:51.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "True Love",
+        "key": "UkLkim0HYME",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6585890cd64ac21b0c14265f",
+        "published_at": "2016-07-01T14:00:02.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Letter",
+        "key": "e2vTkFFuQYY",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "658588ff4f33ad5c70020194",
+        "published_at": "2016-07-01T14:00:01.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Phone Booth",
+        "key": "vD0h-Nb5qhs",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "658588ee71f095582423de85",
+        "published_at": "2016-07-01T14:00:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "‘You Two Belong Together'",
+        "key": "cT0bGB0eCpI",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6585891f4f33ad5c7002019f",
+        "published_at": "2016-07-01T14:00:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Hidden Box",
+        "key": "YWqs2hDO4Eg",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6585895743cd54546c3c371e",
+        "published_at": "2016-07-01T14:00:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Official Trailer",
+        "key": "2UT5xaAfxWU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "5cafa362c3a3683c30ab2680",
+        "published_at": "2014-11-20T17:00:21.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Le Fabuleux Destin d'Amélie Poulain - Extrait - Le  Train Fantôme",
+        "key": "DRJb84DcRgA",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Clip",
+        "official": false,
+        "id": "5edcfe73b422420022931a2c",
+        "published_at": "2014-10-09T07:25:30.000Z"
+      }
+    ]
+  },
+  "images": {
+    "backdrops": [
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/6n53UI4mX9QMfe2S0Pgt8mGebY1.jpg",
+        "vote_average": 6.346,
+        "vote_count": 12,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/9TEUJy5aRP7LaM1LKTfcxVK34JK.jpg",
+        "vote_average": 5.25,
+        "vote_count": 16,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/sylBlnpwqI9LAcyw7jH3oqazbAx.jpg",
+        "vote_average": 4.12,
+        "vote_count": 21,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 751,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/2WyjkKudTkDgtZo9CIN8NoPGHRB.jpg",
+        "vote_average": 3.666,
+        "vote_count": 12,
+        "width": 1335
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/4tqNNLAUY525N5rKGwNQVcuGNzX.jpg",
+        "vote_average": 3.666,
+        "vote_count": 15,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 751,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/9Y9K6LeLrMeofOvX7hZW36Aj3OG.jpg",
+        "vote_average": 3.468,
+        "vote_count": 16,
+        "width": 1335
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 720,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/iC21kBqdxieLEwg10Tlos24S4pe.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1280
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/sbLdoq4Sm366woVYTEzODeEHPHP.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/hIyZ5xcmXKZlvNwbKVQc8iHfPkB.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/jG6zrYK51EBzwLO33PjlhQk5TbW.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1920
+      }
+    ],
+    "logos": [
+      {
+        "aspect_ratio": 3.321,
+        "height": 1257,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/pIjwwbSgqq6sMbL0Umr7zKmEEUF.png",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 4174
+      },
+      {
+        "aspect_ratio": 3.307,
+        "height": 1220,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/ieFUubayBdWrcvF7ZnbYFfJw30R.png",
+        "vote_average": 0.166,
+        "vote_count": 1,
+        "width": 4035
+      },
+      {
+        "aspect_ratio": 3.365,
+        "height": 233,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/x1dNUFuOWCYcgSLIM46HXZZQhmX.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 784
+      },
+      {
+        "aspect_ratio": 4.661,
+        "height": 168,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/4D1vBiCPo8imH2bM9xHSW4FmR5n.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 783
+      },
+      {
+        "aspect_ratio": 3.365,
+        "height": 233,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/iYfCDbl29JflsGaJIdysjY41r8K.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 784
+      },
+      {
+        "aspect_ratio": 4.614,
+        "height": 171,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/vIf4oqW6bnio1ZS1XmVe5AgWnmp.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 789
+      },
+      {
+        "aspect_ratio": 4.604,
+        "height": 936,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/ijyo7bhSncNXIGAcMyeveP6mr4K.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 4309
+      },
+      {
+        "aspect_ratio": 4.654,
+        "height": 925,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/q7TmlaHqdehSxTAbPP2L2oJPOT4.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 4305
+      },
+      {
+        "aspect_ratio": 3.358,
+        "height": 380,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/s9ngInv5MoI9dl4JQfTri6hgN1B.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 1276
+      },
+      {
+        "aspect_ratio": 4.604,
+        "height": 936,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/haZ1QrFHmehM5JWS6Heh0ZqmPL6.png",
+        "vote_average": 0.0,
+        "vote_count": 0,
+        "width": 4309
+      }
+    ],
+    "posters": [
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/tdXtLG6L1QMwrv0MNdW6B9IwC8B.jpg",
+        "vote_average": 8.362,
+        "vote_count": 6,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg",
+        "vote_average": 6.722,
+        "vote_count": 9,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1920,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/oTKduWL2tpIKEmkAqF4mFEAWAsv.jpg",
+        "vote_average": 4.884,
+        "vote_count": 14,
+        "width": 1280
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1920,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/bgWRWA4cSjMrBEGaJSrWxsItsXE.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1280
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1500,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/cBBQulEcaFMhLeM2Wi5awxXDxbf.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1500,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/iZQj6VIzWSI9IESKy7hmgibbyGz.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1001
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/7dkCfOJ4rjEZNrNJQReht5od7aW.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1638,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/pon8GP9ff5Y3PzmsaYEwAHN0LKr.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1092
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2048,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/1h1uwVEI5mxn8S49FLaBZF5NKOw.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 1365
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/6pMAiHi9wHCMhh5xNzPpzWIbpH2.jpg",
+        "vote_average": 2.542,
+        "vote_count": 4,
+        "width": 2000
+      }
+    ]
+  },
+  "release_dates": {
+    "results": [
+      {
+        "iso_3166_1": "DE",
+        "release_dates": [
+          {
+            "certification": "6",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2001-08-16T00:00:00.000Z",
+            "type": 3
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "FR",
+        "release_dates": [
+          {
+            "certification": "TP",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2001-04-25T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Arte•tv",
+            "release_date": "2026-01-28T00:00:00.000Z",
+            "type": 4
+          },
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Arte",
+            "release_date": "2026-01-28T00:00:00.000Z",
+            "type": 6
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "GB",
+        "release_dates": [
+          {
+            "certification": "15",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Edinburgh International Film Festival",
+            "release_date": "2001-08-12T00:00:00.000Z",
+            "type": 1
+          },
+          {
+            "certification": "15",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2001-10-05T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "15",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "DVD",
+            "release_date": "2002-07-08T00:00:00.000Z",
+            "type": 5
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "US",
+        "release_dates": [
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Aspen Film Festval",
+            "release_date": "2001-10-03T00:00:00.000Z",
+            "type": 1
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Los Angeles, California",
+            "release_date": "2001-11-02T00:00:00.000Z",
+            "type": 1
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2001-11-16T00:00:00.000Z",
+            "type": 2
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Re-release",
+            "release_date": "2024-02-14T00:00:00.000Z",
+            "type": 2
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2002-02-08T00:00:00.000Z",
+            "type": 3
+          }
+        ]
+      }
+    ]
+  },
+  "external_ids": {
+    "imdb_id": "tt0211915",
+    "wikidata_id": "Q484048",
+    "facebook_id": null,
+    "instagram_id": null,
+    "twitter_id": null
+  },
+  "translations": {
+    "translations": [
+      {
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "name": "English",
+        "english_name": "English",
+        "data": {
+          "homepage": "https://www.miramax.com/movie/amelie/",
+          "overview": "At a tiny Parisian café, the adorable yet painfully shy Amélie accidentally discovers a gift for helping others. Soon Amelie is spending her days as a matchmaker, guardian angel, and all-around do-gooder. But when she bumps into a handsome stranger, will she find the courage to become the star of her very own love story?",
+          "runtime": 122,
+          "tagline": "She’ll change your life.",
+          "title": "Amélie"
+        }
+      },
+      {
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "homepage": "https://www.miramax.com/movie/amelie/",
+          "overview": "Amélie, une jeune serveuse dans un bar de Montmartre, passe son temps à observer les gens et à laisser son imagination divaguer. Elle s'est fixée un but : faire le bien de ceux qui l'entourent. Elle invente alors des stratagèmes pour intervenir incognito dans leur existence. Le chemin d'Amélie est jalonné de rencontres: Georgette, la buraliste hypocondriaque, Lucien, le commis d'épicerie, Madeleine Wallace, la concierge portée sur le porto et les chiens empaillés, ou encore Raymond Dufayel alias « l'homme de verre », son voisin qui ne vit qu'à travers une reproduction d'un tableau de Renoir. Cette quête du bonheur amène Amélie à faire la connaissance de Nino Quincampoix, un étrange « prince charmant ». Celui-ci partage son temps entre un train fantôme et un sex-shop, et cherche à identifier un inconnu dont la photo réapparaît sans cesse dans plusieurs cabines de photomaton.",
+          "runtime": 120,
+          "tagline": "Une personne peut changer votre vie pour toujours.",
+          "title": ""
+        }
+      },
+      {
+        "iso_3166_1": "CA",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "homepage": "https://www.miramax.com/movie/amelie/",
+          "overview": "Amélie, une jeune serveuse dans un bar de Montmartre, passe son temps à observer les gens et à laisser son imagination divaguer. Elle s'est fixé un but : faire le bien de ceux qui l'entourent. Elle invente alors des stratagèmes pour intervenir incognito dans leur existence.",
+          "runtime": 0,
+          "tagline": "Une personne peut changer votre vie pour toujours.",
+          "title": "Le fabuleux destin d'Amélie Poulain"
+        }
+      }
+    ]
+  }
+}

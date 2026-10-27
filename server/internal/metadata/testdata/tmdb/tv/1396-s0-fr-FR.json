@@ -1,0 +1,109 @@
+{
+  "id": 3577,
+  "name": "Épisodes spéciaux",
+  "overview": "",
+  "air_date": "2009-02-17",
+  "season_number": 0,
+  "poster_path": "/4RaIvSQgHHHPfaI1jFqaMR8UJWM.jpg",
+  "episodes": [
+    {
+      "id": 62131,
+      "name": "Le bon flic / Le mauvais flic",
+      "overview": "Saison 1, mini-épisode 1 : Hank et Marie fêtent la Saint-Valentin.",
+      "air_date": "2009-02-17",
+      "episode_number": 1,
+      "season_number": 0,
+      "runtime": 3,
+      "still_path": "/t729tFVXPetnJlJ2VsUZQz0rX6v.jpg",
+      "vote_average": 7.8
+    },
+    {
+      "id": 62133,
+      "name": "Le jour du mariage",
+      "overview": "Saison 1, mini-épisode 2 : Hank et Walt discutent du jour du mariage de Hank et Marie.",
+      "air_date": "2009-02-17",
+      "episode_number": 2,
+      "season_number": 0,
+      "runtime": 5,
+      "still_path": "/wT62P6ZnjKgZXk0M5hHl4e5zSjB.jpg",
+      "vote_average": 9.7
+    },
+    {
+      "id": 62132,
+      "name": "TwaüghtHammër",
+      "overview": "Saison 1, mini-épisode 3 : Jesse raconte la genèse de son groupe, TwaüghtHammër.",
+      "air_date": "2009-02-17",
+      "episode_number": 3,
+      "season_number": 0,
+      "runtime": 5,
+      "still_path": "/gUHAqFw3Ptzya96JFFE9xVfMjze.jpg",
+      "vote_average": 8.3
+    },
+    {
+      "id": 62135,
+      "name": "La confession de Marie",
+      "overview": "Saison 1, mini-épisode 4 : Marie avoue avoir commis un vol à l'étalage.",
+      "air_date": "2009-02-17",
+      "episode_number": 4,
+      "season_number": 0,
+      "runtime": 3,
+      "still_path": "/saG9GPwRhL21EaHG2d63suGM37W.jpg",
+      "vote_average": 9.5
+    },
+    {
+      "id": 62134,
+      "name": "L'effraction",
+      "overview": "Saison 1, mini-épisode 5 : Walt demande à Badger de l'aider à s'introduire chez une vieille dame pour récupérer son aspirateur.",
+      "air_date": "2009-02-24",
+      "episode_number": 5,
+      "season_number": 0,
+      "runtime": 5,
+      "still_path": "/o8DqThzXelwxV3LLTpHCNHTsTNt.jpg",
+      "vote_average": 9.7
+    },
+    {
+      "id": 62136,
+      "name": "Enregistrement vidéo de Jesse Pinkman contenant des preuves",
+      "overview": "Jesse témoigne officiellement et décrit devant la caméra tout ce dont il se souvient concernant les affaires et les activités criminelles de Walt.",
+      "air_date": null,
+      "episode_number": 6,
+      "season_number": 0,
+      "runtime": 5,
+      "still_path": "/lPldD4azsVeVv2QBOWBSLsHQucI.jpg",
+      "vote_average": 9.7
+    },
+    {
+      "id": 1836320,
+      "name": "La confession de Walt",
+      "overview": "La vidéo de confession enregistrée par Walt.",
+      "air_date": null,
+      "episode_number": 7,
+      "season_number": 0,
+      "runtime": 7,
+      "still_path": "/bLZHmsQfrLSsQTO7nCq0fjf7osq.jpg",
+      "vote_average": 9.8
+    },
+    {
+      "id": 1836324,
+      "name": "La pizza du destin : la meilleure prise de Cranston",
+      "overview": "Un bonus détaillé consacré à une scène particulière dans laquelle Bryan Cranston lance une pizza sur le toit, disponible sur le DVD/Blu-ray de « Breaking Bad Saison 3 ».",
+      "air_date": "2011-06-07",
+      "episode_number": 8,
+      "season_number": 0,
+      "runtime": 3,
+      "still_path": "/E0MlSkAN9kCYr9f6Vhoji2hQYN.jpg",
+      "vote_average": 10.0
+    },
+    {
+      "id": 1836322,
+      "name": "Fin alternative",
+      "overview": "Bonus de l'édition DVD et Blu-ray de 2013 de Breaking Bad. La série se termine par le réveil de Hal, personnage de Malcolm in the Middle (également interprété par Bryan Cranston), révélant ainsi que toute la série n'était qu'un rêve.",
+      "air_date": "2013-11-26",
+      "episode_number": 9,
+      "season_number": 0,
+      "runtime": 3,
+      "still_path": "/5pIfRnBnodRPyg9oOxMj6uZA2zd.jpg",
+      "vote_average": 9.5
+    }
+  ]
+}
