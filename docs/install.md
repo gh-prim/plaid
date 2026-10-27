@@ -78,6 +78,9 @@ All settings are environment variables (in `/etc/plaid/plaid.env` for the native
 | `PLAID_TRUSTED_PROXIES` | empty | Reverse proxies (IPs or CIDRs, comma-separated) whose `X-Forwarded-For` / `X-Forwarded-Proto` headers PLAID believes. See below |
 | `PLAID_FFPROBE_PATH` | `ffprobe` on `PATH` | ffprobe used to analyze media files. Without one, files are listed but not analyzed |
 | `PLAID_BROWSE_ROOTS` | empty (whole disk) | Folders the library folder picker may show, colon-separated absolute paths, e.g. `/srv/media:/mnt` |
+| `PLAID_TMDB_API_KEY` | the key built into release binaries | Your own [TMDB](https://www.themoviedb.org/settings/api) key for posters and synopses. See [Metadata](#metadata-posters-and-synopses) |
+| `PLAID_FANART_API_KEY` | the key built into release binaries | Your own [fanart.tv](https://fanart.tv/get-an-api-key/) project key for logos and clearart |
+| `PLAID_ARTWORK_CACHE_MAX_MB` | `2048` | Disk cap for resized images (at least 64). Downloaded originals aren't counted: they're kept for offline use |
 
 ## First launch: creating the admin account
 
@@ -156,3 +159,17 @@ sudo systemctl restart plaid
 ```
 
 In Docker, the limit is the host's: run these commands on the host. PLAID's package doesn't change this setting for you, as it applies to the whole machine.
+
+## Metadata: posters and synopses
+
+PLAID matches your movies and shows to [TMDB](https://www.themoviedb.org) and adds logos and clearart from [fanart.tv](https://fanart.tv), in each library's language (Settings → Libraries; it defaults to the language of the admin who created the library). Local files win: a Kodi-style `movie.nfo` / `tvshow.nfo` and images such as `poster.jpg`, `fanart.jpg`, `clearlogo.png` or `season01-poster.jpg` next to your media are used first. PLAID only reads them; it never writes in your media folders.
+
+**Keys.** Release binaries come with PLAID's own TMDB and fanart.tv keys, so this works with no setup. You can use your own instead, in the admin settings or with `PLAID_TMDB_API_KEY` / `PLAID_FANART_API_KEY`. The order is: the key saved in the admin settings, then the environment variable, then the built-in key. Keys saved in the admin settings are stored in `plaid.db`, which should only be readable by PLAID (`chmod 600`; the server warns at startup otherwise). A build from source has no built-in key: without one, PLAID uses `.nfo` files and local images only.
+
+**What is sent.** To match and fetch artwork, PLAID sends TMDB and fanart.tv the titles, years and ids of your movies and shows, from your server's IP address. Nothing about your accounts, profiles or what anyone watches is ever sent. The apps never call these services themselves: images go through your server.
+
+**Offline.** Everything already fetched stays available offline. New items show their file names until the providers are reachable again; PLAID retries on its own.
+
+**Disk.** Downloaded originals live in `PLAID_DATA_DIR/artwork` (about 2 GB for 1,000 movies and 100 shows); back them up with `plaid.db`, or they're downloaded again. Resized copies live in `PLAID_DATA_DIR/cache/artwork`, capped by `PLAID_ARTWORK_CACHE_MAX_MB`, and can be deleted at any time.
+
+**Attribution.** This product uses the TMDB API but is not endorsed or certified by TMDB. Logos, clearart and some backdrops come from fanart.tv.

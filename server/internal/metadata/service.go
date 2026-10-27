@@ -55,6 +55,9 @@ type Options struct {
 	Fanart     *fanart.Client
 	ImageHTTP  *httpx.Client
 	ImageHosts map[string]string
+	// CheckKey validates a key ("tmdb" or "fanart") before it's saved;
+	// nil asks the provider. Tests replace it.
+	CheckKey func(ctx context.Context, provider, key string) error
 }
 
 // Service matches items and keeps their metadata up to date (F005).
@@ -69,7 +72,9 @@ type Service struct {
 	http      *httpx.Client
 	keySource string
 	fan       *fanart.Client
+	fanHTTP   *httpx.Client
 	art       *artwork.Store
+	hub       counterHub
 
 	stop context.CancelFunc
 	wg   sync.WaitGroup
@@ -165,10 +170,10 @@ func (s *Service) ReloadKeys(ctx context.Context) error {
 		personal, _, _ = s.o.Settings.Get(ctx, settings.FanartPersonalKey)
 	}
 	s.mu.Lock()
-	s.fan = nil
+	s.fan, s.fanHTTP = nil, nil
 	if fanKey != "" {
-		h := httpx.New(httpx.Options{Name: "fanart", Hosts: fanart.Hosts, RPS: fanartRPS, Burst: fanartRPS, Log: s.log})
-		s.fan = fanart.New(h, fanart.BaseURL, fanKey, personal)
+		s.fanHTTP = httpx.New(httpx.Options{Name: "fanart", Hosts: fanart.Hosts, RPS: fanartRPS, Burst: 1, Log: s.log})
+		s.fan = fanart.New(s.fanHTTP, fanart.BaseURL, fanKey, personal)
 	}
 	s.mu.Unlock()
 	key, source, err := resolveKey(ctx, s.o.Settings, settings.TMDBAPIKey, s.o.TMDBKey, builtinTMDBKey)
@@ -183,7 +188,8 @@ func (s *Service) ReloadKeys(ctx context.Context) error {
 		s.log.Warn("no TMDB API key: metadata comes from .nfo files only; set PLAID_TMDB_API_KEY", "code", "no_api_key")
 		return nil
 	}
-	s.http = httpx.New(httpx.Options{Name: "tmdb", Hosts: tmdb.Hosts, RPS: tmdbRPS, Burst: tmdbRPS, Log: s.log})
+	// Burst 1: a smooth 20 requests/s, never more in any second (R32).
+	s.http = httpx.New(httpx.Options{Name: "tmdb", Hosts: tmdb.Hosts, RPS: tmdbRPS, Burst: 1, Log: s.log})
 	s.prov = tmdb.New(s.http, tmdb.BaseURL, key)
 	return nil
 }
@@ -229,7 +235,8 @@ func (s *Service) provider() provider.Provider {
 // ItemsCreated is library.Hooks.ItemsCreated: new items get a pending row,
 // and a matched show with new seasons or episodes is refreshed now so they
 // get their metadata (R1, R31).
-func (s *Service) ItemsCreated(_ string, itemIDs []string) {
+func (s *Service) ItemsCreated(libraryID string, itemIDs []string) {
+	defer s.changed(libraryID)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := s.store.AddPending(ctx, itemIDs); err != nil {
@@ -261,6 +268,7 @@ func (s *Service) Process(ctx context.Context, j Job) error {
 	default:
 		return nil
 	}
+	s.changed(p.LibraryID)
 	if errors.Is(perr, httpx.ErrInvalidKey) {
 		return errors.Join(ErrPaused, perr)
 	}

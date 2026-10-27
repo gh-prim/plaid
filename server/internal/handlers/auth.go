@@ -16,7 +16,15 @@ func (h *Handlers) GetServerInfo(ctx context.Context, _ api.GetServerInfoRequest
 	if err != nil {
 		return nil, err
 	}
-	return api.GetServerInfo200JSONResponse{Name: h.serverName, Version: buildinfo.Version, SetupComplete: done}, nil
+	out := api.GetServerInfo200JSONResponse{Name: h.serverName, Version: buildinfo.Version, SetupComplete: done}
+	if h.metadata != nil {
+		attr := []api.Attribution{}
+		for _, a := range h.metadata.Attributions() {
+			attr = append(attr, api.Attribution{Provider: api.AttributionProvider(a.Provider), Name: a.Name, Url: a.URL, Notice: a.Notice})
+		}
+		out.Attributions = &attr
+	}
+	return out, nil
 }
 
 // GetSetup reports whether first-run setup is still open (F003-R2, R3).

@@ -411,3 +411,29 @@ func TestNewEpisodeRefreshesItsShow(t *testing.T) {
 		t.Errorf("new episode = %+v", ep)
 	}
 }
+
+// TestEpisodeRelink: fixing an episode moves its files to another episode
+// of the same show (R39), and the old one goes away.
+func TestEpisodeRelink(t *testing.T) {
+	e := newApplyEnv(t, library.TypeShows, "en", "US", true)
+	e.write("Breaking Bad/Season 01/Breaking Bad S01E01.mkv", "x")
+	e.scan()
+	old := e.item(`kind = 'episode'`)
+	two, three := 1, 2
+	target, err := e.svc.Match(context.Background(), old, 0, &two, &three)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if target == old || e.count(`SELECT COUNT(*) FROM items WHERE id = ?`, old) != 0 {
+		t.Errorf("old episode kept (target %s)", target)
+	}
+	if m := e.meta(target); m.Title != "Cat's in the Bag..." || m.State != "matched" {
+		t.Errorf("relinked episode = %+v", m)
+	}
+	if n := e.count(`SELECT COUNT(*) FROM item_files WHERE item_id = ?`, target); n != 1 {
+		t.Errorf("target has %d files", n)
+	}
+	if _, err := e.svc.Match(context.Background(), target, 603, nil, nil); !errors.Is(err, ErrKindMismatch) {
+		t.Errorf("a TMDB id on an episode: %v", err)
+	}
+}

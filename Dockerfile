@@ -17,6 +17,9 @@ COPY server/ ./
 COPY --from=web /src/web/dist/ ./internal/webui/dist/
 ARG VERSION=0.1.0-dev
 ARG COMMIT=unknown
+# No metadata keys here while the image isn't published: set PLAID_TMDB_API_KEY
+# at run time. When publishing starts, pass them as build secrets, never ARGs,
+# which stay in the image history (ADR 0007).
 ARG TARGETOS
 ARG TARGETARCH
 RUN --mount=type=cache,target=/go/pkg/mod \
