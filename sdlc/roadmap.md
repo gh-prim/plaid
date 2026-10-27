@@ -13,6 +13,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [0002](decisions/0002-monorepo-and-api-contract.md) | Monorepo + OpenAPI contract | ✅ accepted |
 | [0003](decisions/0003-remote-access-v1.md) | Remote access v1: pure self-host | 📝 proposed |
 | [0004](decisions/0004-license.md) | License: MIT | ✅ accepted |
+| [0005](decisions/0005-no-jellyfin-api-compatibility.md) | No Jellyfin API compatibility, own apps | ✅ accepted |
 
 ## Features
 
