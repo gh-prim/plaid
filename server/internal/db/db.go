@@ -5,8 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
+	"log/slog"
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -24,6 +27,18 @@ func Open(ctx context.Context, dataDir string) (*sql.DB, error) {
 	// on the lock upgrade, which busy_timeout doesn't retry. It also makes
 	// check-then-write transactions (first-run setup, last admin) atomic.
 	dsn := "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)&_txlock=immediate"
+
+	// A new database is only readable by its owner (CheckPermissions).
+	// SQLite gives its -wal and -shm files the same mode.
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o600) //nolint:gosec // the configured data directory
+	switch {
+	case err == nil:
+		if err := f.Close(); err != nil {
+			return nil, fmt.Errorf("create %s: %w", path, err)
+		}
+	case !errors.Is(err, fs.ErrExist):
+		return nil, fmt.Errorf("create %s: %w", path, err)
+	}
 
 	d, err := sql.Open("sqlite", dsn)
 	if err != nil {
@@ -85,4 +100,19 @@ func migrate(ctx context.Context, d *sql.DB) error {
 		}
 	}
 	return nil
+}
+
+// CheckPermissions warns when dataDir/plaid.db can be read or written by
+// anyone but its owner: it holds session hashes and, since F005, the API
+// keys an admin saves (F005 R34, ADR 0007). The expected mode is 0600.
+func CheckPermissions(dataDir string, log *slog.Logger) {
+	path := filepath.Join(dataDir, "plaid.db")
+	st, err := os.Stat(path)
+	if err != nil {
+		log.Warn("can't check database permissions", "path", path, "err", err)
+		return
+	}
+	if mode := st.Mode().Perm(); mode&0o077 != 0 {
+		log.Warn("the database is readable by other users: run chmod 600 on it", "path", path, "mode", fmt.Sprintf("%04o", mode))
+	}
 }

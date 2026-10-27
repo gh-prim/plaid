@@ -106,7 +106,8 @@ func (h *Handlers) ListLibraries(ctx context.Context, _ api.ListLibrariesRequest
 // CreateLibrary validates the folders, creates the library and queues a
 // full scan.
 func (h *Handlers) CreateLibrary(ctx context.Context, req api.CreateLibraryRequestObject) (api.CreateLibraryResponseObject, error) {
-	if _, err := admin(ctx); err != nil {
+	pr, err := admin(ctx)
+	if err != nil {
 		return nil, err
 	}
 	b, err := body(req.Body)
@@ -125,6 +126,12 @@ func (h *Handlers) CreateLibrary(ctx context.Context, req api.CreateLibraryReque
 	if err := p.err(); err != nil {
 		return nil, err
 	}
+	// Metadata comes in the creating admin's language by default (F005 R10).
+	u, err := h.accounts.GetUser(ctx, pr.UserID)
+	if err != nil {
+		return nil, err
+	}
+	n.MetadataLanguage, n.MetadataRegion = metadataLocale(u.Locale)
 	lib, err := h.library.CreateLibrary(ctx, n)
 	if err != nil {
 		return nil, libraryErr(err, b.Folders)
@@ -232,6 +239,29 @@ func (h *Handlers) ScanLibrary(ctx context.Context, req api.ScanLibraryRequestOb
 		return nil, libraryErr(err, nil)
 	}
 	return api.ScanLibrary202JSONResponse(toScanProgress(pr)), nil
+}
+
+// defaultRegions is the region assumed for a bare language locale, where it
+// isn't simply the language code in upper case.
+var defaultRegions = map[string]string{
+	"en": "US", "cs": "CZ", "da": "DK", "el": "GR", "he": "IL", "ja": "JP",
+	"ko": "KR", "nb": "NO", "sv": "SE", "uk": "UA", "zh": "CN", "pt": "BR",
+}
+
+// metadataLocale turns an account locale (`fr`, `en-GB`, `pt-BR`) into a
+// library's metadata language and region (F005 R10).
+func metadataLocale(locale string) (lang, region string) {
+	lang, region, _ = strings.Cut(locale, "-")
+	if len(region) != 2 {
+		region = defaultRegions[lang]
+		if region == "" {
+			region = strings.ToUpper(lang)
+		}
+	}
+	if len(lang) != 2 || len(region) != 2 {
+		return "en", "US"
+	}
+	return lang, region
 }
 
 func toLibrary(v library.View) api.Library {

@@ -3,7 +3,7 @@ id: F005
 title: Metadata and artwork
 owner: gh-prim
 reviewer: TBD
-status: approved         # draft | approved | in-progress | done
+status: in-progress      # draft | approved | in-progress | done
 spec: ./spec.md
 branch: feat/F005-metadata
 ---
@@ -88,16 +88,16 @@ branch: feat/F005-metadata
 Each step brings its tests in the same commit.
 
 ### PR A — foundations
-1. [ ] **Migration `0004_metadata.sql`.** Tables in dependency order (`collections` and `artwork` before `item_metadata` and `people`). An upgrade test from a `0003` database with items runs, then checks the defaults (`metadata_language = 'en'`, `metadata_region = 'US'`). Library creation fills language and region from the creating admin's locale (`library.NewLibrary` gets `MetadataLanguage` / `MetadataRegion`; the `en` → `US`, `fr` → `FR` mapping lives in the handler). (R10, data model)
-2. [ ] **`settings` package and DB permission check.** Get, set and delete with `updated_at`. `db.CheckPermissions` logs `warn` when `mode & 0o077 != 0`, and `main.go` calls it after `db.Open`. Tests cover `0600` (silent) and `0644` (warning), with a captured `slog` handler. (R34)
-3. [ ] **F004 hooks.**
+1. [x] **Migration `0004_metadata.sql`.** Tables in dependency order (`collections` and `artwork` before `item_metadata` and `people`). An upgrade test from a `0003` database with items runs, then checks the defaults (`metadata_language = 'en'`, `metadata_region = 'US'`). Library creation fills language and region from the creating admin's locale (`library.NewLibrary` gets `MetadataLanguage` / `MetadataRegion`; the `en` → `US`, `fr` → `FR` mapping lives in the handler). (R10, data model)
+2. [x] **`settings` package and DB permission check.** Get, set and delete with `updated_at`. `db.CheckPermissions` logs `warn` when `mode & 0o077 != 0`, and `main.go` calls it after `db.Open`. Tests cover `0600` (silent) and `0644` (warning), with a captured `slog` handler. (R34)
+3. [x] **F004 hooks.**
    - `EngineOptions.Hooks`, with no-op defaults, so F004's tests pass unchanged.
    - The reconciler collects the ids of items it inserts in `link()` and of items whose `item_files` gained a file. After each batch commits, it calls `ItemsChanged`.
    - `link()` calls `Hooks.Identify(fileID)` first. When it returns an identification, the parser is skipped and the file is linked to the identified item. A movie with a `tmdb_id` is looked up through `item_metadata` (`Identification.ItemID`); an episode through the show's `item_metadata.tmdb_id` plus its numbers, and the season and episode items are created if missing.
    - New F004 tests: the hook is called once per new item; an identified file survives a rename that would otherwise make it `unrecognized`, a full rescan, and a move (R16). (R1, R28)
-4. [ ] **Sidecar reporting.** The walker records sidecar files by extension in the same `ReadDir` pass (no `stat` beyond the `DirEntry.Info()` it already does). `WalkResult.Sidecars` is passed to `Hooks.Sidecars` once per scanned folder. Walker test: a tree with `movie.nfo`, `poster.jpg` and a `Season 01/season01-poster.jpg`. The F004 read-only tree-hash test still passes. (R14)
-5. [ ] **Certification table.** `certs.json` maps `{country: {system: {cert: age}}}`, with ages limited to F003's values. `certs.Age(country, cert)` returns `(age, ok)`. Table test, plus a test that every age is in `{0, 7, 10, 12, 13, 16, 18}`. `.nfo` `mpaa` values (`Rated PG-13`, `FR:12`, `DE:FSK 16`) are normalized here. (R24)
-6. [ ] **`internal/access` and enforcement on F004 routes.**
+4. [x] **Sidecar reporting.** The walker records sidecar files by extension in the same `ReadDir` pass (no `stat` beyond the `DirEntry.Info()` it already does). `WalkResult.Sidecars` is passed to `Hooks.Sidecars` once per scanned folder. Walker test: a tree with `movie.nfo`, `poster.jpg` and a `Season 01/season01-poster.jpg`. The F004 read-only tree-hash test still passes. (R14)
+5. [x] **Certification table.** `certs.json` maps `{country: {system: {cert: age}}}`, with ages limited to F003's values. `certs.Age(country, cert)` returns `(age, ok)`. Table test, plus a test that every age is in `{0, 7, 10, 12, 13, 16, 18}`. `.nfo` `mpaa` values (`Rated PG-13`, `FR:12`, `DE:FSK 16`) are normalized here. (R24)
+6. [x] **`internal/access` and enforcement on F004 routes.**
    - `access.ForPrincipal` loads the active profile. With no profile picked, it uses the account's default profile, as F003 does.
    - `Limit.SQL("m")` returns `(m.age_rating IS NOT NULL AND m.age_rating <= ?) OR (m.age_rating IS NULL AND ?)`. Seasons and episodes carry their show's `age_rating`, copied by apply (step 13) in the same transaction, so the predicate never needs to walk `parent_id`.
    - `ListItems` uses `LEFT JOIN item_metadata` and adds the predicate. `GetItem`, from the handler, returns `404 not_found` when it's filtered out.
@@ -214,3 +214,12 @@ What proves it's done, to paste into each PR:
 
 ## Log
 Deviations from the plan found during the build (date + what + why).
+- **2026-10-27, PR A (steps 1–6)**, by gh-prim with Claude. Divergences from the steps above:
+  - **No `Identify` hook.** The reconciler only re-parses files that are still `unrecognized`, and Identify (step 25) sets `parse_status = ok` in the same transaction as the `file_identifications` row. So an identified file is never re-parsed, and a move keeps its row and links. Instead of a hook, `TestIdentifiedFileSurvivesRescansAndMoves` proves it: incremental and full rescans, a content change and a move all keep the item. Step 25 must keep writing both in one transaction.
+  - **`ItemsCreated`, not "created and relinked".** The hook reports the items a scan inserted. A relinked item (a file that came back) already has its metadata row. It's called once after the scan's last commit, so a scan that fails half-way reports nothing: **step 12 adds a startup and periodic sweep** that inserts `pending` rows for items with no `item_metadata`. The hook is only the fast path.
+  - **Sidecars** are reported per folder that was available in the scan, after commit (`Hooks.Sidecars(libraryID, folderPath, files)`). The walker reports `.nfo`, `.jpg`, `.jpeg`, `.png` and `.webp` files, with only the hidden-file and `.plaidignore` rules (the `sample` and partial-download rules don't apply to them). Folders like `Extras` stay skipped.
+  - **No `access.ForPrincipal`.** `access` stays dependency-free (`Limit`, `Allows`, `SQL`). `accounts.Service.AccessLimit(ctx, principal)` returns the active profile's `access.Limit`. With no profile picked, it uses the account's **default** profile (F003 treats that session as unrestricted for managing profiles, which is a different rule).
+  - **`items.go` qualifies its columns** (`items.`) since it now joins `item_metadata m`, and `Item.AgeRating` carries the rating so `GetItem` can return `404`.
+  - **`plaid.db` is created `0600`** when it doesn't exist yet, so new installs never see the R34 warning. Existing installs get the warning until the admin runs `chmod 600`.
+  - **Library metadata locale:** `metadataLocale` in `handlers/libraries.go` maps the creating admin's locale to a language and region (`en` → US, `pt` → BR, `ja` → JP, …; anything unusable → `en`/`US`). `Store.CreateLibrary`'s optional argument became `CreateOptions`.
+

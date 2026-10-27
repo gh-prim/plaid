@@ -29,6 +29,8 @@ type EngineOptions struct {
 	// means the whole file system.
 	BrowseRoots []string
 	Log         *slog.Logger
+	// Hooks report scan results to F005 (metadata).
+	Hooks Hooks
 	// Now is the clock; tests replace it.
 	Now func() time.Time
 
@@ -75,7 +77,7 @@ func NewEngine(db *sql.DB, o EngineOptions) *Engine {
 	}
 	store := NewStore(db)
 	store.Now = o.Now
-	scanner := &Scanner{Store: store, Workers: o.Workers, Log: o.Log}
+	scanner := &Scanner{Store: store, Workers: o.Workers, Log: o.Log, Hooks: o.Hooks}
 	if o.Prober != nil {
 		scanner.Prober = NewProbePool(o.Prober, o.Workers)
 	}
@@ -396,6 +398,9 @@ type NewLibrary struct {
 	Type          string
 	Folders       []string
 	ScanIntervalS *int64
+	// MetadataLanguage and MetadataRegion default to en/US when empty.
+	MetadataLanguage string
+	MetadataRegion   string
 }
 
 // CreateLibrary validates the folders, stores the library, arms its
@@ -405,7 +410,9 @@ func (e *Engine) CreateLibrary(ctx context.Context, n NewLibrary) (Library, erro
 	if err != nil {
 		return Library{}, err
 	}
-	lib, err := e.store.CreateLibrary(ctx, n.Name, n.Type, folders, n.ScanIntervalS)
+	lib, err := e.store.CreateLibrary(ctx, n.Name, n.Type, folders, CreateOptions{
+		ScanIntervalS: n.ScanIntervalS, MetadataLanguage: n.MetadataLanguage, MetadataRegion: n.MetadataRegion,
+	})
 	if err != nil {
 		return Library{}, err
 	}

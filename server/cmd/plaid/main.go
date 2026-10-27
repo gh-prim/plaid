@@ -50,6 +50,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		return err
 	}
 	defer database.Close()
+	db.CheckPermissions(cfg.DataDir, logger)
 
 	accts := accounts.New(database, accounts.Options{Logger: logger})
 	code, err := accts.PrepareSetupCode(ctx)

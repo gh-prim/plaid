@@ -678,3 +678,168 @@ func TestScanUnknownLibrary(t *testing.T) {
 		t.Errorf("err = %v", err)
 	}
 }
+
+// TestHooksReportCreatedItemsAndSidecars: after a committed scan, F005 gets
+// the items it created (once each) and, per available folder, its sidecars.
+func TestHooksReportCreatedItemsAndSidecars(t *testing.T) {
+	e := newScanEnv(t, TypeShows)
+	var created []string
+	sidecars := map[string][]string{}
+	e.scan.Hooks = Hooks{
+		ItemsCreated: func(libraryID string, ids []string) {
+			if libraryID != e.lib.ID {
+				t.Errorf("library %s", libraryID)
+			}
+			created = append(created, ids...)
+		},
+		Sidecars: func(_, folder string, files []Sidecar) {
+			for _, f := range files {
+				sidecars[folder] = append(sidecars[folder], f.Rel)
+			}
+		},
+	}
+	e.write("Dark/tvshow.nfo", "<tvshow/>")
+	e.write("Dark/Season 1/Dark S01E01.mkv", "e1")
+	e.write("Dark/Season 1/Dark S01E02.mkv", "e2")
+	e.run(ScanOptions{})
+	// show + season + 2 episodes
+	if len(created) != 4 || e.count(`SELECT COUNT(*) FROM items`) != 4 {
+		t.Errorf("created = %v", created)
+	}
+	for _, id := range created {
+		if e.count(`SELECT COUNT(*) FROM items WHERE id = ?`, id) != 1 {
+			t.Errorf("reported item %s isn't committed", id)
+		}
+	}
+	if got := sidecars[e.root]; !slices.Equal(got, []string{"Dark/tvshow.nfo"}) {
+		t.Errorf("sidecars = %v", sidecars)
+	}
+
+	created, sidecars = nil, map[string][]string{}
+	e.write("Dark/Season 1/Dark S01E03.mkv", "e3")
+	e.run(ScanOptions{})
+	if len(created) != 1 {
+		t.Errorf("second scan created = %v, want only the new episode", created)
+	}
+	if len(sidecars[e.root]) != 1 {
+		t.Errorf("sidecars are reported on every scan, got %v", sidecars)
+	}
+}
+
+// TestUnavailableFolderReportsNoSidecars: F005 deletes sidecar rows absent
+// from a report, so a folder skipped by the R17 guard must not be reported.
+func TestUnavailableFolderReportsNoSidecars(t *testing.T) {
+	e := newScanEnv(t, TypeMovies)
+	e.write("Heat (1995)/Heat (1995).mkv", "heat")
+	e.write("Heat (1995)/poster.jpg", "jpg")
+	e.run(ScanOptions{})
+	if err := os.RemoveAll(e.path("Heat (1995)")); err != nil {
+		t.Fatal(err)
+	}
+	reported := false
+	e.scan.Hooks.Sidecars = func(string, string, []Sidecar) { reported = true }
+	e.run(ScanOptions{})
+	if reported {
+		t.Error("an empty mount point reported its (absent) sidecars")
+	}
+}
+
+// identify links a file the way F005's "Identify" does (F005 R28): items,
+// parse_status ok and a file_identifications row, in one transaction.
+func (e *scanEnv) identify(path, title string, year int) string {
+	e.t.Helper()
+	fileID := e.fileCol(path, "id").String
+	now := ts(e.now)
+	itemID := newID()
+	for _, q := range []struct {
+		sql  string
+		args []any
+	}{
+		{`INSERT INTO items (id, library_id, kind, title, sort_title, year, created_at, updated_at) VALUES (?, ?, 'movie', ?, ?, ?, ?, ?)`,
+			[]any{itemID, e.lib.ID, title, sortTitle(title), year, now, now}},
+		{`INSERT INTO item_files (item_id, file_id) VALUES (?, ?)`, []any{itemID, fileID}},
+		{`UPDATE media_files SET parse_status = 'ok' WHERE id = ?`, []any{fileID}},
+		{`INSERT INTO file_identifications (file_id, kind, tmdb_id, created_at) VALUES (?, 'movie', 194, ?)`, []any{fileID, now}},
+	} {
+		if _, err := e.db.Exec(q.sql, q.args...); err != nil {
+			e.t.Fatalf("%s: %v", q.sql, err)
+		}
+	}
+	return itemID
+}
+
+// TestIdentifiedFileSurvivesRescansAndMoves: F004 never re-parses a file once
+// it's identified, so the identification holds through incremental and full
+// rescans, a content change and a move (F005 R28).
+func TestIdentifiedFileSurvivesRescansAndMoves(t *testing.T) {
+	e := newScanEnv(t, TypeMovies)
+	p := e.write("1080p.BluRay.x264.mkv", strings.Repeat("amelie", 1000))
+	e.write("Keep (2000).mkv", "keep") // the folder never looks unmounted
+	e.run(ScanOptions{})
+	if s := e.fileCol(p, "parse_status").String; s != ParseUnrecognized {
+		t.Fatalf("parse_status = %q, want unrecognized", s)
+	}
+	itemID := e.identify(p, "Amélie", 2001)
+
+	check := func(step, path string) {
+		t.Helper()
+		if got := e.itemsOf(path); !slices.Equal(got, []string{itemID}) {
+			t.Errorf("%s: items = %v, want [%s]", step, got, itemID)
+		}
+		if s := e.fileCol(path, "parse_status").String; s != ParseOK {
+			t.Errorf("%s: parse_status = %q", step, s)
+		}
+		if e.count(`SELECT COUNT(*) FROM file_identifications`) != 1 {
+			t.Errorf("%s: identification lost", step)
+		}
+	}
+	e.run(ScanOptions{})
+	check("rescan", p)
+	e.run(ScanOptions{Full: true})
+	check("full rescan", p)
+	e.write("1080p.BluRay.x264.mkv", strings.Repeat("amelie", 1001))
+	e.run(ScanOptions{})
+	check("changed content", p)
+
+	if err := os.MkdirAll(e.path("Elsewhere"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	moved := e.path("Elsewhere/1080p.BluRay.x264.mkv")
+	if err := os.Rename(p, moved); err != nil {
+		t.Fatal(err)
+	}
+	if rep := e.run(ScanOptions{}); rep.Moved != 1 {
+		t.Fatalf("report = %+v, want a move", rep)
+	}
+	check("move", moved)
+}
+
+// TestListItemsUsesMatchedSortTitle: once F005 matched an item, lists follow
+// its matched sort title instead of the parsed one.
+func TestListItemsUsesMatchedSortTitle(t *testing.T) {
+	e := newScanEnv(t, TypeMovies)
+	e.write("Apple (2000).mkv", "a")
+	e.write("Zebra (2000).mkv", "z")
+	e.run(ScanOptions{})
+	titles := func() []string {
+		items, _, err := e.store.ListItems(context.Background(), ItemQuery{LibraryID: e.lib.ID})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var out []string
+		for _, it := range items {
+			out = append(out, it.Title)
+		}
+		return out
+	}
+	if got := titles(); !slices.Equal(got, []string{"Apple", "Zebra"}) {
+		t.Fatalf("parsed order = %v", got)
+	}
+	zebra := e.itemsOf(e.path("Zebra (2000).mkv"))[0]
+	if _, err := e.db.Exec(`INSERT INTO item_metadata (item_id, state, sort_title, updated_at) VALUES (?, 'matched', 'Aardvark', ?)`, zebra, ts(e.now)); err != nil {
+		t.Fatal(err)
+	}
+	if got := titles(); !slices.Equal(got, []string{"Zebra", "Apple"}) {
+		t.Errorf("matched order = %v, want Zebra (sorted as Aardvark) first", got)
+	}
+}

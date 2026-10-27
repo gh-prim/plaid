@@ -689,3 +689,17 @@ func newLiveServer(t *testing.T, h http.Handler) *liveServer {
 	t.Cleanup(func() { _ = srv.Close(); wg.Wait() })
 	return &liveServer{URL: "http://" + ln.Addr().String(), Config: srv}
 }
+
+// TestLibraryMetadataLocale: a new library takes its metadata language and
+// region from the creating admin's locale (F005 R10).
+func TestLibraryMetadataLocale(t *testing.T) {
+	e := newLibEnv(t, libOpts{})
+	lib := e.create("Films", "movies", t.TempDir()) // the test admin's locale is fr
+	var lang, region string
+	if err := e.db.QueryRow(`SELECT metadata_language, metadata_region FROM libraries WHERE id = ?`, lib.ID).Scan(&lang, &region); err != nil {
+		t.Fatal(err)
+	}
+	if lang != "fr" || region != "FR" {
+		t.Errorf("metadata locale = %s/%s, want fr/FR", lang, region)
+	}
+}

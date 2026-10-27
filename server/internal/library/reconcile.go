@@ -27,6 +27,8 @@ type Scanner struct {
 	// Workers bounds concurrent probes; 0 means min(4, NumCPU) (R24).
 	Workers int
 	Log     *slog.Logger
+	// Hooks report created items and sidecar files to F005.
+	Hooks Hooks
 }
 
 // ScanOptions tune one scan.
@@ -374,6 +376,7 @@ func (s *Scanner) ScanLibrary(ctx context.Context, libraryID string, opts ScanOp
 	if err := st.setLastScan(ctx, lib.ID); err != nil {
 		return rep, err
 	}
+	s.runHooks(lib.ID, scans, idx.created)
 
 	// 8. Analysis, in the background of the walk (R12, R24).
 	opts.progress(PhaseAnalyzing, "", rep)
@@ -385,6 +388,18 @@ func (s *Scanner) ScanLibrary(ctx context.Context, libraryID string, opts ScanOp
 		"analyzed", rep.Analyzed, "failed", rep.Failed, "unrecognized", rep.Unrecognized,
 		"unavailable", len(rep.Unavailable))
 	return rep, nil
+}
+
+// runHooks reports what a committed scan created and found to F005.
+func (s *Scanner) runHooks(libraryID string, scans []folderScan, created []string) {
+	if s.Hooks.ItemsCreated != nil && len(created) > 0 {
+		s.Hooks.ItemsCreated(libraryID, created)
+	}
+	if s.Hooks.Sidecars != nil {
+		for _, sc := range scans {
+			s.Hooks.Sidecars(libraryID, sc.folder.Path, sc.walk.Sidecars)
+		}
+	}
 }
 
 func underSkipped(sc *folderScan, path string) bool {
@@ -463,6 +478,7 @@ type itemIndex struct {
 	shows    map[string]string // normTitle \x00 year → id
 	seasons  map[string]string // show id / season → id
 	episodes map[string]string // season id / episode, or season id / d / date → id
+	created  []string          // items inserted by this scan, for Hooks.ItemsCreated
 }
 
 func movieKey(title string, year int) string { return normTitle(title) + "\x00" + strconv.Itoa(year) }
@@ -509,6 +525,9 @@ func (s *Scanner) link(b *Batch, idx *itemIndex, lib Library, wf WalkedFile, fil
 			episode_number, air_date, hints, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			id, lib.ID, kind, nullString(parentID), nullString(title), nullString(sortTitle(title)), nullInt(year),
 			nullIntNeg(season), nullIntNeg(episode), nullString(airDate), nullString(hints), now, now)
+		if err == nil {
+			idx.created = append(idx.created, id)
+		}
 		return id, err
 	}
 	linkTo := func(itemID string) error {
