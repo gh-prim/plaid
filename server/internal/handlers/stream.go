@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"errors"
+	"io"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gh-prim/plaid/server/internal/apierr"
 	"github.com/gh-prim/plaid/server/internal/playback"
@@ -15,6 +17,12 @@ import (
 
 // StreamPrefix is where playback streams are served (F006 R25).
 const StreamPrefix = "/api/v1/stream/"
+
+// Content types of HLS resources.
+const (
+	typePlaylist = "application/vnd.apple.mpegurl"
+	typeSegment  = "video/mp4"
+)
 
 // StreamHandler serves /api/v1/stream/{token}/… outside the generated
 // server, which can't do Range, HEAD or long polling. The operations are
@@ -34,24 +42,76 @@ func StreamHandler(svc *playback.Service) http.Handler {
 			apierr.Write(w, apierr.PlaybackSessionNotFound())
 			return
 		}
-		switch rest {
-		case "file":
+		dir, name := "", rest
+		if i := strings.IndexByte(rest, '/'); i >= 0 {
+			dir, name = rest[:i], rest[i+1:]
+		}
+		base, ext, _ := strings.Cut(name, ".")
+		switch {
+		case dir == "" && name == "file":
 			serveFile(w, r, svc, token)
+		case dir == "" && name == "master.m3u8":
+			servePlaylist(w, r, svc, token, func(s playback.Session) (string, error) { return playback.MasterPlaylist(s), nil })
+		case dir == "video" && name == "index.m3u8":
+			servePlaylist(w, r, svc, token, svc.MediaPlaylist)
+		case dir == "video" && name == "init.mp4":
+			serveInit(w, r, svc, token)
+		case dir == "video" && ext == "m4s":
+			if n, ok := streamIndex(base); ok {
+				serveSegment(w, r, svc, token, n)
+				return
+			}
+			apierr.Write(w, apierr.NotFound("no such stream resource"))
+		case dir == "subtitles" && (ext == "m3u8" || ext == playback.SubtitleVTT || ext == playback.SubtitleASS):
+			if n, ok := streamIndex(base); ok {
+				serveSubtitle(w, r, svc, token, n, ext)
+				return
+			}
+			apierr.Write(w, apierr.NotFound("no such stream resource"))
 		default:
 			apierr.Write(w, apierr.NotFound("no such stream resource"))
 		}
 	})
 }
 
-// serveFile serves the original file for Direct Play (R10).
-func serveFile(w http.ResponseWriter, r *http.Request, svc *playback.Service, token string) {
-	sess, err := svc.StreamSession(r.Context(), token, true)
+// streamIndex reads a segment or stream number: digits only, bounded.
+func streamIndex(s string) (int, bool) {
+	if s == "" || len(s) > 7 || strings.TrimLeft(s, "0123456789") != "" {
+		return 0, false
+	}
+	n, err := strconv.Atoi(s)
+	return n, err == nil
+}
+
+// session resolves the token; checkAuth also checks its F003 session
+// (playlists and files, not every segment).
+func session(w http.ResponseWriter, r *http.Request, svc *playback.Service, token string, checkAuth bool) (playback.Session, bool) {
+	sess, err := svc.StreamSession(r.Context(), token, checkAuth)
 	switch {
 	case errors.Is(err, playback.ErrSessionNotFound):
 		apierr.Write(w, apierr.PlaybackSessionNotFound())
-		return
+		return sess, false
 	case err != nil:
 		apierr.Write(w, apierr.Internal())
+		return sess, false
+	}
+	return sess, true
+}
+
+// streamError writes a playback error as an API error.
+func streamError(w http.ResponseWriter, err error) {
+	var e *apierr.Error
+	if errors.As(playbackErr(err), &e) {
+		apierr.Write(w, e)
+		return
+	}
+	apierr.Write(w, apierr.Internal())
+}
+
+// serveFile serves the original file for Direct Play (R10).
+func serveFile(w http.ResponseWriter, r *http.Request, svc *playback.Service, token string) {
+	sess, ok := session(w, r, svc, token, true)
+	if !ok {
 		return
 	}
 	if sess.Decision.Method != playback.DirectPlay {
@@ -76,4 +136,173 @@ func serveFile(w http.ResponseWriter, r *http.Request, svc *playback.Service, to
 	h.Set("Content-Disposition", mime.FormatMediaType("inline", map[string]string{"filename": filepath.Base(m.Path)}))
 	h.Set("Cache-Control", "private")
 	http.ServeContent(w, r, "", st.ModTime(), f)
+}
+
+// servePlaylist serves an HLS playlist, never cached (R25).
+func servePlaylist(w http.ResponseWriter, r *http.Request, svc *playback.Service, token string, build func(playback.Session) (string, error)) {
+	sess, ok := session(w, r, svc, token, true)
+	if !ok {
+		return
+	}
+	if sess.Decision.Method == playback.DirectPlay {
+		apierr.Write(w, apierr.NotFound("this session is Direct Play"))
+		return
+	}
+	body, err := build(sess)
+	if err != nil {
+		streamError(w, err)
+		return
+	}
+	h := w.Header()
+	h.Set("Content-Type", typePlaylist)
+	h.Set("Cache-Control", "private, no-store")
+	h.Set("Content-Length", strconv.Itoa(len(body)))
+	if r.Method == http.MethodGet {
+		_, _ = io.WriteString(w, body)
+	}
+}
+
+func serveInit(w http.ResponseWriter, r *http.Request, svc *playback.Service, token string) {
+	sess, ok := session(w, r, svc, token, true)
+	if !ok {
+		return
+	}
+	path, err := svc.Init(r.Context(), sess)
+	if err != nil {
+		streamError(w, err)
+		return
+	}
+	serveFiles(w, r, typeSegment, []string{path})
+}
+
+// serveSegment serves segment n (R14). Segment requests skip the F003
+// check: playlists and the init segment already did it.
+func serveSegment(w http.ResponseWriter, r *http.Request, svc *playback.Service, token string, n int) {
+	sess, ok := session(w, r, svc, token, false)
+	if !ok {
+		return
+	}
+	files, err := svc.Segment(r.Context(), sess, n)
+	if err != nil {
+		streamError(w, err)
+		return
+	}
+	serveFiles(w, r, typeSegment, files)
+}
+
+// serveSubtitle serves a subtitle rendition playlist, WebVTT or ASS (R16).
+func serveSubtitle(w http.ResponseWriter, r *http.Request, svc *playback.Service, token string, index int, ext string) {
+	if ext == "m3u8" {
+		servePlaylist(w, r, svc, token, func(s playback.Session) (string, error) {
+			if playback.SubtitleURL(s, playback.Subtitle{Index: index, Codec: codecOf(s, index)}) == "" {
+				return "", playback.ErrNoSuchSubtitle
+			}
+			return playback.SubtitlePlaylist(s.Decision.Media.DurationMs, index), nil
+		})
+		return
+	}
+	sess, ok := session(w, r, svc, token, true)
+	if !ok {
+		return
+	}
+	path, err := svc.SubtitleFile(r.Context(), sess, index, ext)
+	if err != nil {
+		streamError(w, err)
+		return
+	}
+	ctype := "text/vtt; charset=utf-8"
+	if ext == playback.SubtitleASS {
+		ctype = "text/x-ssa; charset=utf-8"
+	}
+	serveFiles(w, r, ctype, []string{path})
+}
+
+func codecOf(s playback.Session, index int) string {
+	for _, sub := range s.Decision.Media.Subtitles {
+		if sub.Index == index {
+			return sub.Codec
+		}
+	}
+	return ""
+}
+
+// serveFiles serves files as one body, with ranges. They're opened before
+// anything is written, so a cleanup deleting them afterwards is harmless.
+func serveFiles(w http.ResponseWriter, r *http.Request, ctype string, paths []string) {
+	body, err := openAll(paths)
+	if err != nil {
+		apierr.Write(w, apierr.NotFound("no such stream resource"))
+		return
+	}
+	defer body.Close()
+	w.Header().Set("Content-Type", ctype)
+	w.Header().Set("Cache-Control", "private")
+	http.ServeContent(w, r, "", time.Time{}, body)
+}
+
+// multiFile reads files one after the other as a single seekable body.
+type multiFile struct {
+	files []*os.File
+	sizes []int64
+	total int64
+	off   int64
+}
+
+func openAll(paths []string) (*multiFile, error) {
+	m := &multiFile{}
+	for _, p := range paths {
+		f, err := os.Open(p) //nolint:gosec // paths come from the session's folder, never the URL
+		if err != nil {
+			m.Close()
+			return nil, err
+		}
+		st, err := f.Stat()
+		if err != nil {
+			_ = f.Close()
+			m.Close()
+			return nil, err
+		}
+		m.files, m.sizes, m.total = append(m.files, f), append(m.sizes, st.Size()), m.total+st.Size()
+	}
+	return m, nil
+}
+
+func (m *multiFile) Read(p []byte) (int, error) {
+	if m.off >= m.total {
+		return 0, io.EOF
+	}
+	start := int64(0)
+	for i, f := range m.files {
+		if m.off < start+m.sizes[i] {
+			n, err := f.ReadAt(p[:min(int64(len(p)), start+m.sizes[i]-m.off)], m.off-start)
+			m.off += int64(n)
+			if errors.Is(err, io.EOF) && n > 0 {
+				err = nil
+			}
+			return n, err
+		}
+		start += m.sizes[i]
+	}
+	return 0, io.EOF
+}
+
+func (m *multiFile) Seek(offset int64, whence int) (int64, error) {
+	switch whence {
+	case io.SeekStart:
+	case io.SeekCurrent:
+		offset += m.off
+	case io.SeekEnd:
+		offset += m.total
+	}
+	if offset < 0 {
+		return 0, errors.New("negative position")
+	}
+	m.off = offset
+	return offset, nil
+}
+
+func (m *multiFile) Close() {
+	for _, f := range m.files {
+		_ = f.Close()
+	}
 }

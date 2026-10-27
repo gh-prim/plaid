@@ -1239,6 +1239,29 @@ paths:
                 $ref: "#/components/schemas/PlaybackSession"
         default:
           $ref: "#/components/responses/Error"
+    patch:
+      operationId: updatePlayback
+      summary: Change the audio track, subtitles, quality or bitrate of a session (F006 R6)
+      description: >-
+        The server decides again. An unchanged decision keeps the same `url`. A changed one gives the session a new
+        token, so a new `url` (the old one answers 404 at once): the client reloads it from `positionMs`. A change that
+        needs a transcode when none is free answers 503 `transcode_limit_reached`, and the session keeps its stream.
+      tags: [playback]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaybackUpdate"
+      responses:
+        "200":
+          description: The session, as decided again
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybackSession"
+        default:
+          $ref: "#/components/responses/Error"
     delete:
       operationId: stopPlayback
       summary: End a playback session (yours, or anyone's for an admin) and save its last position (F006 R8, R32)
@@ -1270,6 +1293,40 @@ paths:
       responses:
         "204":
           description: Recorded
+        default:
+          $ref: "#/components/responses/Error"
+  /settings/playback:
+    get:
+      operationId: getPlaybackSettings
+      summary: Playback settings (admin, F006 R30)
+      tags: [playback]
+      responses:
+        "200":
+          description: The settings in effect, defaults included
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybackSettings"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updatePlaybackSettings
+      summary: Change playback settings (admin, F006 R30)
+      description: Absent fields keep their value; `null` on `maxTranscodes` or `transcodeDirMaxBytes` goes back to the computed default.
+      tags: [playback]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaybackSettingsUpdate"
+      responses:
+        "200":
+          description: The settings in effect after the change
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybackSettings"
         default:
           $ref: "#/components/responses/Error"
   /stream/{token}/file:
@@ -1323,6 +1380,133 @@ paths:
       responses:
         "200":
           description: Headers only
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/master.m3u8:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+    get:
+      operationId: streamMasterPlaylist
+      summary: HLS master playlist (F006 R11)
+      description: >-
+        One video variant with its audio, and the text subtitles as renditions. Relative URLs inherit the token. Sent with `Cache-Control: private, no-store`.
+      tags: [stream]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/video/index.m3u8:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+    get:
+      operationId: streamMediaPlaylist
+      summary: HLS media playlist, every segment of the whole duration (VOD, F006 R11–R13)
+      tags: [stream]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/video/init.mp4:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+    get:
+      operationId: streamInitSegment
+      summary: fMP4 init segment
+      tags: [stream]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            video/mp4:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/video/{segment}.m4s:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+      - $ref: "#/components/parameters/SegmentNumber"
+    get:
+      operationId: streamSegment
+      summary: fMP4 media segment (F006 R14)
+      description: >-
+        Served as soon as it exists. A segment the current FFmpeg run reaches within 3 segments is waited for (up to 20 s, then 503 `segment_not_ready` with `Retry-After: 1`); any other one restarts FFmpeg there.
+      tags: [stream]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            video/mp4:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/subtitles/{index}.m3u8:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+      - $ref: "#/components/parameters/SubtitleIndex"
+    get:
+      operationId: streamSubtitlePlaylist
+      summary: Subtitle rendition playlist, one WebVTT file for the whole duration (F006 R16)
+      tags: [stream]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/subtitles/{index}.vtt:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+      - $ref: "#/components/parameters/SubtitleIndex"
+    get:
+      operationId: streamSubtitleVtt
+      summary: A text subtitle track as WebVTT, converted once and cached (F006 R16)
+      tags: [stream]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            text/vtt:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/subtitles/{index}.ass:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+      - $ref: "#/components/parameters/SubtitleIndex"
+    get:
+      operationId: streamSubtitleAss
+      summary: An ASS/SSA track as is, for clients that render ASS (F006 R16)
+      tags: [stream]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            text/x-ssa:
+              schema:
+                type: string
         default:
           $ref: "#/components/responses/Error"
   /fs/browse:
@@ -1421,6 +1605,22 @@ components:
       description: The playback token from PlaybackSession.url. Never logged.
       schema:
         type: string
+    SegmentNumber:
+      name: segment
+      in: path
+      required: true
+      description: Segment number, from 0, as listed in the media playlist.
+      schema:
+        type: integer
+        minimum: 0
+    SubtitleIndex:
+      name: index
+      in: path
+      required: true
+      description: The subtitle's stream index, as in PlaybackSession.subtitles.
+      schema:
+        type: integer
+        minimum: 0
     Range:
       name: Range
       in: header
@@ -3009,6 +3209,84 @@ components:
           type: integer
           format: int64
           minimum: 0
+    PlaybackUpdate:
+      type: object
+      required: [positionMs]
+      properties:
+        positionMs:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Where the client is; a new `url` starts there.
+        audioStreamIndex:
+          type: integer
+        subtitleStreamIndex:
+          type: [integer, "null"]
+          description: null turns subtitles off; absent keeps the current choice.
+        quality:
+          $ref: "#/components/schemas/Quality"
+        maxBitrate:
+          type: [integer, "null"]
+          format: int64
+          minimum: 1
+          description: null removes the request's limit.
+        burnSubtitles:
+          type: boolean
+    EncoderPreset:
+      type: string
+      enum: [fast, balanced, quality]
+      x-enum-varnames: [EncoderPresetFast, EncoderPresetBalanced, EncoderPresetQuality]
+      description: Encoder speed against quality (libx264 veryfast, faster, medium).
+    PlaybackSettings:
+      type: object
+      required: [maxTranscodes, maxTranscodesDefault, remoteMaxBitrate, localNetworks, transcodeDirMaxBytes, transcodeDirMaxBytesDefault, encoderPreset]
+      properties:
+        maxTranscodes:
+          type: integer
+          description: Simultaneous video transcodes (R26).
+        maxTranscodesDefault:
+          type: integer
+          description: The computed default, from the CPU count.
+        remoteMaxBitrate:
+          type: integer
+          format: int64
+          description: Bits per second for remote clients, 0 for no limit (R22).
+        localNetworks:
+          type: array
+          description: Extra CIDRs counted as local, e.g. 100.64.0.0/10 for Tailscale.
+          items:
+            type: string
+        transcodeDirMaxBytes:
+          type: integer
+          format: int64
+          description: Size cap of the transcode folder (R27).
+        transcodeDirMaxBytesDefault:
+          type: integer
+          format: int64
+          description: The default computed at startup from the folder's free space.
+        encoderPreset:
+          $ref: "#/components/schemas/EncoderPreset"
+    PlaybackSettingsUpdate:
+      type: object
+      properties:
+        maxTranscodes:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 32
+        remoteMaxBitrate:
+          type: integer
+          format: int64
+          minimum: 0
+        localNetworks:
+          type: array
+          items:
+            type: string
+        transcodeDirMaxBytes:
+          type: [integer, "null"]
+          format: int64
+          minimum: 1
+        encoderPreset:
+          $ref: "#/components/schemas/EncoderPreset"
     ActivePlayback:
       type: object
       required: [session, userId, username, profileId, profileName, deviceName, itemTitle, positionMs, remote, startedAt, lastActivityAt]

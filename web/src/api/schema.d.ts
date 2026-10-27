@@ -998,7 +998,11 @@ export interface paths {
     delete: operations['stopPlayback']
     options?: never
     head?: never
-    patch?: never
+    /**
+     * Change the audio track, subtitles, quality or bitrate of a session (F006 R6)
+     * @description The server decides again. An unchanged decision keeps the same `url`. A changed one gives the session a new token, so a new `url` (the old one answers 404 at once): the client reloads it from `positionMs`. A change that needs a transcode when none is free answers 503 `transcode_limit_reached`, and the session keeps its stream.
+     */
+    patch: operations['updatePlayback']
     trace?: never
   }
   '/playback/{sessionId}/progress': {
@@ -1023,6 +1027,27 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/settings/playback': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Playback settings (admin, F006 R30) */
+    get: operations['getPlaybackSettings']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    /**
+     * Change playback settings (admin, F006 R30)
+     * @description Absent fields keep their value; `null` on `maxTranscodes` or `transcodeDirMaxBytes` goes back to the computed default.
+     */
+    patch: operations['updatePlaybackSettings']
+    trace?: never
+  }
   '/stream/{token}/file': {
     parameters: {
       query?: never
@@ -1044,6 +1069,160 @@ export interface paths {
     options?: never
     /** Headers of the original file (size, type, ranges) */
     head: operations['headStreamFile']
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/master.m3u8': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    /**
+     * HLS master playlist (F006 R11)
+     * @description One video variant with its audio, and the text subtitles as renditions. Relative URLs inherit the token. Sent with `Cache-Control: private, no-store`.
+     */
+    get: operations['streamMasterPlaylist']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/video/index.m3u8': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    /** HLS media playlist, every segment of the whole duration (VOD, F006 R11–R13) */
+    get: operations['streamMediaPlaylist']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/video/init.mp4': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    /** fMP4 init segment */
+    get: operations['streamInitSegment']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/video/{segment}.m4s': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description Segment number, from 0, as listed in the media playlist. */
+        segment: components['parameters']['SegmentNumber']
+      }
+      cookie?: never
+    }
+    /**
+     * fMP4 media segment (F006 R14)
+     * @description Served as soon as it exists. A segment the current FFmpeg run reaches within 3 segments is waited for (up to 20 s, then 503 `segment_not_ready` with `Retry-After: 1`); any other one restarts FFmpeg there.
+     */
+    get: operations['streamSegment']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/subtitles/{index}.m3u8': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+        index: components['parameters']['SubtitleIndex']
+      }
+      cookie?: never
+    }
+    /** Subtitle rendition playlist, one WebVTT file for the whole duration (F006 R16) */
+    get: operations['streamSubtitlePlaylist']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/subtitles/{index}.vtt': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+        index: components['parameters']['SubtitleIndex']
+      }
+      cookie?: never
+    }
+    /** A text subtitle track as WebVTT, converted once and cached (F006 R16) */
+    get: operations['streamSubtitleVtt']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/subtitles/{index}.ass': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+        index: components['parameters']['SubtitleIndex']
+      }
+      cookie?: never
+    }
+    /** An ASS/SSA track as is, for clients that render ASS (F006 R16) */
+    get: operations['streamSubtitleAss']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
     patch?: never
     trace?: never
   }
@@ -1937,6 +2116,61 @@ export interface components {
       /** Format: int64 */
       positionMs?: number
     }
+    PlaybackUpdate: {
+      /**
+       * Format: int64
+       * @description Where the client is; a new `url` starts there.
+       */
+      positionMs: number
+      audioStreamIndex?: number
+      /** @description null turns subtitles off; absent keeps the current choice. */
+      subtitleStreamIndex?: number | null
+      quality?: components['schemas']['Quality']
+      /**
+       * Format: int64
+       * @description null removes the request's limit.
+       */
+      maxBitrate?: number | null
+      burnSubtitles?: boolean
+    }
+    /**
+     * @description Encoder speed against quality (libx264 veryfast, faster, medium).
+     * @enum {string}
+     */
+    EncoderPreset: 'fast' | 'balanced' | 'quality'
+    PlaybackSettings: {
+      /** @description Simultaneous video transcodes (R26). */
+      maxTranscodes: number
+      /** @description The computed default, from the CPU count. */
+      maxTranscodesDefault: number
+      /**
+       * Format: int64
+       * @description Bits per second for remote clients, 0 for no limit (R22).
+       */
+      remoteMaxBitrate: number
+      /** @description Extra CIDRs counted as local, e.g. 100.64.0.0/10 for Tailscale. */
+      localNetworks: string[]
+      /**
+       * Format: int64
+       * @description Size cap of the transcode folder (R27).
+       */
+      transcodeDirMaxBytes: number
+      /**
+       * Format: int64
+       * @description The default computed at startup from the folder's free space.
+       */
+      transcodeDirMaxBytesDefault: number
+      encoderPreset: components['schemas']['EncoderPreset']
+    }
+    PlaybackSettingsUpdate: {
+      maxTranscodes?: number | null
+      /** Format: int64 */
+      remoteMaxBitrate?: number
+      localNetworks?: string[]
+      /** Format: int64 */
+      transcodeDirMaxBytes?: number | null
+      encoderPreset?: components['schemas']['EncoderPreset']
+    }
     ActivePlayback: {
       session: components['schemas']['PlaybackSession']
       userId: string
@@ -2022,6 +2256,10 @@ export interface components {
     PlaybackSessionId: string
     /** @description The playback token from PlaybackSession.url. Never logged. */
     StreamToken: string
+    /** @description Segment number, from 0, as listed in the media playlist. */
+    SegmentNumber: number
+    /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+    SubtitleIndex: number
     Range: string
   }
   requestBodies: never
@@ -3582,6 +3820,33 @@ export interface operations {
       default: components['responses']['Error']
     }
   }
+  updatePlayback: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sessionId: components['parameters']['PlaybackSessionId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PlaybackUpdate']
+      }
+    }
+    responses: {
+      /** @description The session, as decided again */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PlaybackSession']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
   reportPlaybackProgress: {
     parameters: {
       query?: never
@@ -3603,6 +3868,52 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getPlaybackSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The settings in effect, defaults included */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PlaybackSettings']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updatePlaybackSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PlaybackSettingsUpdate']
+      }
+    }
+    responses: {
+      /** @description The settings in effect after the change */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PlaybackSettings']
+        }
       }
       default: components['responses']['Error']
     }
@@ -3670,6 +3981,182 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamMasterPlaylist: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/vnd.apple.mpegurl': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamMediaPlaylist: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/vnd.apple.mpegurl': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamInitSegment: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'video/mp4': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamSegment: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description Segment number, from 0, as listed in the media playlist. */
+        segment: components['parameters']['SegmentNumber']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'video/mp4': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamSubtitlePlaylist: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+        index: components['parameters']['SubtitleIndex']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/vnd.apple.mpegurl': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamSubtitleVtt: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+        index: components['parameters']['SubtitleIndex']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'text/vtt': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamSubtitleAss: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+        index: components['parameters']['SubtitleIndex']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'text/x-ssa': string
+        }
       }
       default: components['responses']['Error']
     }

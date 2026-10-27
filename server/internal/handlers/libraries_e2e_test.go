@@ -65,6 +65,9 @@ type libOpts struct {
 	// tmdb, when set, runs F005 (with artwork) against the recorded
 	// TMDB and fanart.tv responses it serves.
 	tmdb *tmdbtest.Server
+	// hls, when set, plays with the real FFmpeg, a transcode folder and
+	// these timings, on the real clock (F006 PR B).
+	hls *playback.Timings
 }
 
 func newLibEnv(t *testing.T, o libOpts) *libEnv {
@@ -94,8 +97,22 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	t.Cleanup(engine.Close)
 	streams, end := context.WithCancel(context.Background())
 	t.Cleanup(end)
-	play := playback.New(playback.Options{DB: e.db, Library: engine.Store(), Accounts: e.acct,
-		Settings: settings.New(e.db), Log: logger, Now: e.clock.now})
+	po := playback.Options{DB: e.db, Library: engine.Store(), Accounts: e.acct,
+		Settings: settings.New(e.db), Log: logger, Now: e.clock.now}
+	if o.hls != nil {
+		ffmpeg, err := playback.FindFFmpeg(context.Background(), "")
+		if err != nil {
+			t.Skip("ffmpeg not installed")
+		}
+		po.FFmpeg, po.Timings, po.Now = ffmpeg, o.hls, nil
+		po.TranscodeDir, po.CacheDir = filepath.Join(t.TempDir(), "transcodes"), t.TempDir()
+	}
+	play := playback.New(po)
+	if o.hls != nil {
+		ctx, stop := context.WithCancel(context.Background())
+		play.Start(ctx)
+		t.Cleanup(stop)
+	}
 	t.Cleanup(play.Close)
 	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta,
 		Playback: play, Streams: streams})

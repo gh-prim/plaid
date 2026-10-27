@@ -26,6 +26,9 @@ type Config struct {
 	FFprobePath string
 	// FFmpegPath overrides the ffmpeg found on PATH (ADR 0006, F006).
 	FFmpegPath string
+	// TranscodeDir holds HLS segments while sessions play (F006 R27).
+	// Defaults to $PLAID_DATA_DIR/transcodes.
+	TranscodeDir string
 	// BrowseRoots restricts the library folder picker (F004-R3); empty
 	// means the whole file system.
 	BrowseRoots []string
@@ -92,6 +95,7 @@ func Load(getenv func(string) string) (Config, error) {
 
 	cfg.FFprobePath = getenv("PLAID_FFPROBE_PATH")
 	cfg.FFmpegPath = getenv("PLAID_FFMPEG_PATH")
+	cfg.TranscodeDir = getenv("PLAID_TRANSCODE_DIR")
 	cfg.TMDBAPIKey = strings.TrimSpace(getenv("PLAID_TMDB_API_KEY"))
 	cfg.FanartAPIKey = strings.TrimSpace(getenv("PLAID_FANART_API_KEY"))
 	if v := getenv("PLAID_ARTWORK_CACHE_MAX_MB"); v != "" {
@@ -109,6 +113,19 @@ func Load(getenv func(string) string) (Config, error) {
 
 	if err := os.MkdirAll(cfg.DataDir, 0o750); err != nil {
 		return Config{}, fmt.Errorf("create data dir %s: %w", cfg.DataDir, err)
+	}
+	if cfg.TranscodeDir == "" {
+		cfg.TranscodeDir = filepath.Join(cfg.DataDir, "transcodes")
+	}
+	if !filepath.IsAbs(cfg.TranscodeDir) {
+		abs, err := filepath.Abs(cfg.TranscodeDir)
+		if err != nil {
+			return Config{}, fmt.Errorf("PLAID_TRANSCODE_DIR: %w", err)
+		}
+		cfg.TranscodeDir = abs
+	}
+	if err := os.MkdirAll(cfg.TranscodeDir, 0o750); err != nil {
+		return Config{}, fmt.Errorf("create transcode dir %s: %w", cfg.TranscodeDir, err)
 	}
 	return cfg, nil
 }

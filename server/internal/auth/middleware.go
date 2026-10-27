@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/gh-prim/plaid/server/internal/apierr"
@@ -46,6 +47,13 @@ var publicRoutes = []string{
 	// Playback streams authenticate by the token in their path (F006 R25).
 	"GET /stream/{token}/file",
 	"HEAD /stream/{token}/file",
+	"GET /stream/{token}/master.m3u8",
+	"GET /stream/{token}/video/index.m3u8",
+	"GET /stream/{token}/video/init.mp4",
+	"GET /stream/{token}/video/{segment}.m4s",
+	"GET /stream/{token}/subtitles/{index}.m3u8",
+	"GET /stream/{token}/subtitles/{index}.vtt",
+	"GET /stream/{token}/subtitles/{index}.ass",
 }
 
 // passwordChangeRoutes stay usable while an account has a temporary
@@ -118,12 +126,23 @@ func Authenticate(sessions SessionLookup, next http.Handler) http.Handler {
 
 func routeMatcher(routes []string) *http.ServeMux {
 	mux := http.NewServeMux()
+	seen := map[string]bool{}
 	for _, route := range routes {
 		method, path, _ := strings.Cut(route, " ")
-		mux.Handle(method+" /api/v1"+path, http.NotFoundHandler())
+		// ServeMux wildcards are whole segments: "{segment}.m4s" in the
+		// contract matches as "{segment}", and the routes it merges
+		// ("{index}.vtt", "{index}.ass") are registered once.
+		pattern := method + " /api/v1" + wildcardSuffix.ReplaceAllString(path, "{$1}")
+		if !seen[pattern] {
+			seen[pattern] = true
+			mux.Handle(pattern, http.NotFoundHandler())
+		}
 	}
 	return mux
 }
+
+// wildcardSuffix is a path wildcard followed by an extension.
+var wildcardSuffix = regexp.MustCompile(`\{(\w+)\}\.\w+`)
 
 func matches(mux *http.ServeMux, r *http.Request) bool {
 	_, pattern := mux.Handler(r)

@@ -139,6 +139,15 @@ func TestLoadLibraryOptions(t *testing.T) {
 	if cfg.FFprobePath != "/opt/ffmpeg/bin/ffprobe" || cfg.FFmpegPath != "/opt/ffmpeg/bin/ffmpeg" {
 		t.Errorf("FFprobePath = %q, FFmpegPath = %q", cfg.FFprobePath, cfg.FFmpegPath)
 	}
+	if want := filepath.Join(cfg.DataDir, "transcodes"); cfg.TranscodeDir != want {
+		t.Errorf("TranscodeDir = %q, want %q", cfg.TranscodeDir, want)
+	}
+	custom := filepath.Join(t.TempDir(), "tx")
+	if c, err := Load(env(map[string]string{"PLAID_DATA_DIR": t.TempDir(), "PLAID_TRANSCODE_DIR": custom})); err != nil || c.TranscodeDir != custom {
+		t.Errorf("PLAID_TRANSCODE_DIR: %q, %v", c.TranscodeDir, err)
+	} else if st, err := os.Stat(custom); err != nil || !st.IsDir() {
+		t.Errorf("the transcode folder wasn't created: %v", err)
+	}
 	if len(cfg.BrowseRoots) != 2 || cfg.BrowseRoots[0] != "/srv/media" || cfg.BrowseRoots[1] != "/mnt/usb" {
 		t.Errorf("BrowseRoots = %q", cfg.BrowseRoots)
 	}

@@ -27,6 +27,9 @@ type Media struct {
 	// HasKeyframeIndex is set when the container index lists the video
 	// keyframes, which Direct Stream needs to cut segments (R13).
 	HasKeyframeIndex bool
+	// Keyframes are the video keyframe times in ms, from the index.
+	Keyframes []int64
+	indexRead bool // the index was looked for
 }
 
 // Subtitle is an embedded or external subtitle track.
