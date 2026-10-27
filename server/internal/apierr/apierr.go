@@ -175,3 +175,31 @@ func PairingNotFound() *Error {
 func PairingExpired() *Error {
 	return New(http.StatusGone, "pairing_expired", "pairing code expired")
 }
+
+// Error codes from F004 (libraries and file scanning).
+
+// FolderNotFound rejects a library folder that doesn't exist, isn't a
+// directory or isn't an absolute path. field points at it, e.g. "folders/1".
+func FolderNotFound(field, path string) *Error {
+	e := New(http.StatusUnprocessableEntity, "folder_not_found", "folder not found: "+path)
+	e.Details = []Detail{{Field: field, Code: "folder_not_found"}}
+	return e
+}
+
+// FolderUnreadable rejects a library folder PLAID can't list or enter.
+func FolderUnreadable(field, path string) *Error {
+	e := New(http.StatusUnprocessableEntity, "folder_unreadable", "PLAID can't read this folder: "+path)
+	e.Details = []Detail{{Field: field, Code: "folder_unreadable"}}
+	return e
+}
+
+// FolderOverlap rejects a folder inside, containing or equal to another
+// library folder.
+func FolderOverlap(path, other string) *Error {
+	return New(http.StatusConflict, "folder_overlap", path+" overlaps library folder "+other)
+}
+
+// LibraryTypeImmutable refuses to change a library's type after creation.
+func LibraryTypeImmutable() *Error {
+	return New(http.StatusUnprocessableEntity, "library_type_immutable", "a library's type can't change")
+}

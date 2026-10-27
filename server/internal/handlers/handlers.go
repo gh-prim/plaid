@@ -6,6 +6,7 @@ import (
 
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/api"
+	"github.com/gh-prim/plaid/server/internal/library"
 )
 
 // Pinger is the part of *sql.DB the handlers need to check database health.
@@ -18,6 +19,10 @@ type Deps struct {
 	DB         Pinger
 	Accounts   *accounts.Service
 	ServerName string
+	Library    *library.Engine
+	// Streams is cancelled when the server shuts down, which ends
+	// long-lived responses such as server-sent events. Nil never ends them.
+	Streams context.Context
 }
 
 // Handlers implements every operation of the PLAID API.
@@ -25,11 +30,13 @@ type Handlers struct {
 	db         Pinger
 	accounts   *accounts.Service
 	serverName string
+	library    *library.Engine
+	streams    context.Context
 }
 
 var _ api.StrictServerInterface = (*Handlers)(nil)
 
 // New returns the API handlers.
 func New(d Deps) *Handlers {
-	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName}
+	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, streams: d.Streams}
 }

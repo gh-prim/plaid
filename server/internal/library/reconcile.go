@@ -33,6 +33,31 @@ type Scanner struct {
 type ScanOptions struct {
 	// Full re-probes every file, changed or not (R20 "Full rescan").
 	Full bool
+	// Progress, when set, is called from the scanning goroutine as the scan
+	// moves on (R21). It must not block.
+	Progress func(ScanProgress)
+}
+
+// Scan phases reported through ScanOptions.Progress.
+const (
+	PhaseScanning  = "scanning"
+	PhaseAnalyzing = "analyzing"
+)
+
+// ScanProgress is a point-in-time view of a running scan.
+type ScanProgress struct {
+	Phase  string
+	Folder string // folder being walked, "" while analyzing
+	// Report holds the counters so far; Unavailable is left empty.
+	Report Report
+}
+
+func (o ScanOptions) progress(phase, folder string, rep Report) {
+	if o.Progress == nil {
+		return
+	}
+	rep.Unavailable = nil
+	o.Progress(ScanProgress{Phase: phase, Folder: folder, Report: rep})
 }
 
 // Report counts what a scan did (R21).
@@ -110,7 +135,9 @@ func (s *Scanner) ScanLibrary(ctx context.Context, libraryID string, opts ScanOp
 
 	// 1. Walk, and apply the unavailable guard before any file write.
 	var scans []folderScan
+	walked := 0
 	for _, f := range lib.Folders {
+		opts.progress(PhaseScanning, f.Path, Report{Found: walked})
 		res, err := Walk(ctx, f.Path)
 		status := FolderOK
 		var fe *FolderError
@@ -135,6 +162,7 @@ func (s *Scanner) ScanLibrary(ctx context.Context, libraryID string, opts ScanOp
 			continue
 		}
 		scans = append(scans, folderScan{folder: f, walk: res})
+		walked += len(res.Files)
 	}
 
 	idx, err := s.loadItemIndex(ctx, libraryID)
@@ -348,7 +376,8 @@ func (s *Scanner) ScanLibrary(ctx context.Context, libraryID string, opts ScanOp
 	}
 
 	// 8. Analysis, in the background of the walk (R12, R24).
-	if err := s.analyze(ctx, jobs, &rep); err != nil {
+	opts.progress(PhaseAnalyzing, "", rep)
+	if err := s.analyze(ctx, jobs, &rep, opts); err != nil {
 		return rep, err
 	}
 	s.log().Info("library scanned", "library", lib.Name, "found", rep.Found, "new", rep.New,
@@ -603,7 +632,7 @@ func updateHidden(b *Batch, libraryID, now string) error {
 
 // analyze fingerprints and probes files with a bounded worker pool; results
 // are written by this goroutine in batches.
-func (s *Scanner) analyze(ctx context.Context, jobs []analysisJob, rep *Report) error {
+func (s *Scanner) analyze(ctx context.Context, jobs []analysisJob, rep *Report, opts ScanOptions) error {
 	if len(jobs) == 0 {
 		return nil
 	}
@@ -668,6 +697,7 @@ func (s *Scanner) analyze(ctx context.Context, jobs []analysisJob, rep *Report) 
 		if err := s.writeAnalysis(b, r.job, r.fingerprint, r.probe, r.probeErr, rep); err != nil {
 			return err
 		}
+		opts.progress(PhaseAnalyzing, "", *rep)
 		if err := b.EndUnit(); err != nil {
 			return err
 		}

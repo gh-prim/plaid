@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -20,6 +21,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/db"
 	"github.com/gh-prim/plaid/server/internal/handlers"
 	"github.com/gh-prim/plaid/server/internal/httpserver"
+	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/webui"
 )
 
@@ -62,10 +64,18 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	}
 	go accts.RunJanitor(ctx)
 
+	engine := newLibraryEngine(ctx, cfg, database, logger)
+	defer engine.Close()
+
+	// Cancelled by srv.Shutdown so open event streams don't hold it up.
+	streams, endStreams := context.WithCancel(context.Background())
+	defer endStreams()
 	handler := httpserver.New(handlers.New(handlers.Deps{
 		DB:         database,
 		Accounts:   accts,
 		ServerName: cfg.ServerName,
+		Library:    engine,
+		Streams:    streams,
 	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
 		Sessions:       accts,
@@ -76,15 +86,37 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		return err
 	}
 	logger.Info("listening", "addr", ln.Addr().String())
-	return serve(ctx, ln, handler, logger)
+	return serve(ctx, ln, handler, logger, endStreams)
+}
+
+// newLibraryEngine finds ffprobe and starts the library engine in the
+// background (F004-R25, NFR startup). A missing ffprobe is a warning:
+// files are then listed without analysis.
+func newLibraryEngine(ctx context.Context, cfg config.Config, database *sql.DB, logger *slog.Logger) *library.Engine {
+	opts := library.EngineOptions{BrowseRoots: cfg.BrowseRoots, Log: logger}
+	probe, err := library.FindFFprobe(ctx, cfg.FFprobePath, logger)
+	if err != nil {
+		logger.Warn("ffprobe not found: media files are listed but not analyzed; install ffmpeg or set PLAID_FFPROBE_PATH",
+			"code", "ffprobe_missing", "err", err)
+	} else {
+		logger.Info("ffprobe found", "path", probe.Path, "version", probe.Version)
+		opts.Prober, opts.FFprobeVersion = probe, probe.Version
+	}
+	engine := library.NewEngine(database, opts)
+	engine.Start(ctx)
+	return engine
 }
 
 // serve runs the HTTP server until ctx is cancelled, then gives in-flight
-// requests up to shutdownTimeout to finish.
-func serve(ctx context.Context, ln net.Listener, handler http.Handler, logger *slog.Logger) error {
+// requests up to shutdownTimeout to finish. onShutdown runs as shutdown
+// begins, to end long-lived responses.
+func serve(ctx context.Context, ln net.Listener, handler http.Handler, logger *slog.Logger, onShutdown func()) error {
 	srv := &http.Server{
 		Handler:           handler,
 		ReadHeaderTimeout: 10 * time.Second,
+	}
+	if onShutdown != nil {
+		srv.RegisterOnShutdown(onShutdown)
 	}
 	errs := make(chan error, 1)
 	go func() { errs <- srv.Serve(ln) }()

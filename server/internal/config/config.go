@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/netip"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -21,6 +22,11 @@ type Config struct {
 	TrustedProxies []netip.Prefix
 	// ServerName is shown to clients by GET /server. Defaults to the hostname.
 	ServerName string
+	// FFprobePath overrides the ffprobe found on PATH (F004-R25).
+	FFprobePath string
+	// BrowseRoots restricts the library folder picker (F004-R3); empty
+	// means the whole file system.
+	BrowseRoots []string
 }
 
 // Addr returns the host:port the HTTP server listens on.
@@ -75,10 +81,33 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 	cfg.TrustedProxies = proxies
 
+	cfg.FFprobePath = getenv("PLAID_FFPROBE_PATH")
+	roots, err := parseRoots(getenv("PLAID_BROWSE_ROOTS"))
+	if err != nil {
+		return Config{}, fmt.Errorf("PLAID_BROWSE_ROOTS: %w", err)
+	}
+	cfg.BrowseRoots = roots
+
 	if err := os.MkdirAll(cfg.DataDir, 0o750); err != nil {
 		return Config{}, fmt.Errorf("create data dir %s: %w", cfg.DataDir, err)
 	}
 	return cfg, nil
+}
+
+// parseRoots reads a colon-separated list of absolute paths.
+func parseRoots(list string) ([]string, error) {
+	var out []string
+	for _, item := range strings.Split(list, ":") {
+		item = strings.TrimSpace(item)
+		if item == "" {
+			continue
+		}
+		if !filepath.IsAbs(item) {
+			return nil, fmt.Errorf("%q is not an absolute path", item)
+		}
+		out = append(out, filepath.Clean(item))
+	}
+	return out, nil
 }
 
 // parsePrefixes reads a comma-separated list of CIDRs or bare IP addresses.

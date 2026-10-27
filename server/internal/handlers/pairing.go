@@ -26,7 +26,7 @@ func (h *Handlers) PollPairing(ctx context.Context, req api.PollPairingRequestOb
 		return nil, err
 	}
 	if pending {
-		return api.PollPairing202JSONResponse{Status: api.Pending}, nil
+		return api.PollPairing202JSONResponse{Status: api.PairingPendingStatusPending}, nil
 	}
 	return api.PollPairing200JSONResponse(toAuthResult(ctx, res, false)), nil
 }

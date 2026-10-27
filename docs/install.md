@@ -74,6 +74,8 @@ All settings are environment variables (in `/etc/plaid/plaid.env` for the native
 | `PLAID_LOG_FORMAT` | `text` (package), `json` (Docker) | `text` or `json` |
 | `PLAID_SERVER_NAME` | the machine's hostname | Name the apps show for this server |
 | `PLAID_TRUSTED_PROXIES` | empty | Reverse proxies (IPs or CIDRs, comma-separated) whose `X-Forwarded-For` / `X-Forwarded-Proto` headers PLAID believes. See below |
+| `PLAID_FFPROBE_PATH` | `ffprobe` on `PATH` | ffprobe used to analyze media files. Without one, files are listed but not analyzed |
+| `PLAID_BROWSE_ROOTS` | empty (whole disk) | Folders the library folder picker may show, colon-separated absolute paths, e.g. `/srv/media:/mnt` |
 
 ## First launch: creating the admin account
 
