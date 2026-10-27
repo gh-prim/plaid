@@ -41,8 +41,11 @@ func (h *Handlers) ClaimPairing(ctx context.Context, req api.ClaimPairingRequest
 	if err != nil {
 		return nil, err
 	}
-	if err := h.accounts.ClaimPairing(ctx, p, b.Code, b.ProfileId, deref(b.Pin)); err != nil {
+	sess, err := h.accounts.ClaimPairing(ctx, p, b.Code, b.ProfileId, deref(b.Pin))
+	if err != nil {
 		return nil, err
 	}
-	return api.ClaimPairing204Response{}, nil
+	return api.ClaimPairing200JSONResponse{
+		Id: sess.ID, DeviceName: sess.DeviceName, DeviceType: api.DeviceType(sess.DeviceType),
+	}, nil
 }

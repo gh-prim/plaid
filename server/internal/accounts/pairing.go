@@ -75,11 +75,12 @@ func (s *Service) StartPairing(ctx context.Context, d Device) (Pairing, error) {
 }
 
 // ClaimPairing signs the TV showing code in, on profileID of the caller's
-// account. The TV gets the session on its next poll.
-func (s *Service) ClaimPairing(ctx context.Context, p auth.Principal, rawCode, profileID, pin string) error {
+// account, and returns the TV's new session. The TV gets the token on its
+// next poll.
+func (s *Service) ClaimPairing(ctx context.Context, p auth.Principal, rawCode, profileID, pin string) (Session, error) {
 	key := "u:" + p.UserID
 	if wait := s.claims.Wait(key); wait > 0 {
-		return apierr.TooManyAttempts(wait)
+		return Session{}, apierr.TooManyAttempts(wait)
 	}
 	code := normalizeCode(rawCode)
 	var (
@@ -91,28 +92,31 @@ func (s *Service) ClaimPairing(ctx context.Context, p auth.Principal, rawCode, p
 		Scan(&id, &deviceName, &deviceType, &clientVersion, &expiresAt, &claimedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		s.claims.Fail(key)
-		return apierr.PairingNotFound()
+		return Session{}, apierr.PairingNotFound()
 	}
 	if err != nil {
-		return err
+		return Session{}, err
 	}
 	now := s.now()
 	if claimedAt.Valid || !now.Before(parseTS(expiresAt)) {
-		return apierr.PairingExpired()
+		return Session{}, apierr.PairingExpired()
 	}
 
 	profile, pinHash, err := s.getProfile(ctx, s.db, p.UserID, profileID)
 	if err != nil {
-		return apierr.ValidationFailed(apierr.Detail{Field: "profileId", Code: "not_found"})
+		return Session{}, apierr.ValidationFailed(apierr.Detail{Field: "profileId", Code: "not_found"})
 	}
 	if profile.HasPIN {
 		if err := s.checkPIN(ctx, "pair:"+p.UserID+":"+profile.ID, pinHash, pin); err != nil {
-			return err
+			return Session{}, err
 		}
 	}
 
 	d := Device{Name: deviceName, Type: deviceType, ClientVersion: clientVersion.String}
-	var token, sessionID string
+	var (
+		token   string
+		session Session
+	)
 	err = s.inTx(ctx, func(tx *sql.Tx) error {
 		t, sess, err := s.createSession(ctx, tx, p.UserID, profile.ID, d, "")
 		if err != nil {
@@ -126,18 +130,18 @@ func (s *Service) ClaimPairing(ctx context.Context, p auth.Principal, rawCode, p
 		if n, _ := res.RowsAffected(); n == 0 {
 			return apierr.PairingExpired() // claimed concurrently
 		}
-		token, sessionID = t, sess.ID
+		token, session = t, sess
 		return nil
 	})
 	if err != nil {
-		return err
+		return Session{}, err
 	}
 	s.claims.Reset(key)
 	s.mu.Lock()
 	s.pairTokens[id] = pendingToken{token: token, expires: parseTS(expiresAt).Add(pairingGrace)}
 	s.mu.Unlock()
-	s.logger.Info("pairing claimed", "user_id", p.UserID, "session_id", sessionID, "device_type", deviceType)
-	return nil
+	s.logger.Info("pairing claimed", "user_id", p.UserID, "session_id", session.ID, "device_type", deviceType)
+	return session, nil
 }
 
 // pairingGrace lets a TV that was claimed just before expiry still poll.

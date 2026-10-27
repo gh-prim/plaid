@@ -267,3 +267,5 @@ Settled by gh-prim on 2026-10-27. ✅ = resolved, ⏸ = tracked elsewhere.
   9. Sign-in, setup and pairing poll all return the same `AuthResult` body: `{token?, expiresAt, session: {id, deviceName, deviceType}, user, profiles, activeProfile?}`. A new session starts on the account's only profile if it has no PIN; otherwise no profile is active until one is picked.
   10. `POST /pairing/claim` also takes the `pin` of the chosen profile when it has one (R17 applies to the TV's profile too).
   11. The `plaid_session` cookie has `Max-Age` 400 days (the browser cap); the server's sliding 90-day expiry is what ends a session.
+- **2026-10-27, during PR 3** (gh-prim):
+  12. `POST /pairing/claim` returns `200` with the new session's `{id, deviceName, deviceType}` instead of `204`, for the `pairing.done` message.

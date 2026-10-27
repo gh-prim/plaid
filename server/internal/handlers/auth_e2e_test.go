@@ -597,7 +597,13 @@ func TestTVPairing(t *testing.T) {
 
 	e.expect(e.do("POST", "/pairing/claim", map[string]any{"code": "ZZZ-ZZZ", "profileId": kids.ID}, tok), http.StatusNotFound, "pairing_not_found")
 	lower := strings.ToLower(strings.ReplaceAll(started.Code, "-", ""))
-	e.expect(e.do("POST", "/pairing/claim", map[string]any{"code": lower, "profileId": kids.ID}, tok), http.StatusNoContent, "")
+	claim := e.do("POST", "/pairing/claim", map[string]any{"code": lower, "profileId": kids.ID}, tok)
+	e.expect(claim, http.StatusOK, "")
+	var claimed struct{ DeviceName string }
+	claim.json(&claimed)
+	if claimed.DeviceName != "Living room TV" {
+		t.Errorf("claim returned device %q, want the TV's name", claimed.DeviceName)
+	}
 	e.expect(e.do("POST", "/pairing/claim", map[string]any{"code": started.Code, "profileId": kids.ID}, tok), http.StatusGone, "pairing_expired")
 
 	r = poll()
@@ -638,7 +644,7 @@ func TestPairingTokenLostOnRestart(t *testing.T) {
 	var started struct{ ID, Code, PollSecret string }
 	e.do("POST", "/pairing", map[string]any{"device": tv}).json(&started)
 	e.expect(e.do("POST", "/pairing/claim", map[string]any{"code": started.Code, "profileId": admin.Profiles[0].ID}, bearer(admin.Token)),
-		http.StatusNoContent, "")
+		http.StatusOK, "")
 
 	// A new service on the same database is a restarted server.
 	restarted := accounts.New(e.db, accounts.Options{Hasher: e.hasher, Now: e.clock.now, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
@@ -704,5 +710,20 @@ func TestNoSecretsInLogs(t *testing.T) {
 		if !strings.Contains(logs, event) {
 			t.Errorf("log lacks %q", event)
 		}
+	}
+}
+
+func TestTimesAreUTC(t *testing.T) {
+	e := newEnv(t)
+	paris, err := time.LoadLocation("Europe/Paris")
+	if err != nil {
+		t.Skip("no tz database")
+	}
+	e.clock.t = e.clock.t.In(paris)
+	admin := e.setup()
+	var users []struct{ CreatedAt string }
+	e.do("GET", "/users", nil, bearer(admin.Token)).json(&users)
+	if !strings.HasSuffix(users[0].CreatedAt, "Z") {
+		t.Errorf("createdAt = %q, want UTC", users[0].CreatedAt)
 	}
 }

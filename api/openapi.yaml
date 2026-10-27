@@ -487,8 +487,12 @@ paths:
             schema:
               $ref: "#/components/schemas/ClaimPairingRequest"
       responses:
-        "204":
+        "200":
           description: Claimed; the TV gets its session on its next poll
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionInfo"
         default:
           $ref: "#/components/responses/Error"
 components:
