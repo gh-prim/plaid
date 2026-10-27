@@ -9,7 +9,7 @@ WEBUI   := server/internal/webui/dist
 
 .PHONY: help setup dev dev-server dev-web generate check-codegen web-build build \
         test test-server test-web check-i18n lint lint-server lint-web lint-shell \
-        docker deb clean
+        docker deb test-deb clean
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -72,6 +72,9 @@ docker: ## Build the Docker image plaid:dev
 
 deb: ## Build snapshot .deb packages and binaries into dist/
 	go run github.com/goreleaser/goreleaser/v2@v2.19.0 release --snapshot --clean
+
+test-deb: ## Test the arm64/amd64 .deb in a systemd container (needs `make deb` + Docker)
+	./scripts/test-deb.sh $(or $(IMAGE),ubuntu:24.04) $(ARCH)
 
 clean:
 	rm -rf server/bin server/tmp web/dist dist

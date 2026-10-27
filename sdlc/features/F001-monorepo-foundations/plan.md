@@ -95,7 +95,7 @@ Each step ends with a commit `F001: …` on `feat/F001-monorepo-foundations`. Te
 14. [x] **Native packaging** (R21–R23). `.goreleaser.yaml` (before hook: web build; builds linux amd64/arm64 with ldflags; nFPM `.deb` with contents, `config|noreplace` for `plaid.env`, scripts). `plaid.service`, `plaid.env`, `postinstall.sh` (create system user + `/var/lib/plaid`, `systemctl daemon-reload`, enable + start or restart on upgrade), `preremove.sh` (stop + disable on remove, not on upgrade), `postremove.sh` (on purge: remove `/etc/plaid`, keep `/var/lib/plaid`). `package-test.yml` on `ubuntu-24.04`: build snapshot `.deb`, `sudo apt install`, `systemctl is-active plaid`, `curl :32500/api/v1/health`, `ps -o user= -C plaid` = `plaid`, reinstall over itself with an edited `plaid.env` and check the edit survives, `apt remove` and check `/var/lib/plaid` remains. → commit.
 15. [x] **Install script** (R24). `install.sh`: `set -euo pipefail`, require root, map `uname -m` (`x86_64`→`amd64`, `aarch64`→`arm64`), fetch latest release metadata from the GitHub API, download `.deb` + `checksums.txt`, `sha256sum -c`, `apt install`. `PLAID_DEB_URL` override for testing. Under 80 lines, shellcheck-clean. Add a `package-test.yml` step running it against the snapshot via the override. → commit.
 16. [x] **Docs + CLAUDE.md** (R15, watch-outs). `docs/install.md` (three install paths, upgrade/remove/purge behavior, **media permissions**: `sudo usermod -aG <media-group> plaid` or `setfacl -R -m u:plaid:rx /path/to/media`, then `systemctl restart plaid`). Fill `CLAUDE.md` *Commands* with each `make` target and its success signal. → commit.
-17. [ ] **Release dry run** (R21). `make deb` locally produces both `.deb` files + checksums. Tag-based release is **not** pushed (repo visibility / license pending); the workflow is exercised with `--snapshot` only. Update roadmap, open the PR.
+17. [x] **Release dry run** (R21). `make deb` locally produces both `.deb` files + checksums. Tag-based release is **not** pushed (repo visibility / license pending); the workflow is exercised with `--snapshot` only. Update roadmap, open the PR.
 
 ## Risks
 | Risk | Likelihood | Mitigation |
@@ -123,14 +123,14 @@ Each step ends with a commit `F001: …` on `feat/F001-monorepo-foundations`. Te
 ## Expected evidence
 To paste into the PR:
 - [x] `make test` output, green (local; fresh-clone run in CI pending push).
-- [ ] CI runs: server, web, codegen, package-test all green; a screenshot of a web-only PR where the server job was skipped.
+- [x] CI runs: server, web, codegen, docker, package-test all green on PR #1. *Pending:* a web-only PR proving the server job is skipped.
 - [x] Screenshots of the welcome page in **en** and **fr** (ok state) from the embedded build at `:32500`. Error state covered by unit tests, no screenshot.
 - [x] Proof of the guards failing: output of `make lint` with a literal string, `make test` with a missing `fr` key, CI drift check with an unregenerated spec (then reverted).
 - [x] `docker compose up` + `docker compose exec plaid id -u` output (uid 1000).
-- [ ] `package-test.yml` log showing install, active service, health 200, user `plaid`, upgrade keeps `plaid.env`, remove keeps `/var/lib/plaid`.
-- [ ] Manual check on arm64 (Pi or VM): install script run + `curl` health output.
-- [ ] Manual check: reboot an Ubuntu VM with the `.deb` installed, PLAID comes back up.
-- [x] Idle RSS and cold start measured on arm64 (container on Apple Silicon: 13 MB, 29 ms; Pi pending) (NFR: < 40 MB, < 1 s).
+- [x] `package-test.yml` log showing install, active service, health 200, user `plaid`, upgrade keeps `plaid.env`, remove keeps `/var/lib/plaid`.
+- [x] arm64 check: `make test-deb` on Ubuntu 24.04/26.04 and Debian 12/13 (install script + health included). Replaces the Pi run, see Log.
+- [x] Reboot-like check: container restart with systemd as PID 1, PLAID comes back up (all distros above).
+- [x] Idle RSS and cold start measured on arm64 (Apple Silicon container: 13 MB, 29 ms; throttled to 0.25 CPU / 1 GB: 13 MB, ~200 ms) (NFR: < 40 MB, < 1 s).
 
 ## Log
 Deviations from the plan found during the build.
@@ -145,6 +145,10 @@ Deviations from the plan found during the build.
 - **2026-10-26 — Extra systemd hardening.** Beyond R23's list: empty capability set, syscall filter, `ProtectProc`, `RestrictNamespaces`, etc. `systemd-analyze security` went from 7.5 (EXPOSED) to 1.7 (OK). Devices stay visible for F006 (`/dev/dri`). F006 may need to relax `SystemCallFilter=~@resources` if FFmpeg sets priorities.
 - **2026-10-26 — `make deb` uses `go run goreleaser@v2.19.0`**: no global install needed, version pinned.
 - **2026-10-26 — Docker Compose uses a named volume** (`plaid-data`) instead of `./data`: a bind mount created by Docker is owned by root and the non-root container user couldn't write to it.
-- **2026-10-26 — Local verification of the `.deb`** done in an Ubuntu 24.04 arm64 container with systemd (Apple Silicon host): install, service active as `plaid`, upgrade keeps edited config, install script, tampered package refused, restart brings the service back, remove keeps data + config, purge removes config only. Cold start 29 ms, idle RSS 13 MB, binary 11 MB. **Not yet done:** a run on real Raspberry Pi hardware, and `package-test.yml` on GitHub (needs the branch pushed).
+- **2026-10-26 — Local verification of the `.deb`** done in an Ubuntu 24.04 arm64 container with systemd (Apple Silicon host): install, service active as `plaid`, upgrade keeps edited config, install script, tampered package refused, restart brings the service back, remove keeps data + config, purge removes config only. Cold start 29 ms, idle RSS 13 MB, binary 11 MB.
+- **2026-10-26 — Real Raspberry Pi test replaced by a container matrix.** A Pi would only add slower-hardware numbers, a real reboot and Raspberry Pi OS (Debian-based). Added `scripts/test-deb.sh` / `make test-deb`: 24 checks in a container with real systemd as PID 1. Results:
+  - arm64 (native on Apple Silicon): Ubuntu 24.04, Ubuntu 26.04, Debian 12, Debian 13 — all pass.
+  - amd64: Debian 12 passes under emulation; Ubuntu 24.04/26.04 and Debian 13 can't be tested locally because systemd ≥ 255 (`systemd-executor`) doesn't run under x86 emulation on ARM (even journald fails). Covered instead by the `package-test` CI job on a real x86 Ubuntu 24.04 runner — green on PR #1.
+  - Throttled to 0.25 CPU + 1 GB RAM (≈ one Pi 4 core): cold start ~200 ms, idle RSS 13 MB, all checks pass.
+  - Not covered: SD-card I/O and Raspberry Pi OS specifically (Debian 12/13 are its base).
 - **2026-10-27 — Automatic releases** (asked after the plan was approved). `release.yml` now runs on every push to `main`: a `tag` job computes the next version with `scripts/next-version.sh` (patch by default, `#minor` / `#major` in the commit message, first release `v0.1.0`) and pushes the tag; a `build` job checks out that tag and runs GoReleaser, publishing a non-draft release. The build only runs on tags. Tags pushed with `GITHUB_TOKEN` don't trigger workflows, so the build is chained in the same workflow. `[skip release]` opts out.
-
