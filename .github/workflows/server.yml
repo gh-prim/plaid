@@ -20,5 +20,8 @@ jobs:
         with:
           version: v2.12.1
           working-directory: server
+      - name: Install ffmpeg
+        # The real-ffprobe tests (internal/library) skip without it (ADR 0006).
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Test
         run: make test-server

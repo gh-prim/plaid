@@ -25,10 +25,11 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       -ldflags "-s -w -X github.com/gh-prim/plaid/server/internal/buildinfo.Version=${VERSION} -X github.com/gh-prim/plaid/server/internal/buildinfo.Commit=${COMMIT}" \
       -o /out/plaid ./cmd/plaid
 
-# --- Runtime: Debian slim so F006 can add FFmpeg and GPU drivers ---
+# --- Runtime: Debian slim with the distro FFmpeg (ADR 0006): ffprobe analyzes
+# media (F004), ffmpeg transcodes (F006) ---
 FROM debian:trixie-slim
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates tzdata \
+ && apt-get install -y --no-install-recommends ca-certificates tzdata ffmpeg \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --system --gid 1000 plaid \
  && useradd --system --uid 1000 --gid plaid --home-dir /data --shell /usr/sbin/nologin plaid \

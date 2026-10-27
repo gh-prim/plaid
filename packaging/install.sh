@@ -4,7 +4,8 @@
 #   curl -fsSL https://raw.githubusercontent.com/gh-prim/plaid/main/packaging/install.sh | sudo bash
 #
 # What it does: picks the .deb for your CPU, checks its SHA-256 against the
-# release's checksums.txt, then installs it with apt. Nothing else.
+# release's checksums.txt, refreshes apt's package lists (the .deb depends on
+# the distro's ffmpeg), then installs it with apt. Nothing else.
 # Prefer doing it by hand? Download the .deb from the releases page and run
 # `sudo apt install ./plaid_<version>_<arch>.deb`.
 set -euo pipefail
@@ -48,5 +49,6 @@ echo "Verifying checksum…"
   fail "checksum mismatch for $deb, aborting."
 
 echo "Installing…"
+apt-get update -qq
 apt-get install -y "$tmp/$deb"
 echo "Done. Grab a blanket: PLAID is on port 32500."

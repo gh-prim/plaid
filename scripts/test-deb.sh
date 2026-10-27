@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests the PLAID .deb inside Docker with a real systemd (PID 1): install,
 # service, upgrade with edited config, install script, tampered package,
-# restart (reboot-like), remove, purge, plus cold start and idle memory.
+# restart (reboot-like), remove, purge, plus cold start and idle memory, and
+# a media library scanned and analyzed with ffprobe by the hardened service.
 #
 # Usage: scripts/test-deb.sh [image] [arch]
 #   scripts/test-deb.sh ubuntu:24.04 arm64
@@ -28,7 +29,7 @@ docker build -q --platform "linux/$arch" -t "$tag" - >/dev/null <<DOCKERFILE
 FROM $image
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      systemd systemd-sysv dbus curl ca-certificates adduser procps \
+      systemd systemd-sysv dbus curl ca-certificates adduser procps jq \
  && rm -rf /var/lib/apt/lists/*
 STOPSIGNAL SIGRTMIN+3
 CMD ["/sbin/init"]
@@ -56,6 +57,28 @@ fail=0
 check() { local d="$1"; shift; if "$@" >/dev/null 2>&1; then echo "  ✅ $d"; else echo "  ❌ $d"; fail=1; fi; }
 healthy() { for _ in $(seq 1 100); do curl -fsS localhost:32500/api/v1/health >/dev/null 2>&1 && return 0; sleep 0.1; done; return 1; }
 not_active() { ! systemctl is-active --quiet plaid; }
+# Creates the admin and a Movies library on a generated 2 s video, waits for
+# the scan, and checks ffprobe analyzed it from inside the hardened unit
+# (MemoryDenyWriteExecute, syscall filter) without the service restarting.
+scan_sample() {
+  local dir="/srv/media/movies/Plaid Test (2024)" api=http://localhost:32500/api/v1 token lib item
+  mkdir -p "$dir" || return 1
+  ffmpeg -nostdin -loglevel error -y -f lavfi -i testsrc2=size=640x360:rate=24:duration=2 -f lavfi -i sine=duration=2 \
+    -c:v mpeg4 -c:a aac "$dir/Plaid Test (2024).mkv" || return 1
+  chmod -R o+rX /srv/media
+  token=$(curl -fsS -X POST $api/setup/admin -H "Content-Type: application/json" \
+    -d "{\"displayName\":\"Admin\",\"username\":\"admin\",\"password\":\"plaid and chill forever\"}" | jq -er .token) || return 1
+  local auth=(-H "Authorization: Bearer $token" -H "Content-Type: application/json")
+  lib=$(curl -fsS "${auth[@]}" -X POST $api/libraries \
+    -d "{\"name\":\"Movies\",\"type\":\"movies\",\"folders\":[\"/srv/media/movies\"]}" | jq -er .id) || return 1
+  for _ in $(seq 1 300); do
+    [ "$(curl -fsS "${auth[@]}" $api/libraries/$lib/scan | jq -r .state)" = idle ] && break
+    sleep 0.1
+  done
+  item=$(curl -fsS "${auth[@]}" $api/libraries/$lib/items | jq -er ".items[0].id") || return 1
+  curl -fsS "${auth[@]}" $api/items/$item | jq -e ".files[0].probeStatus == \"ok\"" || return 1
+  test "$(systemctl show -p NRestarts --value plaid)" = 0
+}
 '
 
 phase() { docker exec -i -e DEB="$deb" "$name" bash -s; }
@@ -66,6 +89,8 @@ docker exec "$name" systemctl is-system-running --wait >/dev/null 2>&1 || true
 phase <<PHASE1 || status=1
 $helpers
 cd /pkg
+# The test image drops apt's lists; the .deb needs them to pull ffmpeg.
+apt-get update -qq
 check "install with apt" apt-get install -y "./\$DEB"
 check "service active" systemctl is-active plaid
 check "service enabled on boot" systemctl is-enabled plaid
@@ -83,6 +108,8 @@ cp "\$DEB" /tmp/tampered.deb && echo x >> /tmp/tampered.deb
 echo "\$(sha256sum "\$DEB" | cut -d' ' -f1)  tampered.deb" > /tmp/checksums.txt
 check "install script: tampered package refused" bash -c '! PLAID_DEB_URL=file:///tmp/tampered.deb PLAID_CHECKSUMS_URL=file:///tmp/checksums.txt bash install.sh'
 check "hardening exposure below 2.0" bash -c 'systemd-analyze security plaid 2>/dev/null | tail -1 | grep -Eq "level for plaid.service: (0|1)\.[0-9]"'
+check "ffprobe installed with the package" command -v ffprobe
+check "sample library scanned and probed by the service" scan_sample
 exit \$fail
 PHASE1
 
