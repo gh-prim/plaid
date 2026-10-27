@@ -1590,6 +1590,38 @@ paths:
                 $ref: "#/components/schemas/Capabilities"
         default:
           $ref: "#/components/responses/Error"
+  /server/capabilities/hardware-test:
+    post:
+      operationId: testServerHardware
+      summary: Run the hardware acceleration test again (admin, F007 R28)
+      description: >-
+        Re-runs the F006 R24 test with the current settings (a few seconds) and clears a fallback after repeated
+        failures. 409 `hw_test_running` while a test runs.
+      tags: [playback]
+      responses:
+        "200":
+          description: The new test result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HardwareStatus"
+        default:
+          $ref: "#/components/responses/Error"
+  /problems:
+    get:
+      operationId: listProblems
+      summary: What needs the admin's attention, last 7 days (admin, F007 R29)
+      description: Newest first. Open problems, and resolved ones for 7 days after they were resolved.
+      tags: [system]
+      responses:
+        "200":
+          description: Problems
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemList"
+        default:
+          $ref: "#/components/responses/Error"
 components:
   parameters:
     LibraryId:
@@ -2237,14 +2269,37 @@ components:
       properties:
         type:
           type: string
-          enum: [progress, completed, failed, metadata]
+          enum: [progress, completed, failed, metadata, matched]
         progress:
           $ref: "#/components/schemas/ScanProgress"
         metadata:
           $ref: "#/components/schemas/MetadataCounts"
+        item:
+          $ref: "#/components/schemas/MatchedItem"
         error:
           type: string
           description: Set on `failed`, English, for logs.
+    MatchedItem:
+      type: object
+      description: >-
+        Set on `matched`: a movie or show of this library just matched (F007 R27). Sent as it happens, for live views;
+        a slow client may miss some, the `metadata` counters stay exact.
+      required: [id, kind, title]
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [movie, show]
+        title:
+          type: string
+          description: In the library's metadata language.
+        year:
+          type: integer
+        poster:
+          $ref: "#/components/schemas/Artwork"
+        backdrop:
+          $ref: "#/components/schemas/Artwork"
     ItemKind:
       type: string
       enum: [movie, show, season, episode]
@@ -3473,6 +3528,51 @@ components:
           description: Folders scanned periodically because the watch limit was reached.
           items:
             type: string
+    ProblemCode:
+      type: string
+      enum: [hw_fallback, ffmpeg_restarted, folder_unavailable, folder_unreadable, watch_limit, provider_key_refused]
+      x-enum-varnames:
+        - ProblemHWFallback
+        - ProblemFFmpegRestarted
+        - ProblemFolderUnavailable
+        - ProblemFolderUnreadable
+        - ProblemWatchLimit
+        - ProblemProviderKeyRefused
+    Problem:
+      type: object
+      required: [id, code, params, firstSeen, lastSeen, count]
+      properties:
+        id:
+          type: string
+        code:
+          $ref: "#/components/schemas/ProblemCode"
+        params:
+          type: object
+          description: >-
+            What the problem is about, by code: `path` (folders, watch limit), `accel` (hw_fallback), `title`
+            (ffmpeg_restarted), `provider` (provider_key_refused). Never tokens or keys.
+          additionalProperties:
+            type: string
+        firstSeen:
+          type: string
+          format: date-time
+        lastSeen:
+          type: string
+          format: date-time
+        count:
+          type: integer
+          description: How many times it happened since it was first seen.
+        resolvedAt:
+          type: string
+          format: date-time
+    ProblemList:
+      type: object
+      required: [problems]
+      properties:
+        problems:
+          type: array
+          items:
+            $ref: "#/components/schemas/Problem"
     Error:
       type: object
       required: [error]

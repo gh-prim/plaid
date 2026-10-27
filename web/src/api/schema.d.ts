@@ -1289,6 +1289,46 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/server/capabilities/hardware-test': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Run the hardware acceleration test again (admin, F007 R28)
+     * @description Re-runs the F006 R24 test with the current settings (a few seconds) and clears a fallback after repeated failures. 409 `hw_test_running` while a test runs.
+     */
+    post: operations['testServerHardware']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/problems': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * What needs the admin's attention, last 7 days (admin, F007 R29)
+     * @description Newest first. Open problems, and resolved ones for 7 days after they were resolved.
+     */
+    get: operations['listProblems']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -1597,11 +1637,23 @@ export interface components {
     /** @description The `data` of a scan server-sent event. */
     ScanEvent: {
       /** @enum {string} */
-      type: 'progress' | 'completed' | 'failed' | 'metadata'
+      type: 'progress' | 'completed' | 'failed' | 'metadata' | 'matched'
       progress?: components['schemas']['ScanProgress']
       metadata?: components['schemas']['MetadataCounts']
+      item?: components['schemas']['MatchedItem']
       /** @description Set on `failed`, English, for logs. */
       error?: string
+    }
+    /** @description Set on `matched`: a movie or show of this library just matched (F007 R27). Sent as it happens, for live views; a slow client may miss some, the `metadata` counters stay exact. */
+    MatchedItem: {
+      id: string
+      /** @enum {string} */
+      kind: 'movie' | 'show'
+      /** @description In the library's metadata language. */
+      title: string
+      year?: number
+      poster?: components['schemas']['Artwork']
+      backdrop?: components['schemas']['Artwork']
     }
     /** @enum {string} */
     ItemKind: 'movie' | 'show' | 'season' | 'episode'
@@ -2292,6 +2344,33 @@ export interface components {
       inotifyUsed: number
       /** @description Folders scanned periodically because the watch limit was reached. */
       watchLimitReached: string[]
+    }
+    /** @enum {string} */
+    ProblemCode:
+      | 'hw_fallback'
+      | 'ffmpeg_restarted'
+      | 'folder_unavailable'
+      | 'folder_unreadable'
+      | 'watch_limit'
+      | 'provider_key_refused'
+    Problem: {
+      id: string
+      code: components['schemas']['ProblemCode']
+      /** @description What the problem is about, by code: `path` (folders, watch limit), `accel` (hw_fallback), `title` (ffmpeg_restarted), `provider` (provider_key_refused). Never tokens or keys. */
+      params: {
+        [key: string]: string
+      }
+      /** Format: date-time */
+      firstSeen: string
+      /** Format: date-time */
+      lastSeen: string
+      /** @description How many times it happened since it was first seen. */
+      count: number
+      /** Format: date-time */
+      resolvedAt?: string
+    }
+    ProblemList: {
+      problems: components['schemas']['Problem'][]
     }
     Error: {
       error: {
@@ -4311,6 +4390,48 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['Capabilities']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  testServerHardware: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The new test result */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HardwareStatus']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listProblems: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Problems */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ProblemList']
         }
       }
       default: components['responses']['Error']

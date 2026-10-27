@@ -25,6 +25,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/playback"
+	"github.com/gh-prim/plaid/server/internal/problems"
 	"github.com/gh-prim/plaid/server/internal/settings"
 	"github.com/gh-prim/plaid/server/internal/webui"
 )
@@ -69,21 +70,27 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	}
 	go accts.RunJanitor(ctx)
 
+	// What needs the admin's attention, reported by the services below
+	// (F007 R29).
+	probs := problems.New(database, logger)
+	go probs.RunJanitor(ctx)
+
 	// The metadata service starts before the library engine so the
 	// engine's first scans already feed it (F005 R1).
 	meta := metadata.New(metadata.Options{
 		DB: database, Settings: settings.New(database), TMDBKey: cfg.TMDBAPIKey, Log: logger,
 		DataDir: cfg.DataDir, FanartKey: cfg.FanartAPIKey, ArtworkCacheBytes: cfg.ArtworkCacheBytes,
+		Problems: probs,
 	})
 	meta.Start(ctx)
 	defer meta.Close()
 
-	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{ItemsCreated: meta.ItemsCreated, Sidecars: meta.SidecarsSeen})
+	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{ItemsCreated: meta.ItemsCreated, Sidecars: meta.SidecarsSeen}, probs)
 	defer engine.Close()
 
 	// Playback (F006) closes before the library engine: deferred calls
 	// run last-in first-out.
-	play := newPlayback(ctx, cfg, database, engine.Store(), accts, logger)
+	play := newPlayback(ctx, cfg, database, engine.Store(), accts, logger, probs)
 	defer play.Close()
 
 	// Cancelled by srv.Shutdown so open event streams don't hold it up.
@@ -96,6 +103,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Library:    engine,
 		Metadata:   meta,
 		Playback:   play,
+		Problems:   probs,
 		Streams:    streams,
 	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
@@ -114,8 +122,8 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 // newLibraryEngine finds ffprobe and starts the library engine in the
 // background (F004-R25, NFR startup). A missing ffprobe is a warning:
 // files are then listed without analysis.
-func newLibraryEngine(ctx context.Context, cfg config.Config, database *sql.DB, logger *slog.Logger, hooks library.Hooks) *library.Engine {
-	opts := library.EngineOptions{BrowseRoots: cfg.BrowseRoots, Log: logger, Hooks: hooks}
+func newLibraryEngine(ctx context.Context, cfg config.Config, database *sql.DB, logger *slog.Logger, hooks library.Hooks, probs problems.Reporter) *library.Engine {
+	opts := library.EngineOptions{BrowseRoots: cfg.BrowseRoots, Log: logger, Hooks: hooks, Problems: probs}
 	probe, err := library.FindFFprobe(ctx, cfg.FFprobePath, logger)
 	if err != nil {
 		logger.Warn("ffprobe not found: media files are listed but not analyzed; install ffmpeg or set PLAID_FFPROBE_PATH",
@@ -131,7 +139,7 @@ func newLibraryEngine(ctx context.Context, cfg config.Config, database *sql.DB, 
 
 // newPlayback finds ffmpeg and starts the playback service. A missing
 // ffmpeg is a warning: Direct Play still works (F006 R31).
-func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store *library.Store, accts *accounts.Service, logger *slog.Logger) *playback.Service {
+func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store *library.Store, accts *accounts.Service, logger *slog.Logger, probs problems.Reporter) *playback.Service {
 	ffmpeg, err := playback.FindFFmpeg(ctx, cfg.FFmpegPath)
 	if err != nil {
 		logger.Warn("ffmpeg not found: only Direct Play is available; install ffmpeg or set PLAID_FFMPEG_PATH",
@@ -142,7 +150,7 @@ func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store
 	}
 	svc := playback.New(playback.Options{
 		DB: database, Library: store, Accounts: accts,
-		Settings: settings.New(database), FFmpeg: ffmpeg, Log: logger, ProbeHardware: true,
+		Settings: settings.New(database), FFmpeg: ffmpeg, Log: logger, ProbeHardware: true, Problems: probs,
 		TranscodeDir: cfg.TranscodeDir, CacheDir: filepath.Join(cfg.DataDir, "cache", "playback"),
 	})
 	svc.Start(ctx)

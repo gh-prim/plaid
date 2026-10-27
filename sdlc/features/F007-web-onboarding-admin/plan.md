@@ -3,7 +3,7 @@ id: F007
 title: Web — onboarding and administration
 owner: gh-prim
 reviewer: TBD
-status: draft            # draft | approved | in-progress | done
+status: in-progress      # draft | approved | in-progress | done
 spec: ./spec.md
 branch: feat/F007-onboarding-admin
 ---

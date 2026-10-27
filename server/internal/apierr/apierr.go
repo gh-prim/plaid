@@ -300,3 +300,8 @@ func TranscodeStorageFull() *Error {
 func SegmentNotReady() *Error {
 	return New(http.StatusServiceUnavailable, "segment_not_ready", "the segment isn't ready yet").WithHeader("Retry-After", "1")
 }
+
+// HWTestRunning means a hardware test is already running (F007 R28).
+func HWTestRunning() *Error {
+	return New(http.StatusConflict, "hw_test_running", "a hardware test is already running")
+}

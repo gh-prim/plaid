@@ -70,7 +70,7 @@ func TestMigrationsApplyIncrementally(t *testing.T) {
 	}
 	// Roll back to "only 0001 applied".
 	for _, stmt := range []string{
-		"DROP TABLE watch_state", "DROP TABLE media_keyframes",
+		"DROP TABLE problems", "DROP TABLE watch_state", "DROP TABLE media_keyframes",
 		"DROP TABLE settings", "DROP TABLE sidecar_files", "DROP TABLE file_identifications",
 		"DROP TABLE item_credits", "DROP TABLE people", "DROP TABLE match_candidates",
 		"DROP TABLE item_metadata", "DROP TABLE artwork", "DROP TABLE collections",

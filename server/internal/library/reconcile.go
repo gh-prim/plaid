@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gh-prim/plaid/server/internal/problems"
 )
 
 // missingRetention is how long a missing file is kept before its row (and
@@ -29,6 +31,9 @@ type Scanner struct {
 	Log     *slog.Logger
 	// Hooks report created items and sidecar files to F005.
 	Hooks Hooks
+	// Problems records folders that become unavailable or unreadable
+	// (F007 R29); nil records nothing.
+	Problems problems.Reporter
 }
 
 // ScanOptions tune one scan.
@@ -98,6 +103,20 @@ type analysisJob struct {
 	probe       bool
 }
 
+// folderProblem reports a folder's status change to the admin (F007 R29).
+func (s *Scanner) folderProblem(path, was, now string) {
+	r := problems.Of(s.Problems)
+	params := map[string]string{"path": path}
+	for status, code := range map[string]string{FolderUnavailable: problems.FolderUnavailable, FolderUnreadable: problems.FolderUnreadable} {
+		switch {
+		case now == status:
+			r.Report(code, params)
+		case was == status:
+			r.Resolve(code, params)
+		}
+	}
+}
+
 func (s *Scanner) log() *slog.Logger {
 	if s.Log != nil {
 		return s.Log
@@ -158,6 +177,7 @@ func (s *Scanner) ScanLibrary(ctx context.Context, libraryID string, opts ScanOp
 			if err := st.setFolderStatus(ctx, f.ID, status); err != nil {
 				return rep, err
 			}
+			s.folderProblem(f.Path, f.Status, status)
 		}
 		if status != FolderOK {
 			rep.Unavailable = append(rep.Unavailable, f.ID)

@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"context"
+	"errors"
 
 	"github.com/gh-prim/plaid/server/internal/api"
+	"github.com/gh-prim/plaid/server/internal/apierr"
 	"github.com/gh-prim/plaid/server/internal/playback"
 )
 
@@ -31,4 +33,22 @@ func (h *Handlers) GetServerCapabilities(ctx context.Context, _ api.GetServerCap
 		out.HwAccel = toHardwareStatus(h.playback.Hardware())
 	}
 	return api.GetServerCapabilities200JSONResponse(out), nil
+}
+
+// TestServerHardware runs the hardware test again (F007 R28).
+func (h *Handlers) TestServerHardware(ctx context.Context, _ api.TestServerHardwareRequestObject) (api.TestServerHardwareResponseObject, error) {
+	if _, err := admin(ctx); err != nil {
+		return nil, err
+	}
+	if h.playback == nil {
+		return api.TestServerHardware200JSONResponse(toHardwareStatus(playback.HWStatus{Configured: playback.HWNone})), nil
+	}
+	st, err := h.playback.RetestHardware(ctx)
+	if errors.Is(err, playback.ErrHWTestRunning) {
+		return nil, apierr.HWTestRunning()
+	}
+	if err != nil {
+		return nil, err
+	}
+	return api.TestServerHardware200JSONResponse(toHardwareStatus(st)), nil
 }

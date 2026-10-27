@@ -355,6 +355,36 @@ func TestEmptyMountPointIsUnavailable(t *testing.T) {
 	}
 }
 
+// fakeProblems records what a scan reports (F007 R29).
+type fakeProblems struct{ calls []string }
+
+func (f *fakeProblems) Report(code string, p map[string]string) {
+	f.calls = append(f.calls, "report "+code+" "+p["path"])
+}
+
+func (f *fakeProblems) Resolve(code string, p map[string]string) {
+	f.calls = append(f.calls, "resolve "+code+" "+p["path"])
+}
+
+func TestFolderStatusChangesAreProblems(t *testing.T) {
+	e := newScanEnv(t, TypeMovies)
+	rec := &fakeProblems{}
+	e.scan.Problems = rec
+	e.write("A (2001)/A (2001).mkv", "a")
+	e.run(ScanOptions{})
+	if err := os.RemoveAll(e.path("A (2001)")); err != nil {
+		t.Fatal(err)
+	}
+	e.run(ScanOptions{})
+	e.run(ScanOptions{}) // still unavailable: no new report
+	e.write("A (2001)/A (2001).mkv", "a")
+	e.run(ScanOptions{})
+	want := []string{"report folder_unavailable " + e.root, "resolve folder_unavailable " + e.root}
+	if !slices.Equal(rec.calls, want) {
+		t.Errorf("calls = %q, want %q", rec.calls, want)
+	}
+}
+
 func TestMissingRootIsUnavailable(t *testing.T) {
 	e := newScanEnv(t, TypeMovies)
 	e.write("A (2001).mkv", "a")
