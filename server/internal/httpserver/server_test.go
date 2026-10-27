@@ -31,7 +31,7 @@ var builtWeb = fstest.MapFS{
 
 func newTestServer(web fstest.MapFS) http.Handler {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	return New(handlers.New(okPinger{}), web, logger)
+	return New(handlers.New(okPinger{}), web, logger, Options{})
 }
 
 func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
@@ -140,7 +140,7 @@ func TestHandlerErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var logs bytes.Buffer
 			logger := slog.New(slog.NewTextHandler(&logs, nil))
-			rec := get(t, New(erroringHandlers{tc.err}, builtWeb, logger), "/api/v1/health")
+			rec := get(t, New(erroringHandlers{tc.err}, builtWeb, logger, Options{}), "/api/v1/health")
 			if rec.Code != tc.status || !strings.Contains(rec.Body.String(), `"code":"`+tc.code+`"`) {
 				t.Errorf("status %d body %q, want %d %s", rec.Code, rec.Body, tc.status, tc.code)
 			}

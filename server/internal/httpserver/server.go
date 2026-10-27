@@ -5,14 +5,22 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"net/netip"
 
 	"github.com/gh-prim/plaid/server/internal/api"
 	"github.com/gh-prim/plaid/server/internal/apierr"
+	"github.com/gh-prim/plaid/server/internal/clientinfo"
 )
+
+// Options configures the root handler.
+type Options struct {
+	// TrustedProxies are the peers whose X-Forwarded-* headers are believed.
+	TrustedProxies []netip.Prefix
+}
 
 // New returns the root handler: /api/v1/* is the generated API, any other
 // /api/* is a JSON 404, everything else is the web app.
-func New(h api.StrictServerInterface, web fs.FS, logger *slog.Logger) http.Handler {
+func New(h api.StrictServerInterface, web fs.FS, logger *slog.Logger, opts Options) http.Handler {
 	mux := http.NewServeMux()
 
 	badRequest := func(w http.ResponseWriter, _ *http.Request, err error) {
@@ -33,5 +41,5 @@ func New(h api.StrictServerInterface, web fs.FS, logger *slog.Logger) http.Handl
 	})
 	mux.Handle("/", spaHandler(web))
 
-	return withRecover(logger, withAccessLog(logger, mux))
+	return withRecover(logger, withAccessLog(logger, clientinfo.Middleware(opts.TrustedProxies, mux)))
 }
