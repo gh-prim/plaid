@@ -22,6 +22,13 @@ jobs:
           working-directory: server
       - name: Install ffmpeg
         # The real-ffprobe tests (internal/library) skip without it (ADR 0006).
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+        # It normally takes ~20 s. A stalled Ubuntu mirror once hung it for
+        # 18+ min: fail fast instead, with per-request timeouts and retries.
+        timeout-minutes: 5
+        run: |
+          printf '%s\n' 'Acquire::Retries "3";' 'Acquire::http::Timeout "30";' 'Acquire::https::Timeout "30";' |
+            sudo tee /etc/apt/apt.conf.d/80-plaid-ci >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Test
         run: make test-server
