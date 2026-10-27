@@ -128,23 +128,23 @@ Each step brings its tests in the same commit.
 15. [x] **Read API, text fields.** In `openapi.yaml`: the `ItemSummary` and `ItemDetail` fields of R36, except artwork (PR C). Then `make generate`, handler mapping, and `displayTitle` (matched title, else the parsed one). Handler tests check the JSON shape of a matched movie, a show, an episode and a still-pending item. (R36)
 
 ### PR C — artwork
-16. [ ] **Local images.** `Hooks.Sidecars` diffs against `sidecar_files` by `(size, mtime)`. New or changed images create or update `artwork` rows with source `local` and `local_path`. Removed ones drop their rows. A changed `.nfo` re-applies its item with no provider call. Tests: add `fanart.jpg` after the match, change a `.nfo` plot, delete `poster.jpg` (falls back to TMDB). (R12–R14)
-17. [ ] **Artwork selection.** Candidates per kind come from TMDB `images` and fanart.tv, ranked per R15 and R16, with local images always first and locked kinds untouched. Backdrops: up to 3 selected. Tests are tables over the recorded image lists. (R15, R16, R30)
-18. [ ] **fanart.tv client.** Movies by TMDB id; shows by the TVDB id from `external_ids` (no TVDB id, no call). `client_key` is sent when a personal key is set. Tests over the fixtures. (R16, R34)
-19. [ ] **Originals store and downloads.**
+16. [x] **Local images.** `Hooks.Sidecars` diffs against `sidecar_files` by `(size, mtime)`. New or changed images create or update `artwork` rows with source `local` and `local_path`. Removed ones drop their rows. A changed `.nfo` re-applies its item with no provider call. Tests: add `fanart.jpg` after the match, change a `.nfo` plot, delete `poster.jpg` (falls back to TMDB). (R12–R14)
+17. [x] **Artwork selection.** Candidates per kind come from TMDB `images` and fanart.tv, ranked per R15 and R16, with local images always first and locked kinds untouched. Backdrops: up to 3 selected. Tests are tables over the recorded image lists. (R15, R16, R30)
+18. [x] **fanart.tv client.** Movies by TMDB id; shows by the TVDB id from `external_ids` (no TVDB id, no call). `client_key` is sent when a personal key is set. Tests over the fixtures. (R16, R34)
+19. [x] **Originals store and downloads.**
     - Eager downloads after apply, in the R17 order: poster `w780`, backdrop `w1280`, logo `original`, clearart, season posters. Each goes through `httpx` and is written to a temp file then renamed into `artwork/originals/<2>/<sha>.<ext>`.
     - `DecodeConfig` rejects images over 8,000 × 8,000 px before anything is stored. Dimensions and `sha256` are recorded.
     - Lazy kinds (stills, portraits, non-selected candidates) keep `sha256 = NULL` until first asked for.
     - A daily cleanup removes originals no row references (`NOT EXISTS (SELECT 1 FROM artwork WHERE sha256 = ?)`).
     - Tests cover dedup of the same bytes, rejection of the oversized header, and a cleanup that keeps referenced files. (R17, R18, NFR security)
-20. [ ] **Resizer and variants.**
+20. [x] **Resizer and variants.**
     - Width ladder `92 185 342 500 780 1280 1920 3840`, no upscaling (the original width is served instead).
     - JPEG quality 82 for photos; PNG for logos and clearart. Local WebP originals are decoded with `x/image/webp`.
     - A 2-slot semaphore and `singleflight` per `(sha, width)`, so a burst of first requests resizes once.
     - The variant cache index is rebuilt by walking `cache/artwork` at startup in the background. Eviction happens past `PLAID_ARTWORK_CACHE_MAX_MB`.
     - Tests: 780 → `w=300` gives 342; `w=5000` gives the original width; the PNG keeps its alpha; concurrent identical requests resize once (a counter); eviction under a tiny cap; a benchmark on a 780 px poster. (R19, R20)
-21. [ ] **Colors.** Median cut into 5 boxes on a 64 px CatmullRom thumbnail. `dominant` is the most populated box, `vibrant` has the highest saturation × value, `muted` has the lowest saturation among the rest, and `dark` is the darkest. `onDominant` is `light` when the relative luminance is < 0.5. Computed when an original is stored, for posters, backdrops, season posters and stills. Golden tests on generated images (a solid red → `#ff0000` dominant). (R21)
-22. [ ] **`/images/{imageId}`.**
+21. [x] **Colors.** Median cut into 5 boxes on a 64 px CatmullRom thumbnail. `dominant` is the most populated box, `vibrant` has the highest saturation × value, `muted` has the lowest saturation among the rest, and `dark` is the darkest. `onDominant` is `light` when the relative luminance is < 0.5. Computed when an original is stored, for posters, backdrops, season posters and stills. Golden tests on generated images (a solid red → `#ff0000` dominant). (R21)
+22. [x] **`/images/{imageId}`.**
     - Session required. The owner item is checked with `access` (R25), so a filtered item gives `404`.
     - A lazy row is fetched synchronously (10 s) on first request; a provider error gives `503 provider_unavailable`.
     - Headers: `ETag: "<sha>-<w>"`, `If-None-Match` → `304`, `Cache-Control: private, max-age=31536000, immutable`, `nosniff`.
@@ -232,4 +232,14 @@ Deviations from the plan found during the build (date + what + why).
   - **New seasons and episodes of a matched show** are handled by an immediate refresh of the show (`ItemsCreated` → `refresh_at = now`), which refetches the seasons on disk. The plan's "older than 24 h" condition is dropped: a show refresh is a handful of calls.
   - **Read API:** `ItemSummary` gains `displayTitle`, `matchStatus`, `releaseDate`, `rating`, `certification`, `ageRating` and `genres`. The rest of R36 is nested under `ItemDetail.metadata` (`ItemMetadata`) instead of being flattened, so lists stay light. `Library` exposes `metadataLanguage` / `metadataRegion`. Invalid values give `422 validation_failed` (see the spec's Revisions).
   - **Keys:** `PLAID_TMDB_API_KEY` (config) and the settings table are read now. The release-time built-in key (`metadata.builtinTMDBKey`) is declared but only set by PR D. Without any key, `.nfo` data still applies and items stay `pending`.
-
+- **2026-10-27, PR C (steps 16–22)**, by gh-prim with Claude. Divergences from the steps above:
+  - **Local images are read from disk at apply time**, like the `.nfo` (the item's folders; for shows the show folder, plus `seasonNN-poster` there and `poster` in season folders). `Hooks.Sidecars` only updates `sidecar_files` and refreshes right away the movies and shows whose folder gained, changed or lost a file. There's a single place where artwork is chosen. A changed `.nfo` is applied through that refresh, so it costs one TMDB call (see the spec's Revisions, R14).
+  - **Selection (R15/R16):** posters and logos in a language other than the library's or English (or no text) are left out: a Korean poster in a French library is worse than none (spec Revisions). Local images always come first, and a locked kind is never touched.
+  - **Artwork runs after the metadata transaction**, never inside it: an image that can't be fetched doesn't undo a match. The failure is logged, and the image is fetched on its first request instead.
+  - **Kinds:** poster, backdrop (up to 3), logo and clearart are downloaded right after the match. Movie thumbs (fanart.tv), episode stills and portraits (`people.portrait_id`) are recorded and fetched on first request. Banners only come from local files.
+  - **fanart.tv:** recordings in `testdata/fanart` (`ONLY=fanart scripts/record-metadata-fixtures.sh`). `metadata/tmdbtest` also replays fanart.tv and serves generated images (JPEG or PNG at the requested TMDB size, with a color from the name).
+  - **`httpx.ErrRequestFailed`** wraps network errors, so `metadata.IsProviderError` can turn a failed lazy download into `503 provider_unavailable`.
+  - **Cleanup** walks the originals through an `os.Root`, so a symlink in the data directory can't make it delete anything outside.
+  - **API:** `ItemSummary.poster|backdrop|still`, `ItemMetadata.logo|clearart|backdrops` and `Credit.portrait`, as `Artwork {imageId, width, height, source, colors}`. `GET /images/{imageId}?w=` returns JPEG or PNG with `ETag` / `304`, `Cache-Control: private, max-age=31536000, immutable` and `nosniff`, and a 404 for an item the profile may not see.
+  - **Config:** `PLAID_FANART_API_KEY`, and `PLAID_ARTWORK_CACHE_MAX_MB` (at least 64). The fanart.tv built-in key is set by PR D, like TMDB's.
+  - **Speed:** a 780 px poster resized to 342 px takes about 18 ms on an M-series Mac (`BenchmarkPosterVariant`). The Pi number comes with PR D's perf run. Apply tests turn artwork on only where they test it.

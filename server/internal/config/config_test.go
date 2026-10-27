@@ -117,16 +117,23 @@ func TestServerName(t *testing.T) {
 
 func TestLoadLibraryOptions(t *testing.T) {
 	cfg, err := Load(env(map[string]string{
-		"PLAID_DATA_DIR":     t.TempDir(),
-		"PLAID_FFPROBE_PATH": "/opt/ffmpeg/bin/ffprobe",
-		"PLAID_BROWSE_ROOTS": "/srv/media: /mnt/usb/ ",
-		"PLAID_TMDB_API_KEY": " abc123 ",
+		"PLAID_DATA_DIR":             t.TempDir(),
+		"PLAID_FFPROBE_PATH":         "/opt/ffmpeg/bin/ffprobe",
+		"PLAID_BROWSE_ROOTS":         "/srv/media: /mnt/usb/ ",
+		"PLAID_TMDB_API_KEY":         " abc123 ",
+		"PLAID_FANART_API_KEY":       "fan",
+		"PLAID_ARTWORK_CACHE_MAX_MB": "512",
 	}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.TMDBAPIKey != "abc123" {
-		t.Errorf("TMDBAPIKey = %q", cfg.TMDBAPIKey)
+	if cfg.TMDBAPIKey != "abc123" || cfg.FanartAPIKey != "fan" || cfg.ArtworkCacheBytes != 512<<20 {
+		t.Errorf("metadata options = %q %q %d", cfg.TMDBAPIKey, cfg.FanartAPIKey, cfg.ArtworkCacheBytes)
+	}
+	for _, bad := range []string{"lots", "10"} {
+		if _, err := Load(env(map[string]string{"PLAID_DATA_DIR": t.TempDir(), "PLAID_ARTWORK_CACHE_MAX_MB": bad})); err == nil {
+			t.Errorf("PLAID_ARTWORK_CACHE_MAX_MB=%s accepted", bad)
+		}
 	}
 	if cfg.FFprobePath != "/opt/ffmpeg/bin/ffprobe" {
 		t.Errorf("FFprobePath = %q", cfg.FFprobePath)

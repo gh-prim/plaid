@@ -707,6 +707,63 @@ paths:
                 $ref: "#/components/schemas/ItemDetail"
         default:
           $ref: "#/components/responses/Error"
+  /images/{imageId}:
+    parameters:
+      - name: imageId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getImage
+      summary: An artwork image, resized for the client (F005 R19)
+      description: >-
+        Served at the smallest width of 92, 185, 342, 500, 780, 1280, 1920 or 3840 that is at least `w`, never wider than
+        the original. Photos are JPEG, logos and clearart PNG. Responses are immutable for an imageId: a new image gets a
+        new id. An image of an item the active profile may not see is a 404 (R25).
+      tags: [metadata]
+      parameters:
+        - name: w
+          in: query
+          description: Wanted width in pixels; defaults to 342.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3840
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The image
+          headers:
+            ETag:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "304":
+          description: Not modified (If-None-Match matched)
+          headers:
+            ETag:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
   /fs/browse:
     get:
       operationId: browseFolders
@@ -1410,6 +1467,12 @@ components:
           type: array
           items:
             type: string
+        poster:
+          $ref: "#/components/schemas/Artwork"
+        backdrop:
+          $ref: "#/components/schemas/Artwork"
+        still:
+          $ref: "#/components/schemas/Artwork"
         year:
           type: integer
         seasonNumber:
@@ -1549,7 +1612,7 @@ components:
     ItemMetadata:
       type: object
       description: What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
-      required: [fieldLanguages, lockedFields, localFields, studios, trailers, credits, providerIds]
+      required: [fieldLanguages, lockedFields, localFields, studios, trailers, credits, providerIds, backdrops]
       properties:
         matchSource:
           type: string
@@ -1607,6 +1670,15 @@ components:
             type: string
         providerIds:
           $ref: "#/components/schemas/ProviderIds"
+        logo:
+          $ref: "#/components/schemas/Artwork"
+        clearart:
+          $ref: "#/components/schemas/Artwork"
+        backdrops:
+          type: array
+          description: Up to 3 backdrops, best first (R15).
+          items:
+            $ref: "#/components/schemas/Artwork"
         duplicateOf:
           type: string
           description: The older item of the library matched to the same title (R38).
@@ -1650,6 +1722,42 @@ components:
           enum: [cast, director, writer, creator]
         character:
           type: string
+        portrait:
+          $ref: "#/components/schemas/Artwork"
+    Artwork:
+      type: object
+      description: An image; fetch it with GET /images/{imageId}?w=.
+      required: [imageId]
+      properties:
+        imageId:
+          type: string
+        width:
+          type: integer
+          description: Original width, when known.
+        height:
+          type: integer
+        source:
+          type: string
+          enum: [local, tmdb, fanart]
+        colors:
+          $ref: "#/components/schemas/AmbientColors"
+    AmbientColors:
+      type: object
+      description: Colors taken from the image for the UI (R21), as #rrggbb.
+      required: [dominant, vibrant, muted, dark, onDominant]
+      properties:
+        dominant:
+          type: string
+        vibrant:
+          type: string
+        muted:
+          type: string
+        dark:
+          type: string
+        onDominant:
+          type: string
+          enum: [light, dark]
+          description: Text color that reads on the dominant color.
     ProviderIds:
       type: object
       properties:

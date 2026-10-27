@@ -71,11 +71,12 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	// engine's first scans already feed it (F005 R1).
 	meta := metadata.New(metadata.Options{
 		DB: database, Settings: settings.New(database), TMDBKey: cfg.TMDBAPIKey, Log: logger,
+		DataDir: cfg.DataDir, FanartKey: cfg.FanartAPIKey, ArtworkCacheBytes: cfg.ArtworkCacheBytes,
 	})
 	meta.Start(ctx)
 	defer meta.Close()
 
-	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{ItemsCreated: meta.ItemsCreated})
+	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{ItemsCreated: meta.ItemsCreated, Sidecars: meta.SidecarsSeen})
 	defer engine.Close()
 
 	// Cancelled by srv.Shutdown so open event streams don't hold it up.

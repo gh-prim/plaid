@@ -19,7 +19,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/httpserver"
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/metadata"
-	"github.com/gh-prim/plaid/server/internal/metadata/provider"
+	"github.com/gh-prim/plaid/server/internal/metadata/tmdbtest"
 )
 
 // These tests drive the acceptance criteria of F004 that go through the
@@ -59,8 +59,9 @@ type libEnv struct {
 type libOpts struct {
 	prober      library.Prober
 	browseRoots []string
-	// metadata, when set, runs F005 against the recorded TMDB responses.
-	metadata provider.Provider
+	// tmdb, when set, runs F005 (with artwork) against the recorded
+	// TMDB and fanart.tv responses it serves.
+	tmdb *tmdbtest.Server
 }
 
 func newLibEnv(t *testing.T, o libOpts) *libEnv {
@@ -71,11 +72,12 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 		meta  *metadata.Service
 		hooks library.Hooks
 	)
-	if o.metadata != nil {
-		meta = metadata.New(metadata.Options{DB: e.db, Provider: o.metadata, Log: logger, Workers: 2, QueueIdle: 20 * time.Millisecond})
+	if o.tmdb != nil {
+		meta = metadata.New(metadata.Options{DB: e.db, Provider: o.tmdb.Client(), Fanart: o.tmdb.Fanart(), Log: logger,
+			Workers: 2, QueueIdle: 20 * time.Millisecond, DataDir: t.TempDir(), ImageHTTP: o.tmdb.HTTP(), ImageHosts: o.tmdb.ImageHosts()})
 		meta.Start(context.Background())
 		t.Cleanup(meta.Close)
-		hooks.ItemsCreated = meta.ItemsCreated
+		hooks.ItemsCreated, hooks.Sidecars = meta.ItemsCreated, meta.SidecarsSeen
 	}
 	engine := library.NewEngine(e.db, library.EngineOptions{Prober: o.prober, FFprobeVersion: "7.1.1",
 		BrowseRoots: o.browseRoots, Log: logger, Workers: 2, Hooks: hooks})

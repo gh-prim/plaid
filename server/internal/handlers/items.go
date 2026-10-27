@@ -108,6 +108,7 @@ func (h *Handlers) GetItem(ctx context.Context, req api.GetItemRequestObject) (a
 		FileCount: s.FileCount, ChildCount: s.ChildCount, Technical: s.Technical,
 		DisplayTitle: s.DisplayTitle, MatchStatus: s.MatchStatus, ReleaseDate: s.ReleaseDate, Rating: s.Rating,
 		Certification: s.Certification, AgeRating: s.AgeRating, Genres: s.Genres,
+		Poster: s.Poster, Backdrop: s.Backdrop, Still: s.Still,
 		Files: make([]api.MediaFile, 0, len(files)),
 	}
 	if detail != nil {
@@ -188,6 +189,20 @@ func withSummary(s *api.ItemSummary, m metadata.Summary) {
 	s.Certification = optional(m.Certification)
 	s.AgeRating = m.AgeRating
 	s.Genres = m.Genres
+	s.Poster, s.Backdrop, s.Still = toArtwork(m.Poster), toArtwork(m.Backdrop), toArtwork(m.Still)
+}
+
+func toArtwork(a *metadata.Art) *api.Artwork {
+	if a == nil {
+		return nil
+	}
+	src := api.ArtworkSource(a.Source)
+	out := &api.Artwork{ImageId: a.ID, Width: optionalInt(a.Width), Height: optionalInt(a.Height), Source: &src}
+	if c := a.Colors; c != nil {
+		out.Colors = &api.AmbientColors{Dominant: c.Dominant, Vibrant: c.Vibrant, Muted: c.Muted, Dark: c.Dark,
+			OnDominant: api.AmbientColorsOnDominant(c.OnDominant)}
+	}
+	return out
 }
 
 func toItemMetadata(d metadata.Detail) *api.ItemMetadata {
@@ -197,6 +212,7 @@ func toItemMetadata(d metadata.Detail) *api.ItemMetadata {
 		CertificationRegion: optional(d.CertRegion), Studios: d.Studios, FieldLanguages: d.FieldLanguages,
 		LockedFields: d.LockedFields, LocalFields: d.LocalFields, DuplicateOf: optional(d.DuplicateOf),
 		Trailers: make([]api.Trailer, 0, len(d.Trailers)), Credits: make([]api.Credit, 0, len(d.Credits)),
+		Logo: toArtwork(d.Logo), Clearart: toArtwork(d.Clearart), Backdrops: make([]api.Artwork, 0, len(d.Backdrops)),
 		ProviderIds: api.ProviderIds{Tmdb: optionalInt(d.TMDBID), Imdb: optional(d.IMDbID), Tvdb: optionalInt(d.TVDBID)},
 	}
 	if d.MatchSource != "" {
@@ -221,7 +237,10 @@ func toItemMetadata(d metadata.Detail) *api.ItemMetadata {
 	}
 	for _, c := range d.Credits {
 		out.Credits = append(out.Credits, api.Credit{PersonId: c.PersonID, Name: c.Name, Role: api.CreditRole(c.Role),
-			Character: optional(c.Character)})
+			Character: optional(c.Character), Portrait: toArtwork(c.Portrait)})
+	}
+	for i := range d.Backdrops {
+		out.Backdrops = append(out.Backdrops, *toArtwork(&d.Backdrops[i]))
 	}
 	return out
 }

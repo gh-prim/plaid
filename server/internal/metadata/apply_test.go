@@ -32,7 +32,13 @@ type applyEnv struct {
 	errs []error
 }
 
-func newApplyEnv(t *testing.T, typ, lang, region string, withProvider bool) *applyEnv {
+// withArtwork turns on the image store (slower: images get downloaded,
+// decoded and resized).
+func withArtwork(e *applyEnv, o *Options) {
+	o.DataDir, o.ImageHTTP, o.ImageHosts = e.t.TempDir(), e.srv.HTTP(), e.srv.ImageHosts()
+}
+
+func newApplyEnv(t *testing.T, typ, lang, region string, withProvider bool, opts ...func(*applyEnv, *Options)) *applyEnv {
 	t.Helper()
 	d, err := db.Open(context.Background(), t.TempDir())
 	if err != nil {
@@ -43,7 +49,10 @@ func newApplyEnv(t *testing.T, typ, lang, region string, withProvider bool) *app
 	o := Options{DB: d, Log: slog.New(slog.NewTextHandler(io.Discard, nil)), Now: func() time.Time { return e.now }}
 	if withProvider {
 		e.srv = tmdbtest.New(t)
-		o.Provider = e.srv.Client()
+		o.Provider, o.Fanart = e.srv.Client(), e.srv.Fanart()
+	}
+	for _, f := range opts {
+		f(e, &o)
 	}
 	e.svc = New(o)
 	if err := e.svc.ReloadKeys(context.Background()); err != nil {
@@ -72,7 +81,7 @@ func (e *applyEnv) write(rel, content string) {
 // due job, the way the queue would.
 func (e *applyEnv) scan() {
 	e.t.Helper()
-	sc := &library.Scanner{Store: library.NewStore(e.db), Hooks: library.Hooks{ItemsCreated: e.svc.ItemsCreated}}
+	sc := &library.Scanner{Store: library.NewStore(e.db), Hooks: library.Hooks{ItemsCreated: e.svc.ItemsCreated, Sidecars: e.svc.SidecarsSeen}}
 	if _, err := sc.ScanLibrary(context.Background(), e.lib.ID, library.ScanOptions{}); err != nil {
 		e.t.Fatal(err)
 	}

@@ -50,6 +50,8 @@ var (
 	ErrInvalidKey = errors.New("invalid API key")
 	ErrNotFound   = errors.New("not found")
 	ErrTooLarge   = errors.New("response too large")
+	// ErrRequestFailed wraps network and transport errors.
+	ErrRequestFailed = errors.New("request failed")
 )
 
 // StatusError is an unexpected HTTP status.
@@ -190,7 +192,7 @@ func (c *Client) Get(ctx context.Context, rawURL string, header http.Header) ([]
 		}
 		// Never wrap err itself: *url.Error carries the unredacted URL.
 		c.failure(fmt.Sprintf("GET %s: %s", redacted, describe(err)))
-		return nil, fmt.Errorf("GET %s: %s", redacted, describe(err))
+		return nil, fmt.Errorf("%w: GET %s: %s", ErrRequestFailed, redacted, describe(err))
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -199,7 +201,7 @@ func (c *Client) Get(ctx context.Context, rawURL string, header http.Header) ([]
 		body, err := io.ReadAll(io.LimitReader(resp.Body, c.o.MaxBody+1))
 		if err != nil {
 			c.failure(fmt.Sprintf("GET %s: reading body: %s", redacted, describe(err)))
-			return nil, fmt.Errorf("GET %s: reading body: %s", redacted, describe(err))
+			return nil, fmt.Errorf("%w: GET %s: reading body: %s", ErrRequestFailed, redacted, describe(err))
 		}
 		if int64(len(body)) > c.o.MaxBody {
 			c.success()

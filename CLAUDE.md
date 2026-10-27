@@ -36,7 +36,7 @@ Run from the repo root. Toolchain: Go 1.26, Node 24+, pnpm 10, golangci-lint v2,
 
 Single checks: `make test-server`, `make test-web`, `make check-i18n`, `make check-codegen`.
 
-TMDB test recordings (F005, `server/internal/metadata/testdata/tmdb`): refresh them with `TMDB_API_KEY=… scripts/record-metadata-fixtures.sh` (needs curl, jq, perl). Tests never call TMDB; a request with no recording fails the test. Matcher decisions are frozen in `server/internal/metadata/match/testdata/cases.json`; re-recording can shift popularity, so rerun `make test-server` and check the cases.
+TMDB and fanart.tv test recordings (F005, `server/internal/metadata/testdata/{tmdb,fanart}`): refresh them with `TMDB_API_KEY=… FANART_API_KEY=… scripts/record-metadata-fixtures.sh` (needs curl, jq, perl; `ONLY=tmdb` or `ONLY=fanart` for one of them). Images aren't recorded: the test server generates them. Tests never call TMDB; a request with no recording fails the test. Matcher decisions are frozen in `server/internal/metadata/match/testdata/cases.json`; re-recording can shift popularity, so rerun `make test-server` and check the cases.
 
 Library scan performance (F004, 10,000 sparse files, not part of `make test`): `go -C server test -tags perf -run Perf -v ./internal/library/`. For Pi-like numbers, run it in a throttled container: `docker run --rm --cpus 0.5 --memory 1g -v "$PWD/server":/src:ro -e GOCACHE=/tmp/gocache -e GOPATH=/tmp/gopath -w /src golang:1.26 go test -tags perf -run Perf -v ./internal/library/`.
 A single `make test` target must pass before any PR.

@@ -1,16 +1,36 @@
 #!/usr/bin/env bash
-# Records the TMDB responses F005's tests replay (server/internal/metadata/testdata/tmdb).
-# Run it by hand when the fixtures need refreshing, never in CI:
-#   TMDB_API_KEY=… scripts/record-metadata-fixtures.sh
+# Records the TMDB and fanart.tv responses F005's tests replay
+# (server/internal/metadata/testdata/{tmdb,fanart}). Run it by hand when the
+# fixtures need refreshing, never in CI:
+#   TMDB_API_KEY=… FANART_API_KEY=… scripts/record-metadata-fixtures.sh
+# ONLY=fanart records fanart.tv alone (ONLY=tmdb, TMDB alone).
 # Needs curl, jq and perl. Responses are trimmed to the fields the code reads, so
 # the files stay small and reviewable. The key is sent as a query parameter
 # and never written to disk.
 set -euo pipefail
 
-: "${TMDB_API_KEY:?set TMDB_API_KEY}"
+: "${ONLY:=all}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
 out="$root/server/internal/metadata/testdata/tmdb"
 api="https://api.themoviedb.org/3"
+record_fanart() {
+  : "${FANART_API_KEY:?set FANART_API_KEY}"
+  local dir="$root/server/internal/metadata/testdata/fanart" kind id
+  mkdir -p "$dir"
+  # Kinds PLAID reads (R16), top 10 each; ids are TMDB for movies, TVDB for shows.
+  local trim='with_entries(select(.key | test("^(name|tmdb_id|imdb_id|thetvdb_id|hdmovielogo|hdmovieclearart|moviebackground|movieposter|moviethumb|hdtvlogo|hdclearart|showbackground|tvposter|tvthumb|seasonposter)$")) | if (.value | type) == "array" then .value |= .[:10] else . end)'
+  for c in movies/603 movies/348 tv/81189; do
+    kind=${c%%/*} id=${c#*/}
+    sleep 0.25
+    curl -fsS --get "https://webservice.fanart.tv/v3/$kind/$id" --data-urlencode "api_key=$FANART_API_KEY" | jq "$trim" >"$dir/$kind-$id.json"
+  done
+  echo "fanart.tv fixtures written to ${dir#"$root"/}"
+}
+if [[ $ONLY == fanart ]]; then
+  record_fanart
+  exit 0
+fi
+: "${TMDB_API_KEY:?set TMDB_API_KEY}"
 mkdir -p "$out/search" "$out/movie" "$out/tv" "$out/find" "$out/collection"
 
 # get PATH PARAM [CURL ARGS…] → raw JSON on stdout. Stays under TMDB's rate limit.
@@ -110,3 +130,6 @@ for lang in en-US fr-FR; do
 done
 
 echo "fixtures written to ${out#"$root"/}: $(find "$out" -name '*.json' | wc -l | tr -d ' ') files"
+if [[ $ONLY == all ]]; then
+  record_fanart
+fi

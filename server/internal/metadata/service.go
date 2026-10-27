@@ -5,17 +5,27 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
+	"slices"
 	"sync"
 	"time"
 
+	"github.com/gh-prim/plaid/server/internal/metadata/artwork"
+	"github.com/gh-prim/plaid/server/internal/metadata/fanart"
 	"github.com/gh-prim/plaid/server/internal/metadata/httpx"
 	"github.com/gh-prim/plaid/server/internal/metadata/provider"
 	"github.com/gh-prim/plaid/server/internal/metadata/tmdb"
 	"github.com/gh-prim/plaid/server/internal/settings"
 )
 
-// TMDB request rate (R32).
-const tmdbRPS = 20
+// Request rates and concurrency (R32).
+const (
+	tmdbRPS        = 20
+	fanartRPS      = 5
+	imageDownloads = 8
+)
+
+// cleanupEvery is how often unused originals are deleted (R18).
+const cleanupEvery = 24 * time.Hour
 
 // sweepEvery is how often items without a metadata row are looked for.
 const sweepEvery = time.Hour
@@ -34,6 +44,17 @@ type Options struct {
 	Now func() time.Time
 	// QueueIdle is how long idle workers wait; tests shorten it.
 	QueueIdle time.Duration
+	// DataDir holds artwork (PLAID_DATA_DIR); empty disables artwork.
+	DataDir string
+	// FanartKey is PLAID_FANART_API_KEY.
+	FanartKey string
+	// ArtworkCacheBytes caps resized variants (R20); 0 means 2 GiB.
+	ArtworkCacheBytes int64
+	// Fanart and ImageHTTP replace fanart.tv and image downloads in tests,
+	// with ImageHosts pointing the image hosts at a local server.
+	Fanart     *fanart.Client
+	ImageHTTP  *httpx.Client
+	ImageHosts map[string]string
 }
 
 // Service matches items and keeps their metadata up to date (F005).
@@ -47,6 +68,8 @@ type Service struct {
 	prov      provider.Provider
 	http      *httpx.Client
 	keySource string
+	fan       *fanart.Client
+	art       *artwork.Store
 
 	stop context.CancelFunc
 	wg   sync.WaitGroup
@@ -63,6 +86,15 @@ func New(o Options) *Service {
 	st := NewStore(o.DB)
 	st.Now = o.Now
 	s := &Service{o: o, store: st, log: o.Log}
+	if o.DataDir != "" {
+		h := o.ImageHTTP
+		if h == nil {
+			h = httpx.New(httpx.Options{Name: "images", Hosts: append(slices.Clone(tmdb.Hosts), fanart.Hosts...),
+				MaxConcurrent: imageDownloads, Log: o.Log})
+		}
+		s.art = artwork.New(artwork.Options{DataDir: o.DataDir, HTTP: h, Hosts: o.ImageHosts,
+			MaxVariantBytes: o.ArtworkCacheBytes, Log: o.Log})
+	}
 	s.queue = &Queue{Store: st, Process: s.Process, Workers: o.Workers, Idle: o.QueueIdle, Log: o.Log}
 	return s
 }
@@ -78,6 +110,10 @@ func (s *Service) Start(ctx context.Context) {
 		s.log.Error("metadata keys not loaded", "err", err)
 	}
 	s.queue.Start(ctx)
+	if s.art != nil {
+		s.wg.Add(1)
+		go s.cleanupLoop(ctx)
+	}
 	s.wg.Add(1)
 	go func() {
 		defer s.wg.Done()
@@ -116,10 +152,25 @@ func (s *Service) Wake() { s.queue.Wake() }
 func (s *Service) ReloadKeys(ctx context.Context) error {
 	if s.o.Provider != nil {
 		s.mu.Lock()
-		s.prov, s.keySource = s.o.Provider, KeyCustom
+		s.prov, s.keySource, s.fan = s.o.Provider, KeyCustom, s.o.Fanart
 		s.mu.Unlock()
 		return nil
 	}
+	fanKey, _, err := resolveKey(ctx, s.o.Settings, settings.FanartAPIKey, s.o.FanartKey, builtinFanartKey)
+	if err != nil {
+		return err
+	}
+	personal := ""
+	if s.o.Settings != nil {
+		personal, _, _ = s.o.Settings.Get(ctx, settings.FanartPersonalKey)
+	}
+	s.mu.Lock()
+	s.fan = nil
+	if fanKey != "" {
+		h := httpx.New(httpx.Options{Name: "fanart", Hosts: fanart.Hosts, RPS: fanartRPS, Burst: fanartRPS, Log: s.log})
+		s.fan = fanart.New(h, fanart.BaseURL, fanKey, personal)
+	}
+	s.mu.Unlock()
 	key, source, err := resolveKey(ctx, s.o.Settings, settings.TMDBAPIKey, s.o.TMDBKey, builtinTMDBKey)
 	if err != nil {
 		return err
@@ -136,6 +187,38 @@ func (s *Service) ReloadKeys(ctx context.Context) error {
 	s.prov = tmdb.New(s.http, tmdb.BaseURL, key)
 	return nil
 }
+
+func (s *Service) cleanupLoop(ctx context.Context) {
+	defer s.wg.Done()
+	t := time.NewTicker(cleanupEvery)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+		}
+		n, err := s.art.Cleanup(ctx, func(sha string) (bool, error) {
+			var used int
+			err := s.store.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM artwork WHERE sha256 = ? AND source <> 'local'`, sha).Scan(&used)
+			return used > 0, err
+		})
+		if err != nil && ctx.Err() == nil {
+			s.log.Error("artwork cleanup failed", "err", err)
+		} else if n > 0 {
+			s.log.Info("unused artwork removed", "count", n)
+		}
+	}
+}
+
+func (s *Service) fanart() *fanart.Client {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.fan
+}
+
+// Artwork is the image store; nil without a data directory.
+func (s *Service) Artwork() *artwork.Store { return s.art }
 
 func (s *Service) provider() provider.Provider {
 	s.mu.Lock()

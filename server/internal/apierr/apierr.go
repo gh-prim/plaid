@@ -203,3 +203,11 @@ func FolderOverlap(path, other string) *Error {
 func LibraryTypeImmutable() *Error {
 	return New(http.StatusUnprocessableEntity, "library_type_immutable", "a library's type can't change")
 }
+
+// Error codes from F005 (metadata and artwork).
+
+// ProviderUnavailable means a metadata provider couldn't be reached for
+// something that isn't stored yet (an image never downloaded).
+func ProviderUnavailable() *Error {
+	return New(http.StatusServiceUnavailable, "provider_unavailable", "the metadata provider can't be reached right now")
+}
