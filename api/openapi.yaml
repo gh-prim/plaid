@@ -3283,7 +3283,9 @@ components:
       type: string
       enum: [fast, balanced, quality]
       x-enum-varnames: [EncoderPresetFast, EncoderPresetBalanced, EncoderPresetQuality]
-      description: Encoder speed against quality (libx264 veryfast, faster, medium).
+      description: >-
+        Encoder speed against quality (libx264 veryfast, faster, medium). On 4 cores or fewer (counting a container's
+        CPU quota), fast uses superfast to keep up with real time.
     HwAccelSetting:
       type: string
       enum: [auto, none, vaapi, qsv, nvenc, v4l2m2m, videotoolbox]

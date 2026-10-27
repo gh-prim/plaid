@@ -207,5 +207,9 @@ func DefaultStorageCap(free uint64) int64 {
 
 func cpuCount() int { return runtime.NumCPU() }
 
+// usableCPUs is the cores this process may use: unlike NumCPU, it follows
+// a container's CPU quota (Go 1.25+ sets GOMAXPROCS from it).
+func usableCPUs() int { return runtime.GOMAXPROCS(0) }
+
 // formatBytes is for logs.
 func formatBytes(n int64) string { return strconv.FormatFloat(float64(n)/(1<<30), 'f', 1, 64) + " GiB" }

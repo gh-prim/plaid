@@ -64,6 +64,7 @@ func TestCommandGoldens(t *testing.T) {
 		}()}},
 		{"transcode-720p", RunSpec{Layout: tc, StartPiece: 0, Preset: PresetFast, Decision: transcode(m, nil, "")}},
 		{"transcode-seek-balanced", RunSpec{Layout: tc, StartPiece: 1020, RunID: 3, Preset: PresetBalanced, Decision: transcode(m, nil, "")}},
+		{"transcode-small-cpu", RunSpec{Layout: tc, Preset: PresetFast, CPUs: 4, Decision: transcode(m, nil, "")}},
 		{"transcode-4k-quality", RunSpec{Layout: tc, Preset: PresetQuality, Decision: func() Decision {
 			d := transcode(m, nil, "")
 			d.Width, d.Height, d.VideoBitrate, d.AudioChannels = 3840, 2160, 20_000_000, 6
@@ -118,6 +119,21 @@ func TestCommandGoldens(t *testing.T) {
 				t.Fatalf("args differ from %s:\n%s", path, got)
 			}
 		})
+	}
+}
+
+func TestX264Preset(t *testing.T) {
+	for _, c := range []struct {
+		setting string
+		cpus    int
+		want    string
+	}{
+		{PresetFast, 0, "veryfast"}, {PresetFast, 8, "veryfast"}, {PresetFast, 4, "superfast"}, {PresetFast, 2, "superfast"},
+		{"", 2, "superfast"}, {PresetBalanced, 2, "faster"}, {PresetQuality, 2, "medium"}, {"nope", 8, "veryfast"},
+	} {
+		if got := x264Preset(c.setting, c.cpus); got != c.want {
+			t.Errorf("x264Preset(%q, %d) = %s, want %s", c.setting, c.cpus, got, c.want)
+		}
 	}
 }
 

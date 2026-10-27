@@ -212,7 +212,7 @@ For each file and player, PLAID picks the lightest way that works and says why i
 | **Direct Stream** | The video is copied as it is; the container (and the audio, if the player can't decode it) is converted, served as HLS (`…/master.m3u8`). | Light: no video decoding. |
 | **Transcode** | The video is re-encoded to H.264 at a quality that fits the player and the connection, served as HLS. | Heavy: one CPU core or more per stream in software, little with a GPU. |
 
-Admins tune it with `GET`/`PATCH /api/v1/settings/playback`: simultaneous conversions (`maxTranscodes`, 1 by default on 4 cores or fewer, 2 above, 4 with a GPU), a bitrate cap for clients outside the home network (`remoteMaxBitrate`), extra networks counted as home (`localNetworks`, e.g. `100.64.0.0/10` for Tailscale), the encoder speed (`encoderPreset`) and the GPU (`hwAccel`, below). `GET /api/v1/playback` lists who is watching what, how, and how fast conversions run.
+Admins tune it with `GET`/`PATCH /api/v1/settings/playback`: simultaneous conversions (`maxTranscodes`, 1 by default on 4 cores or fewer, 2 above, 4 with a GPU), a bitrate cap for clients outside the home network (`remoteMaxBitrate`), extra networks counted as home (`localNetworks`, e.g. `100.64.0.0/10` for Tailscale), the encoder speed (`encoderPreset`: `fast` by default, one step faster still on 4 cores or fewer, `balanced`, `quality`) and the GPU (`hwAccel`, below). `GET /api/v1/playback` lists who is watching what, how, and how fast conversions run.
 
 ### Hardware transcoding
 

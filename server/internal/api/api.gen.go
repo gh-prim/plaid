@@ -1453,7 +1453,7 @@ type DolbyVision struct {
 	Profile int `json:"profile"`
 }
 
-// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium).
+// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium). On 4 cores or fewer (counting a container's CPU quota), fast uses superfast to keep up with real time.
 type EncoderPreset string
 
 // Error defines model for Error.
@@ -2066,7 +2066,7 @@ type PlaybackSessionHardwareAcceleration string
 
 // PlaybackSettings defines model for PlaybackSettings.
 type PlaybackSettings struct {
-	// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium).
+	// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium). On 4 cores or fewer (counting a container's CPU quota), fast uses superfast to keep up with real time.
 	EncoderPreset EncoderPreset `json:"encoderPreset"`
 
 	// Hardware The result of the last hardware test (F006 R24, R31).
@@ -2099,7 +2099,7 @@ type PlaybackSettings struct {
 
 // PlaybackSettingsUpdate defines model for PlaybackSettingsUpdate.
 type PlaybackSettingsUpdate struct {
-	// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium).
+	// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium). On 4 cores or fewer (counting a container's CPU quota), fast uses superfast to keep up with real time.
 	EncoderPreset *EncoderPreset `json:"encoderPreset,omitempty"`
 
 	// HwAccel Hardware acceleration (F006 R24). `auto` tries vaapi, qsv, nvenc, v4l2m2m, then videotoolbox (macOS, development only) and keeps the first that passes a test encode.

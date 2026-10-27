@@ -159,7 +159,7 @@ func (s *Service) startRun(st *hlsStream, piece int) (*Run, error) {
 		return nil, ErrTranscodeStorage
 	}
 	st.runs++
-	spec := RunSpec{Decision: st.decision, Layout: st.layout, StartPiece: piece, Dir: st.dir, RunID: st.runs, Preset: st.preset, HW: st.hw}
+	spec := RunSpec{Decision: st.decision, Layout: st.layout, StartPiece: piece, Dir: st.dir, RunID: st.runs, Preset: st.preset, HW: st.hw, CPUs: usableCPUs()}
 	run, err := StartRun(s.o.FFmpeg.Path, spec)
 	if err != nil {
 		return nil, err

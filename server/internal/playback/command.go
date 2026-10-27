@@ -16,6 +16,26 @@ const (
 
 var x264Presets = map[string]string{PresetFast: "veryfast", PresetBalanced: "faster", PresetQuality: "medium"}
 
+// smallCPUs is the core count at or under which fast goes one step faster.
+const smallCPUs = 4
+
+// x264Preset is libx264's preset for an encoderPreset on a machine with
+// cpus usable cores (0 if unknown). On 4 cores or fewer, fast is
+// superfast: veryfast doesn't keep a 1080p→720p transcode at real time
+// there (plan step 30, Pi-like profile).
+func x264Preset(setting string, cpus int) string {
+	if setting == "" {
+		setting = PresetFast
+	}
+	if setting == PresetFast && cpus > 0 && cpus <= smallCPUs {
+		return "superfast"
+	}
+	if p, ok := x264Presets[setting]; ok {
+		return p
+	}
+	return x264Presets[PresetFast]
+}
+
 // segmentOptions make every run of a session write the same init segment
 // and keep the source timestamps, so segments of different runs join up
 // after a seek (plan step 16). frag_discont keeps each fragment's real
@@ -35,6 +55,8 @@ type RunSpec struct {
 	Preset     string // encoderPreset; "" is fast
 	// HW is the accelerator of a transcode run, nil in software (R24).
 	HW *HWConfig
+	// CPUs is how many cores the software encoder may use; 0 if unknown.
+	CPUs int
 }
 
 // InitName is the init segment a run writes. The first one written
@@ -207,11 +229,7 @@ func (r RunSpec) encoderArgs() []string {
 		if d.Width > 1920 || d.Height > 1080 {
 			level = "5.1"
 		}
-		preset := x264Presets[r.Preset]
-		if preset == "" {
-			preset = x264Presets[PresetFast]
-		}
-		a := []string{"-c:v", "libx264", "-preset", preset, "-profile:v", "high", "-level:v", level}
+		a := []string{"-c:v", "libx264", "-preset", x264Preset(r.Preset, r.CPUs), "-profile:v", "high", "-level:v", level}
 		return append(append(a, rates...), "-sc_threshold", "0")
 	}
 	sp := hw.spec()

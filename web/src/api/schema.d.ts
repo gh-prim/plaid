@@ -2161,7 +2161,7 @@ export interface components {
       burnSubtitles?: boolean
     }
     /**
-     * @description Encoder speed against quality (libx264 veryfast, faster, medium).
+     * @description Encoder speed against quality (libx264 veryfast, faster, medium). On 4 cores or fewer (counting a container's CPU quota), fast uses superfast to keep up with real time.
      * @enum {string}
      */
     EncoderPreset: 'fast' | 'balanced' | 'quality'
