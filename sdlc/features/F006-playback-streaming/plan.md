@@ -3,7 +3,7 @@ id: F006
 title: Playback — direct play and transcoding
 owner: gh-prim
 reviewer: TBD
-status: draft            # draft | approved | in-progress | done
+status: approved         # draft | approved | in-progress | done
 spec: ./spec.md
 branch: feat/F006-playback
 ---
