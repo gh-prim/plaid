@@ -3,7 +3,7 @@ id: F003
 title: Accounts and authentication
 owner: gh-prim
 reviewer: TBD
-status: in-progress      # draft | approved | in-progress | done
+status: done             # draft | approved | in-progress | done
 spec: ./spec.md
 branch: feat/F003-accounts-auth
 ---
@@ -168,3 +168,4 @@ Each step ends with a commit `F003: …`. Tests are written in the same step as 
   - First-run setup code present in the journal (`journalctl -u plaid`).
   - Caveat on these numbers: `--cpus 0.5` throttles CPU time, not per-core speed, and an Apple Silicon core runs argon2id several times faster than a Pi 4's Cortex-A72 (Go's argon2 has no arm64 assembly). They are a lower bound, not a Pi measurement.
   - **`t` raised to 3** as step 18's rule says (p95 < 250 ms), at gh-prim's call despite the caveat. Re-measured on the same profile: min 30 ms, median 77 ms, max 88 ms; 4 at once 103, 187, 381, 383 ms; memory peak 87 MB. Spec revision 13. Existing t = 2 hashes are re-hashed at the next sign-in (`NeedsRehash`). If a real Pi 4 shows sign-in over 500 ms, lower it back to 2: hashes keep their own params, so nothing breaks.
+- 2026-10-27, delivery: PR 1 merged as gh-prim/plaid#23; PR 2 and PR 3 merged together as gh-prim/plaid#24 (gh-prim/plaid#26 folded into it) to merge the rest of F003 in one go.
