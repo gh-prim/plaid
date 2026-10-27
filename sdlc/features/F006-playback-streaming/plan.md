@@ -150,7 +150,7 @@ What proves it's done, to paste into the PR:
 - [ ] Tests added: decider table, profile and remote check, manager (ownership, reaper, revocation), watch state, keyframe readers, segments and playlists, command builder goldens, runner (restart continuity, seeking, throttle, idle stop), storage, subtitles, hardware probe with the fake FFmpeg, stream handler (Range, traversal, token redaction), handlers e2e, Linux crash cleanup.
 - [ ] `make test` green (output pasted in each PR).
 - [ ] `make test-deb` green on `debian:trixie` (arm64 locally) with the new checks; `package-test` green in CI for amd64.
-- [ ] Manual check (PR A): VLC plays and seeks a 4 GB MKV through a link obtained with `curl`; the link dies when the session is revoked.
+- [x] Manual check (PR A): VLC plays and seeks a 4 GB MKV through a link obtained with `curl`; the link dies when the session is revoked. Done with a 1 GB generated MKV (see Log).
 - [ ] Manual check (PR B): Safari plays the HLS URL of a Direct Stream MKV and of a transcoded HEVC file for 10 minutes with seeks; VLC and `ffplay` too.
 - [ ] Manual check (PR C): VAAPI on an Intel GPU at ≥ 3×, fallback to software when the render node is unreadable; NVENC if one of us has an NVIDIA card (otherwise noted as untested).
 - [ ] Performance numbers (PR C): start, seek and speed on the dev machine and in the throttled container, compared with the spec's NFRs.
@@ -164,4 +164,4 @@ Deviations from the plan found during the build (date + what + why).
 - **2026-10-27, step 7:** `accounts.SessionOwner` added next to `SessionActive`, for the names in the admin list (R29). New small files `playback/ids.go` (UUIDv7) and `playback/urls.go` (stream and subtitle URLs).
 - **2026-10-27, step 9:** `playback/settings.go` only reads `playback.remote_max_bitrate` and `playback.local_networks` in PR A; the settings routes and the other keys stay in step 20.
 - **2026-10-27, step 10:** the "less than 2 minutes left" rule only counts past the middle of the item, so a 3-minute short isn't watched at its start (spec revision 5).
-- **2026-10-27, step 11:** checked end to end against the real server with `curl`, `ffprobe` and an `ffmpeg` seek over HTTP (2-minute H.264/AAC clip). The VLC check with a 4 GB MKV is still to do by hand.
+- **2026-10-27, step 11:** checked end to end against the real server with `curl`, `ffprobe` and an `ffmpeg` seek over HTTP (2-minute H.264/AAC clip). Then by hand with VLC 3.0.23 and `make dev`: a generated 1.0 GB MKV (10 min, 1080p24 H.264 + AAC) instead of a real 4 GB film, since Direct Play serves any file the same way by ranges. It plays, seeks to 2, 8 and 1 min at once, and after `DELETE /playback/{id}` the link answers `404 playback_session_not_found`.
