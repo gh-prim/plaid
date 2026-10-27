@@ -1,0 +1,44 @@
+{
+  "total_results": 3,
+  "results": [
+    {
+      "id": 613,
+      "title": "Downfall",
+      "name": null,
+      "original_title": "Der Untergang",
+      "original_name": null,
+      "release_date": "2004-09-16",
+      "first_air_date": null,
+      "popularity": 6.8772,
+      "original_language": "de",
+      "poster_path": "/cP1ElGjBhbZAAqmueXjHDKlSwiP.jpg",
+      "overview": "In April of 1945, Germany stands at the brink of defeat with the Russian Army closing in from the east and the Allied Expeditionary Force attacking from the wes"
+    },
+    {
+      "id": 1099066,
+      "title": "Hitler's Final Days: The Movie 'Downfall'",
+      "name": null,
+      "original_title": "Hitlers letzte Tage - Der Film \"Der Untergang\"",
+      "original_name": null,
+      "release_date": "2005-09-16",
+      "first_air_date": null,
+      "popularity": 1.0734,
+      "original_language": "de",
+      "poster_path": "/k7UwnOawHITyflDh3QavGpFYqRf.jpg",
+      "overview": "Countless valuable info of Der Untegang's production as choice of St. Peterburg, how the German producers have been envisioned this upper-class movie as final w"
+    },
+    {
+      "id": 94302,
+      "title": "Death in the Bunker: The True Story of Hitler's Downfall",
+      "name": null,
+      "original_title": "Tod im Führerbunker - Die Geschichte von Hitlers Untergang",
+      "original_name": null,
+      "release_date": "2004-10-16",
+      "first_air_date": null,
+      "popularity": 1.1115,
+      "original_language": "de",
+      "poster_path": "/lMOZJMZzoQR5rbK5WCHVcEp5Y0v.jpg",
+      "overview": "Adolf Hitler spent the last ten days of his life in a bunker underneath the Chancellery of the Reich. Unwilling to face the consequences of defeat, the dictator"
+    }
+  ]
+}

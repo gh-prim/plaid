@@ -57,7 +57,11 @@ type Library struct {
 	Type          string
 	ScanIntervalS *int64
 	LastScanAt    *time.Time
-	Folders       []Folder
+	// MetadataLanguage (ISO 639-1) and MetadataRegion (ISO 3166-1 alpha-2)
+	// choose the language F005 fetches metadata in.
+	MetadataLanguage string
+	MetadataRegion   string
+	Folders          []Folder
 }
 
 // Folder is a row of library_folders.
@@ -103,12 +107,26 @@ func mtimeString(t time.Time) string {
 
 func (s *Store) now() string { return ts(s.Now()) }
 
+// CreateOptions are the optional settings of a new library.
+type CreateOptions struct {
+	ScanIntervalS *int64 // nil = defaults (R19)
+	// Empty means the database defaults, en/US (F005 R10).
+	MetadataLanguage string
+	MetadataRegion   string
+}
+
 // CreateLibrary inserts a library and its folders. Paths must already be
-// validated and cleaned by the caller. interval is optional (nil = defaults).
-func (s *Store) CreateLibrary(ctx context.Context, name, typ string, folders []string, interval ...*int64) (Library, error) {
-	lib := Library{ID: newID(), Name: name, Type: typ}
-	if len(interval) > 0 {
-		lib.ScanIntervalS = interval[0]
+// validated and cleaned by the caller. opts is optional.
+func (s *Store) CreateLibrary(ctx context.Context, name, typ string, folders []string, opts ...CreateOptions) (Library, error) {
+	lib := Library{ID: newID(), Name: name, Type: typ, MetadataLanguage: "en", MetadataRegion: "US"}
+	if len(opts) > 0 {
+		lib.ScanIntervalS = opts[0].ScanIntervalS
+		if opts[0].MetadataLanguage != "" {
+			lib.MetadataLanguage = opts[0].MetadataLanguage
+		}
+		if opts[0].MetadataRegion != "" {
+			lib.MetadataRegion = opts[0].MetadataRegion
+		}
 	}
 	now := s.now()
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -117,8 +135,9 @@ func (s *Store) CreateLibrary(ctx context.Context, name, typ string, folders []s
 	}
 	defer tx.Rollback()
 	if _, err := tx.ExecContext(ctx,
-		`INSERT INTO libraries (id, name, type, scan_interval_s, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
-		lib.ID, name, typ, nullInt64Ptr(lib.ScanIntervalS), now, now); err != nil {
+		`INSERT INTO libraries (id, name, type, scan_interval_s, metadata_language, metadata_region, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		lib.ID, name, typ, nullInt64Ptr(lib.ScanIntervalS), lib.MetadataLanguage, lib.MetadataRegion, now, now); err != nil {
 		return lib, fmt.Errorf("insert library: %w", err)
 	}
 	for _, p := range folders {
@@ -141,8 +160,8 @@ func (s *Store) GetLibrary(ctx context.Context, id string) (Library, error) {
 		lastScan sql.NullString
 	)
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, name, type, scan_interval_s, last_scan_at FROM libraries WHERE id = ?`, id).
-		Scan(&lib.ID, &lib.Name, &lib.Type, &interval, &lastScan)
+		`SELECT id, name, type, scan_interval_s, last_scan_at, metadata_language, metadata_region FROM libraries WHERE id = ?`, id).
+		Scan(&lib.ID, &lib.Name, &lib.Type, &interval, &lastScan, &lib.MetadataLanguage, &lib.MetadataRegion)
 	if errors.Is(err, sql.ErrNoRows) {
 		return lib, ErrNotFound
 	}
@@ -404,6 +423,10 @@ type Patch struct {
 	ScanIntervalS *int64
 	// Folders, when set, is the new full list of cleaned paths.
 	Folders []string
+	// MetadataLanguage and MetadataRegion, when set, change the language
+	// F005 fetches metadata in (R10).
+	MetadataLanguage *string
+	MetadataRegion   *string
 }
 
 // UpdateLibrary applies p and returns the ids of folders it added. Removed
@@ -431,6 +454,16 @@ func (s *Store) UpdateLibrary(ctx context.Context, id string, p Patch) (added []
 	if p.SetInterval {
 		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET scan_interval_s = ? WHERE id = ?`,
 			nullInt64Ptr(p.ScanIntervalS), id); err != nil {
+			return nil, err
+		}
+	}
+	if p.MetadataLanguage != nil {
+		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET metadata_language = ? WHERE id = ?`, *p.MetadataLanguage, id); err != nil {
+			return nil, err
+		}
+	}
+	if p.MetadataRegion != nil {
+		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET metadata_region = ? WHERE id = ?`, *p.MetadataRegion, id); err != nil {
 			return nil, err
 		}
 	}

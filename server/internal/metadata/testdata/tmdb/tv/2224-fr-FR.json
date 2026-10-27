@@ -1,0 +1,1513 @@
+{
+  "adult": false,
+  "backdrop_path": "/qLMfcvdCcCGD2BNLH8b6ZCBuO7D.jpg",
+  "created_by": [
+    {
+      "id": 1230176,
+      "credit_id": "52572b64760ee3776a2dbc75",
+      "name": "Madeleine Smithberg",
+      "original_name": "Madeleine Smithberg",
+      "gender": 1,
+      "profile_path": null
+    },
+    {
+      "id": 1230175,
+      "credit_id": "52572b63760ee3776a2dbc6d",
+      "name": "Lizz Winstead",
+      "original_name": "Lizz Winstead",
+      "gender": 1,
+      "profile_path": null
+    }
+  ],
+  "episode_run_time": [],
+  "first_air_date": "1996-07-22",
+  "genres": [
+    {
+      "id": 10763,
+      "name": "News"
+    },
+    {
+      "id": 35,
+      "name": "Comédie"
+    }
+  ],
+  "homepage": "https://www.cc.com/shows/the-daily-show",
+  "id": 2224,
+  "in_production": true,
+  "languages": [
+    "en"
+  ],
+  "last_air_date": "2026-10-22",
+  "last_episode_to_air": {
+    "id": 7842478,
+    "name": "Épisode 119",
+    "overview": "",
+    "vote_average": 0.0,
+    "vote_count": 0,
+    "air_date": "2026-10-26",
+    "episode_number": 119,
+    "episode_type": "standard",
+    "production_code": "",
+    "runtime": null,
+    "season_number": 31,
+    "show_id": 2224,
+    "still_path": null
+  },
+  "name": "Le Daily Show",
+  "next_episode_to_air": {
+    "id": 7842481,
+    "name": "Épisode 120",
+    "overview": "",
+    "vote_average": 0.0,
+    "vote_count": 0,
+    "air_date": "2026-10-27",
+    "episode_number": 120,
+    "episode_type": "standard",
+    "production_code": "",
+    "runtime": null,
+    "season_number": 31,
+    "show_id": 2224,
+    "still_path": null
+  },
+  "networks": [
+    {
+      "id": 47,
+      "logo_path": "/6ooPjtXufjsoskdJqj6pxuvHEno.png",
+      "name": "Comedy Central",
+      "origin_country": "US"
+    }
+  ],
+  "number_of_episodes": 4292,
+  "number_of_seasons": 31,
+  "origin_country": [
+    "US"
+  ],
+  "original_language": "en",
+  "original_name": "The Daily Show",
+  "overview": "Trevor Noah et l'équipe de la plus fausse information au monde abordent les plus grandes histoires de l'actualité, de la politique et de la culture pop.",
+  "popularity": 272.7186,
+  "poster_path": "/np5l5SGS990ZV6FcP9CCRPq3hSe.jpg",
+  "production_companies": [
+    {
+      "id": 1538,
+      "name": "Comedy Central",
+      "origin_country": "US"
+    },
+    {
+      "id": 6329,
+      "name": "MTV Entertainment Studios",
+      "origin_country": "US"
+    },
+    {
+      "id": 68479,
+      "name": "Ark Angel",
+      "origin_country": "US"
+    },
+    {
+      "id": 8290,
+      "name": "Busboy Productions",
+      "origin_country": "US"
+    },
+    {
+      "id": 281059,
+      "name": "Mad Cow Productions",
+      "origin_country": "US"
+    },
+    {
+      "id": 270146,
+      "name": "Paramount Television Studios",
+      "origin_country": "US"
+    }
+  ],
+  "seasons": [
+    {
+      "air_date": "1999-12-15",
+      "episode_count": 100,
+      "id": 6869,
+      "name": "Épisodes spéciaux",
+      "overview": "",
+      "poster_path": null,
+      "season_number": 0,
+      "vote_average": 0.0
+    },
+    {
+      "air_date": "1996-07-22",
+      "episode_count": 7,
+      "id": 6853,
+      "name": "Saison 1",
+      "overview": "",
+      "poster_path": "/yCk9E4zzDi5W9zpDc2L8vCeLA.jpg",
+      "season_number": 1,
+      "vote_average": 7.3
+    },
+    {
+      "air_date": "1997-01-06",
+      "episode_count": 16,
+      "id": 6854,
+      "name": "Saison 2",
+      "overview": "",
+      "poster_path": "/w7sob0PFeYV0S2Q8v1PMhge8qQS.jpg",
+      "season_number": 2,
+      "vote_average": 8.0
+    },
+    {
+      "air_date": "1998-03-09",
+      "episode_count": 33,
+      "id": 6855,
+      "name": "Saison 3",
+      "overview": "",
+      "poster_path": "/jXrc4QyW1berVN4ZaX2eX0jOPsq.jpg",
+      "season_number": 3,
+      "vote_average": 5.2
+    },
+    {
+      "air_date": "1999-01-11",
+      "episode_count": 159,
+      "id": 6856,
+      "name": "Saison 4",
+      "overview": "",
+      "poster_path": "/5geFJYuUrQPdNSiKPvJAfw1xCAu.jpg",
+      "season_number": 4,
+      "vote_average": 5.2
+    },
+    {
+      "air_date": "2000-01-04",
+      "episode_count": 166,
+      "id": 6857,
+      "name": "Saison 5",
+      "overview": "",
+      "poster_path": "/qd87rtrifcts3nV9pza1N17xWtU.jpg",
+      "season_number": 5,
+      "vote_average": 5.1
+    },
+    {
+      "air_date": "2001-01-09",
+      "episode_count": 158,
+      "id": 6858,
+      "name": "Saison 6",
+      "overview": "",
+      "poster_path": "/yiQeAEBblEDLVqg2ninkMvgj1d7.jpg",
+      "season_number": 6,
+      "vote_average": 5.2
+    },
+    {
+      "air_date": "2002-01-08",
+      "episode_count": 160,
+      "id": 6859,
+      "name": "Saison 7",
+      "overview": "",
+      "poster_path": "/rnbkP4MG91w72LyGyHlBUfZC3Rv.jpg",
+      "season_number": 7,
+      "vote_average": 5.1
+    },
+    {
+      "air_date": "2003-01-07",
+      "episode_count": 161,
+      "id": 6860,
+      "name": "Saison 8",
+      "overview": "",
+      "poster_path": "/1Vii2YyKtU6fLcKhHzsx5zk2Kay.jpg",
+      "season_number": 8,
+      "vote_average": 5.0
+    },
+    {
+      "air_date": "2004-01-06",
+      "episode_count": 161,
+      "id": 6861,
+      "name": "Saison 9",
+      "overview": "",
+      "poster_path": "/mtE8VmeNr0UX1Q6B48HTjhu33kN.jpg",
+      "season_number": 9,
+      "vote_average": 5.1
+    },
+    {
+      "air_date": "2005-01-04",
+      "episode_count": 159,
+      "id": 6862,
+      "name": "Saison 10",
+      "overview": "",
+      "poster_path": "/y5LJHtLDL1H7ZIcNUfuGQpmYbaG.jpg",
+      "season_number": 10,
+      "vote_average": 7.1
+    },
+    {
+      "air_date": "2006-01-04",
+      "episode_count": 161,
+      "id": 6863,
+      "name": "Saison 11",
+      "overview": "",
+      "poster_path": "/pn7dQLjbYCpthiGTOKh2svdKscr.jpg",
+      "season_number": 11,
+      "vote_average": 6.7
+    },
+    {
+      "air_date": "2007-01-08",
+      "episode_count": 138,
+      "id": 6864,
+      "name": "Saison 12",
+      "overview": "",
+      "poster_path": "/7FGRSBm7ofcsGrGm8t1qPRfNAKG.jpg",
+      "season_number": 12,
+      "vote_average": 6.7
+    },
+    {
+      "air_date": "2008-01-07",
+      "episode_count": 160,
+      "id": 6865,
+      "name": "Saison 13",
+      "overview": "",
+      "poster_path": "/y7hvsKSD8rwVcFcFrK01SrbdKQv.jpg",
+      "season_number": 13,
+      "vote_average": 7.2
+    },
+    {
+      "air_date": "2009-01-05",
+      "episode_count": 161,
+      "id": 6866,
+      "name": "Saison 14",
+      "overview": "",
+      "poster_path": "/rDXpjby6TwgZGgOIV2C3TGV7pFz.jpg",
+      "season_number": 14,
+      "vote_average": 7.2
+    },
+    {
+      "air_date": "2010-01-04",
+      "episode_count": 161,
+      "id": 6867,
+      "name": "Saison 15",
+      "overview": "",
+      "poster_path": "/9RJ8xiky5HjRaHyTqHr6Wnq7PsX.jpg",
+      "season_number": 15,
+      "vote_average": 7.1
+    },
+    {
+      "air_date": "2011-01-03",
+      "episode_count": 124,
+      "id": 6868,
+      "name": "Saison 16",
+      "overview": "",
+      "poster_path": "/kqgmQuTwhhLVfKryvvRsDbphgP6.jpg",
+      "season_number": 16,
+      "vote_average": 6.3
+    },
+    {
+      "air_date": "2011-10-03",
+      "episode_count": 157,
+      "id": 6870,
+      "name": "Saison 17",
+      "overview": "",
+      "poster_path": "/gF5TfevTC8TygbP7UxAhHyxcBX.jpg",
+      "season_number": 17,
+      "vote_average": 7.7
+    },
+    {
+      "air_date": "2012-10-01",
+      "episode_count": 158,
+      "id": 6871,
+      "name": "Saison 18",
+      "overview": "",
+      "poster_path": "/slYpAA2Z59Hqe9hly1Icie77j0N.jpg",
+      "season_number": 18,
+      "vote_average": 7.2
+    },
+    {
+      "air_date": "2013-09-30",
+      "episode_count": 159,
+      "id": 6872,
+      "name": "Saison 19",
+      "overview": "",
+      "poster_path": "/uW0IkZO2jTkkvcJNnQyORow567m.jpg",
+      "season_number": 19,
+      "vote_average": 6.9
+    },
+    {
+      "air_date": "2014-09-29",
+      "episode_count": 142,
+      "id": 62883,
+      "name": "Saison 20",
+      "overview": "",
+      "poster_path": "/sef2tN05NkqEBebMpxYUbqmhtTJ.jpg",
+      "season_number": 20,
+      "vote_average": 6.9
+    },
+    {
+      "air_date": "2015-09-28",
+      "episode_count": 161,
+      "id": 69386,
+      "name": "Saison 21",
+      "overview": "",
+      "poster_path": "/eD57c6ZXKhCXDL1x04BQ8f3UvUo.jpg",
+      "season_number": 21,
+      "vote_average": 6.2
+    },
+    {
+      "air_date": "2016-10-03",
+      "episode_count": 163,
+      "id": 82654,
+      "name": "Saison 22",
+      "overview": "",
+      "poster_path": "/tsZObxYYSYHW5T4BJh2tx43awxi.jpg",
+      "season_number": 22,
+      "vote_average": 6.7
+    },
+    {
+      "air_date": "2017-10-02",
+      "episode_count": 157,
+      "id": 93178,
+      "name": "Saison 23",
+      "overview": "",
+      "poster_path": "/tsZObxYYSYHW5T4BJh2tx43awxi.jpg",
+      "season_number": 23,
+      "vote_average": 6.5
+    },
+    {
+      "air_date": "2018-10-01",
+      "episode_count": 158,
+      "id": 110826,
+      "name": "Saison 24",
+      "overview": "",
+      "poster_path": "/tsZObxYYSYHW5T4BJh2tx43awxi.jpg",
+      "season_number": 24,
+      "vote_average": 6.8
+    },
+    {
+      "air_date": "2019-09-30",
+      "episode_count": 160,
+      "id": 136086,
+      "name": "Saison 25",
+      "overview": "",
+      "poster_path": "/tsZObxYYSYHW5T4BJh2tx43awxi.jpg",
+      "season_number": 25,
+      "vote_average": 6.2
+    },
+    {
+      "air_date": "2020-09-28",
+      "episode_count": 116,
+      "id": 168511,
+      "name": "Saison 26",
+      "overview": "",
+      "poster_path": "/nz5fAg1OomLZ7fxiM4RnLbJxppc.jpg",
+      "season_number": 26,
+      "vote_average": 6.0
+    },
+    {
+      "air_date": "2021-09-27",
+      "episode_count": 140,
+      "id": 202361,
+      "name": "Saison 27",
+      "overview": "",
+      "poster_path": "/keWvkxMEfa3whsRyWFGPcNVbIN8.jpg",
+      "season_number": 27,
+      "vote_average": 7.0
+    },
+    {
+      "air_date": "2022-10-03",
+      "episode_count": 122,
+      "id": 310853,
+      "name": "Saison 28",
+      "overview": "",
+      "poster_path": "/9xcM8pbsMNR7eLdVCzzfcB59xgT.jpg",
+      "season_number": 28,
+      "vote_average": 9.3
+    },
+    {
+      "air_date": "2024-02-12",
+      "episode_count": 138,
+      "id": 375682,
+      "name": "Saison 29",
+      "overview": "",
+      "poster_path": "/9mK4ZRWpKUA77XNv6rnI8gnyrhQ.jpg",
+      "season_number": 29,
+      "vote_average": 7.1
+    },
+    {
+      "air_date": "2025-01-06",
+      "episode_count": 142,
+      "id": 433278,
+      "name": "Saison 30",
+      "overview": "",
+      "poster_path": "/2hnZC9YtpJO0VRdBXxima60QFQc.jpg",
+      "season_number": 30,
+      "vote_average": 4.4
+    },
+    {
+      "air_date": "2026-01-05",
+      "episode_count": 134,
+      "id": 486161,
+      "name": "Saison 31",
+      "overview": "",
+      "poster_path": "/sos0NA5OkuUtKyCt1YvW4Zevp9h.jpg",
+      "season_number": 31,
+      "vote_average": 4.1
+    }
+  ],
+  "softcore": false,
+  "status": "Returning Series",
+  "tagline": "Quand les nouvelles éclatent, nous les réparons.",
+  "type": "Talk Show",
+  "vote_average": 6.4,
+  "vote_count": 673,
+  "aggregate_credits": {
+    "cast": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 12219,
+        "known_for_department": "Acting",
+        "name": "Jon Stewart",
+        "original_name": "Jon Stewart",
+        "popularity": 1.4739,
+        "profile_path": "/vb3o1WmC21HYMPktM7hT2eV390J.jpg",
+        "total_episode_count": 2744,
+        "roles": [
+          {
+            "credit_id": "52572b34760ee3776a2d6c43",
+            "character": "Self - Guest",
+            "episode_count": 3
+          },
+          {
+            "credit_id": "533041db9251413a6f005a57",
+            "character": "Self - Host",
+            "episode_count": 2741
+          }
+        ],
+        "order": 172
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 131133,
+        "known_for_department": "Acting",
+        "name": "Trevor Noah",
+        "original_name": "Trevor Noah",
+        "popularity": 1.1221,
+        "profile_path": "/aieKi9QnuEjBV2j46UR4NIIqa0K.jpg",
+        "total_episode_count": 1091,
+        "roles": [
+          {
+            "credit_id": "699c84c052c78db272374ba7",
+            "character": "Self",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "5603bb9b92514122cd00413e",
+            "character": "Self - Host",
+            "episode_count": 1090
+          }
+        ],
+        "order": 225
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1448660,
+        "known_for_department": "Acting",
+        "name": "Jordan Klepper",
+        "original_name": "Jordan Klepper",
+        "popularity": 0.9015,
+        "profile_path": "/qENKfK4jIut3KICxvLKfuTJvjZH.jpg",
+        "total_episode_count": 129,
+        "roles": [
+          {
+            "credit_id": "670a66b1f58a9206aa4069e6",
+            "character": "Self",
+            "episode_count": 9
+          },
+          {
+            "credit_id": "6434ee3dec8a43025fb80b1b",
+            "character": "Self - Guest Host",
+            "episode_count": 6
+          },
+          {
+            "credit_id": "594ded92925141314b02f2f7",
+            "character": "Self - Correspondent",
+            "episode_count": 38
+          },
+          {
+            "credit_id": "65cd8bffa3b5e601852c1dbd",
+            "character": "Self - Host",
+            "episode_count": 75
+          },
+          {
+            "credit_id": "6a5f60138f99bfdb944acc1a",
+            "character": "",
+            "episode_count": 1
+          }
+        ],
+        "order": 1161
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1681997,
+        "known_for_department": "Acting",
+        "name": "Michael Kosta",
+        "original_name": "Michael Kosta",
+        "popularity": 0.9903,
+        "profile_path": "/7bitw64IpdNQUoEtnviex9aU80t.jpg",
+        "total_episode_count": 129,
+        "roles": [
+          {
+            "credit_id": "5e7b80e463d71300168bd65d",
+            "character": "Self - Correspondent",
+            "episode_count": 40
+          },
+          {
+            "credit_id": "69a4524212f3a03e14a7a072",
+            "character": "Arnold",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "6a3ebc63dce7b0d554e6ec99",
+            "character": "Self -  Correspondent",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "6a3ebd71f176c2aa91e98e34",
+            "character": "Waffle House Spokesperson",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "6a1c00eb5ba68ca5e0f0b494",
+            "character": "George Santos Supporter",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "67075234d0616c7b19fb2727",
+            "character": "Self",
+            "episode_count": 10
+          },
+          {
+            "credit_id": "65dcfdb45c564e016278b23d",
+            "character": "Self - Host",
+            "episode_count": 69
+          },
+          {
+            "credit_id": "69ddec9531ad1491d5b660f8",
+            "character": "",
+            "episode_count": 2
+          },
+          {
+            "credit_id": "6530920e9d592c012e1f3fa7",
+            "character": "Self - Guest Host",
+            "episode_count": 4
+          }
+        ],
+        "order": 1433
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 90719,
+        "known_for_department": "Acting",
+        "name": "Desi Lydic",
+        "original_name": "Desi Lydic",
+        "popularity": 1.5722,
+        "profile_path": "/7Q2GJgsu6P4S0EIHxANpE4mW148.jpg",
+        "total_episode_count": 117,
+        "roles": [
+          {
+            "credit_id": "643f61f395665802fc01b123",
+            "character": "Self - Guest Host",
+            "episode_count": 5
+          },
+          {
+            "credit_id": "6a1c00cce9a625b084ad4784",
+            "character": "George Santos Supporter",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "6707516dd0616c7b19fb25a9",
+            "character": "Self",
+            "episode_count": 4
+          },
+          {
+            "credit_id": "6ac2f64585f0556a5003c448",
+            "character": "",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "5e7b838a63d71300128b9fa3",
+            "character": "Self - Correspondent",
+            "episode_count": 26
+          },
+          {
+            "credit_id": "6a60132778e575a8896b1f18",
+            "character": "Human Resources Director",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "65d433127d5db50186369a60",
+            "character": "Self - Host",
+            "episode_count": 79
+          }
+        ],
+        "order": 1123
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1319469,
+        "known_for_department": "Acting",
+        "name": "Ronny Chieng",
+        "original_name": "Ronny Chieng",
+        "popularity": 1.8798,
+        "profile_path": "/yRUGjqALyg1LcJO75cO58cVJ2ud.jpg",
+        "total_episode_count": 100,
+        "roles": [
+          {
+            "credit_id": "670a6cdb4111be4f027429c8",
+            "character": "Self",
+            "episode_count": 7
+          },
+          {
+            "credit_id": "653302eeefe37c011e7463f5",
+            "character": "Self - Guest Host",
+            "episode_count": 2
+          },
+          {
+            "credit_id": "627cc025fd140b00acbd6e5b",
+            "character": "Self - Correspondent",
+            "episode_count": 30
+          },
+          {
+            "credit_id": "65e668ad8cfcc701852c16f3",
+            "character": "Self - Host",
+            "episode_count": 61
+          }
+        ],
+        "order": 1239
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 60951,
+        "known_for_department": "Acting",
+        "name": "Craig Kilborn",
+        "original_name": "Craig Kilborn",
+        "popularity": 0.8063,
+        "profile_path": "/moLwDdbSqE82kSlYFzX4WJM8LOQ.jpg",
+        "total_episode_count": 57,
+        "roles": [
+          {
+            "credit_id": "6a30f97a12ac173dc4bbfcf8",
+            "character": "Self - Host",
+            "episode_count": 56
+          },
+          {
+            "credit_id": "699c83ff64bd77d31e6a43c9",
+            "character": "Self",
+            "episode_count": 1
+          }
+        ],
+        "order": 505
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 58769,
+        "known_for_department": "Acting",
+        "name": "Stephen Colbert",
+        "original_name": "Stephen Colbert",
+        "popularity": 2.0671,
+        "profile_path": "/zQ6pvfqIqYiV4TB7lDoaJL52H93.jpg",
+        "total_episode_count": 48,
+        "roles": [
+          {
+            "credit_id": "6a5fe62adfe5e5d755b66269",
+            "character": "Self -Correspondent",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "61be0b202da8460060fb472f",
+            "character": "Self - Co-Host",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "52572ab7760ee3776a2cfd6d",
+            "character": "Self",
+            "episode_count": 23
+          },
+          {
+            "credit_id": "699578a8800149a6a3850026",
+            "character": "Self - Correspondent",
+            "episode_count": 23
+          }
+        ],
+        "order": 1576
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2600521,
+        "known_for_department": "Acting",
+        "name": "Josh Johnson",
+        "original_name": "Josh Johnson",
+        "popularity": 0.6064,
+        "profile_path": "/xXxibKj0cGRJugNHS8GZAsg9TZk.jpg",
+        "total_episode_count": 46,
+        "roles": [
+          {
+            "credit_id": "670423a43d7b3c6c0779708f",
+            "character": "Self",
+            "episode_count": 5
+          },
+          {
+            "credit_id": "687f008004999af3d45293ea",
+            "character": "Self - Host",
+            "episode_count": 23
+          },
+          {
+            "credit_id": "69b34c92524ef0b6464a6bd5",
+            "character": "Self - Correspondent",
+            "episode_count": 17
+          },
+          {
+            "credit_id": "6a1c00b048c414f6991e17d3",
+            "character": "George Santos Supporter",
+            "episode_count": 1
+          }
+        ],
+        "order": 1996
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 59258,
+        "known_for_department": "Acting",
+        "name": "Lewis Black",
+        "original_name": "Lewis Black",
+        "popularity": 0.9961,
+        "profile_path": "/f6660RU8eG10Rrk0Fnfih90b0ME.jpg",
+        "total_episode_count": 39,
+        "roles": [
+          {
+            "credit_id": "657007d5383df200ca2e4870",
+            "character": "Self - Guest Correspondent",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "52572b09760ee3776a2d4633",
+            "character": "Self",
+            "episode_count": 34
+          },
+          {
+            "credit_id": "6a5f6144feaa60e554e300c9",
+            "character": "Self - Commentator",
+            "episode_count": 4
+          }
+        ],
+        "order": 1105
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 84292,
+        "known_for_department": "Acting",
+        "name": "John Oliver",
+        "original_name": "John Oliver",
+        "popularity": 1.3071,
+        "profile_path": "/wI7LRInWUT3RgCByYx69wRMqgsy.jpg",
+        "total_episode_count": 27,
+        "roles": [
+          {
+            "credit_id": "6a54f088b22302739f6bff4b",
+            "character": "Self - Corrrespondent",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "69a1f0c1717505a01cc4a844",
+            "character": "Self - Senior Policy Analyst",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "69a1f312eb1822823d186fb3",
+            "character": "Self - Correspondent",
+            "episode_count": 19
+          },
+          {
+            "credit_id": "6a3d62b5ef722daee4505f2a",
+            "character": "Self - Host",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "52572b34760ee3776a2d6b89",
+            "character": "Self",
+            "episode_count": 5
+          }
+        ],
+        "order": 1670
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 3089880,
+        "known_for_department": "Acting",
+        "name": "Grace Kuhlenschmidt",
+        "original_name": "Grace Kuhlenschmidt",
+        "popularity": 1.136,
+        "profile_path": "/tYj577HCRooHkfj5A2ZHIMOsAO4.jpg",
+        "total_episode_count": 26,
+        "roles": [
+          {
+            "credit_id": "699a243fe587e636b9e8ef23",
+            "character": "Gordie Howe Bridge Troll",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "69a674fbe5a5d789d18dd0ea",
+            "character": "Self - Correspondent",
+            "episode_count": 18
+          },
+          {
+            "credit_id": "69ddee9ef2ef3bf283359122",
+            "character": "",
+            "episode_count": 2
+          },
+          {
+            "credit_id": "670422b07cfea6f2027400ee",
+            "character": "Self",
+            "episode_count": 5
+          }
+        ],
+        "order": 1931
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 185805,
+        "known_for_department": "Acting",
+        "name": "Jason Jones",
+        "original_name": "Jason Jones",
+        "popularity": 0.7561,
+        "profile_path": "/jtaO6isGrFtKGbDJNgsujrS1HLK.jpg",
+        "total_episode_count": 25,
+        "roles": [
+          {
+            "credit_id": "52572b34760ee3776a2d6ad5",
+            "character": "Self",
+            "episode_count": 4
+          },
+          {
+            "credit_id": "69a56da9d4aaa4fbacde9724",
+            "character": "The Devil",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "69df8554fea55dcb6bf93cce",
+            "character": "",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "699c012ee69d9d92330e564c",
+            "character": "Self - Correspondent",
+            "episode_count": 19
+          }
+        ],
+        "order": 1805
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2706223,
+        "known_for_department": "Acting",
+        "name": "Troy Iwata",
+        "original_name": "Troy Iwata",
+        "popularity": 0.7679,
+        "profile_path": "/4BWoh5TG5kTPch79824hzPOE4UI.jpg",
+        "total_episode_count": 24,
+        "roles": [
+          {
+            "credit_id": "6a116ea89dbd11afbae3b87d",
+            "character": "",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "69bce9711aafe758e845f25e",
+            "character": "Self - Correspondent",
+            "episode_count": 17
+          },
+          {
+            "credit_id": "670423cd4cf47c730f73ff77",
+            "character": "Self",
+            "episode_count": 5
+          },
+          {
+            "credit_id": "6a6e48665b78012f864d7c0f",
+            "character": "Self -  Correspondent",
+            "episode_count": 1
+          }
+        ],
+        "order": 2012
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 20644,
+        "known_for_department": "Acting",
+        "name": "Aasif Mandvi",
+        "original_name": "Aasif Mandvi",
+        "popularity": 1.5606,
+        "profile_path": "/hoBCqgxK2JqV3MOQYncHRMfwu8V.jpg",
+        "total_episode_count": 20,
+        "roles": [
+          {
+            "credit_id": "699c0063869f5f5b5d374788",
+            "character": "Self - Correspondent",
+            "episode_count": 19
+          },
+          {
+            "credit_id": "52572abb760ee3776a2d0508",
+            "character": "Self - Guest",
+            "episode_count": 1
+          }
+        ],
+        "order": 1892
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 4495,
+        "known_for_department": "Acting",
+        "name": "Steve Carell",
+        "original_name": "Steve Carell",
+        "popularity": 4.1806,
+        "profile_path": "/sSxw69G0znJuettMYGDCAXfSwSY.jpg",
+        "total_episode_count": 18,
+        "roles": [
+          {
+            "credit_id": "52572a8d760ee3776a2cdb24",
+            "character": "Self",
+            "episode_count": 5
+          },
+          {
+            "credit_id": "699d1588bd7a750a4980fab6",
+            "character": "Self - Correspondent",
+            "episode_count": 13
+          }
+        ],
+        "order": 1757
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 27105,
+        "known_for_department": "Acting",
+        "name": "Ed Helms",
+        "original_name": "Ed Helms",
+        "popularity": 1.8531,
+        "profile_path": "/gPZ8tZaNQGAc3KZRIPp9rgGbEnN.jpg",
+        "total_episode_count": 18,
+        "roles": [
+          {
+            "credit_id": "52572b2a760ee3776a2d6052",
+            "character": "Self",
+            "episode_count": 4
+          },
+          {
+            "credit_id": "699bff3237254a416f80f2f4",
+            "character": "Self - Correspondent",
+            "episode_count": 14
+          }
+        ],
+        "order": 1777
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 52997,
+        "known_for_department": "Acting",
+        "name": "Rob Corddry",
+        "original_name": "Rob Corddry",
+        "popularity": 1.5472,
+        "profile_path": "/AjCLr5ZjP6iiP8D6SHQVCZ720nA.jpg",
+        "total_episode_count": 17,
+        "roles": [
+          {
+            "credit_id": "699bfe76e69d9d92330e5636",
+            "character": "Self - Correspondent",
+            "episode_count": 11
+          },
+          {
+            "credit_id": "693bc8bfe99863937f0c175f",
+            "character": "Self - Guest Correspondent",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "52572aaa760ee3776a2cf257",
+            "character": "Self",
+            "episode_count": 5
+          }
+        ],
+        "order": 1652
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1394648,
+        "known_for_department": "Acting",
+        "name": "Jessica Williams",
+        "original_name": "Jessica Williams",
+        "popularity": 1.658,
+        "profile_path": "/tcEvFYXqb34Gp29VT4302P5ZQfQ.jpg",
+        "total_episode_count": 16,
+        "roles": [
+          {
+            "credit_id": "699c85ed8158b2ee8ae8fcb3",
+            "character": "Self - Correspondent",
+            "episode_count": 16
+          }
+        ],
+        "order": 2022
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2418916,
+        "known_for_department": "Acting",
+        "name": "Dulcé Sloan",
+        "original_name": "Dulcé Sloan",
+        "popularity": 0.5962,
+        "profile_path": "/iCz2mbiuBRju6NdTxLA8Dnyd60w.jpg",
+        "total_episode_count": 16,
+        "roles": [
+          {
+            "credit_id": "6a3eb87e3bec774fc451a6e0",
+            "character": "Self -  Correspondent",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "69d4c7290eb3b8940e0712f1",
+            "character": "Self - Correspondent",
+            "episode_count": 10
+          },
+          {
+            "credit_id": "661fc7473c43440163035754",
+            "character": "Self - Host",
+            "episode_count": 5
+          }
+        ],
+        "order": 2054
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1227871,
+        "known_for_department": "Acting",
+        "name": "Fareed Zakaria",
+        "original_name": "Fareed Zakaria",
+        "popularity": 0.6423,
+        "profile_path": "/mCUNZaL07a0XC4QhxMom7rh3Kol.jpg",
+        "total_episode_count": 15,
+        "roles": [
+          {
+            "credit_id": "6accf6779c528ccd9a8fb94f",
+            "character": "Self - Guest",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "52572a37760ee3776a2c768d",
+            "character": "Self",
+            "episode_count": 14
+          }
+        ],
+        "order": 1517
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1706314,
+        "known_for_department": "Acting",
+        "name": "Charlamagne tha God",
+        "original_name": "Charlamagne tha God",
+        "popularity": 1.3378,
+        "profile_path": "/qiX7nuYVffR1IXKt4v2RS2KXDsn.jpg",
+        "total_episode_count": 15,
+        "roles": [
+          {
+            "credit_id": "6a1c00115c51aa1e920022ce",
+            "character": "Self - Guest",
+            "episode_count": 1
+          },
+          {
+            "credit_id": "6533025c9ac53508752f7fa3",
+            "character": "Self - Guest Host",
+            "episode_count": 8
+          },
+          {
+            "credit_id": "61810dd913a388002b0c7945",
+            "character": "Self",
+            "episode_count": 6
+          }
+        ],
+        "order": 1604
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 5724,
+        "known_for_department": "Acting",
+        "name": "Denis Leary",
+        "original_name": "Denis Leary",
+        "popularity": 3.7646,
+        "profile_path": "/tAOziVWQBnrW9eR442M6g9SQkmA.jpg",
+        "total_episode_count": 13,
+        "roles": [
+          {
+            "credit_id": "699c88364cd13663e06a4298",
+            "character": "Self - Guest",
+            "episode_count": 3
+          },
+          {
+            "credit_id": "52572a16760ee3776a2c46cd",
+            "character": "Self",
+            "episode_count": 10
+          }
+        ],
+        "order": 1272
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 459062,
+        "known_for_department": "Acting",
+        "name": "Brian Williams",
+        "original_name": "Brian Williams",
+        "popularity": 1.5681,
+        "profile_path": "/j4HKMHXBNU4os4n25d2DxutBiAI.jpg",
+        "total_episode_count": 13,
+        "roles": [
+          {
+            "credit_id": "628ca1a5209f1812c5595a79",
+            "character": "Self",
+            "episode_count": 13
+          }
+        ],
+        "order": 1541
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1680420,
+        "known_for_department": "Acting",
+        "name": "Roy Wood Jr.",
+        "original_name": "Roy Wood Jr.",
+        "popularity": 0.6549,
+        "profile_path": "/89v3aDM1foCVaoGPxZoKO4E81kC.jpg",
+        "total_episode_count": 13,
+        "roles": [
+          {
+            "credit_id": "6990d8d154467b4df51ae9ab",
+            "character": "Self",
+            "episode_count": 2
+          },
+          {
+            "credit_id": "6a3ebaaaf176c2aa91e98e0c",
+            "character": "Self - Correspondent",
+            "episode_count": 6
+          },
+          {
+            "credit_id": "64251bd5c044290298cd8ce5",
+            "character": "Self - Guest Host",
+            "episode_count": 4
+          },
+          {
+            "credit_id": "699f536c059640c656f20187",
+            "character": "",
+            "episode_count": 1
+          }
+        ],
+        "order": 2094
+      }
+    ]
+  },
+  "videos": {
+    "results": []
+  },
+  "images": {
+    "backdrops": [
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/qLMfcvdCcCGD2BNLH8b6ZCBuO7D.jpg",
+        "vote_average": 7.19,
+        "vote_count": 7,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/uyilhJ7MBLjiaQXboaEwe44Z0jA.jpg",
+        "vote_average": 4.412,
+        "vote_count": 17,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/1axH9IYz5fCHVUDNXLzivKEQObK.jpg",
+        "vote_average": 3.392,
+        "vote_count": 23,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/5nH3xHd0CfuRCwDEUDb7eLHXtBI.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/xJ3YSmQTqAbyz3k2tEIOh6Js2eV.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/4Nu0R5adIPDuYkzmL6o4WQQtJMg.jpg",
+        "vote_average": 2.278,
+        "vote_count": 3,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1620,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/6gxRdyJngMa2XxXABnf9YY9Du75.jpg",
+        "vote_average": 2.066,
+        "vote_count": 5,
+        "width": 2880
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/sDWvzyz7WohQNCttXh7ctUAtZz.jpg",
+        "vote_average": 1.75,
+        "vote_count": 2,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/zaavgcU6u6cfRx9lYZUxLagXMq2.jpg",
+        "vote_average": 1.75,
+        "vote_count": 4,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.777,
+        "height": 1474,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/rtGwQ02SAZgMGlFeRnLn5F0iHkR.jpg",
+        "vote_average": 1.75,
+        "vote_count": 4,
+        "width": 2620
+      }
+    ],
+    "logos": [
+      {
+        "aspect_ratio": 5.893,
+        "height": 662,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/9eInNwjZGU0ZNQM0QYgJwFpZ7ka.png",
+        "vote_average": 3.334,
+        "vote_count": 3,
+        "width": 3901
+      },
+      {
+        "aspect_ratio": 3.031,
+        "height": 131,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/vNNcQ3CBvejZz75rVs3gOiy32Vw.png",
+        "vote_average": 2.278,
+        "vote_count": 4,
+        "width": 397
+      },
+      {
+        "aspect_ratio": 5.893,
+        "height": 662,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/mCQD0aV5LYtNllKj7z2SljRARLX.png",
+        "vote_average": 1.75,
+        "vote_count": 2,
+        "width": 3901
+      }
+    ],
+    "posters": [
+      {
+        "aspect_ratio": 0.667,
+        "height": 1920,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/ixcfyK7it6FjRM36Te4OdblAq4X.jpg",
+        "vote_average": 1.726,
+        "vote_count": 31,
+        "width": 1280
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2100,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/wxU8rs8To2yla2FV2xNoNgFXKlJ.jpg",
+        "vote_average": 8.48,
+        "vote_count": 25,
+        "width": 1400
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2100,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/9xcM8pbsMNR7eLdVCzzfcB59xgT.jpg",
+        "vote_average": 7.23,
+        "vote_count": 25,
+        "width": 1400
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1500,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/oWAWlFM50hTeyS6LfW9i8SwYLZw.jpg",
+        "vote_average": 6.042,
+        "vote_count": 12,
+        "width": 1000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/zulG3vCbKrcmaddWTceSSSG31Au.jpg",
+        "vote_average": 5.778,
+        "vote_count": 9,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1500,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/xyaQj8PAHxPmvh3W7TZBRHLvViA.jpg",
+        "vote_average": 5.682,
+        "vote_count": 11,
+        "width": 1000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/nz5fAg1OomLZ7fxiM4RnLbJxppc.jpg",
+        "vote_average": 5.024,
+        "vote_count": 21,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1920,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/10BG0pcLNRnJZg48UxErEyuDweT.jpg",
+        "vote_average": 4.722,
+        "vote_count": 9,
+        "width": 1280
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2100,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/qJGduh8MNLxQevngPM5Rgvz7kQH.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1400
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/6cFrgbDVtSxkQkz2tkCTAVaBH4W.jpg",
+        "vote_average": 3.214,
+        "vote_count": 14,
+        "width": 2000
+      }
+    ]
+  },
+  "content_ratings": {
+    "results": [
+      {
+        "descriptors": [],
+        "iso_3166_1": "US",
+        "rating": "TV-14"
+      }
+    ]
+  },
+  "external_ids": {
+    "imdb_id": "tt0115147",
+    "freebase_mid": "/m/01j7mr",
+    "freebase_id": "/en/the_daily_show",
+    "tvdb_id": 71256,
+    "tvrage_id": 5714,
+    "wikidata_id": "Q824192",
+    "facebook_id": "thedailyshow",
+    "instagram_id": "thedailyshow",
+    "twitter_id": "TheDailyShow"
+  },
+  "translations": {
+    "translations": [
+      {
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "name": "English",
+        "english_name": "English",
+        "data": {
+          "name": "",
+          "overview": "The World's Fakest News Team tackle the biggest stories in news, politics and pop culture.",
+          "homepage": "",
+          "tagline": "When news breaks we fix it."
+        }
+      },
+      {
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "name": "Le Daily Show",
+          "overview": "Trevor Noah et l'équipe de la plus fausse information au monde abordent les plus grandes histoires de l'actualité, de la politique et de la culture pop.",
+          "homepage": "",
+          "tagline": "Quand les nouvelles éclatent, nous les réparons."
+        }
+      }
+    ]
+  }
+}

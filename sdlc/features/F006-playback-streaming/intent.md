@@ -33,10 +33,11 @@ The client declares what it can play. The server picks the lightest strategy: Di
 ## Constraints
 - FFmpeg processes are always cleaned up (no zombies when a client disappears).
 - Essential foundation for Plaid Party (F010): each participant must be able to get their own stream.
+- Playback must apply F005's age-limit predicate (F005-R25): a profile can't play what it can't see.
 
 ## Out of scope
 Advanced HDR → SDR tone-mapping (v2), Chromecast / AirPlay.
 
 ## Open questions
 - [x] Where to store temporary segments: RAM (tmpfs) or disk? → **Disk**, in a configurable transcode directory (default under the data dir) with a size cap and per-session cleanup. Admins who want RAM point it at a tmpfs. Reason: 4K segments would exhaust RAM on a Pi-class server.
-- [x] Signed playback link, for external players like VLC? → **Yes, for every player.** A short-lived token in the URL, scoped to one playback session. Native HLS players (Safari, AVPlayer, `<video>`) can't add an `Authorization` header to each segment request, so our own clients need it too; external players like VLC get it for free.
+- [x] Signed playback link, for external players like VLC? → **Yes, for every player.** A short-lived token in the URL, scoped to one playback session. Native HLS players (Safari, AVPlayer, `<video>`) can't add an `Authorization` header to each segment request, so our own clients need it too; external players like VLC get it for free. The F005 spec asks for the same mechanism to cover artwork (`/images/{id}`) for players and casting that can't send a session: tracked as a watch-out in the F006 spec.

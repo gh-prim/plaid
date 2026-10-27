@@ -1,0 +1,1287 @@
+{
+  "adult": false,
+  "backdrop_path": "/AmR3JG1VQVxU8TfAvljUhfSFUOx.jpg",
+  "belongs_to_collection": {
+    "id": 8091,
+    "name": "Alien - Saga",
+    "poster_path": "/ygHKpMEcbarcC7YcaKekhzz3cUl.jpg",
+    "backdrop_path": "/6X42JnSMdo3dPAswOHUuvebdTq7.jpg"
+  },
+  "budget": 11000000,
+  "genres": [
+    {
+      "id": 27,
+      "name": "Horreur"
+    },
+    {
+      "id": 878,
+      "name": "Science-Fiction"
+    }
+  ],
+  "homepage": "",
+  "id": 348,
+  "imdb_id": "tt0078748",
+  "origin_country": [
+    "US"
+  ],
+  "original_language": "en",
+  "original_title": "Alien",
+  "overview": "En 2122, le Nostromo, vaisseau de commerce, fait route vers la Terre avec à son bord un équipage de sept personnes en hibernation et une cargaison de minerais. Il interrompt soudain sa course suite à la réception d’un mystérieux message provenant d’une planète inexplorée. Réveillé par l’ordinateur de bord, l’équipage se rend sur place et découvre les restes d’un gigantesque vaisseau extraterrestre dont le seul passager semble être mort dans d’étranges circonstances…",
+  "popularity": 35.0041,
+  "poster_path": "/l8CES84JndFlNfBNMxdLRYaLvI6.jpg",
+  "production_companies": [
+    {
+      "id": 401,
+      "name": "Brandywine Productions",
+      "origin_country": "US"
+    },
+    {
+      "id": 276266,
+      "name": "Twentieth Century-Fox Productions",
+      "origin_country": "GB"
+    },
+    {
+      "id": 276267,
+      "name": "Ronald Shusett Productions",
+      "origin_country": "US"
+    }
+  ],
+  "release_date": "1979-05-25",
+  "revenue": 104931801,
+  "runtime": 118,
+  "softcore": false,
+  "status": "Released",
+  "tagline": "Dans l’espace, personne ne vous entend crier.",
+  "title": "Alien, le huitième passager",
+  "video": false,
+  "vote_average": 8.175,
+  "vote_count": 17046,
+  "credits": {
+    "cast": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 4139,
+        "known_for_department": "Acting",
+        "name": "Tom Skerritt",
+        "original_name": "Tom Skerritt",
+        "popularity": 10.801,
+        "profile_path": "/oWFCyBLm1lsbsbT5Nmx3SPMaqFZ.jpg",
+        "cast_id": 108,
+        "character": "Dallas",
+        "credit_id": "66185dd1ea84c7017d55f034",
+        "order": 0
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 10205,
+        "known_for_department": "Acting",
+        "name": "Sigourney Weaver",
+        "original_name": "Sigourney Weaver",
+        "popularity": 4.5233,
+        "profile_path": "/wTSnfktNBLd6kwQxgvkqYw6vEon.jpg",
+        "cast_id": 4,
+        "character": "Ripley",
+        "credit_id": "52fe423bc3a36847f800e125",
+        "order": 1
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 5047,
+        "known_for_department": "Acting",
+        "name": "Veronica Cartwright",
+        "original_name": "Veronica Cartwright",
+        "popularity": 2.6928,
+        "profile_path": "/1CiknHO8ssMM4bWPsIMMzCTVHeB.jpg",
+        "cast_id": 102,
+        "character": "Lambert",
+        "credit_id": "66185d6baf3da6017c17fa55",
+        "order": 2
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 5048,
+        "known_for_department": "Acting",
+        "name": "Harry Dean Stanton",
+        "original_name": "Harry Dean Stanton",
+        "popularity": 2.2506,
+        "profile_path": "/9zOTpVMwMHNjPFBNoPy9vOBT1NC.jpg",
+        "cast_id": 106,
+        "character": "Brett",
+        "credit_id": "66185dbbea84c7017d55f028",
+        "order": 3
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 5049,
+        "known_for_department": "Acting",
+        "name": "John Hurt",
+        "original_name": "John Hurt",
+        "popularity": 3.3332,
+        "profile_path": "/bjNSzt1d7uK3q5PbtFXUJrRt4qg.jpg",
+        "cast_id": 107,
+        "character": "Kane",
+        "credit_id": "66185dc5ea84c7016455eefe",
+        "order": 4
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 65,
+        "known_for_department": "Acting",
+        "name": "Ian Holm",
+        "original_name": "Ian Holm",
+        "popularity": 2.3038,
+        "profile_path": "/cOJDgvgj4nMec6Inzj1H5nugTO5.jpg",
+        "cast_id": 103,
+        "character": "Ash",
+        "credit_id": "66185d7866e469014bbbd962",
+        "order": 5
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 5050,
+        "known_for_department": "Acting",
+        "name": "Yaphet Kotto",
+        "original_name": "Yaphet Kotto",
+        "popularity": 2.3276,
+        "profile_path": "/f0jquWLj22hvYf6PTIggdolhiDx.jpg",
+        "cast_id": 101,
+        "character": "Parker",
+        "credit_id": "66185d534da3d40130915567",
+        "order": 6
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 5051,
+        "known_for_department": "Acting",
+        "name": "Bolaji Badejo",
+        "original_name": "Bolaji Badejo",
+        "popularity": 0.7002,
+        "profile_path": "/7ddxWlDIOVKBK6TjP66vb9Qp3MW.jpg",
+        "cast_id": 104,
+        "character": "Alien",
+        "credit_id": "66185d9fb9a0bd017c109f87",
+        "order": 7
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 5052,
+        "known_for_department": "Acting",
+        "name": "Helen Horton",
+        "original_name": "Helen Horton",
+        "popularity": 1.4174,
+        "profile_path": "/ghK0UV1cMPThtRmx5vn9dbDwRYb.jpg",
+        "cast_id": 105,
+        "character": "Mother (voice)",
+        "credit_id": "66185daee4c9eb017c29ffcd",
+        "order": 8
+      }
+    ],
+    "crew": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 578,
+        "known_for_department": "Directing",
+        "name": "Ridley Scott",
+        "original_name": "Ridley Scott",
+        "popularity": 3.9938,
+        "profile_path": "/zABJmN9opmqD4orWl3KSdCaSo7Q.jpg",
+        "credit_id": "52fe423bc3a36847f800e117",
+        "department": "Directing",
+        "job": "Director"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 5045,
+        "known_for_department": "Writing",
+        "name": "Dan O'Bannon",
+        "original_name": "Dan O'Bannon",
+        "popularity": 1.9666,
+        "profile_path": "/cg7v9I6bgfJTacud7KHG6cTXBcY.jpg",
+        "credit_id": "66185d3db9a0bd017c109f53",
+        "department": "Writing",
+        "job": "Screenplay"
+      }
+    ]
+  },
+  "videos": {
+    "results": [
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The Impossible Build: How They Made the Alien Suit",
+        "key": "hGWwnlR3_-Q",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc2754c05e975c71ebc94",
+        "published_at": "2025-10-18T16:01:18.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ridley Scott & Yaphet Kotto on ALIEN: THE DIRECTOR'S CUT (2003) | TIFF REWIND",
+        "key": "NV4giPePDYI",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "67f11e870c791beb57ad4907",
+        "published_at": "2025-04-02T14:00:24.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Behind the Scenes #4",
+        "key": "QXPmY6cAjKM",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc221e7fcbb6e25fd456b",
+        "published_at": "2024-06-11T13:15:01.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Behind the Scenes #3",
+        "key": "RQhUAwJNliU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc1fa6e5d5b35ab1bd743",
+        "published_at": "2024-06-10T16:15:02.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Behind the Scenes #2",
+        "key": "KNWMRtJ37MU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc1de379f281ff58c3666",
+        "published_at": "2024-06-07T19:15:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Behind the Scenes",
+        "key": "YqHFgEQhOTU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc1c290df53cabdb98808",
+        "published_at": "2024-06-07T16:15:02.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Back in Theaters April 26",
+        "key": "UaSkttCxw-c",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "661ec8031cfe3a01649afdad",
+        "published_at": "2024-04-16T17:00:15.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Back in Theaters April 26",
+        "key": "m9_4qmDys4A",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Teaser",
+        "official": true,
+        "id": "661ea3520816c7017cee8a69",
+        "published_at": "2024-04-16T16:00:44.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "\"Dallas Dies\" Full Scene",
+        "key": "li2TozQF9ew",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6449b59ab1131f04e81a23f5",
+        "published_at": "2023-04-26T17:00:33.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Who REALLY Wrote ALIEN?",
+        "key": "_3FX1QQX7Bw",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc34edd4cec63231febcf",
+        "published_at": "2022-12-16T16:00:24.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Dark Star: How John Carpenter's First Movie Led to ALIEN",
+        "key": "X2JT0wqFp44",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc38fac79b87201b20f28",
+        "published_at": "2022-09-26T16:00:19.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "ALIEN and FLASH GORDON miniature effects",
+        "key": "S6yqymaqt-U",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc16c74aa6951e61ebc9d",
+        "published_at": "2022-09-09T15:06:39.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Alien, le huitième passager  (1979) Bande Annonce Officielle VF",
+        "key": "j3CFj1R9HbQ",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Trailer",
+        "official": false,
+        "id": "652cef52024ec800aecc9935",
+        "published_at": "2021-04-11T21:51:59.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Modern Trailer",
+        "key": "sVwH0hIvV5k",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "5f8e964ece9e9100334cac29",
+        "published_at": "2020-10-16T19:00:06.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Tom Skerritt on the Ripley character in ALIEN",
+        "key": "MdIQBsIN-iw",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a42a635a788400c6c968a0",
+        "published_at": "2020-07-23T19:51:14.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "40th Anniversary Spot",
+        "key": "Xu_5o0vxmno",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Teaser",
+        "official": true,
+        "id": "63839dc7fb834600b29489f1",
+        "published_at": "2019-09-05T19:34:57.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Landing",
+        "key": "vNL-xpma8NA",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6235d0f134e1520073425903",
+        "published_at": "2019-07-20T12:59:49.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ripley Remembers Episode #5 | ALIEN ANTHOLOGY",
+        "key": "h1-grd9aFwQ",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235d096d7cd060076e8ff10",
+        "published_at": "2019-07-17T17:00:11.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ripley Remembers Episode #4 I ALIEN ANTHOLOGY",
+        "key": "lOEXz3bWfkQ",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235d08653866e004859708f",
+        "published_at": "2019-07-10T22:33:06.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ripley Remembers Episode #3 I ALIEN ANTHOLOGY",
+        "key": "hkpVq-emyw8",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235d00c1da7a600775bbfee",
+        "published_at": "2019-07-03T17:00:10.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ripley Remembers Episode #2 | ALIEN ANTHOLOGY",
+        "key": "AJzsnySpnL0",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235cfb98ac3d000756f5dc7",
+        "published_at": "2019-06-27T22:38:10.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ripley Remembers Episode #1 I ALIEN ANTHOLOGY",
+        "key": "tXum4vUUo7U",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235cf9746aed4001e21cbab",
+        "published_at": "2019-06-19T19:44:57.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "5 Things You Might Have Missed in Alien (1979) | Alien Anthology",
+        "key": "QV6AdyLIdxg",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235d123d7cd060045a2863f",
+        "published_at": "2019-05-07T15:59:55.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "ALIEN (1979) | From Storyboard to Screen | ALIEN ANTHOLOGY",
+        "key": "WMnBD3xn_aU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "5db9afc8a1d3320017e9b390",
+        "published_at": "2019-04-20T12:59:52.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "The First Chestburster | Alien Day Returns | ALIEN ANTHOLOGY",
+        "key": "pjajkDLHB5s",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235d00146aed4007b194ad6",
+        "published_at": "2019-04-11T16:57:49.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Parker and Lambert's Demise",
+        "key": "WxkD8272pSs",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "6235ce6a34e1520073425273",
+        "published_at": "2019-03-06T01:32:59.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Iconic Chestburster Scene",
+        "key": "1flrUTItNPE",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Clip",
+        "official": true,
+        "id": "5db9af58a1d3320014e9aae5",
+        "published_at": "2019-03-06T01:28:29.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "How Ridley Scott's ALIEN empowered Ellen Ripley and Parker as told by Yaphet Kotto",
+        "key": "FFmP7rsDQc4",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "66e4d7433ae47b3eff8c9b04",
+        "published_at": "2018-10-11T17:46:46.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "#TBT Trailer",
+        "key": "MNZPs5AKibU",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "5db9ae440f2fbd001176241b",
+        "published_at": "2018-04-12T16:55:23.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "THE BEAST WITHIN: THE MAKING OF ALIEN",
+        "key": "F4G1Jg1oJt8",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Behind the Scenes",
+        "official": false,
+        "id": "697fc25655537e79731feb76",
+        "published_at": "2017-05-09T11:52:21.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "RIDLEY SCOTT on ALIEN | Little Beast | TIFF",
+        "key": "mMwksvn9wFA",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "66e4d58051f6517f42d2aee2",
+        "published_at": "2016-03-31T16:40:16.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "YAPHET KOTTO on ALIEN | Opening Doors | TIFF",
+        "key": "avrx6rBU2AQ",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Featurette",
+        "official": true,
+        "id": "66e4d5613bf3c6c5de3c464a",
+        "published_at": "2016-03-31T16:40:15.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ridley Scott on Directing Alien | Film4 Interview Special",
+        "key": "olr0DEZ9NPA",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235ce88d7cd060045a2802d",
+        "published_at": "2016-03-31T11:26:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ridley Scott on Designing the Alien | Film4 Interview Special",
+        "key": "04XfHtENLus",
+        "site": "YouTube",
+        "size": 720,
+        "type": "Featurette",
+        "official": true,
+        "id": "6235ce9c1da7a600476f83fe",
+        "published_at": "2016-03-31T10:53:13.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Throwback Trailer",
+        "key": "L2VWfWC-wI4",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "id": "6235d2218ac3d0001bb59aa1",
+        "published_at": "2014-06-20T00:40:39.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "\"Alien\" winning the Oscar® for Visual Effects",
+        "key": "pcwd40G4NFk",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a42d641f0275012708c4ca",
+        "published_at": "2013-10-31T20:23:28.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Sigourney Weaver on Ridley Scott's Vision for ALIEN",
+        "key": "LG7A9_OCAmA",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a429c0bc2cb300b90243d6",
+        "published_at": "2009-08-24T21:36:13.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Sigourney Weaver on Ellen Ripley from the ALIEN Films",
+        "key": "zev0m1Gmw0g",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a42ccf5b370d011f385c7c",
+        "published_at": "2009-08-24T18:56:37.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Sigourney Weaver Gives an Overview of ALIEN",
+        "key": "RX9RBm9yJDg",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a42b01297338012a135656",
+        "published_at": "2009-08-21T22:58:04.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ridley Scott on Sigourney Weaver's Portrayal of Ripley in ALIEN",
+        "key": "cysMDbGZz3E",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a42a40d35dea012e4324aa",
+        "published_at": "2009-05-27T20:34:07.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ridley Scott on the Three Stages of the ALIEN Creature",
+        "key": "3JALAxQpHXA",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a42a151f0275012108c5e6",
+        "published_at": "2009-05-26T22:57:52.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ridley Scott on the Elements of ALIEN",
+        "key": "9Rfi6S9enbs",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a42a042667780122647e42",
+        "published_at": "2009-05-22T23:07:34.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Ridley Scott on Creating a Convincing Universe",
+        "key": "62wYNUg5ed4",
+        "site": "YouTube",
+        "size": 480,
+        "type": "Featurette",
+        "official": true,
+        "id": "65a42c6d5a788400c6c96927",
+        "published_at": "2009-04-23T18:47:07.000Z"
+      }
+    ]
+  },
+  "images": {
+    "backdrops": [
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/AmR3JG1VQVxU8TfAvljUhfSFUOx.jpg",
+        "vote_average": 5.426,
+        "vote_count": 27,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/cEobq5QrnOJjO6giDs8q4RxmMKh.jpg",
+        "vote_average": 5.25,
+        "vote_count": 12,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/3BNbh8ODH68JRLEc4YveMHuTcH1.jpg",
+        "vote_average": 4.884,
+        "vote_count": 13,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/3epzWQQbtQWWY8Lq8tJ0GTrhjls.jpg",
+        "vote_average": 3.954,
+        "vote_count": 11,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/zo1X8fCK0E6EQIH5mzkLqNwgXHz.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1080,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/9V0C4ipJkFhFJ6KrTzJ0ocAadTM.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/4t0KhAOOubY3wCvhXYEKUrG4ZGO.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/90MLBXrHvO56TpjicYMlVVzNJiE.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 2160,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/vbDsM4Z7faA6lpBwpKSMze4rilg.jpg",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 3840
+      },
+      {
+        "aspect_ratio": 1.778,
+        "height": 1125,
+        "iso_3166_1": null,
+        "iso_639_1": null,
+        "file_path": "/7JvTZ1SJGnBUBLShQDtkrz89Ocs.jpg",
+        "vote_average": 3.334,
+        "vote_count": 2,
+        "width": 2000
+      }
+    ],
+    "logos": [
+      {
+        "aspect_ratio": 17.615,
+        "height": 109,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/riI33EA1vYQ1szTtMe0NR7TwV1p.png",
+        "vote_average": 6.722,
+        "vote_count": 6,
+        "width": 1920
+      },
+      {
+        "aspect_ratio": 5.865,
+        "height": 133,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/eKASEfCtFlFRJfQZc1Cubxf8WDk.png",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 780
+      },
+      {
+        "aspect_ratio": 2.406,
+        "height": 318,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/b1Yd3yILm6G6khVL9j7Sj5wj4nk.png",
+        "vote_average": 3.334,
+        "vote_count": 1,
+        "width": 765
+      },
+      {
+        "aspect_ratio": 5.992,
+        "height": 132,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/hRnm6r4cCcQIRKUfEHgdbIhlhlB.png",
+        "vote_average": 2.278,
+        "vote_count": 3,
+        "width": 791
+      },
+      {
+        "aspect_ratio": 17.624,
+        "height": 245,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/dWqeM2MO3S48Z2hWHjtpsBUqZ62.png",
+        "vote_average": 2.066,
+        "vote_count": 5,
+        "width": 4318
+      },
+      {
+        "aspect_ratio": 9.194,
+        "height": 139,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/lTXB6JCQ0k8kBcDIwZXuR6orx1w.png",
+        "vote_average": 2.066,
+        "vote_count": 5,
+        "width": 1278
+      },
+      {
+        "aspect_ratio": 2.635,
+        "height": 299,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/6kh259JU0GCXvfV3LMFieWq4Um8.png",
+        "vote_average": 1.75,
+        "vote_count": 2,
+        "width": 788
+      },
+      {
+        "aspect_ratio": 14.444,
+        "height": 54,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/2VtdN0UaK2RISxUgPw04oT4oWTO.png",
+        "vote_average": 0.166,
+        "vote_count": 1,
+        "width": 780
+      },
+      {
+        "aspect_ratio": 1.986,
+        "height": 294,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/fyLgPMT04fIOK8QmWaUsUYc4MJ7.png",
+        "vote_average": 0.166,
+        "vote_count": 1,
+        "width": 584
+      },
+      {
+        "aspect_ratio": 4.227,
+        "height": 185,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/gh51B2d4AIiNNyckbCiTBQBmIy7.png",
+        "vote_average": 0.166,
+        "vote_count": 1,
+        "width": 782
+      }
+    ],
+    "posters": [
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "file_path": "/l8CES84JndFlNfBNMxdLRYaLvI6.jpg",
+        "vote_average": 7.05,
+        "vote_count": 10,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/vfrQk5IPloGg1v9Rzbh2Eg3VGyM.jpg",
+        "vote_average": 5.83,
+        "vote_count": 41,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/bk9GVjN4kxmGekswNigaa5YIdr5.jpg",
+        "vote_average": 5.25,
+        "vote_count": 14,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 2100,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/1aE5SNdw1bTumGFVcsa2anvLI6l.jpg",
+        "vote_average": 4.722,
+        "vote_count": 18,
+        "width": 1400
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/ctaETvc0KmHTiwGo2GFUlPpm6Oo.jpg",
+        "vote_average": 4.458,
+        "vote_count": 12,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/7JqXmi6fUrUjOHxmu30CAc8SnXn.jpg",
+        "vote_average": 4.3,
+        "vote_count": 15,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/kesVL1qM7YWvhp9ViMTJ1lJPm5h.jpg",
+        "vote_average": 3.954,
+        "vote_count": 11,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 1500,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/v8lKB02kw35dZYDtMU9NXuF2Hdo.jpg",
+        "vote_average": 3.892,
+        "vote_count": 15,
+        "width": 1000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/9rYZrU5HKFQdbXtfVbTYCk5ihDs.jpg",
+        "vote_average": 3.892,
+        "vote_count": 14,
+        "width": 2000
+      },
+      {
+        "aspect_ratio": 0.667,
+        "height": 3000,
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "file_path": "/ih64em743HBjcYIJXXZ5fZu4Qr1.jpg",
+        "vote_average": 3.666,
+        "vote_count": 12,
+        "width": 2000
+      }
+    ]
+  },
+  "release_dates": {
+    "results": [
+      {
+        "iso_3166_1": "DE",
+        "release_dates": [
+          {
+            "certification": "16",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "West Germany ",
+            "release_date": "1979-10-24T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "16",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Director's Cut",
+            "release_date": "2003-10-23T00:00:00.000Z",
+            "type": 3
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "FR",
+        "release_dates": [
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "1979-09-12T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Director's Cut",
+            "release_date": "2003-11-12T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Mondes possibles : la science-fiction sur grand écran, Institut Lumière, Lyon",
+            "release_date": "2026-06-09T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Mondes possibles : la science-fiction sur grand écran, Institut Lumière, Lyon",
+            "release_date": "2026-06-20T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Mondes possibles : la science-fiction sur grand écran, Institut Lumière, Lyon",
+            "release_date": "2026-07-05T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "12",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Mondes possibles : la science-fiction sur grand écran, Institut Lumière, Lyon",
+            "release_date": "2026-07-13T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Disney+",
+            "release_date": "2021-02-23T00:00:00.000Z",
+            "type": 4
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "GB",
+        "release_dates": [
+          {
+            "certification": "",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Edinburgh International Film Festival",
+            "release_date": "1979-09-01T00:00:00.000Z",
+            "type": 1
+          },
+          {
+            "certification": "18",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "1979-09-06T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "15",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Director's Cut",
+            "release_date": "2003-10-31T00:00:00.000Z",
+            "type": 3
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "US",
+        "release_dates": [
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "1979-05-25T00:00:00.000Z",
+            "type": 2
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "1979-06-21T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Director's Cut",
+            "release_date": "2003-10-29T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "45th Anniversary Edition",
+            "release_date": "2024-04-26T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "DVD",
+            "release_date": "1999-06-01T00:00:00.000Z",
+            "type": 5
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "DVD (Director's Cut)",
+            "release_date": "2004-01-06T00:00:00.000Z",
+            "type": 5
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "Blu-ray (Theatrical and Director's Cuts)",
+            "release_date": "2011-05-10T00:00:00.000Z",
+            "type": 5
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "35th Anniversary Edition Blu-ray (Theatrical and Director's Cuts)",
+            "release_date": "2014-10-07T00:00:00.000Z",
+            "type": 5
+          },
+          {
+            "certification": "R",
+            "descriptors": [],
+            "iso_639_1": "",
+            "note": "40th Anniversary Edition 4K UHD (Theatrical and Director's Cuts)",
+            "release_date": "2019-04-01T00:00:00.000Z",
+            "type": 5
+          }
+        ]
+      }
+    ]
+  },
+  "external_ids": {
+    "imdb_id": "tt0078748",
+    "wikidata_id": "Q103569",
+    "facebook_id": "alienanthology",
+    "instagram_id": "alienanthology",
+    "twitter_id": "alienanthology"
+  },
+  "translations": {
+    "translations": [
+      {
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "name": "English",
+        "english_name": "English",
+        "data": {
+          "homepage": "https://www.20thcenturystudios.com/movies/alien",
+          "overview": "During its return to the earth, commercial spaceship Nostromo intercepts a distress signal from a distant planet. When a three-member team of the crew discovers a chamber containing thousands of eggs on the planet, a creature inside one of the eggs attacks an explorer. The entire crew is unaware of the impending nightmare set to descend upon them when the alien parasite planted inside its unfortunate host is birthed.",
+          "runtime": 117,
+          "tagline": "In space no one can hear you scream.",
+          "title": ""
+        }
+      },
+      {
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "homepage": "",
+          "overview": "En 2122, le Nostromo, vaisseau de commerce, fait route vers la Terre avec à son bord un équipage de sept personnes en hibernation et une cargaison de minerais. Il interrompt soudain sa course suite à la réception d’un mystérieux message provenant d’une planète inexplorée. Réveillé par l’ordinateur de bord, l’équipage se rend sur place et découvre les restes d’un gigantesque vaisseau extraterrestre dont le seul passager semble être mort dans d’étranges circonstances…",
+          "runtime": 118,
+          "tagline": "Dans l’espace, personne ne vous entend crier.",
+          "title": "Alien, le huitième passager"
+        }
+      },
+      {
+        "iso_3166_1": "CA",
+        "iso_639_1": "fr",
+        "name": "Français",
+        "english_name": "French",
+        "data": {
+          "homepage": "",
+          "overview": "En 2122. Le Nostromo, vaisseau de commerce, fait route vers la Terre avec à son bord un équipage de sept personnes en hibernation et une cargaison de minerais. Il interrompt soudain sa course suite à la réception d'un mystérieux message provenant d'une planète inexplorée. Réveillé par l'ordinateur de bord, l'équipage se rend sur place et découvre les restes d'un gigantesque vaisseau extraterrestre dont le seul passager semble être mort dans d'étranges circonstances...",
+          "runtime": 117,
+          "tagline": "Dans l'espace, personne ne vous entend crier.",
+          "title": "Alien : Le 8e Passager"
+        }
+      }
+    ]
+  }
+}

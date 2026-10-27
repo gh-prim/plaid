@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -106,7 +107,8 @@ func (h *Handlers) ListLibraries(ctx context.Context, _ api.ListLibrariesRequest
 // CreateLibrary validates the folders, creates the library and queues a
 // full scan.
 func (h *Handlers) CreateLibrary(ctx context.Context, req api.CreateLibraryRequestObject) (api.CreateLibraryResponseObject, error) {
-	if _, err := admin(ctx); err != nil {
+	pr, err := admin(ctx)
+	if err != nil {
 		return nil, err
 	}
 	b, err := body(req.Body)
@@ -125,6 +127,12 @@ func (h *Handlers) CreateLibrary(ctx context.Context, req api.CreateLibraryReque
 	if err := p.err(); err != nil {
 		return nil, err
 	}
+	// Metadata comes in the creating admin's language by default (F005 R10).
+	u, err := h.accounts.GetUser(ctx, pr.UserID)
+	if err != nil {
+		return nil, err
+	}
+	n.MetadataLanguage, n.MetadataRegion = metadataLocale(u.Locale)
 	lib, err := h.library.CreateLibrary(ctx, n)
 	if err != nil {
 		return nil, libraryErr(err, b.Folders)
@@ -182,11 +190,33 @@ func (h *Handlers) UpdateLibrary(ctx context.Context, req api.UpdateLibraryReque
 			patch.ScanIntervalS = checkInterval(b.ScanIntervalSeconds.MustGet(), &p)
 		}
 	}
+	if b.MetadataLanguage != nil {
+		if !languageRe.MatchString(*b.MetadataLanguage) {
+			p.add("metadataLanguage", "invalid")
+		}
+		patch.MetadataLanguage = b.MetadataLanguage
+	}
+	if b.MetadataRegion != nil {
+		if !regionRe.MatchString(*b.MetadataRegion) {
+			p.add("metadataRegion", "invalid")
+		}
+		patch.MetadataRegion = b.MetadataRegion
+	}
 	if err := p.err(); err != nil {
 		return nil, err
 	}
 	if _, err := h.library.UpdateLibrary(ctx, req.LibraryId, patch); err != nil {
 		return nil, libraryErr(err, patch.Folders)
+	}
+	// A new language or region refetches the library's metadata in the
+	// background, keeping every match (F005 R10).
+	langChanged := patch.MetadataLanguage != nil && *patch.MetadataLanguage != current.MetadataLanguage
+	regionChanged := patch.MetadataRegion != nil && *patch.MetadataRegion != current.MetadataRegion
+	if h.metadata != nil && (langChanged || regionChanged) {
+		if err := h.metadata.Store().RefreshLibrary(ctx, req.LibraryId); err != nil {
+			return nil, err
+		}
+		h.metadata.Wake()
 	}
 	v, err := h.library.View(ctx, req.LibraryId)
 	if err != nil {
@@ -234,9 +264,38 @@ func (h *Handlers) ScanLibrary(ctx context.Context, req api.ScanLibraryRequestOb
 	return api.ScanLibrary202JSONResponse(toScanProgress(pr)), nil
 }
 
+var (
+	languageRe = regexp.MustCompile(`^[a-z]{2}$`)
+	regionRe   = regexp.MustCompile(`^[A-Z]{2}$`)
+)
+
+// defaultRegions is the region assumed for a bare language locale, where it
+// isn't simply the language code in upper case.
+var defaultRegions = map[string]string{
+	"en": "US", "cs": "CZ", "da": "DK", "el": "GR", "he": "IL", "ja": "JP",
+	"ko": "KR", "nb": "NO", "sv": "SE", "uk": "UA", "zh": "CN", "pt": "BR",
+}
+
+// metadataLocale turns an account locale (`fr`, `en-GB`, `pt-BR`) into a
+// library's metadata language and region (F005 R10).
+func metadataLocale(locale string) (lang, region string) {
+	lang, region, _ = strings.Cut(locale, "-")
+	if len(region) != 2 {
+		region = defaultRegions[lang]
+		if region == "" {
+			region = strings.ToUpper(lang)
+		}
+	}
+	if len(lang) != 2 || len(region) != 2 {
+		return "en", "US"
+	}
+	return lang, region
+}
+
 func toLibrary(v library.View) api.Library {
 	out := api.Library{
 		Id: v.ID, Name: v.Name, Type: api.LibraryType(v.Type), LastScanAt: v.LastScanAt,
+		MetadataLanguage: v.MetadataLanguage, MetadataRegion: v.MetadataRegion,
 		ScanIntervalSeconds: nullable.NewNullNullable[int](),
 		Folders:             make([]api.LibraryFolder, 0, len(v.Folders)),
 		Counts: api.LibraryCounts{

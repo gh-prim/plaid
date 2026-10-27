@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/gh-prim/plaid/server/internal/access"
 	"github.com/gh-prim/plaid/server/internal/apierr"
 	"github.com/gh-prim/plaid/server/internal/auth"
 )
@@ -67,6 +68,26 @@ func (s *Service) getProfile(ctx context.Context, q querier, userID, id string) 
 		return Profile{}, "", apierr.NotFound("no such profile")
 	}
 	return pr, pin, err
+}
+
+// AccessLimit returns what the session's active profile may see (F003
+// R18, enforced by F005 R25). With no profile picked yet, the account's
+// default profile applies, so skipping the profile picker lifts nothing.
+func (s *Service) AccessLimit(ctx context.Context, p auth.Principal) (access.Limit, error) {
+	var (
+		pr  Profile
+		err error
+	)
+	if p.ProfileID != "" {
+		pr, _, err = s.getProfile(ctx, s.db, p.UserID, p.ProfileID)
+	} else {
+		pr, _, err = scanProfile(s.db.QueryRowContext(ctx,
+			`SELECT `+profileColumns+` FROM profiles WHERE user_id = ? AND is_default = 1`, p.UserID))
+	}
+	if err != nil {
+		return access.Limit{}, err
+	}
+	return access.Limit{MaxAge: pr.MaxAge, AllowUnrated: pr.AllowUnrated}, nil
 }
 
 // requireProfileManager lets only an unrestricted profile (or a session with

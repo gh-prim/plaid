@@ -1,0 +1,76 @@
+{
+  "id": 7240,
+  "name": "Saison 1",
+  "overview": "La série commence par la présentation des différents employés via un tour avec Michael Scott accompagné par la caméra et par le nouveau stagiare (Ryan Howard)5. Le public apprend que Jim a flashé sur la réceptionniste Pam (qui l'a aidé à faire une blague à leur collègue Dwight), bien qu'elle soit fiancé à Roy (qui travaille à l'étage inférieur, à l'entrepôt). La rumeur court que le siège de Dunder Mifflin's planifie de fermer cette branche de l'entreprise, ce qui mène à une panique générale, mais Michael refuse de voir la réalité de la situation afin de maintenir le moral des employés.",
+  "air_date": "2005-03-24",
+  "season_number": 1,
+  "poster_path": "/dsjvCIcKbtE8WYdtiCT2N6I6Szr.jpg",
+  "episodes": [
+    {
+      "id": 170135,
+      "name": "La rumeur",
+      "overview": "Des journalistes viennent réaliser un documentaire sur le quotidien des employés de Dunder Mifflin et les méthodes de management \"modernes\" de Michael Scott, le manager régional. Ce même jour, la direction décide de réduire ses effectifs…",
+      "air_date": "2005-03-24",
+      "episode_number": 1,
+      "season_number": 1,
+      "runtime": 24,
+      "still_path": "/axt2TV2b3FAs1ZEg1mdKV1ZJnfW.jpg",
+      "vote_average": 7.6
+    },
+    {
+      "id": 170132,
+      "name": "La journée de la diversité",
+      "overview": "Après plusieurs incidents, Michael et son équipe doivent suivre une formation sur la tolérance au sein de l'entreprise, mais le manager décide de l'adapter à sa sauce. De son côté, Jim perd l'une de ses plus grosses commissions annuelles…",
+      "air_date": "2005-03-29",
+      "episode_number": 2,
+      "season_number": 1,
+      "runtime": 22,
+      "still_path": "/frHasw3YEEkpNlDNzHZpFjJWwhk.jpg",
+      "vote_average": 7.8
+    },
+    {
+      "id": 170134,
+      "name": "La mutuelle",
+      "overview": "Michael, refusant de perdre en \"popularité\", confie à Dwight la lourde tâche du choix de la mutuelle pour les employés. Ce nouveau \"pouvoir\" va faire tomber son assistant dans tous les excès. La situation tourne alors très vite au désastre…",
+      "air_date": "2005-04-05",
+      "episode_number": 3,
+      "season_number": 1,
+      "runtime": 23,
+      "still_path": "/b92iKLwxKRGBjKQ2R5k7L9kCPPo.jpg",
+      "vote_average": 7.6
+    },
+    {
+      "id": 170133,
+      "name": "L'alliance",
+      "overview": "Michael organise une fête d'anniversaire pour Meredith afin de remonter le moral de ses employés. Le manager va animer, à sa manière, ce petit moment de \"bonheur\" dans la vie de l'entreprise…",
+      "air_date": "2005-04-12",
+      "episode_number": 4,
+      "season_number": 1,
+      "runtime": 22,
+      "still_path": "/9nZh7ikeLZfFYnYs6yf8Nc36fu.jpg",
+      "vote_average": 7.8
+    },
+    {
+      "id": 170131,
+      "name": "Le match de basket",
+      "overview": "Un match de basket est organisé par Michael opposant son équipe (les commerciaux) à celle de l'entrepôt. Il est décidé que les perdants travailleront le samedi. Jim en profite pour impressionner Pam dont le fiancé joue dans l'équipe adverse.",
+      "air_date": "2005-04-19",
+      "episode_number": 5,
+      "season_number": 1,
+      "runtime": 23,
+      "still_path": "/2retmsI3vrQupspr9i2ZB21PhhN.jpg",
+      "vote_average": 8.0
+    },
+    {
+      "id": 170130,
+      "name": "La fille canon",
+      "overview": "Une vendeuse à la plastique avantageuse débarque dans le bureau. Dwight tente de s'attirer ses faveurs mais très vite Michael utilise son \"charme\" de commercial. Contre toute attente, un autre employé les double…",
+      "air_date": "2005-04-26",
+      "episode_number": 6,
+      "season_number": 1,
+      "runtime": 23,
+      "still_path": "/qZJcuMRsXV8fI3dif0OUH6Wu4KQ.jpg",
+      "vote_average": 7.6
+    }
+  ]
+}

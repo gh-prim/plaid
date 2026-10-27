@@ -18,6 +18,9 @@ import (
 	"github.com/gh-prim/plaid/server/internal/handlers"
 	"github.com/gh-prim/plaid/server/internal/httpserver"
 	"github.com/gh-prim/plaid/server/internal/library"
+	"github.com/gh-prim/plaid/server/internal/metadata"
+	"github.com/gh-prim/plaid/server/internal/metadata/tmdbtest"
+	"github.com/gh-prim/plaid/server/internal/settings"
 )
 
 // These tests drive the acceptance criteria of F004 that go through the
@@ -57,19 +60,39 @@ type libEnv struct {
 type libOpts struct {
 	prober      library.Prober
 	browseRoots []string
+	// tmdb, when set, runs F005 (with artwork) against the recorded
+	// TMDB and fanart.tv responses it serves.
+	tmdb *tmdbtest.Server
 }
 
 func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	t.Helper()
 	e := newEnv(t)
 	logger := slog.New(slog.NewTextHandler(e.logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	var (
+		meta  *metadata.Service
+		hooks library.Hooks
+	)
+	if o.tmdb != nil {
+		meta = metadata.New(metadata.Options{DB: e.db, Provider: o.tmdb.Client(), Fanart: o.tmdb.Fanart(), Log: logger,
+			Workers: 2, QueueIdle: 20 * time.Millisecond, DataDir: t.TempDir(), ImageHTTP: o.tmdb.HTTP(), ImageHosts: o.tmdb.ImageHosts(),
+			Settings: settings.New(e.db), CheckKey: func(_ context.Context, _, key string) error {
+				if key == tmdbtest.Key || key == tmdbtest.FanartKey {
+					return nil
+				}
+				return metadata.ErrInvalidAPIKey
+			}})
+		meta.Start(context.Background())
+		t.Cleanup(meta.Close)
+		hooks.ItemsCreated, hooks.Sidecars = meta.ItemsCreated, meta.SidecarsSeen
+	}
 	engine := library.NewEngine(e.db, library.EngineOptions{Prober: o.prober, FFprobeVersion: "7.1.1",
-		BrowseRoots: o.browseRoots, Log: logger, Workers: 2})
+		BrowseRoots: o.browseRoots, Log: logger, Workers: 2, Hooks: hooks})
 	engine.Start(context.Background())
 	t.Cleanup(engine.Close)
 	streams, end := context.WithCancel(context.Background())
 	t.Cleanup(end)
-	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Streams: streams})
+	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta, Streams: streams})
 	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct})
 	le := &libEnv{env: e, engine: engine, endStream: end}
 	le.admin = e.setup().Token
@@ -688,4 +711,18 @@ func newLiveServer(t *testing.T, h http.Handler) *liveServer {
 	wg.Go(func() { _ = srv.Serve(ln) })
 	t.Cleanup(func() { _ = srv.Close(); wg.Wait() })
 	return &liveServer{URL: "http://" + ln.Addr().String(), Config: srv}
+}
+
+// TestLibraryMetadataLocale: a new library takes its metadata language and
+// region from the creating admin's locale (F005 R10).
+func TestLibraryMetadataLocale(t *testing.T) {
+	e := newLibEnv(t, libOpts{})
+	lib := e.create("Films", "movies", t.TempDir()) // the test admin's locale is fr
+	var lang, region string
+	if err := e.db.QueryRow(`SELECT metadata_language, metadata_region FROM libraries WHERE id = ?`, lib.ID).Scan(&lang, &region); err != nil {
+		t.Fatal(err)
+	}
+	if lang != "fr" || region != "FR" {
+		t.Errorf("metadata locale = %s/%s, want fr/FR", lang, region)
+	}
 }

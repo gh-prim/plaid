@@ -20,8 +20,39 @@ jobs:
         with:
           version: v2.12.1
           working-directory: server
+      # The Azure Ubuntu mirror is sometimes slow enough (~40 KB/s) to time
+      # the install out. Its ~100 .deb files are cached, renewed each ISO
+      # week, so most runs download nothing but the package lists.
+      - name: Week of the apt cache
+        id: apt-week
+        run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@v6
+        id: apt-cache
+        with:
+          path: ~/apt-archives
+          key: apt-ffmpeg-${{ runner.os }}-${{ runner.arch }}-ubuntu-24.04-${{ steps.apt-week.outputs.week }}
+          restore-keys: apt-ffmpeg-${{ runner.os }}-${{ runner.arch }}-ubuntu-24.04-
       - name: Install ffmpeg
         # The real-ffprobe tests (internal/library) skip without it (ADR 0006).
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+        # It normally takes ~20 s. A stalled Ubuntu mirror once hung it for
+        # 18+ min: fail fast instead, with per-request timeouts and retries.
+        timeout-minutes: 5
+        run: |
+          mkdir -p ~/apt-archives/partial
+          printf '%s\n' 'Acquire::Retries "3";' 'Acquire::http::Timeout "30";' 'Acquire::https::Timeout "30";' \
+            "Dir::Cache::Archives \"$HOME/apt-archives\";" 'APT::Keep-Downloaded-Packages "true";' |
+            sudo tee /etc/apt/apt.conf.d/80-plaid-ci >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          # apt runs as root; the cache is saved as the runner user.
+          sudo rm -rf ~/apt-archives/lock ~/apt-archives/partial
+          sudo chown -R "$USER" ~/apt-archives
+          echo "apt archives: $(find ~/apt-archives -name '*.deb' | wc -l) packages"
+      # Saved right away, so a failing test later doesn't waste the download.
+      - if: steps.apt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/apt-archives
+          key: ${{ steps.apt-cache.outputs.cache-primary-key }}
       - name: Test
         run: make test-server

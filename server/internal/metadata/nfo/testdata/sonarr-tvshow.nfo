@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<tvshow>
+  <title>Dark</title>
+  <plot>A missing child sets four families on a frantic hunt for answers.</plot>
+  <mpaa>DE:FSK 16</mpaa>
+  <premiered>2017-12-01</premiered>
+  <uniqueid type="tvdb" default="true">334824</uniqueid>
+  <uniqueid type="tmdb">70523</uniqueid>
+  <uniqueid type="imdb">tt5753856</uniqueid>
+  <genre>Crime</genre>
+  <genre>Drama</genre>
+</tvshow>

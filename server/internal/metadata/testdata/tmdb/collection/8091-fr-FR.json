@@ -1,0 +1,29 @@
+{
+  "id": 8091,
+  "name": "Alien - Saga",
+  "overview": "Lorsque vous revivrez la saga horrifique Alien, tout le monde vous entendra crier ! L’horreur commence quand Ellen Ripley (Sigourney Weaver) est confrontée pour la première fois à la créature mortelle Alien. Dans Aliens le retour elle retourne sur LV-426 pour une confrontation brutale ; et déclare la guerre aux créatures. Dans Alien³, son vaisseau s’écrase sur une planète isolée, mais elle n’était pas seule dans son vaisseau… Deux siècles plus tard, Ripley revient à la vie dans Alien, la résurrection !",
+  "poster_path": "/ygHKpMEcbarcC7YcaKekhzz3cUl.jpg",
+  "backdrop_path": "/6X42JnSMdo3dPAswOHUuvebdTq7.jpg",
+  "parts": [
+    {
+      "id": 348,
+      "title": "Alien, le huitième passager",
+      "release_date": "1979-05-25"
+    },
+    {
+      "id": 679,
+      "title": "Aliens, le retour",
+      "release_date": "1986-07-18"
+    },
+    {
+      "id": 8077,
+      "title": "Alien³",
+      "release_date": "1992-05-22"
+    },
+    {
+      "id": 8078,
+      "title": "Alien, la résurrection",
+      "release_date": "1997-11-12"
+    }
+  ]
+}

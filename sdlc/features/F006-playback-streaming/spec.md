@@ -52,7 +52,7 @@ F006 makes any recognized movie or episode playable on any client. The client st
 | F006-R6 | `PATCH /playback/{sessionId}` changes the audio track, subtitles, quality or max bitrate in place. The server makes a new decision and returns the same shape as R5. When the URL changes, the client reloads from its current position (`positionMs` in the request). | must |
 | F006-R7 | A playback session belongs to an F003 session and to its active profile. A profile must be active (`403 profile_required`). Revoking the F003 session, signing out or disabling the account ends its playback sessions at once. A user only sees and changes their own playback sessions; admins see all of them (R29). | must |
 | F006-R8 | Playback sessions live in memory; a server restart ends them (clients start new ones). A session ends with `DELETE /playback/{id}`, or after 24 h without any activity (progress report or stream request). | must |
-| F006-R9 | Age limit (F003-R18): an item is refused with `403 content_restricted` if it is rated above the active profile's limit, or unrated while `allowUnrated` is false. Ratings come with F005; until then every item is unrated. | must |
+| F006-R9 | Age limit (F003-R18): playback applies F005's shared predicate (`internal/access`, F005-R25) with the active profile's limit and the item's `age_rating` (F005). An item the profile can't see returns `404 not_found`, as every other item read does, so its existence isn't revealed. The check runs when the session starts and again on `PATCH`. | must |
 | **Direct Play** | | |
 | F006-R10 | `GET` and `HEAD /stream/{token}/file` serve the original file with `Accept-Ranges: bytes`, single `Range` requests (`206`), `If-Range`, `ETag` (size + mtime), the right `Content-Type` per container, `Content-Disposition: inline` with the file name. No FFmpeg is involved. | must |
 | **HLS (Direct Stream and Transcode)** | | |
@@ -78,7 +78,7 @@ F006 makes any recognized movie or episode playable on any client. The client st
 | F006-R27 | Temporary files go to `PLAID_TRANSCODE_DIR` (default `$PLAID_DATA_DIR/transcodes`), one folder per session, emptied when the session ends. Segments more than 5 minutes behind the last requested one are deleted. Total size cap `transcodeDirMaxBytes` (default 10 GiB): above it, the oldest segments of every session are deleted first, and if that's not enough, new transcodes are refused with `503 transcode_storage_full`. The folder is emptied at startup. The subtitle and keyframe caches live in `$PLAID_DATA_DIR/cache/` and are capped at 1 GiB (least recently used goes first). | must |
 | F006-R28 | FFmpeg processes are always cleaned up: each run is its own process group and is killed (`SIGTERM`, then `SIGKILL` after 5 s) when its session ends or restarts. On Linux, `Pdeathsig` kills FFmpeg if PLAID dies. A run gets no segment request for 60 s → it's stopped (the session stays, the next request restarts it at the right segment). Server shutdown stops every run before exiting. stderr is kept (last 64 KiB) for error logs. | must |
 | F006-R29 | Admin: `GET /playback` lists every active session (user, profile, device, item, file, method, reasons, quality, hardware or software, transcode speed, position, remote or local). `DELETE /playback/{id}` ends any session. | must |
-| F006-R30 | Playback settings, admin-only, stored in the new `settings` table: `maxTranscodes`, `remoteMaxBitrate` (bps, 0 = no limit, default 0), `localNetworks` (CIDR list), `hwAccel` (R24), `hwDevice` (e.g. `/dev/dri/renderD128`, default: first found), `transcodeDirMaxBytes`, `encoderPreset` (`fast`, `balanced`, `quality`; maps to the encoder's speed presets, default `fast`). `PLAID_FFMPEG_PATH` (ADR 0006) and `PLAID_TRANSCODE_DIR` stay environment variables. | must |
+| F006-R30 | Playback settings, admin-only, stored in the `settings` table added by F005 (`internal/settings`, keys `playback.*`): `maxTranscodes`, `remoteMaxBitrate` (bps, 0 = no limit, default 0), `localNetworks` (CIDR list), `hwAccel` (R24), `hwDevice` (e.g. `/dev/dri/renderD128`, default: first found), `transcodeDirMaxBytes`, `encoderPreset` (`fast`, `balanced`, `quality`; maps to the encoder's speed presets, default `fast`). `PLAID_FFMPEG_PATH` (ADR 0006) and `PLAID_TRANSCODE_DIR` stay environment variables. | must |
 | F006-R31 | `GET /server/capabilities` (F004) gains `ffmpeg: {found, version}`, `hwAccel: {configured, active, device, encoders: [...], decoders: [...], disabledReason?}`. If FFmpeg is missing, Direct Play still works and the other methods return `503 ffmpeg_missing`. | must |
 | **Progress and watch state** | | |
 | F006-R32 | `POST /playback/{id}/progress` with `{positionMs, state}` (`playing`, `paused`, `buffering`, `stopped`). Clients send it every 10 s while playing and on every pause, seek and stop. It also keeps the session alive. The server writes watch state at most once every 10 s per session, and always on `stopped` and on `DELETE`. | must |
@@ -90,20 +90,14 @@ F006 makes any recognized movie or episode playable on any client. The client st
 | **For other features** | | |
 | F006-R38 | The decision engine and session manager are a Go package (`internal/playback`) with an API other features call directly: F010 creates one session per Party participant, each with its own profile and decision. Sessions can start at any position, with the exact start time returned so a synced client can line up. | must |
 | F006-R39 | Every playback event (session started with its method and reasons, quality change, FFmpeg run started or restarted with its command line minus tokens, hardware fallback, session ended with its duration) is logged with `slog`. | must |
+| F006-R40 | `GET /stream/{token}/artwork/{kind}?w=` serves the playing item's artwork (`poster`, `backdrop`, `still` for episodes; F005-R19 widths and caching) with the playback token, for players that can't send a session (lock screen and "now playing" metadata, external players). Only that item's artwork, and it stops with the session. | could |
 
 ## Design
 
 ### Data model
-Migration `0004_playback.sql`. Same conventions as F003/F004 (UUIDv7 `TEXT` ids, RFC 3339 UTC timestamps).
+Migration `0005_playback.sql` (`0004_metadata.sql` is F005's). Same conventions as F003/F004 (UUIDv7 `TEXT` ids, RFC 3339 UTC timestamps). Playback settings reuse the `settings` table from `0004_metadata.sql`; no schema change there.
 
 ```sql
--- Server-wide settings, one JSON value per key (first user: F006-R30).
-CREATE TABLE settings (
-  key         TEXT PRIMARY KEY,
-  value       TEXT NOT NULL,               -- JSON
-  updated_at  TEXT NOT NULL
-);
-
 -- Watch state per profile and item (R33).
 CREATE TABLE watch_state (
   profile_id      TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
@@ -179,6 +173,7 @@ Added to `api/openapi.yaml` first. Routes under `/api/v1`. "session" = F003 auth
 | GET | `/stream/{token}/subtitles/{index}.m3u8` | token | Subtitle rendition playlist (R16) |
 | GET | `/stream/{token}/subtitles/{index}.vtt` | token | WebVTT subtitles |
 | GET | `/stream/{token}/subtitles/{index}.ass` | token | Original ASS/SSA (R16) |
+| GET | `/stream/{token}/artwork/{kind}` | token | `?w=` → the playing item's artwork (R40) |
 
 `PlaybackSession`:
 ```json
@@ -222,7 +217,7 @@ Client capability profile (example: a Chromium browser):
 ```
 F008 (web) builds its profile from `MediaSource.isTypeSupported` / `canPlayType`; the Apple and Android apps build theirs the same way later. The server doesn't trust the profile for security, only for compatibility.
 
-New error codes: `not_playable`, `file_unavailable`, `file_not_analyzed`, `profile_required`, `content_restricted`, `transcode_limit_reached` (with `Retry-After: 30`), `transcode_storage_full`, `ffmpeg_missing`, `playback_session_not_found`, `segment_not_ready` (with `Retry-After: 1`), `hw_accel_unavailable` (settings test failed). An unknown or expired token returns `404 playback_session_not_found` (never `401`, so players don't prompt for credentials).
+New error codes: `not_playable`, `file_unavailable`, `file_not_analyzed`, `profile_required`, `transcode_limit_reached` (with `Retry-After: 30`), `transcode_storage_full`, `ffmpeg_missing`, `playback_session_not_found`, `segment_not_ready` (with `Retry-After: 1`), `hw_accel_unavailable` (settings test failed). An unknown or expired token returns `404 playback_session_not_found` (never `401`, so players don't prompt for credentials).
 
 ### Behavior per app
 - **server**: everything above. The playback manager starts with the server, empties the transcode folder, runs the hardware test in the background (Direct Play works before it finishes) and subscribes to F003 session revocations.
@@ -254,7 +249,6 @@ F006 adds no server-side strings. Clients translate the error codes and decision
 |-----|----|----|
 | `errors.transcode_limit_reached` | The server is busy converting other videos. Try again in a moment, or pick a lower quality. | Le serveur convertit déjà d'autres vidéos. Réessaie dans un instant, ou choisis une qualité plus basse. |
 | `errors.transcode_storage_full` | The server is out of space for video conversion. Ask the admin to free some up. | Le serveur n'a plus de place pour convertir la vidéo. Demande à l'admin d'en libérer. |
-| `errors.content_restricted` | This profile can't watch this title. | Ce profil ne peut pas regarder ce titre. |
 | `errors.file_unavailable` | This file can't be found right now. Its drive may be unplugged. | Ce fichier est introuvable pour l'instant. Son disque est peut-être débranché. |
 | `errors.ffmpeg_missing` | This video needs FFmpeg, which isn't installed on the server. | Cette vidéo a besoin de FFmpeg, qui n'est pas installé sur le serveur. |
 | `errors.profile_required` | Pick a profile first. | Choisis d'abord un profil. |
@@ -290,7 +284,8 @@ To settle before `approved`. ✅ = resolved, ⏸ = tracked elsewhere, ❓ = need
 - [ ] ❓ **One quality per session, no adaptive bitrate.** R11 gives one HLS variant per session, quality changes via `PATCH`. ABR (several variants encoded at once) would multiply the CPU cost on small servers. OK for v1? The client then has to pick a quality from its measured bandwidth (F008).
 - [ ] ❓ **Direct Stream keyframe index (R13).** Reading Matroska Cues and MP4 `stss` in Go is new code; files without Cues (some old MKVs, `.ts`, `.avi`) fall back to a full packet scan, which reads the whole file (minutes for a 50 GB file on USB 2). Meanwhile those sessions are transcoded. Accept, or simplify: Direct Stream only for MKV/MP4 with an index, and transcode everything else?
 - [ ] ❓ **Simultaneous transcode defaults (R26) and Plaid Party.** F010 gives each participant their own stream: four friends on mobile with a 4K source means four transcodes. With the default of 1 on a Pi, the Party can't start. Is the limit per server enough, or does F010 need a per-room budget (e.g. one shared transcode per quality)? Track in F010's intent.
-- [ ] ❓ **Age limits block kids' profiles until F005.** R9 enforces F003-R18 now, but nothing has a rating before F005, and `allowUnrated` defaults to false when a limit is set. So a restricted profile can't play anything until F005 lands. Accept (safer), or skip enforcement until F005 and record it there?
+- [x] **Age limits** — ✅ F005 shipped ratings and the shared predicate (`internal/access`, F005-R25); R9 reuses it and answers `404` like every other item read. Restricted profiles still can't play unrated items unless `allowUnrated` is on.
+- [ ] ❓ **Signed artwork URLs (F005 watch-out).** F005 deferred signed image URLs to F006. R40 covers only the playing item's artwork through the playback token (`could`). Library-wide signed image URLs (casting, widgets) would need their own token; proposal: not in F006, add to the backlog if a client needs it.
 - [ ] ❓ **Watched threshold and resume minimum** (R33: 90% or 2 min left; nothing saved under 60 s). Plex uses 90%, Jellyfin 90% with a 5% minimum. A long credits sequence (Marvel) marks movies watched early, which is usually what people want. Confirm the numbers.
 - [ ] ❓ **Default storage cap** (R27: 10 GiB, segments kept 5 min behind the playhead). A 4K remux at 60 Mbps writes ~450 MB per minute: 5 minutes behind plus 2 ahead is about 3 GB per session. Fine on a NAS; tight on a Pi with an SD card. Lower the default, or derive it from the free space?
 - [ ] ❓ **HDR tone mapping scope (R23).** The intent puts advanced tone mapping out of scope. R23 keeps a basic one as `should`, because a 4K HDR movie transcoded without it looks washed out, which is the most common remote case. Dolby Vision profile 5 stays wrong. Confirm the line.
@@ -314,7 +309,7 @@ To settle before `approved`. ✅ = resolved, ⏸ = tracked elsewhere, ❓ = need
 - [ ] Given two profiles on one account, when profile A watches half of a movie, then `userState.positionMs` is set for A and empty for B.
 - [ ] Given progress reports up to 91% of the duration, then the item is `watched`, `playCount` is 1, the position is reset, and it no longer appears in `/me/continue-watching`.
 - [ ] Given a show where S1E1–E3 are watched, then `/me/continue-watching` offers S1E4; `PUT /items/{showId}/watched` marks every episode watched; `DELETE` unmarks them.
-- [ ] Given a profile with an age limit and `allowUnrated` false, when it starts an unrated movie, then `403 content_restricted`.
+- [ ] Given a profile with a 12+ limit, when it starts a movie rated 16 (or an unrated one while `allowUnrated` is false), then `404 not_found`, the same answer as `GET /items/{id}`.
 - [ ] Given `hwAccel` = `vaapi` on a machine with a working Intel GPU (manual test, recorded in the PR), then `GET /server/capabilities` lists `h264_vaapi`, a 1080p transcode reports `hardwareAcceleration: "vaapi"`, and its speed is ≥ 3×.
 - [ ] Given `hwAccel` = `vaapi` with no `/dev/dri`, then the settings update returns `422 hw_accel_unavailable`; with `auto`, the server falls back to software with a warning and transcodes still work.
 - [ ] Given FFmpeg is missing, then Direct Play works and a session needing HLS returns `503 ffmpeg_missing`.

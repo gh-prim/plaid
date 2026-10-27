@@ -1,0 +1,98 @@
+{
+  "id": 124476,
+  "name": "Season 2",
+  "overview": "Six months after the disappearances of Mikkel, Jonas and Ulrich, Winden's web of mysteries deepens -- and the fate of the world hangs in the balance.",
+  "air_date": "2019-06-21",
+  "season_number": 2,
+  "poster_path": "/x39GoVVHsmkz4RHZMDejUN3DDBG.jpg",
+  "episodes": [
+    {
+      "id": 1793851,
+      "name": "Beginnings and Endings",
+      "overview": "Six months after the disappearances, the police form a task force. In 2052, Jonas learns that most of Winden perished in an apocalyptic event.",
+      "air_date": "2019-06-21",
+      "episode_number": 1,
+      "season_number": 2,
+      "runtime": 54,
+      "still_path": "/vMNgEJ1jAZHKRa5BFMOMEf2chCD.jpg",
+      "vote_average": 8.0
+    },
+    {
+      "id": 1829343,
+      "name": "Dark Matter",
+      "overview": "Clausen and Charlotte interview Regina. The Stranger takes Hannah to 1987, where Claudia has an unnerving encounter and Egon visits an old nemesis.",
+      "air_date": "2019-06-21",
+      "episode_number": 2,
+      "season_number": 2,
+      "runtime": 55,
+      "still_path": "/jCcXjvvWUacYUGgCx4Shm3ZDU4N.jpg",
+      "vote_average": 8.3
+    },
+    {
+      "id": 1829344,
+      "name": "Ghosts",
+      "overview": "In 1954, a missing Helge returns, but he'll only speak to Noah. In 1987, Claudia brings the time machine to Tannhaus, and Egon questions Ulrich again.",
+      "air_date": "2019-06-21",
+      "episode_number": 3,
+      "season_number": 2,
+      "runtime": 57,
+      "still_path": "/cl9JapS68DjSZ9EaUkFQtmpcqXV.jpg",
+      "vote_average": 8.3
+    },
+    {
+      "id": 1829345,
+      "name": "The Travelers",
+      "overview": "Jonas meets an ominous figure. While the kids comb the cave for answers, the adults gather in the bunker to share what they know about the travelers.",
+      "air_date": "2019-06-21",
+      "episode_number": 4,
+      "season_number": 2,
+      "runtime": 61,
+      "still_path": "/hkOx4uLxTzcEOzznZq5qF2l1imY.jpg",
+      "vote_average": 8.9
+    },
+    {
+      "id": 1829346,
+      "name": "Lost and Found",
+      "overview": "In 1987, Ulrich seizes an opportunity. The kids return to the cave with the time machine, and Jonas learns of a loophole that could change the future.",
+      "air_date": "2019-06-21",
+      "episode_number": 5,
+      "season_number": 2,
+      "runtime": 57,
+      "still_path": "/siAOyAoWhLhRuYIamOTchNA8aWn.jpg",
+      "vote_average": 8.6
+    },
+    {
+      "id": 1829347,
+      "name": "An Endless Cycle",
+      "overview": "Armed with a plan to prevent the apocalypse, Jonas travels to 2019. During the Nielsens' anniversary party, Ulrich sneaks off with Hannah.",
+      "air_date": "2019-06-21",
+      "episode_number": 6,
+      "season_number": 2,
+      "runtime": 55,
+      "still_path": "/pz9UeyasJ5NuIuQBqx1vZqlXO6V.jpg",
+      "vote_average": 8.8
+    },
+    {
+      "id": 1829348,
+      "name": "The White Devil",
+      "overview": "Martha meets the Stranger and learns his true identity. Claudia tries to prevent Egon's death in 1987. Hannah travels to 1954 to see Ulrich.",
+      "air_date": "2019-06-21",
+      "episode_number": 7,
+      "season_number": 2,
+      "runtime": 59,
+      "still_path": "/sK3fPLNisFr6CJicjlZw0KLQvHF.jpg",
+      "vote_average": 8.6
+    },
+    {
+      "id": 1829349,
+      "name": "Endings and Beginnings",
+      "overview": "On the day of the apocalypse, Clausen executes a search warrant at the power plant as Jonas and Claudia use the time machine to connect past and future.",
+      "air_date": "2019-06-21",
+      "episode_number": 8,
+      "season_number": 2,
+      "runtime": 58,
+      "still_path": "/acB8hIIGrG2XNTbXAfhwf3oMX7D.jpg",
+      "vote_average": 8.9
+    }
+  ]
+}

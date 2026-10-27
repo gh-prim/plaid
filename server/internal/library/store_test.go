@@ -45,6 +45,16 @@ func TestStoreCreateGetDelete(t *testing.T) {
 	if got.Name != "Movies" || got.Type != TypeMovies || len(got.Folders) != 2 || got.Folders[0].Status != FolderOK {
 		t.Errorf("got %+v", got)
 	}
+	if got.MetadataLanguage != "en" || got.MetadataRegion != "US" {
+		t.Errorf("metadata locale = %s/%s, want the en/US defaults", got.MetadataLanguage, got.MetadataRegion)
+	}
+	fr, err := s.CreateLibrary(ctx, "Films", TypeMovies, []string{"/media/fr"}, CreateOptions{MetadataLanguage: "fr", MetadataRegion: "FR"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, err := s.GetLibrary(ctx, fr.ID); err != nil || got.MetadataLanguage != "fr" || got.MetadataRegion != "FR" {
+		t.Errorf("fr library = %+v (%v)", got, err)
+	}
 	if _, err := s.GetLibrary(ctx, "nope"); !errors.Is(err, ErrNotFound) {
 		t.Errorf("missing library: %v", err)
 	}
@@ -52,8 +62,8 @@ func TestStoreCreateGetDelete(t *testing.T) {
 	if _, err := s.CreateLibrary(ctx, "Other", TypeMovies, []string{"/media/a"}); err == nil {
 		t.Error("two libraries share a folder path")
 	}
-	if n := count(t, d, "SELECT COUNT(*) FROM libraries"); n != 1 {
-		t.Errorf("failed create left %d libraries", n)
+	if n := count(t, d, "SELECT COUNT(*) FROM libraries"); n != 2 {
+		t.Errorf("failed create left %d libraries, want 2", n)
 	}
 }
 

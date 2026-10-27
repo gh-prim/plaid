@@ -1,0 +1,607 @@
+[
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "The Matrix",
+    "tmdbId": 603,
+    "year": 1999
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Dune",
+    "tmdbId": 438631,
+    "year": 2021
+  },
+  {
+    "decision": "needs_review",
+    "kind": "movie",
+    "title": "Dune",
+    "year": 0,
+    "note": "remake or same-name show and no year: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Amelie",
+    "tmdbId": 194,
+    "year": 2001
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Amélie",
+    "tmdbId": 194,
+    "year": 2001
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Le Fabuleux Destin d'Amélie Poulain",
+    "tmdbId": 194,
+    "year": 2001
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Total Recall",
+    "tmdbId": 861,
+    "year": 1990
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Total Recall",
+    "tmdbId": 64635,
+    "year": 2012
+  },
+  {
+    "decision": "needs_review",
+    "kind": "movie",
+    "title": "Total Recall",
+    "year": 0,
+    "note": "remake or same-name show and no year: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "RoboCop",
+    "tmdbId": 5548,
+    "year": 1987
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "RoboCop",
+    "tmdbId": 97020,
+    "year": 2014
+  },
+  {
+    "decision": "needs_review",
+    "kind": "movie",
+    "title": "RoboCop",
+    "year": 0,
+    "note": "remake or same-name show and no year: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Les Intouchables",
+    "tmdbId": 77338,
+    "year": 2011,
+    "note": "found by the retry without the article"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Intouchables",
+    "tmdbId": 77338,
+    "year": 2011
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "The Intouchables",
+    "tmdbId": 77338,
+    "year": 2011
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Der Untergang",
+    "tmdbId": 613,
+    "year": 2004
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Downfall",
+    "tmdbId": 613,
+    "year": 2004
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "2001 A Space Odyssey",
+    "tmdbId": 62,
+    "year": 1968
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "1917",
+    "tmdbId": 530915,
+    "year": 2019
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Se7en",
+    "tmdbId": 807,
+    "year": 1995
+  },
+  {
+    "decision": "needs_review",
+    "kind": "movie",
+    "title": "Seven",
+    "year": 1995,
+    "note": "TMDB has it as Se7en and doesn't find it as Seven: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Alien",
+    "tmdbId": 348,
+    "year": 1979,
+    "note": "an obscure \"The Alien\" (1979) ties on the title; 83× less popular"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Aliens",
+    "tmdbId": 679,
+    "year": 1986
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Blade Runner",
+    "tmdbId": 78,
+    "year": 1982
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Blade Runner 2049",
+    "tmdbId": 335984,
+    "year": 2017
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Heat",
+    "tmdbId": 949,
+    "year": 1995
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Spirited Away",
+    "tmdbId": 129,
+    "year": 2001
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Parasite",
+    "tmdbId": 496243,
+    "year": 2019
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "The Thing",
+    "tmdbId": 1091,
+    "year": 1982
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "The Thing",
+    "tmdbId": 60935,
+    "year": 2011
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Star Wars",
+    "tmdbId": 11,
+    "year": 1977
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Harry Potter and the Philosophers Stone",
+    "tmdbId": 671,
+    "year": 2001
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Harry Potter and the Sorcerer's Stone",
+    "tmdbId": 671,
+    "year": 2001,
+    "note": "US title, close enough to the UK one"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Mission Impossible Fallout",
+    "tmdbId": 353081,
+    "year": 2018
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Spider-Man Into the Spider-Verse",
+    "tmdbId": 324857,
+    "year": 2018
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "The Lord of the Rings The Fellowship of the Ring",
+    "tmdbId": 120,
+    "year": 2001
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "La Haine",
+    "tmdbId": 406,
+    "year": 1995
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Oldboy",
+    "tmdbId": 670,
+    "year": 2003
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Oldboy",
+    "tmdbId": 87516,
+    "year": 2013
+  },
+  {
+    "decision": "needs_review",
+    "kind": "movie",
+    "title": "Oldboy",
+    "year": 0,
+    "note": "remake or same-name show and no year: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Pulp Fiction",
+    "tmdbId": 680,
+    "year": 1994
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "The Godfather Part II",
+    "tmdbId": 240,
+    "year": 1974
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Mad Max Fury Road",
+    "tmdbId": 76341,
+    "year": 2015
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Whiplash",
+    "tmdbId": 244786,
+    "year": 2014
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Inception",
+    "tmdbId": 27205,
+    "year": 2010
+  },
+  {
+    "decision": "needs_review",
+    "kind": "movie",
+    "title": "It",
+    "year": 2017,
+    "note": "a same-title film the same year; popularity lead under 20×, like The Office US/UK: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Up",
+    "tmdbId": 14160,
+    "year": 2009
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Her",
+    "tmdbId": 152601,
+    "year": 2013
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Us",
+    "tmdbId": 458723,
+    "year": 2019
+  },
+  {
+    "decision": "needs_review",
+    "kind": "movie",
+    "title": "Arrival",
+    "year": 2016,
+    "note": "a same-title film the same year; popularity lead under 20×, like The Office US/UK: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Interstellar",
+    "tmdbId": 157336,
+    "year": 2014
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "The Departed",
+    "tmdbId": 1422,
+    "year": 2006
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Ratatouille",
+    "tmdbId": 2062,
+    "year": 2007
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Coco",
+    "tmdbId": 354912,
+    "year": 2017
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Joker",
+    "tmdbId": 475557,
+    "year": 2019
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Le Diner de cons",
+    "tmdbId": 9421,
+    "year": 1998
+  },
+  {
+    "decision": "matched",
+    "kind": "movie",
+    "title": "Heat",
+    "tmdbId": 949,
+    "year": 1996,
+    "note": "year off by one still matches"
+  },
+  {
+    "decision": "unmatched",
+    "kind": "movie",
+    "title": "Asdfgh Qwerty",
+    "year": 2020
+  },
+  {
+    "decision": "needs_review",
+    "kind": "tv",
+    "title": "The Office",
+    "year": 0,
+    "note": "remake or same-name show and no year: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "The Office",
+    "tmdbId": 2316,
+    "year": 2005
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "The Office",
+    "tmdbId": 2996,
+    "year": 2001
+  },
+  {
+    "decision": "needs_review",
+    "kind": "tv",
+    "title": "House of Cards",
+    "year": 0,
+    "note": "remake or same-name show and no year: review"
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "House of Cards",
+    "tmdbId": 1425,
+    "year": 2013
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "House of Cards",
+    "tmdbId": 21720,
+    "year": 1990
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Dark",
+    "tmdbId": 70523,
+    "year": 2017
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Dark",
+    "tmdbId": 70523,
+    "year": 0
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Breaking Bad",
+    "tmdbId": 1396,
+    "year": 0
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Lost",
+    "tmdbId": 4607,
+    "year": 2004
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Lost",
+    "tmdbId": 4607,
+    "year": 0
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Sherlock",
+    "tmdbId": 19885,
+    "year": 2010
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "The Daily Show",
+    "tmdbId": 2224,
+    "year": 0,
+    "note": "no year, but 110× more popular than its namesakes"
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Doctor Who",
+    "tmdbId": 57243,
+    "year": 2005
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Doctor Who",
+    "tmdbId": 121,
+    "year": 1963
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Shameless",
+    "tmdbId": 34307,
+    "year": 2011
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Shameless",
+    "tmdbId": 1906,
+    "year": 2004
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Money Heist",
+    "tmdbId": 71446,
+    "year": 2017
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "La Casa de Papel",
+    "tmdbId": 71446,
+    "year": 2017
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Bref",
+    "tmdbId": 60715,
+    "year": 2011
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Kaamelott",
+    "tmdbId": 11466,
+    "year": 2005
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Les Revenants",
+    "tmdbId": 46616,
+    "year": 2012
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Battlestar Galactica",
+    "tmdbId": 1972,
+    "year": 2004
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Battlestar Galactica",
+    "tmdbId": 501,
+    "year": 1978
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Fargo",
+    "tmdbId": 60622,
+    "year": 2014
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Chernobyl",
+    "tmdbId": 87108,
+    "year": 2019
+  },
+  {
+    "decision": "matched",
+    "kind": "tv",
+    "title": "Arcane",
+    "tmdbId": 94605,
+    "year": 2021
+  },
+  {
+    "decision": "unmatched",
+    "kind": "tv",
+    "title": "Asdfgh Qwerty",
+    "year": 0
+  }
+]

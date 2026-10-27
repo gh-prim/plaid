@@ -22,6 +22,8 @@ import (
 	"github.com/gh-prim/plaid/server/internal/handlers"
 	"github.com/gh-prim/plaid/server/internal/httpserver"
 	"github.com/gh-prim/plaid/server/internal/library"
+	"github.com/gh-prim/plaid/server/internal/metadata"
+	"github.com/gh-prim/plaid/server/internal/settings"
 	"github.com/gh-prim/plaid/server/internal/webui"
 )
 
@@ -50,6 +52,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		return err
 	}
 	defer database.Close()
+	db.CheckPermissions(cfg.DataDir, logger)
 
 	accts := accounts.New(database, accounts.Options{Logger: logger})
 	code, err := accts.PrepareSetupCode(ctx)
@@ -64,7 +67,16 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	}
 	go accts.RunJanitor(ctx)
 
-	engine := newLibraryEngine(ctx, cfg, database, logger)
+	// The metadata service starts before the library engine so the
+	// engine's first scans already feed it (F005 R1).
+	meta := metadata.New(metadata.Options{
+		DB: database, Settings: settings.New(database), TMDBKey: cfg.TMDBAPIKey, Log: logger,
+		DataDir: cfg.DataDir, FanartKey: cfg.FanartAPIKey, ArtworkCacheBytes: cfg.ArtworkCacheBytes,
+	})
+	meta.Start(ctx)
+	defer meta.Close()
+
+	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{ItemsCreated: meta.ItemsCreated, Sidecars: meta.SidecarsSeen})
 	defer engine.Close()
 
 	// Cancelled by srv.Shutdown so open event streams don't hold it up.
@@ -75,6 +87,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Accounts:   accts,
 		ServerName: cfg.ServerName,
 		Library:    engine,
+		Metadata:   meta,
 		Streams:    streams,
 	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
@@ -92,8 +105,8 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 // newLibraryEngine finds ffprobe and starts the library engine in the
 // background (F004-R25, NFR startup). A missing ffprobe is a warning:
 // files are then listed without analysis.
-func newLibraryEngine(ctx context.Context, cfg config.Config, database *sql.DB, logger *slog.Logger) *library.Engine {
-	opts := library.EngineOptions{BrowseRoots: cfg.BrowseRoots, Log: logger}
+func newLibraryEngine(ctx context.Context, cfg config.Config, database *sql.DB, logger *slog.Logger, hooks library.Hooks) *library.Engine {
+	opts := library.EngineOptions{BrowseRoots: cfg.BrowseRoots, Log: logger, Hooks: hooks}
 	probe, err := library.FindFFprobe(ctx, cfg.FFprobePath, logger)
 	if err != nil {
 		logger.Warn("ffprobe not found: media files are listed but not analyzed; install ffmpeg or set PLAID_FFPROBE_PATH",

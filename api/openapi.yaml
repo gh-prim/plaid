@@ -628,6 +628,7 @@ paths:
         `text/event-stream`. Events `progress`, `completed` and `failed`, each with a
         `ScanEvent` JSON in `data`. A progress event comes at least every 2 s while a scan
         runs, and a `: ping` comment every 15 s. The current state is sent first.
+        `metadata` events carry the library's matching counters, at most every 2 s (F005 R35).
       tags: [libraries]
       responses:
         "200":
@@ -687,6 +688,378 @@ paths:
                 $ref: "#/components/schemas/UnrecognizedPage"
         default:
           $ref: "#/components/responses/Error"
+  /libraries/{libraryId}/review:
+    parameters:
+      - $ref: "#/components/parameters/LibraryId"
+    get:
+      operationId: listLibraryReview
+      summary: Items that need an admin's eye (F005 R5, R38)
+      description: Movies and shows that need review, weren't found, or duplicate another item, with their candidates.
+      tags: [metadata]
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: One page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewPage"
+        default:
+          $ref: "#/components/responses/Error"
+  /libraries/{libraryId}/metadata/refresh:
+    parameters:
+      - $ref: "#/components/parameters/LibraryId"
+    post:
+      operationId: refreshLibraryMetadata
+      summary: Refresh a library's metadata now (F005 R31)
+      tags: [metadata]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "202":
+          description: Queued
+        default:
+          $ref: "#/components/responses/Error"
+  /metadata/search:
+    get:
+      operationId: searchMetadata
+      summary: Search TMDB for a match (admin, F005 R27)
+      description: >-
+        Free text, or an id: `tmdb:603`, `imdb:tt0133093`. With `itemId`, each candidate is scored against the item's
+        parsed title and year.
+      tags: [metadata]
+      parameters:
+        - name: kind
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [movie, show]
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: itemId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Candidates, best first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResult"
+        default:
+          $ref: "#/components/responses/Error"
+  /metadata/candidate-images/{path}:
+    parameters:
+      - name: path
+        in: path
+        required: true
+        description: A TMDB image file name from a candidate's posterPath, without the slash.
+        schema:
+          type: string
+    get:
+      operationId: getCandidateImage
+      summary: A candidate's poster, through the server (admin, F005 R27)
+      tags: [metadata]
+      responses:
+        "200":
+          description: TMDB w185 image
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/Error"
+  /metadata/status:
+    get:
+      operationId: getMetadataStatus
+      summary: Providers and per-library progress (admin, F005 R35)
+      tags: [metadata]
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetadataStatus"
+        default:
+          $ref: "#/components/responses/Error"
+  /metadata/settings:
+    get:
+      operationId: getMetadataSettings
+      summary: Which provider keys are in use (admin, F005 R34)
+      description: Keys are never returned.
+      tags: [metadata]
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetadataSettings"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updateMetadataSettings
+      summary: Save or clear provider keys (admin, F005 R34)
+      description: >-
+        A key is checked against its provider before it's saved (`422 invalid_api_key` otherwise). `null` removes the
+        saved key: the environment variable, then the key built into release binaries, apply again.
+      tags: [metadata]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MetadataSettingsPatch"
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetadataSettings"
+        default:
+          $ref: "#/components/responses/Error"
+  /items/{itemId}/match:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+    post:
+      operationId: matchItem
+      summary: Fix an item's match (admin, F005 R26, R39)
+      description: >-
+        A movie or show takes `tmdbId`; the match is locked against rescans and refreshes, and a show's seasons and
+        episodes follow. An episode takes `seasonNumber` and `episodeNumber` to move its files to another episode of
+        the same show.
+      tags: [metadata]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatchRequest"
+      responses:
+        "200":
+          description: The item, matched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemDetail"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: unmatchItem
+      summary: Forget a match; the item is matched again automatically (admin, F005 R26)
+      tags: [metadata]
+      responses:
+        "204":
+          description: Unmatched
+        default:
+          $ref: "#/components/responses/Error"
+  /items/{itemId}/metadata:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+    patch:
+      operationId: updateItemMetadata
+      summary: Edit and lock fields (admin, F005 R29)
+      description: Each field set is locked against refreshes; `unlock` gives fields back to the provider.
+      tags: [metadata]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MetadataPatch"
+      responses:
+        "200":
+          description: The item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemDetail"
+        default:
+          $ref: "#/components/responses/Error"
+  /items/{itemId}/refresh:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+    post:
+      operationId: refreshItem
+      summary: Refresh an item's metadata now (admin, F005 R31)
+      tags: [metadata]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "202":
+          description: Queued
+        default:
+          $ref: "#/components/responses/Error"
+  /items/{itemId}/artwork:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+    get:
+      operationId: listItemArtwork
+      summary: Artwork candidates (admin, F005 R30)
+      tags: [metadata]
+      parameters:
+        - name: kind
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ArtworkKind"
+      responses:
+        "200":
+          description: Candidates, selected first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtworkCandidates"
+        default:
+          $ref: "#/components/responses/Error"
+  /items/{itemId}/artwork/{kind}:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/ArtworkKind"
+    put:
+      operationId: selectItemArtwork
+      summary: Pick an image and lock the kind (admin, F005 R30)
+      tags: [metadata]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtworkSelection"
+      responses:
+        "200":
+          description: Candidates after the change
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtworkCandidates"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: unlockItemArtwork
+      summary: Back to the automatic choice (admin, F005 R30)
+      tags: [metadata]
+      responses:
+        "204":
+          description: Unlocked; the item is refreshed
+        default:
+          $ref: "#/components/responses/Error"
+  /media-files/{fileId}/identify:
+    parameters:
+      - name: fileId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: identifyFile
+      summary: Say what an unrecognized file is (admin, F005 R28)
+      description: >-
+        Movies libraries take `tmdbId`; shows libraries take `tmdbId` (the show), `seasonNumber` and
+        `episodeNumbers`. The file keeps this identity through rescans and moves.
+      tags: [metadata]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IdentifyRequest"
+      responses:
+        "200":
+          description: The movie or episode the file now belongs to
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemDetail"
+        default:
+          $ref: "#/components/responses/Error"
+  /collections:
+    get:
+      operationId: listCollections
+      summary: A library's collections (F005 R23)
+      tags: [metadata]
+      parameters:
+        - name: libraryId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Collections
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionList"
+        default:
+          $ref: "#/components/responses/Error"
+  /collections/{collectionId}:
+    parameters:
+      - name: collectionId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getCollection
+      summary: A collection with its movies, by release date (F005 R23)
+      tags: [metadata]
+      responses:
+        "200":
+          description: The collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionDetail"
+        default:
+          $ref: "#/components/responses/Error"
+  /people/{personId}:
+    parameters:
+      - name: personId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPerson
+      summary: A person and what they're in, on this server (F005 R8)
+      description: Only items the active profile may see (R25).
+      tags: [metadata]
+      responses:
+        "200":
+          description: The person
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        default:
+          $ref: "#/components/responses/Error"
   /items/{itemId}:
     parameters:
       - name: itemId
@@ -705,6 +1078,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ItemDetail"
+        default:
+          $ref: "#/components/responses/Error"
+  /images/{imageId}:
+    parameters:
+      - name: imageId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getImage
+      summary: An artwork image, resized for the client (F005 R19)
+      description: >-
+        Served at the smallest width of 92, 185, 342, 500, 780, 1280, 1920 or 3840 that is at least `w`, never wider than
+        the original. Photos are JPEG, logos and clearart PNG. Responses are immutable for an imageId: a new image gets a
+        new id. An image of an item the active profile may not see is a 404 (R25).
+      tags: [metadata]
+      parameters:
+        - name: w
+          in: query
+          description: Wanted width in pixels; defaults to 342.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3840
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The image
+          headers:
+            ETag:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "304":
+          description: Not modified (If-None-Match matched)
+          headers:
+            ETag:
+              schema:
+                type: string
         default:
           $ref: "#/components/responses/Error"
   /fs/browse:
@@ -748,6 +1178,12 @@ components:
   parameters:
     LibraryId:
       name: libraryId
+      in: path
+      required: true
+      schema:
+        type: string
+    ItemId:
+      name: itemId
       in: path
       required: true
       schema:
@@ -833,6 +1269,25 @@ components:
           type: string
         setupComplete:
           type: boolean
+        attributions:
+          type: array
+          description: Notices of the metadata providers in use, to show on an About page (F005 R37).
+          items:
+            $ref: "#/components/schemas/Attribution"
+    Attribution:
+      type: object
+      required: [provider, name, url, notice]
+      properties:
+        provider:
+          type: string
+          enum: [tmdb, fanart]
+        name:
+          type: string
+        url:
+          type: string
+        notice:
+          type: string
+          description: English text; clients use the i18n key about.attribution.<provider>.
     SetupState:
       type: object
       required: [setupComplete, requiresSetupCode]
@@ -1193,7 +1648,7 @@ components:
           type: integer
     Library:
       type: object
-      required: [id, name, type, scanIntervalSeconds, folders, counts, scan]
+      required: [id, name, type, scanIntervalSeconds, metadataLanguage, metadataRegion, folders, counts, scan]
       properties:
         id:
           type: string
@@ -1204,6 +1659,10 @@ components:
         scanIntervalSeconds:
           type: [integer, "null"]
           description: Null when the defaults apply (15 min unwatched, 6 h watched).
+        metadataLanguage:
+          $ref: "#/components/schemas/MetadataLanguage"
+        metadataRegion:
+          $ref: "#/components/schemas/MetadataRegion"
         lastScanAt:
           type: string
           format: date-time
@@ -1255,6 +1714,22 @@ components:
           type: [integer, "null"]
           minimum: 300
           maximum: 86400
+        metadataLanguage:
+          $ref: "#/components/schemas/MetadataLanguage"
+        metadataRegion:
+          $ref: "#/components/schemas/MetadataRegion"
+    MetadataLanguage:
+      type: string
+      pattern: "^[a-z]{2}$"
+      description: >-
+        ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the
+        creating admin's locale. Changing it refreshes the library's metadata in the background.
+      examples: [fr]
+    MetadataRegion:
+      type: string
+      pattern: "^[A-Z]{2}$"
+      description: ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+      examples: [FR]
     ScanRequest:
       type: object
       properties:
@@ -1307,13 +1782,15 @@ components:
     ScanEvent:
       type: object
       description: The `data` of a scan server-sent event.
-      required: [type, progress]
+      required: [type]
       properties:
         type:
           type: string
-          enum: [progress, completed, failed]
+          enum: [progress, completed, failed, metadata]
         progress:
           $ref: "#/components/schemas/ScanProgress"
+        metadata:
+          $ref: "#/components/schemas/MetadataCounts"
         error:
           type: string
           description: Set on `failed`, English, for logs.
@@ -1357,7 +1834,7 @@ components:
           examples: [["eng", "fre"]]
     ItemSummary:
       type: object
-      required: [id, kind, fileCount, childCount, technical]
+      required: [id, kind, displayTitle, matchStatus, genres, fileCount, childCount, technical]
       properties:
         id:
           type: string
@@ -1367,7 +1844,35 @@ components:
           type: string
         title:
           type: string
-          description: Parsed from names; matched metadata comes with F005.
+          description: Parsed from names. See displayTitle for what to show.
+        displayTitle:
+          type: string
+          description: The matched (or .nfo) title, else the parsed one. Empty for a season or episode TMDB doesn't know.
+        matchStatus:
+          $ref: "#/components/schemas/MatchStatus"
+        releaseDate:
+          type: string
+          format: date
+          description: Movie release, show first air date, season or episode air date.
+        rating:
+          type: number
+          description: TMDB average vote, 0–10.
+        certification:
+          type: string
+          description: Content rating in certificationRegion, e.g. PG-13 or FSK 16.
+        ageRating:
+          type: integer
+          description: Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated.
+        genres:
+          type: array
+          items:
+            type: string
+        poster:
+          $ref: "#/components/schemas/Artwork"
+        backdrop:
+          $ref: "#/components/schemas/Artwork"
+        still:
+          $ref: "#/components/schemas/Artwork"
         year:
           type: integer
         seasonNumber:
@@ -1496,6 +2001,486 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/MediaFile"
+            metadata:
+              $ref: "#/components/schemas/ItemMetadata"
+    MetadataCounts:
+      type: object
+      required: [pending, matched, needsReview, unmatched]
+      properties:
+        pending:
+          type: integer
+        matched:
+          type: integer
+        needsReview:
+          type: integer
+        unmatched:
+          type: integer
+    RefreshRequest:
+      type: object
+      properties:
+        images:
+          type: boolean
+          default: false
+          description: Also choose the artwork again (unlocked kinds) and download it anew.
+    MatchCandidate:
+      type: object
+      required: [tmdbId, title]
+      properties:
+        tmdbId:
+          type: integer
+        title:
+          type: string
+        originalTitle:
+          type: string
+        year:
+          type: integer
+        overview:
+          type: string
+        posterPath:
+          type: string
+          description: For GET /metadata/candidate-images/{path} (without the leading slash).
+        confidence:
+          type: number
+          description: Score against the item (R4), 0–1.
+    SearchResult:
+      type: object
+      required: [candidates]
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchCandidate"
+    ReviewItem:
+      type: object
+      required: [item, reason, candidates]
+      properties:
+        item:
+          $ref: "#/components/schemas/ItemSummary"
+        reason:
+          type: string
+          enum: [needs_review, unmatched, duplicate]
+        duplicateOf:
+          type: string
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchCandidate"
+    ReviewPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReviewItem"
+        nextCursor:
+          type: string
+    MatchRequest:
+      type: object
+      properties:
+        tmdbId:
+          type: integer
+          minimum: 1
+        seasonNumber:
+          type: integer
+          minimum: 0
+        episodeNumber:
+          type: integer
+          minimum: 0
+    MetadataPatch:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 300
+        sortTitle:
+          type: string
+          minLength: 1
+          maxLength: 300
+        originalTitle:
+          type: string
+          maxLength: 300
+        overview:
+          type: string
+          maxLength: 10000
+        tagline:
+          type: string
+          maxLength: 500
+        releaseDate:
+          type: string
+          format: date
+        genres:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+        certification:
+          type: string
+          maxLength: 20
+        unlock:
+          type: array
+          items:
+            type: string
+          description: Fields to give back to the provider.
+    ArtworkKind:
+      type: string
+      enum: [poster, backdrop, logo, clearart, banner, thumb, still]
+    ArtworkCandidate:
+      type: object
+      required: [id, kind, source, selected, locked]
+      properties:
+        id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/ArtworkKind"
+        source:
+          type: string
+          enum: [local, tmdb, fanart]
+        language:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        votes:
+          type: number
+        selected:
+          type: boolean
+        locked:
+          type: boolean
+    ArtworkCandidates:
+      type: object
+      required: [candidates]
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArtworkCandidate"
+    ArtworkSelection:
+      type: object
+      required: [candidateId]
+      properties:
+        candidateId:
+          type: string
+    IdentifyRequest:
+      type: object
+      required: [tmdbId]
+      properties:
+        tmdbId:
+          type: integer
+          minimum: 1
+          description: The movie, or the show for an episode.
+        seasonNumber:
+          type: integer
+          minimum: 0
+        episodeNumbers:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            type: integer
+            minimum: 0
+    ProviderStatus:
+      type: object
+      required: [provider, state, keySource]
+      properties:
+        provider:
+          type: string
+          enum: [tmdb, fanart]
+        state:
+          type: string
+          enum: [ok, unreachable, invalid_key, no_api_key, disabled]
+        keySource:
+          type: string
+          enum: [custom, env, builtin, none]
+        lastError:
+          type: string
+        lastErrorAt:
+          type: string
+          format: date-time
+    MetadataStatus:
+      type: object
+      required: [providers, libraries]
+      properties:
+        providers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderStatus"
+        libraries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LibraryMetadataCounts"
+    LibraryMetadataCounts:
+      type: object
+      required: [libraryId, pending, matched, needsReview, unmatched]
+      properties:
+        libraryId:
+          type: string
+        pending:
+          type: integer
+        matched:
+          type: integer
+        needsReview:
+          type: integer
+        unmatched:
+          type: integer
+    MetadataSettings:
+      type: object
+      required: [tmdb, fanart]
+      properties:
+        tmdb:
+          type: object
+          required: [keySource]
+          properties:
+            keySource:
+              type: string
+              enum: [custom, env, builtin, none]
+        fanart:
+          type: object
+          required: [keySource, personalKeySet]
+          properties:
+            keySource:
+              type: string
+              enum: [custom, env, builtin, none]
+            personalKeySet:
+              type: boolean
+    MetadataSettingsPatch:
+      type: object
+      properties:
+        tmdbApiKey:
+          type: [string, "null"]
+          maxLength: 200
+        fanartApiKey:
+          type: [string, "null"]
+          maxLength: 200
+        fanartPersonalKey:
+          type: [string, "null"]
+          maxLength: 200
+    CollectionSummary:
+      type: object
+      required: [id, name, movieCount]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        overview:
+          type: string
+        poster:
+          $ref: "#/components/schemas/Artwork"
+        backdrop:
+          $ref: "#/components/schemas/Artwork"
+        movieCount:
+          type: integer
+          description: Movies of the collection the profile may see.
+    CollectionList:
+      type: object
+      required: [collections]
+      properties:
+        collections:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionSummary"
+    CollectionDetail:
+      allOf:
+        - $ref: "#/components/schemas/CollectionSummary"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/ItemSummary"
+    PersonCredit:
+      type: object
+      required: [item, role]
+      properties:
+        item:
+          $ref: "#/components/schemas/ItemSummary"
+        role:
+          type: string
+          enum: [cast, director, writer, creator]
+        character:
+          type: string
+    Person:
+      type: object
+      required: [id, name, credits]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        portrait:
+          $ref: "#/components/schemas/Artwork"
+        credits:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersonCredit"
+    MatchStatus:
+      type: string
+      enum: [pending, matched, needs_review, unmatched]
+      description: >-
+        pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched:
+        TMDB found nothing; it's tried again later (F005 R5).
+    ItemMetadata:
+      type: object
+      description: What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
+      required: [fieldLanguages, lockedFields, localFields, studios, trailers, credits, providerIds, backdrops]
+      properties:
+        matchSource:
+          type: string
+          enum: [nfo, hint, auto, manual, parent]
+        confidence:
+          type: number
+        originalTitle:
+          type: string
+        overview:
+          type: string
+        tagline:
+          type: string
+        endDate:
+          type: string
+          format: date
+          description: A show's last air date.
+        showStatus:
+          type: string
+          enum: [returning, ended, canceled, in_production]
+        runtimeMinutes:
+          type: integer
+        ratingCount:
+          type: integer
+        certificationRegion:
+          type: string
+        studios:
+          type: array
+          description: Studios, or networks for a show.
+          items:
+            type: string
+        trailers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Trailer"
+        collection:
+          $ref: "#/components/schemas/CollectionRef"
+        credits:
+          type: array
+          items:
+            $ref: "#/components/schemas/Credit"
+        fieldLanguages:
+          type: object
+          description: 'Language of text fields that fell back to English, e.g. {"overview": "en"} (R11).'
+          additionalProperties:
+            type: string
+        lockedFields:
+          type: array
+          description: Fields an admin set; refreshes don't change them (R29).
+          items:
+            type: string
+        localFields:
+          type: array
+          description: Fields taken from a local .nfo (R12).
+          items:
+            type: string
+        providerIds:
+          $ref: "#/components/schemas/ProviderIds"
+        logo:
+          $ref: "#/components/schemas/Artwork"
+        clearart:
+          $ref: "#/components/schemas/Artwork"
+        backdrops:
+          type: array
+          description: Up to 3 backdrops, best first (R15).
+          items:
+            $ref: "#/components/schemas/Artwork"
+        duplicateOf:
+          type: string
+          description: The older item of the library matched to the same title (R38).
+    Trailer:
+      type: object
+      required: [site, key, language, type, official]
+      properties:
+        site:
+          type: string
+          enum: [YouTube]
+        key:
+          type: string
+          description: The video id; clients build the URL. The server never calls YouTube.
+        name:
+          type: string
+        language:
+          type: string
+        type:
+          type: string
+          enum: [Trailer, Teaser]
+        official:
+          type: boolean
+    CollectionRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Credit:
+      type: object
+      required: [personId, name, role]
+      properties:
+        personId:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [cast, director, writer, creator]
+        character:
+          type: string
+        portrait:
+          $ref: "#/components/schemas/Artwork"
+    Artwork:
+      type: object
+      description: An image; fetch it with GET /images/{imageId}?w=.
+      required: [imageId]
+      properties:
+        imageId:
+          type: string
+        width:
+          type: integer
+          description: Original width, when known.
+        height:
+          type: integer
+        source:
+          type: string
+          enum: [local, tmdb, fanart]
+        colors:
+          $ref: "#/components/schemas/AmbientColors"
+    AmbientColors:
+      type: object
+      description: Colors taken from the image for the UI (R21), as #rrggbb.
+      required: [dominant, vibrant, muted, dark, onDominant]
+      properties:
+        dominant:
+          type: string
+        vibrant:
+          type: string
+        muted:
+          type: string
+        dark:
+          type: string
+        onDominant:
+          type: string
+          enum: [light, dark]
+          description: Text color that reads on the dominant color.
+    ProviderIds:
+      type: object
+      properties:
+        tmdb:
+          type: integer
+        imdb:
+          type: string
+        tvdb:
+          type: integer
     UnrecognizedFile:
       type: object
       required: [id, path, size, probeStatus]

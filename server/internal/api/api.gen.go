@@ -20,6 +20,141 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AmbientColorsOnDominant.
+const (
+	Dark  AmbientColorsOnDominant = "dark"
+	Light AmbientColorsOnDominant = "light"
+)
+
+// Valid indicates whether the value is a known member of the AmbientColorsOnDominant enum.
+func (e AmbientColorsOnDominant) Valid() bool {
+	switch e {
+	case Dark:
+		return true
+	case Light:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ArtworkSource.
+const (
+	ArtworkSourceFanart ArtworkSource = "fanart"
+	ArtworkSourceLocal  ArtworkSource = "local"
+	ArtworkSourceTmdb   ArtworkSource = "tmdb"
+)
+
+// Valid indicates whether the value is a known member of the ArtworkSource enum.
+func (e ArtworkSource) Valid() bool {
+	switch e {
+	case ArtworkSourceFanart:
+		return true
+	case ArtworkSourceLocal:
+		return true
+	case ArtworkSourceTmdb:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ArtworkCandidateSource.
+const (
+	ArtworkCandidateSourceFanart ArtworkCandidateSource = "fanart"
+	ArtworkCandidateSourceLocal  ArtworkCandidateSource = "local"
+	ArtworkCandidateSourceTmdb   ArtworkCandidateSource = "tmdb"
+)
+
+// Valid indicates whether the value is a known member of the ArtworkCandidateSource enum.
+func (e ArtworkCandidateSource) Valid() bool {
+	switch e {
+	case ArtworkCandidateSourceFanart:
+		return true
+	case ArtworkCandidateSourceLocal:
+		return true
+	case ArtworkCandidateSourceTmdb:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ArtworkKind.
+const (
+	Backdrop ArtworkKind = "backdrop"
+	Banner   ArtworkKind = "banner"
+	Clearart ArtworkKind = "clearart"
+	Logo     ArtworkKind = "logo"
+	Poster   ArtworkKind = "poster"
+	Still    ArtworkKind = "still"
+	Thumb    ArtworkKind = "thumb"
+)
+
+// Valid indicates whether the value is a known member of the ArtworkKind enum.
+func (e ArtworkKind) Valid() bool {
+	switch e {
+	case Backdrop:
+		return true
+	case Banner:
+		return true
+	case Clearart:
+		return true
+	case Logo:
+		return true
+	case Poster:
+		return true
+	case Still:
+		return true
+	case Thumb:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AttributionProvider.
+const (
+	AttributionProviderFanart AttributionProvider = "fanart"
+	AttributionProviderTmdb   AttributionProvider = "tmdb"
+)
+
+// Valid indicates whether the value is a known member of the AttributionProvider enum.
+func (e AttributionProvider) Valid() bool {
+	switch e {
+	case AttributionProviderFanart:
+		return true
+	case AttributionProviderTmdb:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreditRole.
+const (
+	CreditRoleCast     CreditRole = "cast"
+	CreditRoleCreator  CreditRole = "creator"
+	CreditRoleDirector CreditRole = "director"
+	CreditRoleWriter   CreditRole = "writer"
+)
+
+// Valid indicates whether the value is a known member of the CreditRole enum.
+func (e CreditRole) Valid() bool {
+	switch e {
+	case CreditRoleCast:
+		return true
+	case CreditRoleCreator:
+		return true
+	case CreditRoleDirector:
+		return true
+	case CreditRoleWriter:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DeviceType.
 const (
 	Android   DeviceType = "android"
@@ -91,22 +226,73 @@ func (e HealthStatus) Valid() bool {
 
 // Defines values for ItemKind.
 const (
-	Episode ItemKind = "episode"
-	Movie   ItemKind = "movie"
-	Season  ItemKind = "season"
-	Show    ItemKind = "show"
+	ItemKindEpisode ItemKind = "episode"
+	ItemKindMovie   ItemKind = "movie"
+	ItemKindSeason  ItemKind = "season"
+	ItemKindShow    ItemKind = "show"
 )
 
 // Valid indicates whether the value is a known member of the ItemKind enum.
 func (e ItemKind) Valid() bool {
 	switch e {
-	case Episode:
+	case ItemKindEpisode:
 		return true
-	case Movie:
+	case ItemKindMovie:
 		return true
-	case Season:
+	case ItemKindSeason:
 		return true
-	case Show:
+	case ItemKindShow:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ItemMetadataMatchSource.
+const (
+	Auto   ItemMetadataMatchSource = "auto"
+	Hint   ItemMetadataMatchSource = "hint"
+	Manual ItemMetadataMatchSource = "manual"
+	Nfo    ItemMetadataMatchSource = "nfo"
+	Parent ItemMetadataMatchSource = "parent"
+)
+
+// Valid indicates whether the value is a known member of the ItemMetadataMatchSource enum.
+func (e ItemMetadataMatchSource) Valid() bool {
+	switch e {
+	case Auto:
+		return true
+	case Hint:
+		return true
+	case Manual:
+		return true
+	case Nfo:
+		return true
+	case Parent:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ItemMetadataShowStatus.
+const (
+	Canceled     ItemMetadataShowStatus = "canceled"
+	Ended        ItemMetadataShowStatus = "ended"
+	InProduction ItemMetadataShowStatus = "in_production"
+	Returning    ItemMetadataShowStatus = "returning"
+)
+
+// Valid indicates whether the value is a known member of the ItemMetadataShowStatus enum.
+func (e ItemMetadataShowStatus) Valid() bool {
+	switch e {
+	case Canceled:
+		return true
+	case Ended:
+		return true
+	case InProduction:
+		return true
+	case Returning:
 		return true
 	default:
 		return false
@@ -146,6 +332,30 @@ func (e LibraryType) Valid() bool {
 	case Movies:
 		return true
 	case Shows:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MatchStatus.
+const (
+	MatchStatusMatched     MatchStatus = "matched"
+	MatchStatusNeedsReview MatchStatus = "needs_review"
+	MatchStatusPending     MatchStatus = "pending"
+	MatchStatusUnmatched   MatchStatus = "unmatched"
+)
+
+// Valid indicates whether the value is a known member of the MatchStatus enum.
+func (e MatchStatus) Valid() bool {
+	switch e {
+	case MatchStatusMatched:
+		return true
+	case MatchStatusNeedsReview:
+		return true
+	case MatchStatusPending:
+		return true
+	case MatchStatusUnmatched:
 		return true
 	default:
 		return false
@@ -239,6 +449,54 @@ func (e MediaStreamType) Valid() bool {
 	}
 }
 
+// Defines values for MetadataSettingsFanartKeySource.
+const (
+	MetadataSettingsFanartKeySourceBuiltin MetadataSettingsFanartKeySource = "builtin"
+	MetadataSettingsFanartKeySourceCustom  MetadataSettingsFanartKeySource = "custom"
+	MetadataSettingsFanartKeySourceEnv     MetadataSettingsFanartKeySource = "env"
+	MetadataSettingsFanartKeySourceNone    MetadataSettingsFanartKeySource = "none"
+)
+
+// Valid indicates whether the value is a known member of the MetadataSettingsFanartKeySource enum.
+func (e MetadataSettingsFanartKeySource) Valid() bool {
+	switch e {
+	case MetadataSettingsFanartKeySourceBuiltin:
+		return true
+	case MetadataSettingsFanartKeySourceCustom:
+		return true
+	case MetadataSettingsFanartKeySourceEnv:
+		return true
+	case MetadataSettingsFanartKeySourceNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MetadataSettingsTmdbKeySource.
+const (
+	MetadataSettingsTmdbKeySourceBuiltin MetadataSettingsTmdbKeySource = "builtin"
+	MetadataSettingsTmdbKeySourceCustom  MetadataSettingsTmdbKeySource = "custom"
+	MetadataSettingsTmdbKeySourceEnv     MetadataSettingsTmdbKeySource = "env"
+	MetadataSettingsTmdbKeySourceNone    MetadataSettingsTmdbKeySource = "none"
+)
+
+// Valid indicates whether the value is a known member of the MetadataSettingsTmdbKeySource enum.
+func (e MetadataSettingsTmdbKeySource) Valid() bool {
+	switch e {
+	case MetadataSettingsTmdbKeySourceBuiltin:
+		return true
+	case MetadataSettingsTmdbKeySourceCustom:
+		return true
+	case MetadataSettingsTmdbKeySourceEnv:
+		return true
+	case MetadataSettingsTmdbKeySourceNone:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PairingPendingStatus.
 const (
 	PairingPendingStatusPending PairingPendingStatus = "pending"
@@ -248,6 +506,120 @@ const (
 func (e PairingPendingStatus) Valid() bool {
 	switch e {
 	case PairingPendingStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PersonCreditRole.
+const (
+	PersonCreditRoleCast     PersonCreditRole = "cast"
+	PersonCreditRoleCreator  PersonCreditRole = "creator"
+	PersonCreditRoleDirector PersonCreditRole = "director"
+	PersonCreditRoleWriter   PersonCreditRole = "writer"
+)
+
+// Valid indicates whether the value is a known member of the PersonCreditRole enum.
+func (e PersonCreditRole) Valid() bool {
+	switch e {
+	case PersonCreditRoleCast:
+		return true
+	case PersonCreditRoleCreator:
+		return true
+	case PersonCreditRoleDirector:
+		return true
+	case PersonCreditRoleWriter:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProviderStatusKeySource.
+const (
+	ProviderStatusKeySourceBuiltin ProviderStatusKeySource = "builtin"
+	ProviderStatusKeySourceCustom  ProviderStatusKeySource = "custom"
+	ProviderStatusKeySourceEnv     ProviderStatusKeySource = "env"
+	ProviderStatusKeySourceNone    ProviderStatusKeySource = "none"
+)
+
+// Valid indicates whether the value is a known member of the ProviderStatusKeySource enum.
+func (e ProviderStatusKeySource) Valid() bool {
+	switch e {
+	case ProviderStatusKeySourceBuiltin:
+		return true
+	case ProviderStatusKeySourceCustom:
+		return true
+	case ProviderStatusKeySourceEnv:
+		return true
+	case ProviderStatusKeySourceNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProviderStatusProvider.
+const (
+	ProviderStatusProviderFanart ProviderStatusProvider = "fanart"
+	ProviderStatusProviderTmdb   ProviderStatusProvider = "tmdb"
+)
+
+// Valid indicates whether the value is a known member of the ProviderStatusProvider enum.
+func (e ProviderStatusProvider) Valid() bool {
+	switch e {
+	case ProviderStatusProviderFanart:
+		return true
+	case ProviderStatusProviderTmdb:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProviderStatusState.
+const (
+	ProviderStatusStateDisabled    ProviderStatusState = "disabled"
+	ProviderStatusStateInvalidKey  ProviderStatusState = "invalid_key"
+	ProviderStatusStateNoApiKey    ProviderStatusState = "no_api_key"
+	ProviderStatusStateOk          ProviderStatusState = "ok"
+	ProviderStatusStateUnreachable ProviderStatusState = "unreachable"
+)
+
+// Valid indicates whether the value is a known member of the ProviderStatusState enum.
+func (e ProviderStatusState) Valid() bool {
+	switch e {
+	case ProviderStatusStateDisabled:
+		return true
+	case ProviderStatusStateInvalidKey:
+		return true
+	case ProviderStatusStateNoApiKey:
+		return true
+	case ProviderStatusStateOk:
+		return true
+	case ProviderStatusStateUnreachable:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ReviewItemReason.
+const (
+	ReviewItemReasonDuplicate   ReviewItemReason = "duplicate"
+	ReviewItemReasonNeedsReview ReviewItemReason = "needs_review"
+	ReviewItemReasonUnmatched   ReviewItemReason = "unmatched"
+)
+
+// Valid indicates whether the value is a known member of the ReviewItemReason enum.
+func (e ReviewItemReason) Valid() bool {
+	switch e {
+	case ReviewItemReasonDuplicate:
+		return true
+	case ReviewItemReasonNeedsReview:
+		return true
+	case ReviewItemReasonUnmatched:
 		return true
 	default:
 		return false
@@ -276,6 +648,7 @@ func (e Role) Valid() bool {
 const (
 	ScanEventTypeCompleted ScanEventType = "completed"
 	ScanEventTypeFailed    ScanEventType = "failed"
+	ScanEventTypeMetadata  ScanEventType = "metadata"
 	ScanEventTypeProgress  ScanEventType = "progress"
 )
 
@@ -285,6 +658,8 @@ func (e ScanEventType) Valid() bool {
 	case ScanEventTypeCompleted:
 		return true
 	case ScanEventTypeFailed:
+		return true
+	case ScanEventTypeMetadata:
 		return true
 	case ScanEventTypeProgress:
 		return true
@@ -341,6 +716,39 @@ func (e TechnicalSummaryHdrFormats) Valid() bool {
 	}
 }
 
+// Defines values for TrailerSite.
+const (
+	YouTube TrailerSite = "YouTube"
+)
+
+// Valid indicates whether the value is a known member of the TrailerSite enum.
+func (e TrailerSite) Valid() bool {
+	switch e {
+	case YouTube:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TrailerType.
+const (
+	TrailerTypeTeaser  TrailerType = "Teaser"
+	TrailerTypeTrailer TrailerType = "Trailer"
+)
+
+// Valid indicates whether the value is a known member of the TrailerType enum.
+func (e TrailerType) Valid() bool {
+	switch e {
+	case TrailerTypeTeaser:
+		return true
+	case TrailerTypeTrailer:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UnrecognizedFileProbeStatus.
 const (
 	UnrecognizedFileProbeStatusFailed  UnrecognizedFileProbeStatus = "failed"
@@ -365,6 +773,24 @@ func (e UnrecognizedFileProbeStatus) Valid() bool {
 	}
 }
 
+// Defines values for SearchMetadataParamsKind.
+const (
+	SearchMetadataParamsKindMovie SearchMetadataParamsKind = "movie"
+	SearchMetadataParamsKindShow  SearchMetadataParamsKind = "show"
+)
+
+// Valid indicates whether the value is a known member of the SearchMetadataParamsKind enum.
+func (e SearchMetadataParamsKind) Valid() bool {
+	switch e {
+	case SearchMetadataParamsKindMovie:
+		return true
+	case SearchMetadataParamsKindShow:
+		return true
+	default:
+		return false
+	}
+}
+
 // AdminUser defines model for AdminUser.
 type AdminUser struct {
 	CreatedAt          time.Time `json:"createdAt"`
@@ -376,6 +802,77 @@ type AdminUser struct {
 	Role               Role      `json:"role"`
 	Username           string    `json:"username"`
 }
+
+// AmbientColors Colors taken from the image for the UI (R21), as
+type AmbientColors struct {
+	Dark     string `json:"dark"`
+	Dominant string `json:"dominant"`
+	Muted    string `json:"muted"`
+
+	// OnDominant Text color that reads on the dominant color.
+	OnDominant AmbientColorsOnDominant `json:"onDominant"`
+	Vibrant    string                  `json:"vibrant"`
+}
+
+// AmbientColorsOnDominant Text color that reads on the dominant color.
+type AmbientColorsOnDominant string
+
+// Artwork An image; fetch it with GET /images/{imageId}?w=.
+type Artwork struct {
+	// Colors Colors taken from the image for the UI (R21), as
+	Colors  *AmbientColors `json:"colors,omitempty"`
+	Height  *int           `json:"height,omitempty"`
+	ImageId string         `json:"imageId"`
+	Source  *ArtworkSource `json:"source,omitempty"`
+
+	// Width Original width, when known.
+	Width *int `json:"width,omitempty"`
+}
+
+// ArtworkSource defines model for Artwork.Source.
+type ArtworkSource string
+
+// ArtworkCandidate defines model for ArtworkCandidate.
+type ArtworkCandidate struct {
+	Height   *int                   `json:"height,omitempty"`
+	Id       string                 `json:"id"`
+	Kind     ArtworkKind            `json:"kind"`
+	Language *string                `json:"language,omitempty"`
+	Locked   bool                   `json:"locked"`
+	Selected bool                   `json:"selected"`
+	Source   ArtworkCandidateSource `json:"source"`
+	Votes    *float32               `json:"votes,omitempty"`
+	Width    *int                   `json:"width,omitempty"`
+}
+
+// ArtworkCandidateSource defines model for ArtworkCandidate.Source.
+type ArtworkCandidateSource string
+
+// ArtworkCandidates defines model for ArtworkCandidates.
+type ArtworkCandidates struct {
+	Candidates []ArtworkCandidate `json:"candidates"`
+}
+
+// ArtworkKind defines model for ArtworkKind.
+type ArtworkKind string
+
+// ArtworkSelection defines model for ArtworkSelection.
+type ArtworkSelection struct {
+	CandidateId string `json:"candidateId"`
+}
+
+// Attribution defines model for Attribution.
+type Attribution struct {
+	Name string `json:"name"`
+
+	// Notice English text; clients use the i18n key about.attribution.<provider>.
+	Notice   string              `json:"notice"`
+	Provider AttributionProvider `json:"provider"`
+	Url      string              `json:"url"`
+}
+
+// AttributionProvider defines model for Attribution.Provider.
+type AttributionProvider string
 
 // AuthResult defines model for AuthResult.
 type AuthResult struct {
@@ -445,6 +942,48 @@ type ClaimPairingRequest struct {
 	ProfileId string `json:"profileId"`
 }
 
+// CollectionDetail defines model for CollectionDetail.
+type CollectionDetail struct {
+	// Backdrop An image; fetch it with GET /images/{imageId}?w=.
+	Backdrop *Artwork      `json:"backdrop,omitempty"`
+	Id       string        `json:"id"`
+	Items    []ItemSummary `json:"items"`
+
+	// MovieCount Movies of the collection the profile may see.
+	MovieCount int     `json:"movieCount"`
+	Name       string  `json:"name"`
+	Overview   *string `json:"overview,omitempty"`
+
+	// Poster An image; fetch it with GET /images/{imageId}?w=.
+	Poster *Artwork `json:"poster,omitempty"`
+}
+
+// CollectionList defines model for CollectionList.
+type CollectionList struct {
+	Collections []CollectionSummary `json:"collections"`
+}
+
+// CollectionRef defines model for CollectionRef.
+type CollectionRef struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// CollectionSummary defines model for CollectionSummary.
+type CollectionSummary struct {
+	// Backdrop An image; fetch it with GET /images/{imageId}?w=.
+	Backdrop *Artwork `json:"backdrop,omitempty"`
+	Id       string   `json:"id"`
+
+	// MovieCount Movies of the collection the profile may see.
+	MovieCount int     `json:"movieCount"`
+	Name       string  `json:"name"`
+	Overview   *string `json:"overview,omitempty"`
+
+	// Poster An image; fetch it with GET /images/{imageId}?w=.
+	Poster *Artwork `json:"poster,omitempty"`
+}
+
 // CreateLibraryRequest defines model for CreateLibraryRequest.
 type CreateLibraryRequest struct {
 	// Folders Examples: ["/srv/media/movies"]
@@ -475,6 +1014,20 @@ type CreateUserRequest struct {
 	TemporaryPassword string  `json:"temporaryPassword"`
 	Username          string  `json:"username"`
 }
+
+// Credit defines model for Credit.
+type Credit struct {
+	Character *string `json:"character,omitempty"`
+	Name      string  `json:"name"`
+	PersonId  string  `json:"personId"`
+
+	// Portrait An image; fetch it with GET /images/{imageId}?w=.
+	Portrait *Artwork   `json:"portrait,omitempty"`
+	Role     CreditRole `json:"role"`
+}
+
+// CreditRole defines model for Credit.Role.
+type CreditRole string
 
 // Device defines model for Device.
 type Device struct {
@@ -539,27 +1092,66 @@ type HealthDatabase string
 // HealthStatus defines model for Health.Status.
 type HealthStatus string
 
+// IdentifyRequest defines model for IdentifyRequest.
+type IdentifyRequest struct {
+	EpisodeNumbers *[]int `json:"episodeNumbers,omitempty"`
+	SeasonNumber   *int   `json:"seasonNumber,omitempty"`
+
+	// TmdbId The movie, or the show for an episode.
+	TmdbId int `json:"tmdbId"`
+}
+
 // ItemDetail defines model for ItemDetail.
 type ItemDetail struct {
-	AirDate *openapi_types.Date `json:"airDate,omitempty"`
+	// AgeRating Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated.
+	AgeRating *int                `json:"ageRating,omitempty"`
+	AirDate   *openapi_types.Date `json:"airDate,omitempty"`
+
+	// Backdrop An image; fetch it with GET /images/{imageId}?w=.
+	Backdrop *Artwork `json:"backdrop,omitempty"`
+
+	// Certification Content rating in certificationRegion, e.g. PG-13 or FSK 16.
+	Certification *string `json:"certification,omitempty"`
 
 	// ChildCount Seasons of a show, episodes of a season; 0 otherwise.
-	ChildCount    int         `json:"childCount"`
+	ChildCount int `json:"childCount"`
+
+	// DisplayTitle The matched (or .nfo) title, else the parsed one. Empty for a season or episode TMDB doesn't know.
+	DisplayTitle  string      `json:"displayTitle"`
 	EpisodeNumber *int        `json:"episodeNumber,omitempty"`
 	FileCount     int         `json:"fileCount"`
 	Files         []MediaFile `json:"files"`
+	Genres        []string    `json:"genres"`
 
 	// Hints Ids found in file names, for metadata matching (F005).
-	Hints        *ItemHints `json:"hints,omitempty"`
-	Id           string     `json:"id"`
-	Kind         ItemKind   `json:"kind"`
-	ParentId     *string    `json:"parentId,omitempty"`
-	SeasonNumber *int       `json:"seasonNumber,omitempty"`
+	Hints *ItemHints `json:"hints,omitempty"`
+	Id    string     `json:"id"`
+	Kind  ItemKind   `json:"kind"`
+
+	// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
+	MatchStatus MatchStatus `json:"matchStatus"`
+
+	// Metadata What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
+	Metadata *ItemMetadata `json:"metadata,omitempty"`
+	ParentId *string       `json:"parentId,omitempty"`
+
+	// Poster An image; fetch it with GET /images/{imageId}?w=.
+	Poster *Artwork `json:"poster,omitempty"`
+
+	// Rating TMDB average vote, 0–10.
+	Rating *float32 `json:"rating,omitempty"`
+
+	// ReleaseDate Movie release, show first air date, season or episode air date.
+	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
+	SeasonNumber *int                `json:"seasonNumber,omitempty"`
+
+	// Still An image; fetch it with GET /images/{imageId}?w=.
+	Still *Artwork `json:"still,omitempty"`
 
 	// Technical Across the item's files present on disk (for shows and seasons, their episodes).
 	Technical TechnicalSummary `json:"technical"`
 
-	// Title Parsed from names; matched metadata comes with F005.
+	// Title Parsed from names. See displayTitle for what to show.
 	Title *string `json:"title,omitempty"`
 	Year  *int    `json:"year,omitempty"`
 }
@@ -573,6 +1165,55 @@ type ItemHints struct {
 // ItemKind defines model for ItemKind.
 type ItemKind string
 
+// ItemMetadata What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
+type ItemMetadata struct {
+	// Backdrops Up to 3 backdrops, best first (R15).
+	Backdrops           []Artwork `json:"backdrops"`
+	CertificationRegion *string   `json:"certificationRegion,omitempty"`
+
+	// Clearart An image; fetch it with GET /images/{imageId}?w=.
+	Clearart   *Artwork       `json:"clearart,omitempty"`
+	Collection *CollectionRef `json:"collection,omitempty"`
+	Confidence *float32       `json:"confidence,omitempty"`
+	Credits    []Credit       `json:"credits"`
+
+	// DuplicateOf The older item of the library matched to the same title (R38).
+	DuplicateOf *string `json:"duplicateOf,omitempty"`
+
+	// EndDate A show's last air date.
+	EndDate *openapi_types.Date `json:"endDate,omitempty"`
+
+	// FieldLanguages Language of text fields that fell back to English, e.g. {"overview": "en"} (R11).
+	FieldLanguages map[string]string `json:"fieldLanguages"`
+
+	// LocalFields Fields taken from a local .nfo (R12).
+	LocalFields []string `json:"localFields"`
+
+	// LockedFields Fields an admin set; refreshes don't change them (R29).
+	LockedFields []string `json:"lockedFields"`
+
+	// Logo An image; fetch it with GET /images/{imageId}?w=.
+	Logo           *Artwork                 `json:"logo,omitempty"`
+	MatchSource    *ItemMetadataMatchSource `json:"matchSource,omitempty"`
+	OriginalTitle  *string                  `json:"originalTitle,omitempty"`
+	Overview       *string                  `json:"overview,omitempty"`
+	ProviderIds    ProviderIds              `json:"providerIds"`
+	RatingCount    *int                     `json:"ratingCount,omitempty"`
+	RuntimeMinutes *int                     `json:"runtimeMinutes,omitempty"`
+	ShowStatus     *ItemMetadataShowStatus  `json:"showStatus,omitempty"`
+
+	// Studios Studios, or networks for a show.
+	Studios  []string  `json:"studios"`
+	Tagline  *string   `json:"tagline,omitempty"`
+	Trailers []Trailer `json:"trailers"`
+}
+
+// ItemMetadataMatchSource defines model for ItemMetadata.MatchSource.
+type ItemMetadataMatchSource string
+
+// ItemMetadataShowStatus defines model for ItemMetadata.ShowStatus.
+type ItemMetadataShowStatus string
+
 // ItemPage defines model for ItemPage.
 type ItemPage struct {
 	Items []ItemSummary `json:"items"`
@@ -583,24 +1224,51 @@ type ItemPage struct {
 
 // ItemSummary defines model for ItemSummary.
 type ItemSummary struct {
-	AirDate *openapi_types.Date `json:"airDate,omitempty"`
+	// AgeRating Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated.
+	AgeRating *int                `json:"ageRating,omitempty"`
+	AirDate   *openapi_types.Date `json:"airDate,omitempty"`
+
+	// Backdrop An image; fetch it with GET /images/{imageId}?w=.
+	Backdrop *Artwork `json:"backdrop,omitempty"`
+
+	// Certification Content rating in certificationRegion, e.g. PG-13 or FSK 16.
+	Certification *string `json:"certification,omitempty"`
 
 	// ChildCount Seasons of a show, episodes of a season; 0 otherwise.
-	ChildCount    int  `json:"childCount"`
-	EpisodeNumber *int `json:"episodeNumber,omitempty"`
-	FileCount     int  `json:"fileCount"`
+	ChildCount int `json:"childCount"`
+
+	// DisplayTitle The matched (or .nfo) title, else the parsed one. Empty for a season or episode TMDB doesn't know.
+	DisplayTitle  string   `json:"displayTitle"`
+	EpisodeNumber *int     `json:"episodeNumber,omitempty"`
+	FileCount     int      `json:"fileCount"`
+	Genres        []string `json:"genres"`
 
 	// Hints Ids found in file names, for metadata matching (F005).
-	Hints        *ItemHints `json:"hints,omitempty"`
-	Id           string     `json:"id"`
-	Kind         ItemKind   `json:"kind"`
-	ParentId     *string    `json:"parentId,omitempty"`
-	SeasonNumber *int       `json:"seasonNumber,omitempty"`
+	Hints *ItemHints `json:"hints,omitempty"`
+	Id    string     `json:"id"`
+	Kind  ItemKind   `json:"kind"`
+
+	// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
+	MatchStatus MatchStatus `json:"matchStatus"`
+	ParentId    *string     `json:"parentId,omitempty"`
+
+	// Poster An image; fetch it with GET /images/{imageId}?w=.
+	Poster *Artwork `json:"poster,omitempty"`
+
+	// Rating TMDB average vote, 0–10.
+	Rating *float32 `json:"rating,omitempty"`
+
+	// ReleaseDate Movie release, show first air date, season or episode air date.
+	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
+	SeasonNumber *int                `json:"seasonNumber,omitempty"`
+
+	// Still An image; fetch it with GET /images/{imageId}?w=.
+	Still *Artwork `json:"still,omitempty"`
 
 	// Technical Across the item's files present on disk (for shows and seasons, their episodes).
 	Technical TechnicalSummary `json:"technical"`
 
-	// Title Parsed from names; matched metadata comes with F005.
+	// Title Parsed from names. See displayTitle for what to show.
 	Title *string `json:"title,omitempty"`
 	Year  *int    `json:"year,omitempty"`
 }
@@ -611,8 +1279,18 @@ type Library struct {
 	Folders    []LibraryFolder `json:"folders"`
 	Id         string          `json:"id"`
 	LastScanAt *time.Time      `json:"lastScanAt,omitempty"`
-	Name       string          `json:"name"`
-	Scan       ScanProgress    `json:"scan"`
+
+	// MetadataLanguage ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
+	//
+	// Examples: fr
+	MetadataLanguage MetadataLanguage `json:"metadataLanguage"`
+
+	// MetadataRegion ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+	//
+	// Examples: FR
+	MetadataRegion MetadataRegion `json:"metadataRegion"`
+	Name           string         `json:"name"`
+	Scan           ScanProgress   `json:"scan"`
 
 	// ScanIntervalSeconds Null when the defaults apply (15 min unwatched, 6 h watched).
 	ScanIntervalSeconds nullable.Nullable[int] `json:"scanIntervalSeconds"`
@@ -649,6 +1327,15 @@ type LibraryFolder struct {
 // LibraryFolderStatus defines model for LibraryFolder.Status.
 type LibraryFolderStatus string
 
+// LibraryMetadataCounts defines model for LibraryMetadataCounts.
+type LibraryMetadataCounts struct {
+	LibraryId   string `json:"libraryId"`
+	Matched     int    `json:"matched"`
+	NeedsReview int    `json:"needsReview"`
+	Pending     int    `json:"pending"`
+	Unmatched   int    `json:"unmatched"`
+}
+
 // LibraryType defines model for LibraryType.
 type LibraryType string
 
@@ -658,6 +1345,30 @@ type LoginRequest struct {
 	Password string `json:"password"`
 	Username string `json:"username"`
 }
+
+// MatchCandidate defines model for MatchCandidate.
+type MatchCandidate struct {
+	// Confidence Score against the item (R4), 0–1.
+	Confidence    *float32 `json:"confidence,omitempty"`
+	OriginalTitle *string  `json:"originalTitle,omitempty"`
+	Overview      *string  `json:"overview,omitempty"`
+
+	// PosterPath For GET /metadata/candidate-images/{path} (without the leading slash).
+	PosterPath *string `json:"posterPath,omitempty"`
+	Title      string  `json:"title"`
+	TmdbId     int     `json:"tmdbId"`
+	Year       *int    `json:"year,omitempty"`
+}
+
+// MatchRequest defines model for MatchRequest.
+type MatchRequest struct {
+	EpisodeNumber *int `json:"episodeNumber,omitempty"`
+	SeasonNumber  *int `json:"seasonNumber,omitempty"`
+	TmdbId        *int `json:"tmdbId,omitempty"`
+}
+
+// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
+type MatchStatus string
 
 // Me defines model for Me.
 type Me struct {
@@ -722,6 +1433,69 @@ type MediaStream struct {
 // MediaStreamType defines model for MediaStream.Type.
 type MediaStreamType string
 
+// MetadataCounts defines model for MetadataCounts.
+type MetadataCounts struct {
+	Matched     int `json:"matched"`
+	NeedsReview int `json:"needsReview"`
+	Pending     int `json:"pending"`
+	Unmatched   int `json:"unmatched"`
+}
+
+// MetadataLanguage ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
+//
+// Examples: fr
+type MetadataLanguage = string
+
+// MetadataPatch defines model for MetadataPatch.
+type MetadataPatch struct {
+	Certification *string             `json:"certification,omitempty"`
+	Genres        *[]string           `json:"genres,omitempty"`
+	OriginalTitle *string             `json:"originalTitle,omitempty"`
+	Overview      *string             `json:"overview,omitempty"`
+	ReleaseDate   *openapi_types.Date `json:"releaseDate,omitempty"`
+	SortTitle     *string             `json:"sortTitle,omitempty"`
+	Tagline       *string             `json:"tagline,omitempty"`
+	Title         *string             `json:"title,omitempty"`
+
+	// Unlock Fields to give back to the provider.
+	Unlock *[]string `json:"unlock,omitempty"`
+}
+
+// MetadataRegion ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+//
+// Examples: FR
+type MetadataRegion = string
+
+// MetadataSettings defines model for MetadataSettings.
+type MetadataSettings struct {
+	Fanart struct {
+		KeySource      MetadataSettingsFanartKeySource `json:"keySource"`
+		PersonalKeySet bool                            `json:"personalKeySet"`
+	} `json:"fanart"`
+	Tmdb struct {
+		KeySource MetadataSettingsTmdbKeySource `json:"keySource"`
+	} `json:"tmdb"`
+}
+
+// MetadataSettingsFanartKeySource defines model for MetadataSettings.Fanart.KeySource.
+type MetadataSettingsFanartKeySource string
+
+// MetadataSettingsTmdbKeySource defines model for MetadataSettings.Tmdb.KeySource.
+type MetadataSettingsTmdbKeySource string
+
+// MetadataSettingsPatch defines model for MetadataSettingsPatch.
+type MetadataSettingsPatch struct {
+	FanartApiKey      nullable.Nullable[string] `json:"fanartApiKey,omitempty"`
+	FanartPersonalKey nullable.Nullable[string] `json:"fanartPersonalKey,omitempty"`
+	TmdbApiKey        nullable.Nullable[string] `json:"tmdbApiKey,omitempty"`
+}
+
+// MetadataStatus defines model for MetadataStatus.
+type MetadataStatus struct {
+	Libraries []LibraryMetadataCounts `json:"libraries"`
+	Providers []ProviderStatus        `json:"providers"`
+}
+
 // PairingPending defines model for PairingPending.
 type PairingPending struct {
 	Status PairingPendingStatus `json:"status"`
@@ -741,6 +1515,26 @@ type PairingStarted struct {
 	PollSecret string    `json:"pollSecret"`
 }
 
+// Person defines model for Person.
+type Person struct {
+	Credits []PersonCredit `json:"credits"`
+	Id      string         `json:"id"`
+	Name    string         `json:"name"`
+
+	// Portrait An image; fetch it with GET /images/{imageId}?w=.
+	Portrait *Artwork `json:"portrait,omitempty"`
+}
+
+// PersonCredit defines model for PersonCredit.
+type PersonCredit struct {
+	Character *string          `json:"character,omitempty"`
+	Item      ItemSummary      `json:"item"`
+	Role      PersonCreditRole `json:"role"`
+}
+
+// PersonCreditRole defines model for PersonCredit.Role.
+type PersonCreditRole string
+
 // Profile defines model for Profile.
 type Profile struct {
 	AllowUnrated bool `json:"allowUnrated"`
@@ -759,6 +1553,37 @@ type Profile struct {
 	Name   string                 `json:"name"`
 }
 
+// ProviderIds defines model for ProviderIds.
+type ProviderIds struct {
+	Imdb *string `json:"imdb,omitempty"`
+	Tmdb *int    `json:"tmdb,omitempty"`
+	Tvdb *int    `json:"tvdb,omitempty"`
+}
+
+// ProviderStatus defines model for ProviderStatus.
+type ProviderStatus struct {
+	KeySource   ProviderStatusKeySource `json:"keySource"`
+	LastError   *string                 `json:"lastError,omitempty"`
+	LastErrorAt *time.Time              `json:"lastErrorAt,omitempty"`
+	Provider    ProviderStatusProvider  `json:"provider"`
+	State       ProviderStatusState     `json:"state"`
+}
+
+// ProviderStatusKeySource defines model for ProviderStatus.KeySource.
+type ProviderStatusKeySource string
+
+// ProviderStatusProvider defines model for ProviderStatus.Provider.
+type ProviderStatusProvider string
+
+// ProviderStatusState defines model for ProviderStatus.State.
+type ProviderStatusState string
+
+// RefreshRequest defines model for RefreshRequest.
+type RefreshRequest struct {
+	// Images Also choose the artwork again (unlocked kinds) and download it anew.
+	Images *bool `json:"images,omitempty"`
+}
+
 // ResetPasswordRequest defines model for ResetPasswordRequest.
 type ResetPasswordRequest struct {
 	TemporaryPassword string `json:"temporaryPassword"`
@@ -768,6 +1593,23 @@ type ResetPasswordRequest struct {
 type Resolution struct {
 	Height int `json:"height"`
 	Width  int `json:"width"`
+}
+
+// ReviewItem defines model for ReviewItem.
+type ReviewItem struct {
+	Candidates  []MatchCandidate `json:"candidates"`
+	DuplicateOf *string          `json:"duplicateOf,omitempty"`
+	Item        ItemSummary      `json:"item"`
+	Reason      ReviewItemReason `json:"reason"`
+}
+
+// ReviewItemReason defines model for ReviewItem.Reason.
+type ReviewItemReason string
+
+// ReviewPage defines model for ReviewPage.
+type ReviewPage struct {
+	Items      []ReviewItem `json:"items"`
+	NextCursor *string      `json:"nextCursor,omitempty"`
 }
 
 // Role defines model for Role.
@@ -788,9 +1630,10 @@ type ScanCounters struct {
 // ScanEvent The `data` of a scan server-sent event.
 type ScanEvent struct {
 	// Error Set on `failed`, English, for logs.
-	Error    *string       `json:"error,omitempty"`
-	Progress ScanProgress  `json:"progress"`
-	Type     ScanEventType `json:"type"`
+	Error    *string         `json:"error,omitempty"`
+	Metadata *MetadataCounts `json:"metadata,omitempty"`
+	Progress *ScanProgress   `json:"progress,omitempty"`
+	Type     ScanEventType   `json:"type"`
 }
 
 // ScanEventType defines model for ScanEvent.Type.
@@ -818,6 +1661,11 @@ type ScanRequest struct {
 // ScanState defines model for ScanState.
 type ScanState string
 
+// SearchResult defines model for SearchResult.
+type SearchResult struct {
+	Candidates []MatchCandidate `json:"candidates"`
+}
+
 // SelectProfileRequest defines model for SelectProfileRequest.
 type SelectProfileRequest struct {
 	Pin       *string `json:"pin,omitempty"`
@@ -826,6 +1674,9 @@ type SelectProfileRequest struct {
 
 // ServerInfo defines model for ServerInfo.
 type ServerInfo struct {
+	// Attributions Notices of the metadata providers in use, to show on an About page (F005 R37).
+	Attributions *[]Attribution `json:"attributions,omitempty"`
+
 	// Name Examples: living-room-nas
 	Name          string `json:"name"`
 	SetupComplete bool   `json:"setupComplete"`
@@ -892,6 +1743,23 @@ type TechnicalSummary struct {
 // TechnicalSummaryHdrFormats defines model for TechnicalSummary.HdrFormats.
 type TechnicalSummaryHdrFormats string
 
+// Trailer defines model for Trailer.
+type Trailer struct {
+	// Key The video id; clients build the URL. The server never calls YouTube.
+	Key      string      `json:"key"`
+	Language string      `json:"language"`
+	Name     *string     `json:"name,omitempty"`
+	Official bool        `json:"official"`
+	Site     TrailerSite `json:"site"`
+	Type     TrailerType `json:"type"`
+}
+
+// TrailerSite defines model for Trailer.Site.
+type TrailerSite string
+
+// TrailerType defines model for Trailer.Type.
+type TrailerType string
+
 // UnrecognizedFile defines model for UnrecognizedFile.
 type UnrecognizedFile struct {
 	Id          string                      `json:"id"`
@@ -911,7 +1779,17 @@ type UnrecognizedPage struct {
 
 // UpdateLibraryRequest defines model for UpdateLibraryRequest.
 type UpdateLibraryRequest struct {
-	Folders             *[]string              `json:"folders,omitempty"`
+	Folders *[]string `json:"folders,omitempty"`
+
+	// MetadataLanguage ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
+	//
+	// Examples: fr
+	MetadataLanguage *MetadataLanguage `json:"metadataLanguage,omitempty"`
+
+	// MetadataRegion ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+	//
+	// Examples: FR
+	MetadataRegion      *MetadataRegion        `json:"metadataRegion,omitempty"`
 	Name                *string                `json:"name,omitempty"`
 	ScanIntervalSeconds nullable.Nullable[int] `json:"scanIntervalSeconds,omitempty"`
 	Type                *LibraryType           `json:"type,omitempty"`
@@ -963,6 +1841,9 @@ type User struct {
 // Cursor defines model for Cursor.
 type Cursor = string
 
+// ItemId defines model for ItemId.
+type ItemId = string
+
 // LibraryId defines model for LibraryId.
 type LibraryId = string
 
@@ -978,9 +1859,26 @@ type SessionId = string
 // UserId defines model for UserId.
 type UserId = string
 
+// ListCollectionsParams defines parameters for ListCollections.
+type ListCollectionsParams struct {
+	LibraryId string `form:"libraryId" json:"libraryId"`
+}
+
 // BrowseFoldersParams defines parameters for BrowseFolders.
 type BrowseFoldersParams struct {
 	Path *string `form:"path,omitempty" json:"path,omitempty"`
+}
+
+// GetImageParams defines parameters for GetImage.
+type GetImageParams struct {
+	// W Wanted width in pixels; defaults to 342.
+	W           *int    `form:"w,omitempty" json:"w,omitempty"`
+	IfNoneMatch *string `json:"If-None-Match,omitempty"`
+}
+
+// ListItemArtworkParams defines parameters for ListItemArtwork.
+type ListItemArtworkParams struct {
+	Kind ArtworkKind `form:"kind" json:"kind"`
 }
 
 // ListLibraryItemsParams defines parameters for ListLibraryItems.
@@ -996,12 +1894,30 @@ type ListLibraryItemsParams struct {
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// ListLibraryReviewParams defines parameters for ListLibraryReview.
+type ListLibraryReviewParams struct {
+	// Cursor Opaque `nextCursor` of the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // ListUnrecognizedFilesParams defines parameters for ListUnrecognizedFiles.
 type ListUnrecognizedFilesParams struct {
 	// Cursor Opaque `nextCursor` of the previous page.
 	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
 }
+
+// SearchMetadataParams defines parameters for SearchMetadata.
+type SearchMetadataParams struct {
+	Kind   SearchMetadataParamsKind `form:"kind" json:"kind"`
+	Query  string                   `form:"query" json:"query"`
+	Year   *int                     `form:"year,omitempty" json:"year,omitempty"`
+	ItemId *string                  `form:"itemId,omitempty" json:"itemId,omitempty"`
+}
+
+// SearchMetadataParamsKind defines parameters for SearchMetadata.
+type SearchMetadataParamsKind string
 
 // PollPairingParams defines parameters for PollPairing.
 type PollPairingParams struct {
@@ -1012,11 +1928,26 @@ type PollPairingParams struct {
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
 
+// SelectItemArtworkJSONRequestBody defines body for SelectItemArtwork for application/json ContentType.
+type SelectItemArtworkJSONRequestBody = ArtworkSelection
+
+// MatchItemJSONRequestBody defines body for MatchItem for application/json ContentType.
+type MatchItemJSONRequestBody = MatchRequest
+
+// UpdateItemMetadataJSONRequestBody defines body for UpdateItemMetadata for application/json ContentType.
+type UpdateItemMetadataJSONRequestBody = MetadataPatch
+
+// RefreshItemJSONRequestBody defines body for RefreshItem for application/json ContentType.
+type RefreshItemJSONRequestBody = RefreshRequest
+
 // CreateLibraryJSONRequestBody defines body for CreateLibrary for application/json ContentType.
 type CreateLibraryJSONRequestBody = CreateLibraryRequest
 
 // UpdateLibraryJSONRequestBody defines body for UpdateLibrary for application/json ContentType.
 type UpdateLibraryJSONRequestBody = UpdateLibraryRequest
+
+// RefreshLibraryMetadataJSONRequestBody defines body for RefreshLibraryMetadata for application/json ContentType.
+type RefreshLibraryMetadataJSONRequestBody = RefreshRequest
 
 // ScanLibraryJSONRequestBody defines body for ScanLibrary for application/json ContentType.
 type ScanLibraryJSONRequestBody = ScanRequest
@@ -1032,6 +1963,12 @@ type CreateMyProfileJSONRequestBody = CreateProfileRequest
 
 // UpdateMyProfileJSONRequestBody defines body for UpdateMyProfile for application/json ContentType.
 type UpdateMyProfileJSONRequestBody = UpdateProfileRequest
+
+// IdentifyFileJSONRequestBody defines body for IdentifyFile for application/json ContentType.
+type IdentifyFileJSONRequestBody = IdentifyRequest
+
+// UpdateMetadataSettingsJSONRequestBody defines body for UpdateMetadataSettings for application/json ContentType.
+type UpdateMetadataSettingsJSONRequestBody = MetadataSettingsPatch
 
 // StartPairingJSONRequestBody defines body for StartPairing for application/json ContentType.
 type StartPairingJSONRequestBody = StartPairingRequest
@@ -1062,15 +1999,45 @@ type ServerInterface interface {
 	// Logout End the current session
 	// (POST /auth/logout)
 	Logout(w http.ResponseWriter, r *http.Request)
+	// ListCollections A library's collections (F005 R23)
+	// (GET /collections)
+	ListCollections(w http.ResponseWriter, r *http.Request, params ListCollectionsParams)
+	// GetCollection A collection with its movies, by release date (F005 R23)
+	// (GET /collections/{collectionId})
+	GetCollection(w http.ResponseWriter, r *http.Request, collectionId string)
 	// BrowseFolders Sub-folders of a server folder, for the folder picker (admin)
 	// (GET /fs/browse)
 	BrowseFolders(w http.ResponseWriter, r *http.Request, params BrowseFoldersParams)
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
+	// GetImage An artwork image, resized for the client (F005 R19)
+	// (GET /images/{imageId})
+	GetImage(w http.ResponseWriter, r *http.Request, imageId string, params GetImageParams)
 	// GetItem An item with its files and streams
 	// (GET /items/{itemId})
 	GetItem(w http.ResponseWriter, r *http.Request, itemId string)
+	// ListItemArtwork Artwork candidates (admin, F005 R30)
+	// (GET /items/{itemId}/artwork)
+	ListItemArtwork(w http.ResponseWriter, r *http.Request, itemId ItemId, params ListItemArtworkParams)
+	// UnlockItemArtwork Back to the automatic choice (admin, F005 R30)
+	// (DELETE /items/{itemId}/artwork/{kind})
+	UnlockItemArtwork(w http.ResponseWriter, r *http.Request, itemId ItemId, kind ArtworkKind)
+	// SelectItemArtwork Pick an image and lock the kind (admin, F005 R30)
+	// (PUT /items/{itemId}/artwork/{kind})
+	SelectItemArtwork(w http.ResponseWriter, r *http.Request, itemId ItemId, kind ArtworkKind)
+	// UnmatchItem Forget a match; the item is matched again automatically (admin, F005 R26)
+	// (DELETE /items/{itemId}/match)
+	UnmatchItem(w http.ResponseWriter, r *http.Request, itemId ItemId)
+	// MatchItem Fix an item's match (admin, F005 R26, R39)
+	// (POST /items/{itemId}/match)
+	MatchItem(w http.ResponseWriter, r *http.Request, itemId ItemId)
+	// UpdateItemMetadata Edit and lock fields (admin, F005 R29)
+	// (PATCH /items/{itemId}/metadata)
+	UpdateItemMetadata(w http.ResponseWriter, r *http.Request, itemId ItemId)
+	// RefreshItem Refresh an item's metadata now (admin, F005 R31)
+	// (POST /items/{itemId}/refresh)
+	RefreshItem(w http.ResponseWriter, r *http.Request, itemId ItemId)
 	// ListLibraries All libraries, with folder status, counts and scan state
 	// (GET /libraries)
 	ListLibraries(w http.ResponseWriter, r *http.Request)
@@ -1089,6 +2056,12 @@ type ServerInterface interface {
 	// ListLibraryItems Items of a library, by kind and parent
 	// (GET /libraries/{libraryId}/items)
 	ListLibraryItems(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListLibraryItemsParams)
+	// RefreshLibraryMetadata Refresh a library's metadata now (F005 R31)
+	// (POST /libraries/{libraryId}/metadata/refresh)
+	RefreshLibraryMetadata(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
+	// ListLibraryReview Items that need an admin's eye (F005 R5, R38)
+	// (GET /libraries/{libraryId}/review)
+	ListLibraryReview(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListLibraryReviewParams)
 	// GetLibraryScan Current scan progress (admin)
 	// (GET /libraries/{libraryId}/scan)
 	GetLibraryScan(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
@@ -1131,6 +2104,24 @@ type ServerInterface interface {
 	// RevokeMySession Sign out one device
 	// (DELETE /me/sessions/{sessionId})
 	RevokeMySession(w http.ResponseWriter, r *http.Request, sessionId SessionId)
+	// IdentifyFile Say what an unrecognized file is (admin, F005 R28)
+	// (POST /media-files/{fileId}/identify)
+	IdentifyFile(w http.ResponseWriter, r *http.Request, fileId string)
+	// GetCandidateImage A candidate's poster, through the server (admin, F005 R27)
+	// (GET /metadata/candidate-images/{path})
+	GetCandidateImage(w http.ResponseWriter, r *http.Request, path string)
+	// SearchMetadata Search TMDB for a match (admin, F005 R27)
+	// (GET /metadata/search)
+	SearchMetadata(w http.ResponseWriter, r *http.Request, params SearchMetadataParams)
+	// GetMetadataSettings Which provider keys are in use (admin, F005 R34)
+	// (GET /metadata/settings)
+	GetMetadataSettings(w http.ResponseWriter, r *http.Request)
+	// UpdateMetadataSettings Save or clear provider keys (admin, F005 R34)
+	// (PATCH /metadata/settings)
+	UpdateMetadataSettings(w http.ResponseWriter, r *http.Request)
+	// GetMetadataStatus Providers and per-library progress (admin, F005 R35)
+	// (GET /metadata/status)
+	GetMetadataStatus(w http.ResponseWriter, r *http.Request)
 	// StartPairing Get a code to pair a TV
 	// (POST /pairing)
 	StartPairing(w http.ResponseWriter, r *http.Request)
@@ -1140,6 +2131,9 @@ type ServerInterface interface {
 	// PollPairing Poll a pairing until it is claimed
 	// (GET /pairing/{pairingId})
 	PollPairing(w http.ResponseWriter, r *http.Request, pairingId string, params PollPairingParams)
+	// GetPerson A person and what they're in, on this server (F005 R8)
+	// (GET /people/{personId})
+	GetPerson(w http.ResponseWriter, r *http.Request, personId string)
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(w http.ResponseWriter, r *http.Request)
@@ -1215,6 +2209,65 @@ func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
+// ListCollections operation middleware
+func (siw *ServerInterfaceWrapper) ListCollections(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCollectionsParams
+
+	// ------------- Required query parameter "libraryId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "libraryId", r.URL.Query(), &params.LibraryId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "libraryId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCollections(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetCollection operation middleware
+func (siw *ServerInterfaceWrapper) GetCollection(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "collectionId" -------------
+	var collectionId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collectionId", r.PathValue("collectionId"), &collectionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collectionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCollection(w, r, collectionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // BrowseFolders operation middleware
 func (siw *ServerInterfaceWrapper) BrowseFolders(w http.ResponseWriter, r *http.Request) {
 
@@ -1262,6 +2315,69 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
+// GetImage operation middleware
+func (siw *ServerInterfaceWrapper) GetImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "imageId" -------------
+	var imageId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "imageId", r.PathValue("imageId"), &imageId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "imageId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetImageParams
+
+	// ------------- Optional query parameter "w" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "w", r.URL.Query(), &params.W, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "w"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "w", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-None-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-None-Match")]; found {
+		var IfNoneMatch string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-None-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-None-Match", valueList[0], &IfNoneMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-None-Match", Err: err})
+			return
+		}
+
+		params.IfNoneMatch = &IfNoneMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetImage(w, r, imageId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetItem operation middleware
 func (siw *ServerInterfaceWrapper) GetItem(w http.ResponseWriter, r *http.Request) {
 
@@ -1279,6 +2395,222 @@ func (siw *ServerInterfaceWrapper) GetItem(w http.ResponseWriter, r *http.Reques
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetItem(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListItemArtwork operation middleware
+func (siw *ServerInterfaceWrapper) ListItemArtwork(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListItemArtworkParams
+
+	// ------------- Required query parameter "kind" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "kind", r.URL.Query(), &params.Kind, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListItemArtwork(w, r, itemId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnlockItemArtwork operation middleware
+func (siw *ServerInterfaceWrapper) UnlockItemArtwork(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "kind" -------------
+	var kind ArtworkKind
+
+	err = runtime.BindStyledParameterWithOptions("simple", "kind", r.PathValue("kind"), &kind, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnlockItemArtwork(w, r, itemId, kind)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SelectItemArtwork operation middleware
+func (siw *ServerInterfaceWrapper) SelectItemArtwork(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "kind" -------------
+	var kind ArtworkKind
+
+	err = runtime.BindStyledParameterWithOptions("simple", "kind", r.PathValue("kind"), &kind, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SelectItemArtwork(w, r, itemId, kind)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnmatchItem operation middleware
+func (siw *ServerInterfaceWrapper) UnmatchItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnmatchItem(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MatchItem operation middleware
+func (siw *ServerInterfaceWrapper) MatchItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MatchItem(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateItemMetadata operation middleware
+func (siw *ServerInterfaceWrapper) UpdateItemMetadata(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateItemMetadata(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RefreshItem operation middleware
+func (siw *ServerInterfaceWrapper) RefreshItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RefreshItem(w, r, itemId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1466,6 +2798,87 @@ func (siw *ServerInterfaceWrapper) ListLibraryItems(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListLibraryItems(w, r, libraryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RefreshLibraryMetadata operation middleware
+func (siw *ServerInterfaceWrapper) RefreshLibraryMetadata(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RefreshLibraryMetadata(w, r, libraryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListLibraryReview operation middleware
+func (siw *ServerInterfaceWrapper) ListLibraryReview(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListLibraryReviewParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListLibraryReview(w, r, libraryId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1784,6 +3197,172 @@ func (siw *ServerInterfaceWrapper) RevokeMySession(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// IdentifyFile operation middleware
+func (siw *ServerInterfaceWrapper) IdentifyFile(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "fileId" -------------
+	var fileId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "fileId", r.PathValue("fileId"), &fileId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "fileId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.IdentifyFile(w, r, fileId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetCandidateImage operation middleware
+func (siw *ServerInterfaceWrapper) GetCandidateImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "path" -------------
+	var path string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "path", r.PathValue("path"), &path, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "path", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCandidateImage(w, r, path)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SearchMetadata operation middleware
+func (siw *ServerInterfaceWrapper) SearchMetadata(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SearchMetadataParams
+
+	// ------------- Required query parameter "kind" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "kind", r.URL.Query(), &params.Kind, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		}
+		return
+	}
+
+	// ------------- Required query parameter "query" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "query", r.URL.Query(), &params.Query, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "query"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "query", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "year" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "year", r.URL.Query(), &params.Year, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "year"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "year", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "itemId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "itemId", r.URL.Query(), &params.ItemId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "itemId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SearchMetadata(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMetadataSettings operation middleware
+func (siw *ServerInterfaceWrapper) GetMetadataSettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMetadataSettings(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateMetadataSettings operation middleware
+func (siw *ServerInterfaceWrapper) UpdateMetadataSettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateMetadataSettings(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMetadataStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetMetadataStatus(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMetadataStatus(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // StartPairing operation middleware
 func (siw *ServerInterfaceWrapper) StartPairing(w http.ResponseWriter, r *http.Request) {
 
@@ -1857,6 +3436,32 @@ func (siw *ServerInterfaceWrapper) PollPairing(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PollPairing(w, r, pairingId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPerson operation middleware
+func (siw *ServerInterfaceWrapper) GetPerson(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "personId" -------------
+	var personId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "personId", r.PathValue("personId"), &personId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "personId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPerson(w, r, personId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2260,7 +3865,26 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/scan/events", wrapper.GetLibraryScanEvents)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/items", wrapper.ListLibraryItems)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/unrecognized", wrapper.ListUnrecognizedFiles)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/review", wrapper.ListLibraryReview)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/libraries/{libraryId}/metadata/refresh", wrapper.RefreshLibraryMetadata)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/metadata/search", wrapper.SearchMetadata)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/metadata/candidate-images/{path}", wrapper.GetCandidateImage)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/metadata/status", wrapper.GetMetadataStatus)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/metadata/settings", wrapper.GetMetadataSettings)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/metadata/settings", wrapper.UpdateMetadataSettings)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/items/{itemId}/match", wrapper.UnmatchItem)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/items/{itemId}/match", wrapper.MatchItem)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/items/{itemId}/metadata", wrapper.UpdateItemMetadata)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/items/{itemId}/refresh", wrapper.RefreshItem)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/items/{itemId}/artwork", wrapper.ListItemArtwork)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/items/{itemId}/artwork/{kind}", wrapper.UnlockItemArtwork)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/items/{itemId}/artwork/{kind}", wrapper.SelectItemArtwork)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/media-files/{fileId}/identify", wrapper.IdentifyFile)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/collections", wrapper.ListCollections)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/collections/{collectionId}", wrapper.GetCollection)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/people/{personId}", wrapper.GetPerson)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/items/{itemId}", wrapper.GetItem)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/images/{imageId}", wrapper.GetImage)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 
@@ -2329,6 +3953,84 @@ type LogoutdefaultJSONResponse struct {
 }
 
 func (response LogoutdefaultJSONResponse) VisitLogoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCollectionsRequestObject struct {
+	Params ListCollectionsParams
+}
+
+type ListCollectionsResponseObject interface {
+	VisitListCollectionsResponse(w http.ResponseWriter) error
+}
+
+type ListCollections200JSONResponse CollectionList
+
+func (response ListCollections200JSONResponse) VisitListCollectionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCollectionsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListCollectionsdefaultJSONResponse) VisitListCollectionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCollectionRequestObject struct {
+	CollectionId string `json:"collectionId"`
+}
+
+type GetCollectionResponseObject interface {
+	VisitGetCollectionResponse(w http.ResponseWriter) error
+}
+
+type GetCollection200JSONResponse CollectionDetail
+
+func (response GetCollection200JSONResponse) VisitGetCollectionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCollectiondefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetCollectiondefaultJSONResponse) VisitGetCollectionResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -2414,6 +4116,114 @@ func (response GetHealth503JSONResponse) VisitGetHealthResponse(w http.ResponseW
 	return err
 }
 
+type GetImageRequestObject struct {
+	ImageId string `json:"imageId"`
+	Params  GetImageParams
+}
+
+type GetImageResponseObject interface {
+	VisitGetImageResponse(w http.ResponseWriter) error
+}
+
+type GetImage200ResponseHeaders struct {
+	CacheControl        *string
+	ETag                *string
+	XContentTypeOptions *string
+}
+
+type GetImage200ImagejpegResponse struct {
+	Body          io.Reader
+	Headers       GetImage200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetImage200ImagejpegResponse) VisitGetImageResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetImage200ImagepngResponse struct {
+	Body          io.Reader
+	Headers       GetImage200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetImage200ImagepngResponse) VisitGetImageResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/png")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetImage304ResponseHeaders struct {
+	ETag *string
+}
+
+type GetImage304Response struct {
+	Headers GetImage304ResponseHeaders
+}
+
+func (response GetImage304Response) VisitGetImageResponse(w http.ResponseWriter) error {
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(304)
+	return nil
+}
+
+type GetImagedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetImagedefaultJSONResponse) VisitGetImageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetItemRequestObject struct {
 	ItemId string `json:"itemId"`
 }
@@ -2442,6 +4252,268 @@ type GetItemdefaultJSONResponse struct {
 }
 
 func (response GetItemdefaultJSONResponse) VisitGetItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListItemArtworkRequestObject struct {
+	ItemId ItemId `json:"itemId"`
+	Params ListItemArtworkParams
+}
+
+type ListItemArtworkResponseObject interface {
+	VisitListItemArtworkResponse(w http.ResponseWriter) error
+}
+
+type ListItemArtwork200JSONResponse ArtworkCandidates
+
+func (response ListItemArtwork200JSONResponse) VisitListItemArtworkResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListItemArtworkdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListItemArtworkdefaultJSONResponse) VisitListItemArtworkResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UnlockItemArtworkRequestObject struct {
+	ItemId ItemId      `json:"itemId"`
+	Kind   ArtworkKind `json:"kind"`
+}
+
+type UnlockItemArtworkResponseObject interface {
+	VisitUnlockItemArtworkResponse(w http.ResponseWriter) error
+}
+
+type UnlockItemArtwork204Response struct {
+}
+
+func (response UnlockItemArtwork204Response) VisitUnlockItemArtworkResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type UnlockItemArtworkdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UnlockItemArtworkdefaultJSONResponse) VisitUnlockItemArtworkResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SelectItemArtworkRequestObject struct {
+	ItemId ItemId      `json:"itemId"`
+	Kind   ArtworkKind `json:"kind"`
+	Body   *SelectItemArtworkJSONRequestBody
+}
+
+type SelectItemArtworkResponseObject interface {
+	VisitSelectItemArtworkResponse(w http.ResponseWriter) error
+}
+
+type SelectItemArtwork200JSONResponse ArtworkCandidates
+
+func (response SelectItemArtwork200JSONResponse) VisitSelectItemArtworkResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SelectItemArtworkdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response SelectItemArtworkdefaultJSONResponse) VisitSelectItemArtworkResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UnmatchItemRequestObject struct {
+	ItemId ItemId `json:"itemId"`
+}
+
+type UnmatchItemResponseObject interface {
+	VisitUnmatchItemResponse(w http.ResponseWriter) error
+}
+
+type UnmatchItem204Response struct {
+}
+
+func (response UnmatchItem204Response) VisitUnmatchItemResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type UnmatchItemdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UnmatchItemdefaultJSONResponse) VisitUnmatchItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MatchItemRequestObject struct {
+	ItemId ItemId `json:"itemId"`
+	Body   *MatchItemJSONRequestBody
+}
+
+type MatchItemResponseObject interface {
+	VisitMatchItemResponse(w http.ResponseWriter) error
+}
+
+type MatchItem200JSONResponse ItemDetail
+
+func (response MatchItem200JSONResponse) VisitMatchItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MatchItemdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response MatchItemdefaultJSONResponse) VisitMatchItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateItemMetadataRequestObject struct {
+	ItemId ItemId `json:"itemId"`
+	Body   *UpdateItemMetadataJSONRequestBody
+}
+
+type UpdateItemMetadataResponseObject interface {
+	VisitUpdateItemMetadataResponse(w http.ResponseWriter) error
+}
+
+type UpdateItemMetadata200JSONResponse ItemDetail
+
+func (response UpdateItemMetadata200JSONResponse) VisitUpdateItemMetadataResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateItemMetadatadefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdateItemMetadatadefaultJSONResponse) VisitUpdateItemMetadataResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RefreshItemRequestObject struct {
+	ItemId ItemId `json:"itemId"`
+	Body   *RefreshItemJSONRequestBody
+}
+
+type RefreshItemResponseObject interface {
+	VisitRefreshItemResponse(w http.ResponseWriter) error
+}
+
+type RefreshItem202Response struct {
+}
+
+func (response RefreshItem202Response) VisitRefreshItemResponse(w http.ResponseWriter) error {
+	w.WriteHeader(202)
+	return nil
+}
+
+type RefreshItemdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response RefreshItemdefaultJSONResponse) VisitRefreshItemResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -2671,6 +4743,80 @@ type ListLibraryItemsdefaultJSONResponse struct {
 }
 
 func (response ListLibraryItemsdefaultJSONResponse) VisitListLibraryItemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RefreshLibraryMetadataRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+	Body      *RefreshLibraryMetadataJSONRequestBody
+}
+
+type RefreshLibraryMetadataResponseObject interface {
+	VisitRefreshLibraryMetadataResponse(w http.ResponseWriter) error
+}
+
+type RefreshLibraryMetadata202Response struct {
+}
+
+func (response RefreshLibraryMetadata202Response) VisitRefreshLibraryMetadataResponse(w http.ResponseWriter) error {
+	w.WriteHeader(202)
+	return nil
+}
+
+type RefreshLibraryMetadatadefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response RefreshLibraryMetadatadefaultJSONResponse) VisitRefreshLibraryMetadataResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListLibraryReviewRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+	Params    ListLibraryReviewParams
+}
+
+type ListLibraryReviewResponseObject interface {
+	VisitListLibraryReviewResponse(w http.ResponseWriter) error
+}
+
+type ListLibraryReview200JSONResponse ReviewPage
+
+func (response ListLibraryReview200JSONResponse) VisitListLibraryReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListLibraryReviewdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListLibraryReviewdefaultJSONResponse) VisitListLibraryReviewResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -3232,6 +5378,245 @@ func (response RevokeMySessiondefaultJSONResponse) VisitRevokeMySessionResponse(
 	return err
 }
 
+type IdentifyFileRequestObject struct {
+	FileId string `json:"fileId"`
+	Body   *IdentifyFileJSONRequestBody
+}
+
+type IdentifyFileResponseObject interface {
+	VisitIdentifyFileResponse(w http.ResponseWriter) error
+}
+
+type IdentifyFile200JSONResponse ItemDetail
+
+func (response IdentifyFile200JSONResponse) VisitIdentifyFileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type IdentifyFiledefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response IdentifyFiledefaultJSONResponse) VisitIdentifyFileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCandidateImageRequestObject struct {
+	Path string `json:"path"`
+}
+
+type GetCandidateImageResponseObject interface {
+	VisitGetCandidateImageResponse(w http.ResponseWriter) error
+}
+
+type GetCandidateImage200ImagejpegResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetCandidateImage200ImagejpegResponse) VisitGetCandidateImageResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetCandidateImagedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetCandidateImagedefaultJSONResponse) VisitGetCandidateImageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SearchMetadataRequestObject struct {
+	Params SearchMetadataParams
+}
+
+type SearchMetadataResponseObject interface {
+	VisitSearchMetadataResponse(w http.ResponseWriter) error
+}
+
+type SearchMetadata200JSONResponse SearchResult
+
+func (response SearchMetadata200JSONResponse) VisitSearchMetadataResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SearchMetadatadefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response SearchMetadatadefaultJSONResponse) VisitSearchMetadataResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMetadataSettingsRequestObject struct {
+}
+
+type GetMetadataSettingsResponseObject interface {
+	VisitGetMetadataSettingsResponse(w http.ResponseWriter) error
+}
+
+type GetMetadataSettings200JSONResponse MetadataSettings
+
+func (response GetMetadataSettings200JSONResponse) VisitGetMetadataSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMetadataSettingsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetMetadataSettingsdefaultJSONResponse) VisitGetMetadataSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateMetadataSettingsRequestObject struct {
+	Body *UpdateMetadataSettingsJSONRequestBody
+}
+
+type UpdateMetadataSettingsResponseObject interface {
+	VisitUpdateMetadataSettingsResponse(w http.ResponseWriter) error
+}
+
+type UpdateMetadataSettings200JSONResponse MetadataSettings
+
+func (response UpdateMetadataSettings200JSONResponse) VisitUpdateMetadataSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateMetadataSettingsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdateMetadataSettingsdefaultJSONResponse) VisitUpdateMetadataSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMetadataStatusRequestObject struct {
+}
+
+type GetMetadataStatusResponseObject interface {
+	VisitGetMetadataStatusResponse(w http.ResponseWriter) error
+}
+
+type GetMetadataStatus200JSONResponse MetadataStatus
+
+func (response GetMetadataStatus200JSONResponse) VisitGetMetadataStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMetadataStatusdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetMetadataStatusdefaultJSONResponse) VisitGetMetadataStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type StartPairingRequestObject struct {
 	Body *StartPairingJSONRequestBody
 }
@@ -3353,6 +5738,45 @@ type PollPairingdefaultJSONResponse struct {
 }
 
 func (response PollPairingdefaultJSONResponse) VisitPollPairingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPersonRequestObject struct {
+	PersonId string `json:"personId"`
+}
+
+type GetPersonResponseObject interface {
+	VisitGetPersonResponse(w http.ResponseWriter) error
+}
+
+type GetPerson200JSONResponse Person
+
+func (response GetPerson200JSONResponse) VisitGetPersonResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPersondefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetPersondefaultJSONResponse) VisitGetPersonResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -3821,15 +6245,45 @@ type StrictServerInterface interface {
 	// Logout End the current session
 	// (POST /auth/logout)
 	Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error)
+	// ListCollections A library's collections (F005 R23)
+	// (GET /collections)
+	ListCollections(ctx context.Context, request ListCollectionsRequestObject) (ListCollectionsResponseObject, error)
+	// GetCollection A collection with its movies, by release date (F005 R23)
+	// (GET /collections/{collectionId})
+	GetCollection(ctx context.Context, request GetCollectionRequestObject) (GetCollectionResponseObject, error)
 	// BrowseFolders Sub-folders of a server folder, for the folder picker (admin)
 	// (GET /fs/browse)
 	BrowseFolders(ctx context.Context, request BrowseFoldersRequestObject) (BrowseFoldersResponseObject, error)
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
+	// GetImage An artwork image, resized for the client (F005 R19)
+	// (GET /images/{imageId})
+	GetImage(ctx context.Context, request GetImageRequestObject) (GetImageResponseObject, error)
 	// GetItem An item with its files and streams
 	// (GET /items/{itemId})
 	GetItem(ctx context.Context, request GetItemRequestObject) (GetItemResponseObject, error)
+	// ListItemArtwork Artwork candidates (admin, F005 R30)
+	// (GET /items/{itemId}/artwork)
+	ListItemArtwork(ctx context.Context, request ListItemArtworkRequestObject) (ListItemArtworkResponseObject, error)
+	// UnlockItemArtwork Back to the automatic choice (admin, F005 R30)
+	// (DELETE /items/{itemId}/artwork/{kind})
+	UnlockItemArtwork(ctx context.Context, request UnlockItemArtworkRequestObject) (UnlockItemArtworkResponseObject, error)
+	// SelectItemArtwork Pick an image and lock the kind (admin, F005 R30)
+	// (PUT /items/{itemId}/artwork/{kind})
+	SelectItemArtwork(ctx context.Context, request SelectItemArtworkRequestObject) (SelectItemArtworkResponseObject, error)
+	// UnmatchItem Forget a match; the item is matched again automatically (admin, F005 R26)
+	// (DELETE /items/{itemId}/match)
+	UnmatchItem(ctx context.Context, request UnmatchItemRequestObject) (UnmatchItemResponseObject, error)
+	// MatchItem Fix an item's match (admin, F005 R26, R39)
+	// (POST /items/{itemId}/match)
+	MatchItem(ctx context.Context, request MatchItemRequestObject) (MatchItemResponseObject, error)
+	// UpdateItemMetadata Edit and lock fields (admin, F005 R29)
+	// (PATCH /items/{itemId}/metadata)
+	UpdateItemMetadata(ctx context.Context, request UpdateItemMetadataRequestObject) (UpdateItemMetadataResponseObject, error)
+	// RefreshItem Refresh an item's metadata now (admin, F005 R31)
+	// (POST /items/{itemId}/refresh)
+	RefreshItem(ctx context.Context, request RefreshItemRequestObject) (RefreshItemResponseObject, error)
 	// ListLibraries All libraries, with folder status, counts and scan state
 	// (GET /libraries)
 	ListLibraries(ctx context.Context, request ListLibrariesRequestObject) (ListLibrariesResponseObject, error)
@@ -3848,6 +6302,12 @@ type StrictServerInterface interface {
 	// ListLibraryItems Items of a library, by kind and parent
 	// (GET /libraries/{libraryId}/items)
 	ListLibraryItems(ctx context.Context, request ListLibraryItemsRequestObject) (ListLibraryItemsResponseObject, error)
+	// RefreshLibraryMetadata Refresh a library's metadata now (F005 R31)
+	// (POST /libraries/{libraryId}/metadata/refresh)
+	RefreshLibraryMetadata(ctx context.Context, request RefreshLibraryMetadataRequestObject) (RefreshLibraryMetadataResponseObject, error)
+	// ListLibraryReview Items that need an admin's eye (F005 R5, R38)
+	// (GET /libraries/{libraryId}/review)
+	ListLibraryReview(ctx context.Context, request ListLibraryReviewRequestObject) (ListLibraryReviewResponseObject, error)
 	// GetLibraryScan Current scan progress (admin)
 	// (GET /libraries/{libraryId}/scan)
 	GetLibraryScan(ctx context.Context, request GetLibraryScanRequestObject) (GetLibraryScanResponseObject, error)
@@ -3890,6 +6350,24 @@ type StrictServerInterface interface {
 	// RevokeMySession Sign out one device
 	// (DELETE /me/sessions/{sessionId})
 	RevokeMySession(ctx context.Context, request RevokeMySessionRequestObject) (RevokeMySessionResponseObject, error)
+	// IdentifyFile Say what an unrecognized file is (admin, F005 R28)
+	// (POST /media-files/{fileId}/identify)
+	IdentifyFile(ctx context.Context, request IdentifyFileRequestObject) (IdentifyFileResponseObject, error)
+	// GetCandidateImage A candidate's poster, through the server (admin, F005 R27)
+	// (GET /metadata/candidate-images/{path})
+	GetCandidateImage(ctx context.Context, request GetCandidateImageRequestObject) (GetCandidateImageResponseObject, error)
+	// SearchMetadata Search TMDB for a match (admin, F005 R27)
+	// (GET /metadata/search)
+	SearchMetadata(ctx context.Context, request SearchMetadataRequestObject) (SearchMetadataResponseObject, error)
+	// GetMetadataSettings Which provider keys are in use (admin, F005 R34)
+	// (GET /metadata/settings)
+	GetMetadataSettings(ctx context.Context, request GetMetadataSettingsRequestObject) (GetMetadataSettingsResponseObject, error)
+	// UpdateMetadataSettings Save or clear provider keys (admin, F005 R34)
+	// (PATCH /metadata/settings)
+	UpdateMetadataSettings(ctx context.Context, request UpdateMetadataSettingsRequestObject) (UpdateMetadataSettingsResponseObject, error)
+	// GetMetadataStatus Providers and per-library progress (admin, F005 R35)
+	// (GET /metadata/status)
+	GetMetadataStatus(ctx context.Context, request GetMetadataStatusRequestObject) (GetMetadataStatusResponseObject, error)
 	// StartPairing Get a code to pair a TV
 	// (POST /pairing)
 	StartPairing(ctx context.Context, request StartPairingRequestObject) (StartPairingResponseObject, error)
@@ -3899,6 +6377,9 @@ type StrictServerInterface interface {
 	// PollPairing Poll a pairing until it is claimed
 	// (GET /pairing/{pairingId})
 	PollPairing(ctx context.Context, request PollPairingRequestObject) (PollPairingResponseObject, error)
+	// GetPerson A person and what they're in, on this server (F005 R8)
+	// (GET /people/{personId})
+	GetPerson(ctx context.Context, request GetPersonRequestObject) (GetPersonResponseObject, error)
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(ctx context.Context, request GetServerInfoRequestObject) (GetServerInfoResponseObject, error)
@@ -4031,6 +6512,58 @@ func (sh *strictHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListCollections operation middleware
+func (sh *strictHandler) ListCollections(w http.ResponseWriter, r *http.Request, params ListCollectionsParams) {
+	var request ListCollectionsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCollections(ctx, request.(ListCollectionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCollections")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCollectionsResponseObject); ok {
+		if err := validResponse.VisitListCollectionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCollection operation middleware
+func (sh *strictHandler) GetCollection(w http.ResponseWriter, r *http.Request, collectionId string) {
+	var request GetCollectionRequestObject
+
+	request.CollectionId = collectionId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCollection(ctx, request.(GetCollectionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCollection")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCollectionResponseObject); ok {
+		if err := validResponse.VisitGetCollectionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // BrowseFolders operation middleware
 func (sh *strictHandler) BrowseFolders(w http.ResponseWriter, r *http.Request, params BrowseFoldersParams) {
 	var request BrowseFoldersRequestObject
@@ -4081,6 +6614,33 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetImage operation middleware
+func (sh *strictHandler) GetImage(w http.ResponseWriter, r *http.Request, imageId string, params GetImageParams) {
+	var request GetImageRequestObject
+
+	request.ImageId = imageId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetImage(ctx, request.(GetImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetImageResponseObject); ok {
+		if err := validResponse.VisitGetImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetItem operation middleware
 func (sh *strictHandler) GetItem(w http.ResponseWriter, r *http.Request, itemId string) {
 	var request GetItemRequestObject
@@ -4100,6 +6660,222 @@ func (sh *strictHandler) GetItem(w http.ResponseWriter, r *http.Request, itemId 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetItemResponseObject); ok {
 		if err := validResponse.VisitGetItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListItemArtwork operation middleware
+func (sh *strictHandler) ListItemArtwork(w http.ResponseWriter, r *http.Request, itemId ItemId, params ListItemArtworkParams) {
+	var request ListItemArtworkRequestObject
+
+	request.ItemId = itemId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListItemArtwork(ctx, request.(ListItemArtworkRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListItemArtwork")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListItemArtworkResponseObject); ok {
+		if err := validResponse.VisitListItemArtworkResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UnlockItemArtwork operation middleware
+func (sh *strictHandler) UnlockItemArtwork(w http.ResponseWriter, r *http.Request, itemId ItemId, kind ArtworkKind) {
+	var request UnlockItemArtworkRequestObject
+
+	request.ItemId = itemId
+	request.Kind = kind
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnlockItemArtwork(ctx, request.(UnlockItemArtworkRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnlockItemArtwork")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnlockItemArtworkResponseObject); ok {
+		if err := validResponse.VisitUnlockItemArtworkResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SelectItemArtwork operation middleware
+func (sh *strictHandler) SelectItemArtwork(w http.ResponseWriter, r *http.Request, itemId ItemId, kind ArtworkKind) {
+	var request SelectItemArtworkRequestObject
+
+	request.ItemId = itemId
+	request.Kind = kind
+
+	var body SelectItemArtworkJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SelectItemArtwork(ctx, request.(SelectItemArtworkRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SelectItemArtwork")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SelectItemArtworkResponseObject); ok {
+		if err := validResponse.VisitSelectItemArtworkResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UnmatchItem operation middleware
+func (sh *strictHandler) UnmatchItem(w http.ResponseWriter, r *http.Request, itemId ItemId) {
+	var request UnmatchItemRequestObject
+
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnmatchItem(ctx, request.(UnmatchItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnmatchItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnmatchItemResponseObject); ok {
+		if err := validResponse.VisitUnmatchItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MatchItem operation middleware
+func (sh *strictHandler) MatchItem(w http.ResponseWriter, r *http.Request, itemId ItemId) {
+	var request MatchItemRequestObject
+
+	request.ItemId = itemId
+
+	var body MatchItemJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MatchItem(ctx, request.(MatchItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MatchItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MatchItemResponseObject); ok {
+		if err := validResponse.VisitMatchItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateItemMetadata operation middleware
+func (sh *strictHandler) UpdateItemMetadata(w http.ResponseWriter, r *http.Request, itemId ItemId) {
+	var request UpdateItemMetadataRequestObject
+
+	request.ItemId = itemId
+
+	var body UpdateItemMetadataJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateItemMetadata(ctx, request.(UpdateItemMetadataRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateItemMetadata")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateItemMetadataResponseObject); ok {
+		if err := validResponse.VisitUpdateItemMetadataResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RefreshItem operation middleware
+func (sh *strictHandler) RefreshItem(w http.ResponseWriter, r *http.Request, itemId ItemId) {
+	var request RefreshItemRequestObject
+
+	request.ItemId = itemId
+
+	var body RefreshItemJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RefreshItem(ctx, request.(RefreshItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RefreshItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RefreshItemResponseObject); ok {
+		if err := validResponse.VisitRefreshItemResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4267,6 +7043,69 @@ func (sh *strictHandler) ListLibraryItems(w http.ResponseWriter, r *http.Request
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListLibraryItemsResponseObject); ok {
 		if err := validResponse.VisitListLibraryItemsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RefreshLibraryMetadata operation middleware
+func (sh *strictHandler) RefreshLibraryMetadata(w http.ResponseWriter, r *http.Request, libraryId LibraryId) {
+	var request RefreshLibraryMetadataRequestObject
+
+	request.LibraryId = libraryId
+
+	var body RefreshLibraryMetadataJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RefreshLibraryMetadata(ctx, request.(RefreshLibraryMetadataRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RefreshLibraryMetadata")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RefreshLibraryMetadataResponseObject); ok {
+		if err := validResponse.VisitRefreshLibraryMetadataResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListLibraryReview operation middleware
+func (sh *strictHandler) ListLibraryReview(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListLibraryReviewParams) {
+	var request ListLibraryReviewRequestObject
+
+	request.LibraryId = libraryId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListLibraryReview(ctx, request.(ListLibraryReviewRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListLibraryReview")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListLibraryReviewResponseObject); ok {
+		if err := validResponse.VisitListLibraryReviewResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4663,6 +7502,170 @@ func (sh *strictHandler) RevokeMySession(w http.ResponseWriter, r *http.Request,
 	}
 }
 
+// IdentifyFile operation middleware
+func (sh *strictHandler) IdentifyFile(w http.ResponseWriter, r *http.Request, fileId string) {
+	var request IdentifyFileRequestObject
+
+	request.FileId = fileId
+
+	var body IdentifyFileJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.IdentifyFile(ctx, request.(IdentifyFileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "IdentifyFile")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(IdentifyFileResponseObject); ok {
+		if err := validResponse.VisitIdentifyFileResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCandidateImage operation middleware
+func (sh *strictHandler) GetCandidateImage(w http.ResponseWriter, r *http.Request, path string) {
+	var request GetCandidateImageRequestObject
+
+	request.Path = path
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCandidateImage(ctx, request.(GetCandidateImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCandidateImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCandidateImageResponseObject); ok {
+		if err := validResponse.VisitGetCandidateImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SearchMetadata operation middleware
+func (sh *strictHandler) SearchMetadata(w http.ResponseWriter, r *http.Request, params SearchMetadataParams) {
+	var request SearchMetadataRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SearchMetadata(ctx, request.(SearchMetadataRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SearchMetadata")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SearchMetadataResponseObject); ok {
+		if err := validResponse.VisitSearchMetadataResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMetadataSettings operation middleware
+func (sh *strictHandler) GetMetadataSettings(w http.ResponseWriter, r *http.Request) {
+	var request GetMetadataSettingsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMetadataSettings(ctx, request.(GetMetadataSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMetadataSettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMetadataSettingsResponseObject); ok {
+		if err := validResponse.VisitGetMetadataSettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateMetadataSettings operation middleware
+func (sh *strictHandler) UpdateMetadataSettings(w http.ResponseWriter, r *http.Request) {
+	var request UpdateMetadataSettingsRequestObject
+
+	var body UpdateMetadataSettingsJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateMetadataSettings(ctx, request.(UpdateMetadataSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateMetadataSettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateMetadataSettingsResponseObject); ok {
+		if err := validResponse.VisitUpdateMetadataSettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMetadataStatus operation middleware
+func (sh *strictHandler) GetMetadataStatus(w http.ResponseWriter, r *http.Request) {
+	var request GetMetadataStatusRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMetadataStatus(ctx, request.(GetMetadataStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMetadataStatus")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMetadataStatusResponseObject); ok {
+		if err := validResponse.VisitGetMetadataStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // StartPairing operation middleware
 func (sh *strictHandler) StartPairing(w http.ResponseWriter, r *http.Request) {
 	var request StartPairingRequestObject
@@ -4745,6 +7748,32 @@ func (sh *strictHandler) PollPairing(w http.ResponseWriter, r *http.Request, pai
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PollPairingResponseObject); ok {
 		if err := validResponse.VisitPollPairingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetPerson operation middleware
+func (sh *strictHandler) GetPerson(w http.ResponseWriter, r *http.Request, personId string) {
+	var request GetPersonRequestObject
+
+	request.PersonId = personId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPerson(ctx, request.(GetPersonRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPerson")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPersonResponseObject); ok {
+		if err := validResponse.VisitGetPersonResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

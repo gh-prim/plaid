@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<movie>
+  <title>Le Fabuleux Destin d'Amélie Poulain</title>
+  <originaltitle>Le Fabuleux Destin d'Amélie Poulain</originaltitle>
+  <sorttitle>Fabuleux Destin d'Amélie Poulain</sorttitle>
+  <set>
+    <name>Jeunet collection</name>
+    <overview />
+  </set>
+  <rating>7.9</rating>
+  <year>2001</year>
+  <plot>Amélie, une jeune serveuse dans un bar de Montmartre…</plot>
+  <outline />
+  <tagline>Elle va changer votre vie.</tagline>
+  <runtime>122</runtime>
+  <mpaa>FR:U</mpaa>
+  <uniqueid type="tmdb" default="true">194</uniqueid>
+  <uniqueid type="imdb">tt0211915</uniqueid>
+  <genre>Comédie</genre>
+  <genre>Romance</genre>
+  <premiered>2001-04-25</premiered>
+  <studio>Claudie Ossard Productions</studio>
+  <actor>
+    <name>Audrey Tautou</name>
+    <role>Amélie Poulain</role>
+    <order>0</order>
+    <thumb>https://image.tmdb.org/t/p/h632/xyz.jpg</thumb>
+  </actor>
+  <actor>
+    <name>Mathieu Kassovitz</name>
+    <role>Nino Quincampoix</role>
+    <order>1</order>
+  </actor>
+</movie>

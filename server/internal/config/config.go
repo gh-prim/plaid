@@ -27,6 +27,13 @@ type Config struct {
 	// BrowseRoots restricts the library folder picker (F004-R3); empty
 	// means the whole file system.
 	BrowseRoots []string
+	// TMDBAPIKey is the admin's TMDB key (F005 R34, ADR 0007); empty means
+	// the key saved in settings or the one built into release binaries.
+	TMDBAPIKey string
+	// FanartAPIKey is the admin's fanart.tv project key (F005 R34).
+	FanartAPIKey string
+	// ArtworkCacheBytes caps resized artwork (F005 R20); 0 = 2 GiB.
+	ArtworkCacheBytes int64
 }
 
 // Addr returns the host:port the HTTP server listens on.
@@ -82,6 +89,15 @@ func Load(getenv func(string) string) (Config, error) {
 	cfg.TrustedProxies = proxies
 
 	cfg.FFprobePath = getenv("PLAID_FFPROBE_PATH")
+	cfg.TMDBAPIKey = strings.TrimSpace(getenv("PLAID_TMDB_API_KEY"))
+	cfg.FanartAPIKey = strings.TrimSpace(getenv("PLAID_FANART_API_KEY"))
+	if v := getenv("PLAID_ARTWORK_CACHE_MAX_MB"); v != "" {
+		mb, err := strconv.Atoi(v)
+		if err != nil || mb < 64 {
+			return Config{}, fmt.Errorf("PLAID_ARTWORK_CACHE_MAX_MB must be a number of megabytes, at least 64, got %q", v)
+		}
+		cfg.ArtworkCacheBytes = int64(mb) << 20
+	}
 	roots, err := parseRoots(getenv("PLAID_BROWSE_ROOTS"))
 	if err != nil {
 		return Config{}, fmt.Errorf("PLAID_BROWSE_ROOTS: %w", err)

@@ -26,6 +26,8 @@ type WalkedFile struct {
 // WalkResult is the outcome of walking one library folder.
 type WalkResult struct {
 	Files []WalkedFile
+	// Sidecars are the .nfo and image files, for F005 (see Hooks).
+	Sidecars []Sidecar
 	// SkippedDirs are sub-folders (slash-separated, relative) that couldn't
 	// be read. Files stored under them must not be marked missing.
 	SkippedDirs []string
@@ -134,7 +136,8 @@ func Walk(ctx context.Context, root string) (*WalkResult, error) {
 		}
 
 		ext := lowerExt(name)
-		if !IsVideo(name) && !isSubtitle(name) && ext != ".idx" {
+		sidecar := IsSidecar(name)
+		if !IsVideo(name) && !isSubtitle(name) && ext != ".idx" && !sidecar {
 			return nil
 		}
 		var info fs.FileInfo
@@ -151,6 +154,14 @@ func Walk(ctx context.Context, root string) (*WalkResult, error) {
 				return nil
 			}
 		} else {
+			return nil
+		}
+		if sidecar {
+			// Sidecars only follow the hidden-file and .plaidignore rules:
+			// "sample" or partial-download names don't apply to them.
+			if !strings.HasPrefix(name, ".") && !stack.ignored(rel, false) {
+				res.Sidecars = append(res.Sidecars, Sidecar{Path: path, Rel: rel, Size: info.Size(), ModTime: info.ModTime()})
+			}
 			return nil
 		}
 		if ignoredFile(name, info.Size()) || stack.ignored(rel, false) {
@@ -192,6 +203,7 @@ func Walk(ctx context.Context, root string) (*WalkResult, error) {
 		}
 	}
 	sort.Slice(res.Files, func(i, j int) bool { return res.Files[i].Rel < res.Files[j].Rel })
+	sort.Slice(res.Sidecars, func(i, j int) bool { return res.Sidecars[i].Rel < res.Sidecars[j].Rel })
 	return res, nil
 }
 

@@ -506,6 +506,7 @@ export interface paths {
      * @description `text/event-stream`. Events `progress`, `completed` and `failed`, each with a
      *     `ScanEvent` JSON in `data`. A progress event comes at least every 2 s while a scan
      *     runs, and a `: ping` comment every 15 s. The current state is sent first.
+     *     `metadata` events carry the library's matching counters, at most every 2 s (F005 R35).
      */
     get: operations['getLibraryScanEvents']
     put?: never
@@ -557,6 +558,312 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/libraries/{libraryId}/review': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    /**
+     * Items that need an admin's eye (F005 R5, R38)
+     * @description Movies and shows that need review, weren't found, or duplicate another item, with their candidates.
+     */
+    get: operations['listLibraryReview']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/libraries/{libraryId}/metadata/refresh': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Refresh a library's metadata now (F005 R31) */
+    post: operations['refreshLibraryMetadata']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/metadata/search': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Search TMDB for a match (admin, F005 R27)
+     * @description Free text, or an id: `tmdb:603`, `imdb:tt0133093`. With `itemId`, each candidate is scored against the item's parsed title and year.
+     */
+    get: operations['searchMetadata']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/metadata/candidate-images/{path}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description A TMDB image file name from a candidate's posterPath, without the slash. */
+        path: string
+      }
+      cookie?: never
+    }
+    /** A candidate's poster, through the server (admin, F005 R27) */
+    get: operations['getCandidateImage']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/metadata/status': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Providers and per-library progress (admin, F005 R35) */
+    get: operations['getMetadataStatus']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/metadata/settings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Which provider keys are in use (admin, F005 R34)
+     * @description Keys are never returned.
+     */
+    get: operations['getMetadataSettings']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    /**
+     * Save or clear provider keys (admin, F005 R34)
+     * @description A key is checked against its provider before it's saved (`422 invalid_api_key` otherwise). `null` removes the saved key: the environment variable, then the key built into release binaries, apply again.
+     */
+    patch: operations['updateMetadataSettings']
+    trace?: never
+  }
+  '/items/{itemId}/match': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Fix an item's match (admin, F005 R26, R39)
+     * @description A movie or show takes `tmdbId`; the match is locked against rescans and refreshes, and a show's seasons and episodes follow. An episode takes `seasonNumber` and `episodeNumber` to move its files to another episode of the same show.
+     */
+    post: operations['matchItem']
+    /** Forget a match; the item is matched again automatically (admin, F005 R26) */
+    delete: operations['unmatchItem']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/items/{itemId}/metadata': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    /**
+     * Edit and lock fields (admin, F005 R29)
+     * @description Each field set is locked against refreshes; `unlock` gives fields back to the provider.
+     */
+    patch: operations['updateItemMetadata']
+    trace?: never
+  }
+  '/items/{itemId}/refresh': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Refresh an item's metadata now (admin, F005 R31) */
+    post: operations['refreshItem']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/items/{itemId}/artwork': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    /** Artwork candidates (admin, F005 R30) */
+    get: operations['listItemArtwork']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/items/{itemId}/artwork/{kind}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+        kind: components['schemas']['ArtworkKind']
+      }
+      cookie?: never
+    }
+    get?: never
+    /** Pick an image and lock the kind (admin, F005 R30) */
+    put: operations['selectItemArtwork']
+    post?: never
+    /** Back to the automatic choice (admin, F005 R30) */
+    delete: operations['unlockItemArtwork']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/media-files/{fileId}/identify': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        fileId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Say what an unrecognized file is (admin, F005 R28)
+     * @description Movies libraries take `tmdbId`; shows libraries take `tmdbId` (the show), `seasonNumber` and `episodeNumbers`. The file keeps this identity through rescans and moves.
+     */
+    post: operations['identifyFile']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/collections': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** A library's collections (F005 R23) */
+    get: operations['listCollections']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/collections/{collectionId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        collectionId: string
+      }
+      cookie?: never
+    }
+    /** A collection with its movies, by release date (F005 R23) */
+    get: operations['getCollection']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/people/{personId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        personId: string
+      }
+      cookie?: never
+    }
+    /**
+     * A person and what they're in, on this server (F005 R8)
+     * @description Only items the active profile may see (R25).
+     */
+    get: operations['getPerson']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/items/{itemId}': {
     parameters: {
       query?: never
@@ -568,6 +875,28 @@ export interface paths {
     }
     /** An item with its files and streams */
     get: operations['getItem']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/images/{imageId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        imageId: string
+      }
+      cookie?: never
+    }
+    /**
+     * An artwork image, resized for the client (F005 R19)
+     * @description Served at the smallest width of 92, 185, 342, 500, 780, 1280, 1920 or 3840 that is at least `w`, never wider than the original. Photos are JPEG, logos and clearart PNG. Responses are immutable for an imageId: a new image gets a new id. An image of an item the active profile may not see is a 404 (R25).
+     */
+    get: operations['getImage']
     put?: never
     post?: never
     delete?: never
@@ -636,6 +965,16 @@ export interface components {
       name: string
       version: string
       setupComplete: boolean
+      /** @description Notices of the metadata providers in use, to show on an About page (F005 R37). */
+      attributions?: components['schemas']['Attribution'][]
+    }
+    Attribution: {
+      /** @enum {string} */
+      provider: 'tmdb' | 'fanart'
+      name: string
+      url: string
+      /** @description English text; clients use the i18n key about.attribution.<provider>. */
+      notice: string
     }
     SetupState: {
       setupComplete: boolean
@@ -843,6 +1182,8 @@ export interface components {
       type: components['schemas']['LibraryType']
       /** @description Null when the defaults apply (15 min unwatched, 6 h watched). */
       scanIntervalSeconds: number | null
+      metadataLanguage: components['schemas']['MetadataLanguage']
+      metadataRegion: components['schemas']['MetadataRegion']
       /** Format: date-time */
       lastScanAt?: string
       folders: components['schemas']['LibraryFolder'][]
@@ -865,7 +1206,19 @@ export interface components {
       type?: components['schemas']['LibraryType']
       folders?: string[]
       scanIntervalSeconds?: number | null
+      metadataLanguage?: components['schemas']['MetadataLanguage']
+      metadataRegion?: components['schemas']['MetadataRegion']
     }
+    /**
+     * @description ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
+     * @example fr
+     */
+    MetadataLanguage: string
+    /**
+     * @description ISO 3166-1 alpha-2 region for certifications and release dates (F005 R10, R24).
+     * @example FR
+     */
+    MetadataRegion: string
     ScanRequest: {
       /**
        * @description Re-probe every file, changed or not.
@@ -899,8 +1252,9 @@ export interface components {
     /** @description The `data` of a scan server-sent event. */
     ScanEvent: {
       /** @enum {string} */
-      type: 'progress' | 'completed' | 'failed'
-      progress: components['schemas']['ScanProgress']
+      type: 'progress' | 'completed' | 'failed' | 'metadata'
+      progress?: components['schemas']['ScanProgress']
+      metadata?: components['schemas']['MetadataCounts']
       /** @description Set on `failed`, English, for logs. */
       error?: string
     }
@@ -933,8 +1287,26 @@ export interface components {
       id: string
       kind: components['schemas']['ItemKind']
       parentId?: string
-      /** @description Parsed from names; matched metadata comes with F005. */
+      /** @description Parsed from names. See displayTitle for what to show. */
       title?: string
+      /** @description The matched (or .nfo) title, else the parsed one. Empty for a season or episode TMDB doesn't know. */
+      displayTitle: string
+      matchStatus: components['schemas']['MatchStatus']
+      /**
+       * Format: date
+       * @description Movie release, show first air date, season or episode air date.
+       */
+      releaseDate?: string
+      /** @description TMDB average vote, 0–10. */
+      rating?: number
+      /** @description Content rating in certificationRegion, e.g. PG-13 or FSK 16. */
+      certification?: string
+      /** @description Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated. */
+      ageRating?: number
+      genres: string[]
+      poster?: components['schemas']['Artwork']
+      backdrop?: components['schemas']['Artwork']
+      still?: components['schemas']['Artwork']
       year?: number
       seasonNumber?: number
       episodeNumber?: number
@@ -1004,6 +1376,248 @@ export interface components {
     }
     ItemDetail: components['schemas']['ItemSummary'] & {
       files: components['schemas']['MediaFile'][]
+      metadata?: components['schemas']['ItemMetadata']
+    }
+    MetadataCounts: {
+      pending: number
+      matched: number
+      needsReview: number
+      unmatched: number
+    }
+    RefreshRequest: {
+      /**
+       * @description Also choose the artwork again (unlocked kinds) and download it anew.
+       * @default false
+       */
+      images: boolean
+    }
+    MatchCandidate: {
+      tmdbId: number
+      title: string
+      originalTitle?: string
+      year?: number
+      overview?: string
+      /** @description For GET /metadata/candidate-images/{path} (without the leading slash). */
+      posterPath?: string
+      /** @description Score against the item (R4), 0–1. */
+      confidence?: number
+    }
+    SearchResult: {
+      candidates: components['schemas']['MatchCandidate'][]
+    }
+    ReviewItem: {
+      item: components['schemas']['ItemSummary']
+      /** @enum {string} */
+      reason: 'needs_review' | 'unmatched' | 'duplicate'
+      duplicateOf?: string
+      candidates: components['schemas']['MatchCandidate'][]
+    }
+    ReviewPage: {
+      items: components['schemas']['ReviewItem'][]
+      nextCursor?: string
+    }
+    MatchRequest: {
+      tmdbId?: number
+      seasonNumber?: number
+      episodeNumber?: number
+    }
+    MetadataPatch: {
+      title?: string
+      sortTitle?: string
+      originalTitle?: string
+      overview?: string
+      tagline?: string
+      /** Format: date */
+      releaseDate?: string
+      genres?: string[]
+      certification?: string
+      /** @description Fields to give back to the provider. */
+      unlock?: string[]
+    }
+    /** @enum {string} */
+    ArtworkKind: 'poster' | 'backdrop' | 'logo' | 'clearart' | 'banner' | 'thumb' | 'still'
+    ArtworkCandidate: {
+      id: string
+      kind: components['schemas']['ArtworkKind']
+      /** @enum {string} */
+      source: 'local' | 'tmdb' | 'fanart'
+      language?: string
+      width?: number
+      height?: number
+      votes?: number
+      selected: boolean
+      locked: boolean
+    }
+    ArtworkCandidates: {
+      candidates: components['schemas']['ArtworkCandidate'][]
+    }
+    ArtworkSelection: {
+      candidateId: string
+    }
+    IdentifyRequest: {
+      /** @description The movie, or the show for an episode. */
+      tmdbId: number
+      seasonNumber?: number
+      episodeNumbers?: number[]
+    }
+    ProviderStatus: {
+      /** @enum {string} */
+      provider: 'tmdb' | 'fanart'
+      /** @enum {string} */
+      state: 'ok' | 'unreachable' | 'invalid_key' | 'no_api_key' | 'disabled'
+      /** @enum {string} */
+      keySource: 'custom' | 'env' | 'builtin' | 'none'
+      lastError?: string
+      /** Format: date-time */
+      lastErrorAt?: string
+    }
+    MetadataStatus: {
+      providers: components['schemas']['ProviderStatus'][]
+      libraries: components['schemas']['LibraryMetadataCounts'][]
+    }
+    LibraryMetadataCounts: {
+      libraryId: string
+      pending: number
+      matched: number
+      needsReview: number
+      unmatched: number
+    }
+    MetadataSettings: {
+      tmdb: {
+        /** @enum {string} */
+        keySource: 'custom' | 'env' | 'builtin' | 'none'
+      }
+      fanart: {
+        /** @enum {string} */
+        keySource: 'custom' | 'env' | 'builtin' | 'none'
+        personalKeySet: boolean
+      }
+    }
+    MetadataSettingsPatch: {
+      tmdbApiKey?: string | null
+      fanartApiKey?: string | null
+      fanartPersonalKey?: string | null
+    }
+    CollectionSummary: {
+      id: string
+      name: string
+      overview?: string
+      poster?: components['schemas']['Artwork']
+      backdrop?: components['schemas']['Artwork']
+      /** @description Movies of the collection the profile may see. */
+      movieCount: number
+    }
+    CollectionList: {
+      collections: components['schemas']['CollectionSummary'][]
+    }
+    CollectionDetail: components['schemas']['CollectionSummary'] & {
+      items: components['schemas']['ItemSummary'][]
+    }
+    PersonCredit: {
+      item: components['schemas']['ItemSummary']
+      /** @enum {string} */
+      role: 'cast' | 'director' | 'writer' | 'creator'
+      character?: string
+    }
+    Person: {
+      id: string
+      name: string
+      portrait?: components['schemas']['Artwork']
+      credits: components['schemas']['PersonCredit'][]
+    }
+    /**
+     * @description pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
+     * @enum {string}
+     */
+    MatchStatus: 'pending' | 'matched' | 'needs_review' | 'unmatched'
+    /** @description What F005 knows about an item, beyond the summary (R7, R8, R22, R23). */
+    ItemMetadata: {
+      /** @enum {string} */
+      matchSource?: 'nfo' | 'hint' | 'auto' | 'manual' | 'parent'
+      confidence?: number
+      originalTitle?: string
+      overview?: string
+      tagline?: string
+      /**
+       * Format: date
+       * @description A show's last air date.
+       */
+      endDate?: string
+      /** @enum {string} */
+      showStatus?: 'returning' | 'ended' | 'canceled' | 'in_production'
+      runtimeMinutes?: number
+      ratingCount?: number
+      certificationRegion?: string
+      /** @description Studios, or networks for a show. */
+      studios: string[]
+      trailers: components['schemas']['Trailer'][]
+      collection?: components['schemas']['CollectionRef']
+      credits: components['schemas']['Credit'][]
+      /** @description Language of text fields that fell back to English, e.g. {"overview": "en"} (R11). */
+      fieldLanguages: {
+        [key: string]: string
+      }
+      /** @description Fields an admin set; refreshes don't change them (R29). */
+      lockedFields: string[]
+      /** @description Fields taken from a local .nfo (R12). */
+      localFields: string[]
+      providerIds: components['schemas']['ProviderIds']
+      logo?: components['schemas']['Artwork']
+      clearart?: components['schemas']['Artwork']
+      /** @description Up to 3 backdrops, best first (R15). */
+      backdrops: components['schemas']['Artwork'][]
+      /** @description The older item of the library matched to the same title (R38). */
+      duplicateOf?: string
+    }
+    Trailer: {
+      /** @enum {string} */
+      site: 'YouTube'
+      /** @description The video id; clients build the URL. The server never calls YouTube. */
+      key: string
+      name?: string
+      language: string
+      /** @enum {string} */
+      type: 'Trailer' | 'Teaser'
+      official: boolean
+    }
+    CollectionRef: {
+      id: string
+      name: string
+    }
+    Credit: {
+      personId: string
+      name: string
+      /** @enum {string} */
+      role: 'cast' | 'director' | 'writer' | 'creator'
+      character?: string
+      portrait?: components['schemas']['Artwork']
+    }
+    /** @description An image; fetch it with GET /images/{imageId}?w=. */
+    Artwork: {
+      imageId: string
+      /** @description Original width, when known. */
+      width?: number
+      height?: number
+      /** @enum {string} */
+      source?: 'local' | 'tmdb' | 'fanart'
+      colors?: components['schemas']['AmbientColors']
+    }
+    /** @description Colors taken from the image for the UI (R21), as */
+    AmbientColors: {
+      dominant: string
+      vibrant: string
+      muted: string
+      dark: string
+      /**
+       * @description Text color that reads on the dominant color.
+       * @enum {string}
+       */
+      onDominant: 'light' | 'dark'
+    }
+    ProviderIds: {
+      tmdb?: number
+      imdb?: string
+      tvdb?: number
     }
     UnrecognizedFile: {
       id: string
@@ -1078,6 +1692,7 @@ export interface components {
   }
   parameters: {
     LibraryId: string
+    ItemId: string
     /** @description Opaque `nextCursor` of the previous page. */
     Cursor: string
     Limit: number
@@ -1977,6 +2592,446 @@ export interface operations {
       default: components['responses']['Error']
     }
   }
+  listLibraryReview: {
+    parameters: {
+      query?: {
+        /** @description Opaque `nextCursor` of the previous page. */
+        cursor?: components['parameters']['Cursor']
+        limit?: components['parameters']['Limit']
+      }
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description One page */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ReviewPage']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  refreshLibraryMetadata: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['RefreshRequest']
+      }
+    }
+    responses: {
+      /** @description Queued */
+      202: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  searchMetadata: {
+    parameters: {
+      query: {
+        kind: 'movie' | 'show'
+        query: string
+        year?: number
+        itemId?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Candidates, best first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SearchResult']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getCandidateImage: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description A TMDB image file name from a candidate's posterPath, without the slash. */
+        path: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description TMDB w185 image */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'image/jpeg': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getMetadataStatus: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Status */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['MetadataStatus']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getMetadataSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Settings */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['MetadataSettings']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateMetadataSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MetadataSettingsPatch']
+      }
+    }
+    responses: {
+      /** @description Settings */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['MetadataSettings']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  matchItem: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MatchRequest']
+      }
+    }
+    responses: {
+      /** @description The item, matched */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ItemDetail']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  unmatchItem: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Unmatched */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateItemMetadata: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MetadataPatch']
+      }
+    }
+    responses: {
+      /** @description The item */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ItemDetail']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  refreshItem: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['RefreshRequest']
+      }
+    }
+    responses: {
+      /** @description Queued */
+      202: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listItemArtwork: {
+    parameters: {
+      query: {
+        kind: components['schemas']['ArtworkKind']
+      }
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Candidates, selected first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ArtworkCandidates']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  selectItemArtwork: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+        kind: components['schemas']['ArtworkKind']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ArtworkSelection']
+      }
+    }
+    responses: {
+      /** @description Candidates after the change */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ArtworkCandidates']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  unlockItemArtwork: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+        kind: components['schemas']['ArtworkKind']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Unlocked; the item is refreshed */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  identifyFile: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        fileId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['IdentifyRequest']
+      }
+    }
+    responses: {
+      /** @description The movie or episode the file now belongs to */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ItemDetail']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listCollections: {
+    parameters: {
+      query: {
+        libraryId: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Collections */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['CollectionList']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getCollection: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        collectionId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The collection */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['CollectionDetail']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getPerson: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        personId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The person */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Person']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
   getItem: {
     parameters: {
       query?: never
@@ -1996,6 +3051,46 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ItemDetail']
         }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getImage: {
+    parameters: {
+      query?: {
+        /** @description Wanted width in pixels; defaults to 342. */
+        w?: number
+      }
+      header?: {
+        'If-None-Match'?: string
+      }
+      path: {
+        imageId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The image */
+      200: {
+        headers: {
+          ETag?: string
+          'Cache-Control'?: string
+          'X-Content-Type-Options'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'image/jpeg': string
+          'image/png': string
+        }
+      }
+      /** @description Not modified (If-None-Match matched) */
+      304: {
+        headers: {
+          ETag?: string
+          [name: string]: unknown
+        }
+        content?: never
       }
       default: components['responses']['Error']
     }
