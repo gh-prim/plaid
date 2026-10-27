@@ -94,8 +94,8 @@ Each step ends with a commit `F004: …`. Tests come with the code.
 12. [x] **Scan progress + SSE** (R21, watch-out SSE). `GET /libraries/{id}/scan` returns the snapshot. `/scan/events`: OpenAPI declares `text/event-stream`; the handler returns a custom type implementing the generated response interface that writes `event: progress|completed|failed`, `data: <json>`, flushes via `http.NewResponseController` (works thanks to F003's `Unwrap`), sends a progress event at least every 2 s while scanning and `: ping` every 15 s, sets `Cache-Control: no-cache` and `X-Accel-Buffering: no`, and ends on client disconnect or server shutdown (`RegisterOnShutdown` cancels a base context so `Shutdown` doesn't wait 10 s). Tests: `httptest.Server` client reads ≥ 2 progress events then `completed`; shutdown with an open stream returns within 1 s. → `make test`, **open PR B.**
 
 ### PR C — packaging and performance (the `test-deb` check needs F003 PR 2 for `/setup/admin`)
-13. [ ] **FFmpeg distribution** (R25, ADR 0006). Dockerfile runtime stage installs `ffmpeg` (`--no-install-recommends`); `.deb` depends on `ffmpeg`; `server.yml` installs it; `test-deb.sh` adds: "ffprobe installed", "sample library scanned by the service" (generate a 2 s file with `ffmpeg` into `/srv/media`, `chmod o+rx`, create admin via `/setup/admin` from localhost, create the library, poll `/scan` until `idle`, check `probe_status = ok` via `/items`). This last check proves `ffprobe` works under `MemoryDenyWriteExecute` and the syscall filter. `docs/install.md` sections; `CLAUDE.md` check count. Record image size before/after in the PR.
-14. [ ] **Performance and read-only proofs** (NFR, R23). `readonly_test.go`: SHA-256 over (path, size, mtime, mode, content of small files) of the tree before/after a full scan + rescan + move + delete. `perf_test.go` (`go test -tags perf ./internal/library/`): 10,000 sparse files in a realistic layout, fake prober; asserts walk+parse < 2 min and unchanged rescan < 60 s, reports peak heap. Run it in the throttled container (`PLAID_TEST_CPUS=0.5 PLAID_TEST_MEMORY=1g`) and paste the numbers. → `make test`, **open PR C.**
+13. [x] **FFmpeg distribution** (R25, ADR 0006). Dockerfile runtime stage installs `ffmpeg` (`--no-install-recommends`); `.deb` depends on `ffmpeg`; `server.yml` installs it; `test-deb.sh` adds: "ffprobe installed", "sample library scanned by the service" (generate a 2 s file with `ffmpeg` into `/srv/media`, `chmod o+rx`, create admin via `/setup/admin` from localhost, create the library, poll `/scan` until `idle`, check `probe_status = ok` via `/items`). This last check proves `ffprobe` works under `MemoryDenyWriteExecute` and the syscall filter. `docs/install.md` sections; `CLAUDE.md` check count. Record image size before/after in the PR.
+14. [x] **Performance and read-only proofs** (NFR, R23). `readonly_test.go`: SHA-256 over (path, size, mtime, mode, content of small files) of the tree before/after a full scan + rescan + move + delete. `perf_test.go` (`go test -tags perf ./internal/library/`): 10,000 sparse files in a realistic layout, fake prober; asserts walk+parse < 2 min and unchanged rescan < 60 s, reports peak heap. Run it in the throttled container (`PLAID_TEST_CPUS=0.5 PLAID_TEST_MEMORY=1g`) and paste the numbers. → `make test`, **open PR C.**
 
 ## Risks
 | Risk | Likelihood | Mitigation |
@@ -123,13 +123,13 @@ Each step ends with a commit `F004: …`. Tests come with the code.
 - **A `sysctl.d` drop-in in the `.deb`**: see "Decisions taken in this plan".
 
 ## Expected evidence
-- [ ] Tests added: parser tables, ignore/walker, subtitles, probe fixtures (+ real ffprobe test in CI), reconciler scenarios, scheduler, watcher, handlers, SSE, read-only tree hash
-- [ ] `make test` green, output pasted in each PR
-- [ ] `make test-deb` green with the two new checks; image size before/after
-- [ ] Perf numbers on the throttled profile (walk+parse, unchanged rescan, peak memory)
-- [ ] Manual check: `make dev`, create a Movies and a Shows library with `curl` on a real folder, copy a file in, watch it appear through `/scan/events`
+- [x] Tests added: parser tables, ignore/walker, subtitles, probe fixtures (+ real ffprobe test in CI), reconciler scenarios, scheduler, watcher, handlers, SSE, read-only tree hash
+- [x] `make test` green, output pasted in each PR
+- [x] `make test-deb` green with the two new checks; image size before/after
+- [x] Perf numbers on the throttled profile (walk+parse, unchanged rescan, peak memory)
+- [x] Manual check: `make dev`, create a Movies and a Shows library with `curl` on a real folder, copy a file in, watch it appear through `/scan/events`
 - [ ] Manual check: unplug (or unmount) a USB drive during a library's life → folder `unavailable`, items still there after re-plug
-- [ ] No screenshots: F004 has no UI (F007)
+- [x] No screenshots: F004 has no UI (F007)
 
 ## Log
 - **2026-10-27, PR A (steps 1–7)**, by gh-prim with Claude. Divergences from the steps above:
@@ -160,3 +160,11 @@ Each step ends with a commit `F004: …`. Tests come with the code.
   - **`capabilities.watchLimitReached`** lists the paths of folders that fell back to periodic scans.
   - **New env vars** documented in `packaging/plaid.env` and the `docs/install.md` table now; the rest of the `docs/install.md` work stays in PR C.
   - **Commits:** steps 10–12 share the OpenAPI file, the handler deps and the end-to-end tests, so they're two commits: library side, then API.
+- **2026-10-27, PR C (steps 13–14)**, by gh-prim with Claude. Divergences and results:
+  - **The hardened unit killed PLAID** (`SIGSYS`) on its first `setpriority` call: `SystemCallFilter=~@resources` kills by default, it doesn't return `EPERM` as "Decisions" assumed. Fixed with `SystemCallErrorNumber=EPERM` in `plaid.service`: the filter is unchanged, refused calls now fail instead of killing, and `lowerPriority` already ignores `EPERM`. The new `test-deb` check ("sample library scanned and probed by the service", plus `NRestarts = 0`) caught it.
+  - **`install.sh` runs `apt-get update`** before installing: fresh Debian/Ubuntu images have no package lists, and the `.deb` now needs the distro's `ffmpeg`. `test-deb.sh` does the same, and installs `jq` in its test image.
+  - **`test-deb` count:** 22 `check` lines before (CLAUDE.md said 24), 24 now; CLAUDE.md's number is right again.
+  - **Image size** (`docker images`, `linux/arm64`): 166 MB → 749 MB on disk, 37 → 201 MB compressed. The cost ADR 0006 accepted.
+  - **Perf** (`perf_test.go`, fake prober, throttled container `--cpus 0.5 --memory 1g`, GOMAXPROCS 2): walk and parse 1.1 s (target < 2 min), first scan with fingerprints 31.9 s, unchanged rescan 0.3 s (target < 60 s) with 0 probes, peak heap 12 MB. The files are sparse and on the container's disk, so these numbers leave out USB 3 seek times and ffprobe's cost.
+  - **Read-only proof** uses the real ffprobe when it's installed (CI installs it now), on a generated video plus fake files that fail to probe, through full scans, a rescan, a move, a deletion and a 30-day purge.
+  - **Not done:** the manual "unplug a USB drive" check needs hardware; the reconciler tests from PR A cover the logic (empty mount point, missing root).

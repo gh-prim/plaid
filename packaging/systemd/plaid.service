@@ -38,6 +38,9 @@ MemoryDenyWriteExecute=true
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallFilter=~@privileged @resources
+# Refused calls fail with EPERM instead of killing PLAID: lowering the
+# priority of ffprobe (setpriority, in @resources) is best effort (F004).
+SystemCallErrorNumber=EPERM
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 # Devices stay visible on purpose: hardware transcoding (F006) needs /dev/dri.
 

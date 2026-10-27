@@ -20,7 +20,7 @@ We follow the SDLC described in [sdlc/README.md](sdlc/README.md): `intent.md` �
 | `android/` | Kotlin + Compose (coming) |
 
 ## Commands
-Run from the repo root. Toolchain: Go 1.26, Node 24+, pnpm 10, golangci-lint v2, shellcheck, Docker (for `make docker`).
+Run from the repo root. Toolchain: Go 1.26, Node 24+, pnpm 10, golangci-lint v2, shellcheck, Docker (for `make docker`), FFmpeg (`ffprobe`; tests that need it skip without it).
 
 | Command | What it does | Success looks like |
 |---------|--------------|--------------------|
@@ -32,9 +32,11 @@ Run from the repo root. Toolchain: Go 1.26, Node 24+, pnpm 10, golangci-lint v2,
 | `make build` | Web build embedded into `server/bin/plaid` | binary in `server/bin/` |
 | `make docker` | Builds image `plaid:dev` | then `docker compose up -d`, health at :32500 |
 | `make deb` | Snapshot binaries + `.deb` (amd64, arm64) + checksums in `dist/` | `release succeeded` |
-| `make test-deb` | Installs the `.deb` in a container with real systemd and runs 24 checks (install, upgrade, script, restart, remove, purge). `IMAGE=debian:trixie ARCH=arm64` to change target | `✅ … all checks passed` |
+| `make test-deb` | Installs the `.deb` in a container with real systemd and runs 24 checks (install, upgrade, script, a library scanned with ffprobe by the hardened service, restart, remove, purge). `IMAGE=debian:trixie ARCH=arm64` to change target | `✅ … all checks passed` |
 
 Single checks: `make test-server`, `make test-web`, `make check-i18n`, `make check-codegen`.
+
+Library scan performance (F004, 10,000 sparse files, not part of `make test`): `go -C server test -tags perf -run Perf -v ./internal/library/`. For Pi-like numbers, run it in a throttled container: `docker run --rm --cpus 0.5 --memory 1g -v "$PWD/server":/src:ro -e GOCACHE=/tmp/gocache -e GOPATH=/tmp/gopath -w /src golang:1.26 go test -tags perf -run Perf -v ./internal/library/`.
 A single `make test` target must pass before any PR.
 
 On Apple Silicon, `make test-deb ARCH=amd64` only works on distros with systemd < 255 (e.g. `debian:bookworm`): newer systemd can't run under x86 emulation. Real amd64 coverage is the `package-test` CI job.

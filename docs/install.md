@@ -30,6 +30,8 @@ What you get:
 | `/var/lib/plaid` | Data: database, caches. **Never deleted automatically.** |
 | `plaid.service` | systemd service, enabled and started, runs as the `plaid` user |
 
+The package depends on your distribution's `ffmpeg`, which apt installs with it: PLAID uses `ffprobe` to analyze media files.
+
 Everyday commands:
 
 ```bash
@@ -50,7 +52,7 @@ sudo systemctl restart plaid    # after editing /etc/plaid/plaid.env
 curl -fsSL https://raw.githubusercontent.com/gh-prim/plaid/main/packaging/install.sh | sudo bash
 ```
 
-It detects your CPU, downloads the latest `.deb` and `checksums.txt` from GitHub, refuses to continue if the checksum doesn't match, then runs `apt install`. That's all: [read it](../packaging/install.sh) first if you like, it's short.
+It detects your CPU, downloads the latest `.deb` and `checksums.txt` from GitHub, refuses to continue if the checksum doesn't match, refreshes apt's package lists (for `ffmpeg`), then runs `apt install`. That's all: [read it](../packaging/install.sh) first if you like, it's short.
 
 ## Docker
 
@@ -59,7 +61,7 @@ git clone https://github.com/gh-prim/plaid.git && cd plaid
 docker compose up -d
 ```
 
-Edit `docker-compose.yml` to mount your media folders read-only (`/path/to/movies:/media/movies:ro`). Data lives in the `plaid-data` volume. The container runs as a non-root user (uid 1000).
+Edit `docker-compose.yml` to mount your media folders read-only (`/path/to/movies:/media/movies:ro`), then use the paths **inside the container** (`/media/movies`) when you create a library. Data lives in the `plaid-data` volume. The container runs as a non-root user (uid 1000) and ships FFmpeg.
 
 ## Configuration
 
@@ -127,6 +129,30 @@ sudo setfacl -R -d -m u:plaid:rX /path/to/media    # also for files added later
 sudo setfacl -m u:plaid:x /home/you
 ```
 
-Check it worked: `sudo -u plaid ls /path/to/media`.
+Check it worked: `sudo -u plaid ls /path/to/media`. When you add a folder to a library, PLAID checks the same thing and answers `folder_unreadable` if it can't list it.
+
+**Docker:** the container's user is uid 1000. Your media must be readable by that uid (or world-readable, `chmod -R o+rX /path/to/media`). Mount it with `:ro`: PLAID doesn't need more.
 
 PLAID only ever needs **read** access to media; it never writes to your library folders.
+
+## How PLAID notices new files
+
+On local disks (ext4, btrfs, XFS, ZFS, a USB drive…) PLAID watches library folders: a file you copy in is scanned once it has stopped growing for 10 seconds. On top of that, every library is rescanned every 6 hours as a safety net.
+
+**Network shares (NFS, SMB/CIFS) and FUSE mounts** don't report changes reliably, so PLAID doesn't watch them. It rescans those libraries every **15 minutes** instead. Use "Scan now" for anything you want sooner. You can change a library's interval (5 minutes to 24 hours) in its settings.
+
+If a drive is unplugged or a share is down, PLAID marks the folder `unavailable` and leaves everything as it was: nothing is removed. Plug it back in and the next scan picks up where it left off. Files that really disappear are hidden from the library, then forgotten after 30 days.
+
+### Big libraries: the inotify watch limit
+
+Linux limits how many folders one user can watch (`fs.inotify.max_user_watches`). Kernels from 5.11 on size it from your RAM, from about 8,000 on 512 MB up to 1,000,000, which is plenty for most libraries. PLAID uses one watch per folder. If it runs out, the affected library folder falls back to periodic scans and PLAID logs a warning. The admin capabilities (`GET /api/v1/server/capabilities`) list the folders concerned.
+
+To raise the limit:
+
+```bash
+echo fs.inotify.max_user_watches=524288 | sudo tee /etc/sysctl.d/60-plaid-inotify.conf
+sudo sysctl --system
+sudo systemctl restart plaid
+```
+
+In Docker, the limit is the host's: run these commands on the host. PLAID's package doesn't change this setting for you, as it applies to the whole machine.
