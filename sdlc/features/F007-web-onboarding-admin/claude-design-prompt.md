@@ -1,9 +1,12 @@
 # Claude Design prompts — F007 onboarding and administration
 
-> Three prompts, sent in order in **one** Claude Design project with the PLAID design system selected:
+> Result: canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz), pages Onboarding and Admin.
+>
+> Prompts sent in order in **one** Claude Design project with the PLAID design system selected:
 > 1. **Prompt A**: first-run onboarding (send first, iterate until it holds).
 > 2. **Prompt B**: the admin area (same project, so it inherits what A settled).
 > 3. **Review prompt**: paste after every round of A or B. It's the critique loop.
+> 4. **Correction prompt**: only when a round comes back cold.
 >
 > Attach the material listed under "What I'm giving you" before sending A. Without it, the result drifts back to generic.
 > Replaces `claude-design-prompt-onboarding.md`, which described the pre-revision design system (night blue, burgundy, tartan texture, "blanket unfolding"), all of which the revised system now forbids.
@@ -15,6 +18,7 @@ Research on avoiding "AI slop" (sources at the bottom) and our own F002 and webs
 - **The first draft becomes the template.** Asking for **three divergent directions** on the hardest screens before committing avoids locking into the first idea.
 - **A model is a lenient judge of its own work.** A separate, skeptical **review pass** with explicit criteria (design quality and originality weighted above craft and functionality, AI tells penalized) improves results over several rounds. That's the review prompt.
 - **Wording leaks into style.** Words like "museum quality" or "cozy blanket" push a look. The prompts keep the design system's own vocabulary and avoid new metaphors.
+- **Forbidding is not enough, and can overshoot.** Our first round of Prompt A, all kill lists and "warmth in two places only", came back as a black-and-white server console with grey poster placeholders: no slop, but no soul either. The fix was the correction prompt below: real posters, light from a real source, the amber thread, display type and a voice for the emotional moments. The prompts now ask for both from the first round.
 
 ---
 
@@ -23,7 +27,7 @@ Research on avoiding "AI slop" (sources at the bottom) and our own F002 and webs
 Design the first-run onboarding of PLAID's web app. Use the PLAID design system exactly as it is: its tokens, type, components, signature move and kill list. Do not invent colors, fonts or components. If the flow needs something the system lacks, build it from existing tokens and list it as a proposed addition.
 
 ### The moment
-Someone just installed the PLAID server: a `.deb` on an Ubuntu box, a Docker container on a NAS, or a Raspberry Pi 4 under the TV. The install script ended by printing `http://<their-server>:32500`. They open it, very often on their phone, on the couch, on the home Wi-Fi. The server has no account and no library. In about three minutes they should go from "blank server" to "my movies are here". They are usually the household's tech person (self-hoster, home lab), comfortable with a terminal, allergic to marketing, and they will later invite less technical people. Treat them as competent: no hand-holding, no exclamation marks, no mascots.
+Someone just installed the PLAID server: a `.deb` on an Ubuntu box, a Docker container on a NAS, or a Raspberry Pi 4 under the TV. The install script ended by printing `http://<their-server>:32500`. They open it, usually in the browser of the computer they installed from, with that terminal still open beside it; sometimes on their phone, on the home Wi-Fi. The server has no account and no library. In about three minutes they should go from "blank server" to "my movies are here". They are usually the household's tech person (self-hoster, home lab), comfortable with a terminal, allergic to marketing, and they will later invite less technical people. Treat them as competent: no hand-holding, no exclamation marks, no mascots.
 
 ### What the flow must get done (jobs, not screens)
 Decide yourself how many screens this takes and how they're laid out. Fewer is better. These are the jobs, with what the server really does:
@@ -49,7 +53,7 @@ Numbered circles joined by a line as the progress indicator · a hero illustrati
 ### Method
 1. **Copy first.** Write every string before any layout: English source, French next to it, using "tu". Functional text (labels, errors, the permission fix) is plain and exact. Warmth is allowed in two places only: the first screen and the end of the scan. Cut until each sentence passes "so what?" and "could only PLAID say this?".
 2. **Three directions on the two hardest moments**: the folder picker with an unreadable folder, on a phone; and the first scan of the large library, on desktop. Make them genuinely different (different structure, not different colors). Show them side by side, say which one you pick and why, then build the whole flow in that direction.
-3. **Grayscale first**: type and space only. The hierarchy has to work before amber, posters or the tartan come in.
+3. **Grayscale, then color, in the same round**: check the hierarchy in type and space only, then bring in the real posters and backdrops from `metadata.csv`, the movie-night theme's warm near-black, light from a real source (the backdrop of the latest matched title) and the amber thread. Never deliver the grayscale pass as the result: without the posters, the flow has no color and no feeling.
 4. **Amber budget**: at most one amber element per viewport (the primary action, focus or progress). The tartan appears only where the design system allows it.
 5. **One motion**, the one that carries the flow (likely posters arriving during the scan), slow, respecting `prefers-reduced-motion`.
 
@@ -68,12 +72,32 @@ Numbered circles joined by a line as the progress indicator · a hero illustrati
 
 ---
 
+## Correction prompt — when a round comes back cold
+
+Paste in the same canvas, with `metadata.csv` attached, when a round reads like a server console. Then ask it to finish the deliverables in the picked direction.
+
+This was the grayscale pass and it did its job: the hierarchy and the copy hold. Now it's too cold. It reads like a server console, and PLAID is a movie night. Keep the structure of Picker A and Scan B. Bring in the warmth, without breaking the design system's kill list.
+
+1. **The posters are the color.** Load the real `poster_url` and `backdrop_url` from the attached `metadata.csv`. Every grey rectangle becomes a real poster. The empty slots are the dark the wall fills from.
+2. **Light from a real source.** Use the movie-night theme's warm near-black, not neutral grey. Behind the scan, the backdrop of the latest matched title, blurred and dimmed, changing as titles arrive, like a screen lighting a dark room. That is the only atmosphere effect.
+3. **The amber thread.** The scan progress is the woven Gordon tartan thread, the design system's signature move. The single primary action per screen is amber.
+4. **Display type for the emotional moments.** Instrument Serif at true display size on the first screen, on the scan, and on the end of the scan. Everywhere else, Instrument Sans as now.
+5. **Give those three moments a voice.** Rewrite their copy so it's about *their* movies, with their real numbers and titles (for example, the end of the scan names a film from their library). Functional text stays plain.
+6. **Design the end of the scan.** It's the emotional peak and it's missing: the wall of their own posters, one serif line, one amber button to start watching.
+7. **One motion.** Posters arrive one by one in the wall, slow, and the backdrop crossfades. Specify both, with `prefers-reduced-motion`.
+
+Show before and after for the first screen, Picker A and Scan B, plus the new end-of-scan screen, at 375 and 1440. Don't redo the rejected directions.
+
+Follow-up line: "Now build the full flow in that direction, at 375 and 1440, with every state listed in the deliverables, the French and German-length checks, the light theme on the scan, and the list of new components."
+
+---
+
 ## Prompt B — administration
 
-Same project, same design system, same rules as the onboarding, including its kill list and amber budget. Design the admin area of PLAID's web app. Before starting, list what the onboarding settled (components, patterns, tone) that you will reuse.
+Same project, same design system, same rules as the onboarding, including its kill list and amber budget. Design the admin area of PLAID's web app. Before starting, list what the onboarding settled (components, patterns, tone, light, the amber thread) that you will reuse. The admin belongs to the same movie night: it keeps the onboarding's warmth and uses real posters and backdrops wherever a title appears, it does not become a server console.
 
 ### Who and when
-The same admin, weeks later. They come to the admin area for a reason, rarely to browse: a friend says "it's buffering", a new hard drive got plugged in, a movie shows the wrong poster, the Pi feels hot. Most visits are short and from a phone. The admin area answers "is something wrong, and what do I do about it", then gets out of the way. It sits next to the library, not in a separate product: going back to the posters is always one step away.
+The same admin, weeks later. They come to the admin area for a reason, rarely to browse: a friend says "it's buffering", a new hard drive got plugged in, a movie shows the wrong poster, the Pi feels hot. Checking a stream happens on a phone as often as on a computer; setting up a library or transcoding happens on a computer. The admin area answers "is something wrong, and what do I do about it", then gets out of the way. It sits next to the library, not in a separate product: going back to the posters is always one step away.
 
 ### The jobs, with what the server really provides
 1. **Who's watching right now.** Per active stream: user, profile, device, title, method (`direct_play`, `direct_stream`, `transcode`) with machine-readable reasons (`video_codec_not_supported`, `bitrate_too_high`, `subtitle_burn_in`, …), quality, hardware or software, transcode speed (e.g. 0.8× means it can't keep up), position, local or remote. The admin can stop a stream. This is where "it's buffering" gets answered: translate reasons into one plain sentence each.
