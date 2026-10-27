@@ -1,7 +1,7 @@
 ---
 id: 0007
 title: Metadata provider API keys (TMDB, fanart.tv)
-status: proposed
+status: accepted
 date: 2026-10-27
 deciders: [gh-prim]
 supersedes: null
@@ -29,10 +29,12 @@ The keys live in GitHub Actions secrets and are set through `-ldflags -X …/int
 - ❌ Onboarding gets an "open an account with TMDB" step, and metadata stays empty until the admin does it. That goes against the intent.
 
 ## Decision
-_Proposed:_ **B**, with an admin override. Order of use: the key saved by the admin (database setting) → `PLAID_TMDB_API_KEY` / `PLAID_FANART_API_KEY` → the built-in key. Keys are write-only in the API and never logged.
+We choose **B**, with an admin override (gh-prim, 2026-10-27). Order of use: the key saved by the admin (database setting) → `PLAID_TMDB_API_KEY` / `PLAID_FANART_API_KEY` → the built-in key. Keys are write-only in the API and never logged.
 
 ## Consequences
 - Two repository secrets, `TMDB_API_KEY` and `FANART_API_KEY`, used by the release workflow and `docker.yml`, never exposed to workflows that run on pull requests from forks.
 - Tests never call the real providers: they replay recorded responses.
 - The web About page (F007) shows the TMDB and fanart.tv attribution.
 - If a built-in key is revoked, a patch release with a new key fixes every install that updates. Admins with their own key aren't affected.
+- Before F005 ships, the owner creates the PLAID apps on TMDB and fanart.tv and checks their terms for long-term image caching, attribution, and what happens to cached data if a key is revoked. The result is noted here.
+- `plaid.db` holds admin-saved keys in plain text: the server warns at startup if the file is readable by anyone but its owner (expected mode `0600`).
