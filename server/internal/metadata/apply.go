@@ -123,11 +123,13 @@ func (s *Service) processMovie(ctx context.Context, p parsed) error {
 	doc, path, nerr := readNFO(dirs, names)
 	s.logNFO(path, nerr)
 
+	localArt := func() { s.artworkAfter(ctx, p, func() error { return s.movieArtwork(ctx, p, nil) }) }
 	prov := s.provider()
 	if prov == nil {
 		if err := s.store.writeLocal(ctx, p, cur, doc); err != nil {
 			return err
 		}
+		localArt()
 		return ErrPaused
 	}
 	res, err := s.resolve(ctx, prov, provider.Movie, p, cur, doc)
@@ -135,7 +137,11 @@ func (s *Service) processMovie(ctx context.Context, p parsed) error {
 		return err
 	}
 	if res.tmdbID == 0 {
-		return s.store.writeUnresolved(ctx, p, cur, doc, res.decision)
+		if err := s.store.writeUnresolved(ctx, p, cur, doc, res.decision); err != nil {
+			return err
+		}
+		localArt()
+		return nil
 	}
 	d, err := prov.Movie(ctx, res.tmdbID, p.Locale)
 	if err != nil {
@@ -150,7 +156,7 @@ func (s *Service) processMovie(ctx context.Context, p parsed) error {
 			collectionID = ""
 		}
 	}
-	return s.store.inTx(ctx, func(tx *sql.Tx) error {
+	if err := s.store.inTx(ctx, func(tx *sql.Tx) error {
 		r := build(p, cur, d, doc, res, certs.Movie)
 		r.CollectionID = collectionID
 		if err := s.store.writeRow(ctx, tx, p.ID, r, refreshAt(s.o.Now(), d)); err != nil {
@@ -160,7 +166,28 @@ func (s *Service) processMovie(ctx context.Context, p parsed) error {
 			return err
 		}
 		return s.store.markDuplicates(ctx, tx, p, r.TMDBID)
-	})
+	}); err != nil {
+		return err
+	}
+	// Artwork comes after the metadata is stored: an image that can't be
+	// fetched never undoes a match.
+	s.artworkAfter(ctx, p, func() error { return s.movieArtwork(ctx, p, d) }, d.Cast, d.Crew)
+	return nil
+}
+
+// artworkAfter runs an artwork sync and records portraits, logging errors.
+func (s *Service) artworkAfter(ctx context.Context, p parsed, sync func() error, people ...[]provider.Person) {
+	if s.art == nil {
+		return
+	}
+	if err := sync(); err != nil {
+		s.log.Error("artwork not updated", "item", p.ID, "err", err)
+	}
+	for _, list := range people {
+		if err := s.store.portraits(ctx, list); err != nil {
+			s.log.Error("portraits not recorded", "item", p.ID, "err", err)
+		}
+	}
 }
 
 func (s *Service) processShow(ctx context.Context, p parsed) error {
@@ -180,11 +207,13 @@ func (s *Service) processShow(ctx context.Context, p parsed) error {
 		s.logNFO(path, nerr)
 	}
 
+	localArt := func() { s.artworkAfter(ctx, p, func() error { return s.showArtwork(ctx, p, nil, nil, nil) }) }
 	prov := s.provider()
 	if prov == nil {
 		if err := s.store.writeLocal(ctx, p, cur, doc); err != nil {
 			return err
 		}
+		localArt()
 		return ErrPaused
 	}
 	res, err := s.resolve(ctx, prov, provider.Show, p, cur, doc)
@@ -192,7 +221,11 @@ func (s *Service) processShow(ctx context.Context, p parsed) error {
 		return err
 	}
 	if res.tmdbID == 0 {
-		return s.store.writeUnresolved(ctx, p, cur, doc, res.decision)
+		if err := s.store.writeUnresolved(ctx, p, cur, doc, res.decision); err != nil {
+			return err
+		}
+		localArt()
+		return nil
 	}
 	d, err := prov.Show(ctx, res.tmdbID, p.Locale)
 	if err != nil {
@@ -208,7 +241,7 @@ func (s *Service) processShow(ctx context.Context, p parsed) error {
 	}
 	// Everything fetched: write the show and its seasons and episodes in
 	// one transaction, so a failure half-way changes nothing (R33).
-	return s.store.inTx(ctx, func(tx *sql.Tx) error {
+	if err := s.store.inTx(ctx, func(tx *sql.Tx) error {
 		r := build(p, cur, d, doc, res, certs.TV)
 		if err := s.store.writeRow(ctx, tx, p.ID, r, refreshAt(s.o.Now(), d)); err != nil {
 			return err
@@ -220,7 +253,11 @@ func (s *Service) processShow(ctx context.Context, p parsed) error {
 			return err
 		}
 		return s.store.markDuplicates(ctx, tx, p, r.TMDBID)
-	})
+	}); err != nil {
+		return err
+	}
+	s.artworkAfter(ctx, p, func() error { return s.showArtwork(ctx, p, d, children, seasons) }, d.Cast, d.Crew)
+	return nil
 }
 
 // child is a season or an episode of a show.

@@ -3,7 +3,10 @@ package metadata
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+
+	"github.com/gh-prim/plaid/server/internal/metadata/artwork"
 )
 
 // Summary is what item lists show from F005 (R36).
@@ -15,6 +18,67 @@ type Summary struct {
 	Certification string
 	AgeRating     *int
 	Genres        []string
+	Poster        *Art
+	Backdrop      *Art
+	Still         *Art
+}
+
+// Art is a selected image (R19, R21).
+type Art struct {
+	ID     string
+	Width  int
+	Height int
+	Source string
+	Colors *artwork.Colors
+}
+
+const selectedArtQuery = `SELECT owner_id, kind, id, COALESCE(width, 0), COALESCE(height, 0), source, COALESCE(colors, '')
+	FROM artwork WHERE owner_type = ? AND selected = 1 AND owner_id IN (`
+
+// selectedArt returns the selected images of items, per item and kind,
+// best first.
+func (s *Store) selectedArt(ctx context.Context, ownerType string, ids []string) (map[string]map[string][]Art, error) {
+	out := map[string]map[string][]Art{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	args := []any{ownerType}
+	for _, id := range ids {
+		args = append(args, id)
+	}
+	q := selectedArtQuery + placeholders(len(ids)) + `) ORDER BY rowid` //nolint:gosec // only placeholders
+	rows, err := s.db.QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var (
+			owner, kind, colors string
+			a                   Art
+		)
+		if err := rows.Scan(&owner, &kind, &a.ID, &a.Width, &a.Height, &a.Source, &colors); err != nil {
+			return nil, err
+		}
+		if colors != "" {
+			var c artwork.Colors
+			if json.Unmarshal([]byte(colors), &c) == nil {
+				a.Colors = &c
+			}
+		}
+		if out[owner] == nil {
+			out[owner] = map[string][]Art{}
+		}
+		out[owner][kind] = append(out[owner][kind], a)
+	}
+	return out, rows.Err()
+}
+
+func first(arts []Art) *Art {
+	if len(arts) == 0 {
+		return nil
+	}
+	return &arts[0]
 }
 
 // Summaries returns the summaries of the given items; items without a
@@ -42,7 +106,22 @@ func (s *Store) Summaries(ctx context.Context, itemIDs []string) (map[string]Sum
 		}
 		out[id] = r.summary()
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	art, err := s.selectedArt(ctx, "item", itemIDs)
+	if err != nil {
+		return nil, err
+	}
+	for id, kinds := range art {
+		sm, ok := out[id]
+		if !ok {
+			sm = Summary{State: "pending", Genres: []string{}}
+		}
+		sm.Poster, sm.Backdrop, sm.Still = first(kinds["poster"]), first(kinds["backdrop"]), first(kinds["still"])
+		out[id] = sm
+	}
+	return out, nil
 }
 
 // prefixed scans a leading column before a row's columns.
@@ -68,6 +147,7 @@ type Credit struct {
 	Name      string
 	Role      string
 	Character string
+	Portrait  *Art
 }
 
 // Detail is everything F005 stores about an item (R36).
@@ -95,6 +175,9 @@ type Detail struct {
 	IMDbID         string
 	TVDBID         int
 	DuplicateOf    string
+	Logo           *Art
+	Clearart       *Art
+	Backdrops      []Art
 }
 
 // Trailer is a stored trailer (R22).
@@ -138,14 +221,33 @@ func (s *Store) Detail(ctx context.Context, itemID string) (d Detail, ok bool, e
 	}
 	defer rows.Close()
 	d.Credits = []Credit{}
+	var people []string
 	for rows.Next() {
 		var c Credit
 		if err := rows.Scan(&c.PersonID, &c.Name, &c.Role, &c.Character); err != nil {
 			return d, false, err
 		}
 		d.Credits = append(d.Credits, c)
+		people = append(people, c.PersonID)
 	}
-	return d, true, rows.Err()
+	if err := rows.Err(); err != nil {
+		return d, false, err
+	}
+	art, err := s.selectedArt(ctx, "item", []string{itemID})
+	if err != nil {
+		return d, false, err
+	}
+	kinds := art[itemID]
+	d.Poster, d.Backdrop, d.Still = first(kinds["poster"]), first(kinds["backdrop"]), first(kinds["still"])
+	d.Logo, d.Clearart, d.Backdrops = first(kinds["logo"]), first(kinds["clearart"]), nonNil(kinds["backdrop"])
+	portraits, err := s.selectedArt(ctx, "person", people)
+	if err != nil {
+		return d, false, err
+	}
+	for i := range d.Credits {
+		d.Credits[i].Portrait = first(portraits[d.Credits[i].PersonID]["portrait"])
+	}
+	return d, true, nil
 }
 
 // RefreshLibrary schedules a refresh of every movie and show of a library,

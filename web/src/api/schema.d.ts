@@ -576,6 +576,28 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/images/{imageId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        imageId: string
+      }
+      cookie?: never
+    }
+    /**
+     * An artwork image, resized for the client (F005 R19)
+     * @description Served at the smallest width of 92, 185, 342, 500, 780, 1280, 1920 or 3840 that is at least `w`, never wider than the original. Photos are JPEG, logos and clearart PNG. Responses are immutable for an imageId: a new image gets a new id. An image of an item the active profile may not see is a 404 (R25).
+     */
+    get: operations['getImage']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/fs/browse': {
     parameters: {
       query?: never
@@ -964,6 +986,9 @@ export interface components {
       /** @description Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated. */
       ageRating?: number
       genres: string[]
+      poster?: components['schemas']['Artwork']
+      backdrop?: components['schemas']['Artwork']
+      still?: components['schemas']['Artwork']
       year?: number
       seasonNumber?: number
       episodeNumber?: number
@@ -1072,6 +1097,10 @@ export interface components {
       /** @description Fields taken from a local .nfo (R12). */
       localFields: string[]
       providerIds: components['schemas']['ProviderIds']
+      logo?: components['schemas']['Artwork']
+      clearart?: components['schemas']['Artwork']
+      /** @description Up to 3 backdrops, best first (R15). */
+      backdrops: components['schemas']['Artwork'][]
       /** @description The older item of the library matched to the same title (R38). */
       duplicateOf?: string
     }
@@ -1096,6 +1125,29 @@ export interface components {
       /** @enum {string} */
       role: 'cast' | 'director' | 'writer' | 'creator'
       character?: string
+      portrait?: components['schemas']['Artwork']
+    }
+    /** @description An image; fetch it with GET /images/{imageId}?w=. */
+    Artwork: {
+      imageId: string
+      /** @description Original width, when known. */
+      width?: number
+      height?: number
+      /** @enum {string} */
+      source?: 'local' | 'tmdb' | 'fanart'
+      colors?: components['schemas']['AmbientColors']
+    }
+    /** @description Colors taken from the image for the UI (R21), as */
+    AmbientColors: {
+      dominant: string
+      vibrant: string
+      muted: string
+      dark: string
+      /**
+       * @description Text color that reads on the dominant color.
+       * @enum {string}
+       */
+      onDominant: 'light' | 'dark'
     }
     ProviderIds: {
       tmdb?: number
@@ -2093,6 +2145,46 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ItemDetail']
         }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getImage: {
+    parameters: {
+      query?: {
+        /** @description Wanted width in pixels; defaults to 342. */
+        w?: number
+      }
+      header?: {
+        'If-None-Match'?: string
+      }
+      path: {
+        imageId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The image */
+      200: {
+        headers: {
+          ETag?: string
+          'Cache-Control'?: string
+          'X-Content-Type-Options'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'image/jpeg': string
+          'image/png': string
+        }
+      }
+      /** @description Not modified (If-None-Match matched) */
+      304: {
+        headers: {
+          ETag?: string
+          [name: string]: unknown
+        }
+        content?: never
       }
       default: components['responses']['Error']
     }

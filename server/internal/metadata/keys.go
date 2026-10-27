@@ -9,7 +9,7 @@ import (
 // Built-in provider keys, set at release time with
 // -ldflags "-X …/internal/metadata.builtinTMDBKey=…" (ADR 0007). Empty in
 // dev builds and forks.
-var builtinTMDBKey string
+var builtinTMDBKey, builtinFanartKey string
 
 // Key sources, as GET /metadata/settings reports them (R34).
 const (

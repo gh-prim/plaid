@@ -20,6 +20,45 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AmbientColorsOnDominant.
+const (
+	Dark  AmbientColorsOnDominant = "dark"
+	Light AmbientColorsOnDominant = "light"
+)
+
+// Valid indicates whether the value is a known member of the AmbientColorsOnDominant enum.
+func (e AmbientColorsOnDominant) Valid() bool {
+	switch e {
+	case Dark:
+		return true
+	case Light:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ArtworkSource.
+const (
+	Fanart ArtworkSource = "fanart"
+	Local  ArtworkSource = "local"
+	Tmdb   ArtworkSource = "tmdb"
+)
+
+// Valid indicates whether the value is a known member of the ArtworkSource enum.
+func (e ArtworkSource) Valid() bool {
+	switch e {
+	case Fanart:
+		return true
+	case Local:
+		return true
+	case Tmdb:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CreditRole.
 const (
 	Cast     CreditRole = "cast"
@@ -509,6 +548,35 @@ type AdminUser struct {
 	Username           string    `json:"username"`
 }
 
+// AmbientColors Colors taken from the image for the UI (R21), as
+type AmbientColors struct {
+	Dark     string `json:"dark"`
+	Dominant string `json:"dominant"`
+	Muted    string `json:"muted"`
+
+	// OnDominant Text color that reads on the dominant color.
+	OnDominant AmbientColorsOnDominant `json:"onDominant"`
+	Vibrant    string                  `json:"vibrant"`
+}
+
+// AmbientColorsOnDominant Text color that reads on the dominant color.
+type AmbientColorsOnDominant string
+
+// Artwork An image; fetch it with GET /images/{imageId}?w=.
+type Artwork struct {
+	// Colors Colors taken from the image for the UI (R21), as
+	Colors  *AmbientColors `json:"colors,omitempty"`
+	Height  *int           `json:"height,omitempty"`
+	ImageId string         `json:"imageId"`
+	Source  *ArtworkSource `json:"source,omitempty"`
+
+	// Width Original width, when known.
+	Width *int `json:"width,omitempty"`
+}
+
+// ArtworkSource defines model for Artwork.Source.
+type ArtworkSource string
+
 // AuthResult defines model for AuthResult.
 type AuthResult struct {
 	ActiveProfile *Profile    `json:"activeProfile,omitempty"`
@@ -616,10 +684,13 @@ type CreateUserRequest struct {
 
 // Credit defines model for Credit.
 type Credit struct {
-	Character *string    `json:"character,omitempty"`
-	Name      string     `json:"name"`
-	PersonId  string     `json:"personId"`
-	Role      CreditRole `json:"role"`
+	Character *string `json:"character,omitempty"`
+	Name      string  `json:"name"`
+	PersonId  string  `json:"personId"`
+
+	// Portrait An image; fetch it with GET /images/{imageId}?w=.
+	Portrait *Artwork   `json:"portrait,omitempty"`
+	Role     CreditRole `json:"role"`
 }
 
 // CreditRole defines model for Credit.Role.
@@ -694,6 +765,9 @@ type ItemDetail struct {
 	AgeRating *int                `json:"ageRating,omitempty"`
 	AirDate   *openapi_types.Date `json:"airDate,omitempty"`
 
+	// Backdrop An image; fetch it with GET /images/{imageId}?w=.
+	Backdrop *Artwork `json:"backdrop,omitempty"`
+
 	// Certification Content rating in certificationRegion, e.g. PG-13 or FSK 16.
 	Certification *string `json:"certification,omitempty"`
 
@@ -719,12 +793,18 @@ type ItemDetail struct {
 	Metadata *ItemMetadata `json:"metadata,omitempty"`
 	ParentId *string       `json:"parentId,omitempty"`
 
+	// Poster An image; fetch it with GET /images/{imageId}?w=.
+	Poster *Artwork `json:"poster,omitempty"`
+
 	// Rating TMDB average vote, 0–10.
 	Rating *float32 `json:"rating,omitempty"`
 
 	// ReleaseDate Movie release, show first air date, season or episode air date.
 	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
 	SeasonNumber *int                `json:"seasonNumber,omitempty"`
+
+	// Still An image; fetch it with GET /images/{imageId}?w=.
+	Still *Artwork `json:"still,omitempty"`
 
 	// Technical Across the item's files present on disk (for shows and seasons, their episodes).
 	Technical TechnicalSummary `json:"technical"`
@@ -745,10 +825,15 @@ type ItemKind string
 
 // ItemMetadata What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
 type ItemMetadata struct {
-	CertificationRegion *string        `json:"certificationRegion,omitempty"`
-	Collection          *CollectionRef `json:"collection,omitempty"`
-	Confidence          *float32       `json:"confidence,omitempty"`
-	Credits             []Credit       `json:"credits"`
+	// Backdrops Up to 3 backdrops, best first (R15).
+	Backdrops           []Artwork `json:"backdrops"`
+	CertificationRegion *string   `json:"certificationRegion,omitempty"`
+
+	// Clearart An image; fetch it with GET /images/{imageId}?w=.
+	Clearart   *Artwork       `json:"clearart,omitempty"`
+	Collection *CollectionRef `json:"collection,omitempty"`
+	Confidence *float32       `json:"confidence,omitempty"`
+	Credits    []Credit       `json:"credits"`
 
 	// DuplicateOf The older item of the library matched to the same title (R38).
 	DuplicateOf *string `json:"duplicateOf,omitempty"`
@@ -763,7 +848,10 @@ type ItemMetadata struct {
 	LocalFields []string `json:"localFields"`
 
 	// LockedFields Fields an admin set; refreshes don't change them (R29).
-	LockedFields   []string                 `json:"lockedFields"`
+	LockedFields []string `json:"lockedFields"`
+
+	// Logo An image; fetch it with GET /images/{imageId}?w=.
+	Logo           *Artwork                 `json:"logo,omitempty"`
 	MatchSource    *ItemMetadataMatchSource `json:"matchSource,omitempty"`
 	OriginalTitle  *string                  `json:"originalTitle,omitempty"`
 	Overview       *string                  `json:"overview,omitempty"`
@@ -798,6 +886,9 @@ type ItemSummary struct {
 	AgeRating *int                `json:"ageRating,omitempty"`
 	AirDate   *openapi_types.Date `json:"airDate,omitempty"`
 
+	// Backdrop An image; fetch it with GET /images/{imageId}?w=.
+	Backdrop *Artwork `json:"backdrop,omitempty"`
+
 	// Certification Content rating in certificationRegion, e.g. PG-13 or FSK 16.
 	Certification *string `json:"certification,omitempty"`
 
@@ -819,12 +910,18 @@ type ItemSummary struct {
 	MatchStatus MatchStatus `json:"matchStatus"`
 	ParentId    *string     `json:"parentId,omitempty"`
 
+	// Poster An image; fetch it with GET /images/{imageId}?w=.
+	Poster *Artwork `json:"poster,omitempty"`
+
 	// Rating TMDB average vote, 0–10.
 	Rating *float32 `json:"rating,omitempty"`
 
 	// ReleaseDate Movie release, show first air date, season or episode air date.
 	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
 	SeasonNumber *int                `json:"seasonNumber,omitempty"`
+
+	// Still An image; fetch it with GET /images/{imageId}?w=.
+	Still *Artwork `json:"still,omitempty"`
 
 	// Technical Across the item's files present on disk (for shows and seasons, their episodes).
 	Technical TechnicalSummary `json:"technical"`
@@ -1269,6 +1366,13 @@ type BrowseFoldersParams struct {
 	Path *string `form:"path,omitempty" json:"path,omitempty"`
 }
 
+// GetImageParams defines parameters for GetImage.
+type GetImageParams struct {
+	// W Wanted width in pixels; defaults to 342.
+	W           *int    `form:"w,omitempty" json:"w,omitempty"`
+	IfNoneMatch *string `json:"If-None-Match,omitempty"`
+}
+
 // ListLibraryItemsParams defines parameters for ListLibraryItems.
 type ListLibraryItemsParams struct {
 	// Kind Defaults to the top level, `movie` or `show`, when `parentId` is absent.
@@ -1354,6 +1458,9 @@ type ServerInterface interface {
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
+	// GetImage An artwork image, resized for the client (F005 R19)
+	// (GET /images/{imageId})
+	GetImage(w http.ResponseWriter, r *http.Request, imageId string, params GetImageParams)
 	// GetItem An item with its files and streams
 	// (GET /items/{itemId})
 	GetItem(w http.ResponseWriter, r *http.Request, itemId string)
@@ -1539,6 +1646,69 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetImage operation middleware
+func (siw *ServerInterfaceWrapper) GetImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "imageId" -------------
+	var imageId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "imageId", r.PathValue("imageId"), &imageId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "imageId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetImageParams
+
+	// ------------- Optional query parameter "w" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "w", r.URL.Query(), &params.W, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "w"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "w", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-None-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-None-Match")]; found {
+		var IfNoneMatch string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-None-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-None-Match", valueList[0], &IfNoneMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-None-Match", Err: err})
+			return
+		}
+
+		params.IfNoneMatch = &IfNoneMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetImage(w, r, imageId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2547,6 +2717,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/items", wrapper.ListLibraryItems)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/unrecognized", wrapper.ListUnrecognizedFiles)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/items/{itemId}", wrapper.GetItem)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/images/{imageId}", wrapper.GetImage)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 
@@ -2696,6 +2867,114 @@ func (response GetHealth503JSONResponse) VisitGetHealthResponse(w http.ResponseW
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetImageRequestObject struct {
+	ImageId string `json:"imageId"`
+	Params  GetImageParams
+}
+
+type GetImageResponseObject interface {
+	VisitGetImageResponse(w http.ResponseWriter) error
+}
+
+type GetImage200ResponseHeaders struct {
+	CacheControl        *string
+	ETag                *string
+	XContentTypeOptions *string
+}
+
+type GetImage200ImagejpegResponse struct {
+	Body          io.Reader
+	Headers       GetImage200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetImage200ImagejpegResponse) VisitGetImageResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetImage200ImagepngResponse struct {
+	Body          io.Reader
+	Headers       GetImage200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetImage200ImagepngResponse) VisitGetImageResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/png")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetImage304ResponseHeaders struct {
+	ETag *string
+}
+
+type GetImage304Response struct {
+	Headers GetImage304ResponseHeaders
+}
+
+func (response GetImage304Response) VisitGetImageResponse(w http.ResponseWriter) error {
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(304)
+	return nil
+}
+
+type GetImagedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetImagedefaultJSONResponse) VisitGetImageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -4113,6 +4392,9 @@ type StrictServerInterface interface {
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
+	// GetImage An artwork image, resized for the client (F005 R19)
+	// (GET /images/{imageId})
+	GetImage(ctx context.Context, request GetImageRequestObject) (GetImageResponseObject, error)
 	// GetItem An item with its files and streams
 	// (GET /items/{itemId})
 	GetItem(ctx context.Context, request GetItemRequestObject) (GetItemResponseObject, error)
@@ -4360,6 +4642,33 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
 		if err := validResponse.VisitGetHealthResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetImage operation middleware
+func (sh *strictHandler) GetImage(w http.ResponseWriter, r *http.Request, imageId string, params GetImageParams) {
+	var request GetImageRequestObject
+
+	request.ImageId = imageId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetImage(ctx, request.(GetImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetImageResponseObject); ok {
+		if err := validResponse.VisitGetImageResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
