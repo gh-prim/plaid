@@ -359,3 +359,211 @@ func (b *Batch) Rollback() {
 		b.tx, b.rows = nil, 0
 	}
 }
+
+// ListLibraries loads every library with its folders, ordered by name.
+func (s *Store) ListLibraries(ctx context.Context) ([]Library, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id FROM libraries ORDER BY name COLLATE NOCASE, id`)
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			_ = rows.Close()
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	_ = rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	out := make([]Library, 0, len(ids))
+	for _, id := range ids {
+		lib, err := s.GetLibrary(ctx, id)
+		if errors.Is(err, ErrNotFound) {
+			continue // deleted in between
+		}
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, lib)
+	}
+	return out, nil
+}
+
+// Patch changes a library; nil fields are left as they are.
+type Patch struct {
+	Name *string
+	// SetInterval applies ScanIntervalS, where nil means back to defaults.
+	SetInterval   bool
+	ScanIntervalS *int64
+	// Folders, when set, is the new full list of cleaned paths.
+	Folders []string
+}
+
+// UpdateLibrary applies p and returns the ids of folders it added. Removed
+// folders take their files with them (ON DELETE CASCADE); items left
+// without files are cleaned up by the next scan.
+func (s *Store) UpdateLibrary(ctx context.Context, id string, p Patch) (added []string, err error) {
+	now := s.now()
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	res, err := tx.ExecContext(ctx, `UPDATE libraries SET updated_at = ? WHERE id = ?`, now, id)
+	if err != nil {
+		return nil, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return nil, ErrNotFound
+	}
+	if p.Name != nil {
+		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET name = ? WHERE id = ?`, *p.Name, id); err != nil {
+			return nil, err
+		}
+	}
+	if p.SetInterval {
+		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET scan_interval_s = ? WHERE id = ?`,
+			nullInt64Ptr(p.ScanIntervalS), id); err != nil {
+			return nil, err
+		}
+	}
+	if p.Folders != nil {
+		keep := map[string]bool{}
+		for _, f := range p.Folders {
+			keep[f] = true
+		}
+		rows, err := tx.QueryContext(ctx, `SELECT id, path FROM library_folders WHERE library_id = ?`, id)
+		if err != nil {
+			return nil, err
+		}
+		existing := map[string]string{}
+		for rows.Next() {
+			var fid, path string
+			if err := rows.Scan(&fid, &path); err != nil {
+				_ = rows.Close()
+				return nil, err
+			}
+			existing[path] = fid
+		}
+		_ = rows.Close()
+		for path, fid := range existing {
+			if !keep[path] {
+				if _, err := tx.ExecContext(ctx, `DELETE FROM library_folders WHERE id = ?`, fid); err != nil {
+					return nil, err
+				}
+			}
+		}
+		for _, path := range p.Folders {
+			if _, ok := existing[path]; ok {
+				continue
+			}
+			fid := newID()
+			if _, err := tx.ExecContext(ctx,
+				`INSERT INTO library_folders (id, library_id, path, created_at) VALUES (?, ?, ?, ?)`,
+				fid, id, path, now); err != nil {
+				return nil, fmt.Errorf("insert folder %s: %w", path, err)
+			}
+			added = append(added, fid)
+		}
+	}
+	return added, tx.Commit()
+}
+
+// SetFolderWatch records a folder's file system type and whether it is
+// watched (R18).
+func (s *Store) SetFolderWatch(ctx context.Context, folderID, fsType string, watched bool) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE library_folders SET fs_type = ?, watched = ? WHERE id = ?`,
+		nullString(fsType), watched, folderID)
+	return err
+}
+
+// Counts are the visible contents of a library.
+type Counts struct {
+	Movies, Shows, Episodes, Files, Unrecognized int
+}
+
+// LibraryCounts returns the counts of every library, by library id.
+func (s *Store) LibraryCounts(ctx context.Context) (map[string]Counts, error) {
+	out := map[string]Counts{}
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT library_id, kind, COUNT(*) FROM items WHERE hidden = 0 AND kind IN ('movie','show','episode')
+		 GROUP BY library_id, kind`)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var (
+			id, kind string
+			n        int
+		)
+		if err := rows.Scan(&id, &kind, &n); err != nil {
+			_ = rows.Close()
+			return nil, err
+		}
+		c := out[id]
+		switch kind {
+		case KindMovie:
+			c.Movies = n
+		case KindShow:
+			c.Shows = n
+		case KindEpisode:
+			c.Episodes = n
+		}
+		out[id] = c
+	}
+	_ = rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows, err = s.db.QueryContext(ctx,
+		`SELECT library_id, COUNT(*), COALESCE(SUM(parse_status = 'unrecognized'), 0)
+		 FROM media_files WHERE missing_since IS NULL GROUP BY library_id`)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	for rows.Next() {
+		var (
+			id      string
+			files   int
+			unknown int
+		)
+		if err := rows.Scan(&id, &files, &unknown); err != nil {
+			return nil, err
+		}
+		c := out[id]
+		c.Files, c.Unrecognized = files, unknown
+		out[id] = c
+	}
+	return out, rows.Err()
+}
+
+// AllFolders returns every library folder with its library id, for the
+// overlap check (R2).
+func (s *Store) AllFolders(ctx context.Context) (map[string]string, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT path, library_id FROM library_folders`)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	out := map[string]string{}
+	for rows.Next() {
+		var path, lib string
+		if err := rows.Scan(&path, &lib); err != nil {
+			return nil, err
+		}
+		out[path] = lib
+	}
+	return out, rows.Err()
+}
+
+func nullInt64Ptr(p *int64) any {
+	if p == nil {
+		return nil
+	}
+	return *p
+}
