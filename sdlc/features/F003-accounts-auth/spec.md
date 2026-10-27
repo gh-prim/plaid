@@ -260,3 +260,10 @@ Settled by gh-prim on 2026-10-27. ✅ = resolved, ⏸ = tracked elsewhere.
   3. Disabled accounts sign in with `401 invalid_credentials` (no account enumeration); disabling an account revokes all its sessions.
   4. `POST /auth/logout` is also allowed while `password_change_required` is active.
   5. The `Error` schema gains optional `details: [{field, code}]`, used with `validation_failed`.
+- **2026-10-27, during PR 2** (gh-prim):
+  6. Profiles can only be created, changed or deleted from an unrestricted profile (no age limit), or before a profile is picked: otherwise a kid on a restricted profile could lift their own limit or create an unrestricted profile. Refused with `403 forbidden`.
+  7. Changing a profile's `pin`, `maxAge` or `allowUnrated` needs that profile's current PIN or the account password (R16 only asked it for removing the PIN).
+  8. Re-checking the password of a signed-in user (password change, profile proof) answers `403 invalid_credentials`, not `401`, so clients don't take it for an expired session. Those checks share the sign-in backoff.
+  9. Sign-in, setup and pairing poll all return the same `AuthResult` body: `{token?, expiresAt, session: {id, deviceName, deviceType}, user, profiles, activeProfile?}`. A new session starts on the account's only profile if it has no PIN; otherwise no profile is active until one is picked.
+  10. `POST /pairing/claim` also takes the `pin` of the chosen profile when it has one (R17 applies to the TV's profile too).
+  11. The `plaid_session` cookie has `Max-Age` 400 days (the browser cap); the server's sliding 90-day expiry is what ends a session.

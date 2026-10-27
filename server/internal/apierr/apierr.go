@@ -102,3 +102,76 @@ func TooManyAttempts(retryAfter time.Duration) *Error {
 func Internal() *Error {
 	return New(http.StatusInternalServerError, "internal_error", "internal server error")
 }
+
+// Error codes from F003 (accounts and authentication).
+
+// CSRF refuses a cookie-authenticated request that isn't from the web app.
+func CSRF() *Error {
+	return New(http.StatusForbidden, "csrf", "missing X-Plaid-Client header or cross-origin request")
+}
+
+// InvalidCredentials never says which of username or password was wrong.
+// Status is 401 at sign-in, 403 when re-checking the password of a session.
+func InvalidCredentials(status int) *Error {
+	return New(status, "invalid_credentials", "wrong username or password")
+}
+
+// SetupComplete refuses first-run setup once an account exists.
+func SetupComplete() *Error {
+	return New(http.StatusConflict, "setup_complete", "setup is already complete")
+}
+
+// SetupCodeRequired asks a non-local client for the setup code from the log.
+func SetupCodeRequired() *Error {
+	return New(http.StatusForbidden, "setup_code_required", "setup from outside the local network needs the setup code from the server log")
+}
+
+// PasswordChangeRequired blocks a temporary password until it's changed.
+func PasswordChangeRequired() *Error {
+	return New(http.StatusForbidden, "password_change_required", "choose a new password first")
+}
+
+// WeakPassword rejects a password; the detail says why.
+func WeakPassword(field, problem string) *Error {
+	e := New(http.StatusUnprocessableEntity, "weak_password", "password is too short, too long or too common")
+	e.Details = []Detail{{Field: field, Code: problem}}
+	return e
+}
+
+// UsernameTaken means another account already has this username.
+func UsernameTaken() *Error {
+	return New(http.StatusConflict, "username_taken", "username already taken")
+}
+
+// LastAdmin refuses to remove the last active admin.
+func LastAdmin() *Error {
+	return New(http.StatusConflict, "last_admin", "at least one active admin must remain")
+}
+
+// LastProfile refuses to delete an account's only profile.
+func LastProfile() *Error {
+	return New(http.StatusConflict, "last_profile", "an account needs at least one profile")
+}
+
+// InvalidPIN means a profile PIN was missing or wrong.
+func InvalidPIN() *Error {
+	return New(http.StatusForbidden, "invalid_pin", "wrong PIN")
+}
+
+// ProfileLocked means too many wrong PINs for this profile on this session.
+func ProfileLocked(retryAfter time.Duration) *Error {
+	e := TooManyAttempts(retryAfter)
+	e.Status, e.Code, e.Message = http.StatusLocked, "profile_locked", "too many wrong PINs, profile locked for a while"
+	return e
+}
+
+// PairingNotFound covers unknown codes, wrong poll secrets and tokens
+// already handed over.
+func PairingNotFound() *Error {
+	return New(http.StatusNotFound, "pairing_not_found", "no such pairing")
+}
+
+// PairingExpired means the code is older than 10 minutes or already used.
+func PairingExpired() *Error {
+	return New(http.StatusGone, "pairing_expired", "pairing code expired")
+}
