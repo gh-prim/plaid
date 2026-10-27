@@ -21,8 +21,11 @@ type Argon2Params struct {
 	Threads   uint8
 }
 
-// DefaultParams is the OWASP minimum for argon2id (F003-R5): 19 MiB, t=2, p=1.
-var DefaultParams = Argon2Params{MemoryKiB: 19 * 1024, Time: 2, Threads: 1}
+// DefaultParams are the argon2id costs for new hashes: 19 MiB, t=3, p=1.
+// The spec's floor is the OWASP minimum (t=2); t was raised to 3 after
+// measuring sign-in on the throttled test-deb profile (F003 plan, step 18).
+// Older hashes are re-hashed with these params at the next sign-in.
+var DefaultParams = Argon2Params{MemoryKiB: 19 * 1024, Time: 3, Threads: 1}
 
 const (
 	saltLen = 16
