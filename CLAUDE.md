@@ -36,6 +36,8 @@ Run from the repo root. Toolchain: Go 1.26, Node 24+, pnpm 10, golangci-lint v2,
 Single checks: `make test-server`, `make test-web`, `make check-i18n`, `make check-codegen`.
 A single `make test` target must pass before any PR.
 
+**CI has one entry point**, `.github/workflows/ci.yml`: it detects which areas a PR touches, calls the matching reusable workflows (`server`, `web`, `codegen`, `package-test`, `docker`) and ends with **CI OK**, the only check `main` requires. A new workflow must be called from `ci.yml` and listed in `ci-ok`'s `needs`, or it won't gate merges.
+
 **Releases are automatic.** Every push to `main` tags the next version and publishes a GitHub release (binaries, `.deb`, checksums) from that tag. Patch by default; write `#minor` or `#major` in the PR title or description to bump more, `[skip release]` to skip. Version logic: `scripts/next-version.sh`.
 
 Generated files (`api.gen.go`, `schema.d.ts`) are never edited by hand. Web uses TypeScript 6: TypeScript 7 (native) breaks `openapi-typescript` and `typescript-eslint`.

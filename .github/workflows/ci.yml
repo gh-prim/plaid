@@ -1,0 +1,102 @@
+name: ci
+
+# The single entry point for CI. It runs on every PR and every push to main,
+# works out which areas changed, calls the matching workflows, and ends with
+# "CI OK": the one check required by the main branch ruleset. Skipped areas
+# count as passing, so PRs that touch only docs are not blocked.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-24.04
+    outputs:
+      server: ${{ steps.areas.outputs.server }}
+      web: ${{ steps.areas.outputs.web }}
+      codegen: ${{ steps.areas.outputs.codegen }}
+      packages: ${{ steps.areas.outputs.packages }}
+      image: ${{ steps.areas.outputs.image }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: areas
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # A new branch or a force-push has no usable base: run everything.
+          if [ -z "$BASE" ] || [ "$BASE" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$BASE" 2>/dev/null; then
+            files="ALL"
+          else
+            files="$(git diff --name-only "$BASE" "$HEAD")"
+          fi
+          echo "Changed files:"; echo "$files"
+
+          shared='^(Makefile$|\.github/workflows/ci\.yml$)'
+          area() {
+            if [ "$files" = ALL ] || grep -Eq "$shared|$2" <<<"$files"; then
+              echo "$1=true" >> "$GITHUB_OUTPUT"; echo "→ $1"
+            else
+              echo "$1=false" >> "$GITHUB_OUTPUT"
+            fi
+          }
+          area server   '^(server/|api/|\.github/workflows/server\.yml$)'
+          area web      '^(web/|api/|\.nvmrc$|\.github/workflows/web\.yml$)'
+          area codegen  '^(api/|server/internal/api/|web/src/api/|scripts/check-codegen\.sh$|\.github/workflows/codegen\.yml$)'
+          area packages '^(packaging/|\.goreleaser\.yaml$|server/|scripts/|\.claude/hooks/|\.github/workflows/package-test\.yml$)'
+          if [ "$EVENT" = push ]; then
+            echo "image=true" >> "$GITHUB_OUTPUT"; echo "→ image (push to main)"
+          else
+            area image '^(Dockerfile$|\.dockerignore$|docker-compose\.yml$|\.github/workflows/docker\.yml$)'
+          fi
+
+  server:
+    needs: changes
+    if: needs.changes.outputs.server == 'true'
+    uses: ./.github/workflows/server.yml
+
+  web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    uses: ./.github/workflows/web.yml
+
+  codegen:
+    needs: changes
+    if: needs.changes.outputs.codegen == 'true'
+    uses: ./.github/workflows/codegen.yml
+
+  packages:
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
+    uses: ./.github/workflows/package-test.yml
+
+  image:
+    needs: changes
+    if: needs.changes.outputs.image == 'true'
+    uses: ./.github/workflows/docker.yml
+
+  ci-ok:
+    name: CI OK
+    needs: [changes, server, web, codegen, packages, image]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Every called workflow passed or was skipped
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$RESULTS" | jq -e 'to_entries | all(.value.result == "success" or .value.result == "skipped")' >/dev/null
