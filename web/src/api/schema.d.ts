@@ -905,6 +905,148 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/items/{itemId}/playback': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Start playing a movie or an episode (F006 R1–R5)
+     * @description The client says what it wants and what it can play; the server picks Direct Play, Direct Stream or Transcode and says why. Needs an active profile. Items the profile may not see are a 404, like every item read (R9). `url` is relative to the server and carries its own token: players fetch it without any session (R25).
+     */
+    post: operations['startPlayback']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/items/{itemId}/watched': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    /** Mark an item watched for the active profile; a show or season marks every episode (F006 R35) */
+    put: operations['markWatched']
+    post?: never
+    /** Mark an item unwatched for the active profile; a show or season unmarks every episode (F006 R35) */
+    delete: operations['markUnwatched']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/continue-watching': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** In-progress movies and episodes, plus each show's next episode, most recent first (F006 R37) */
+    get: operations['listContinueWatching']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/playback': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Every active playback session (admin, F006 R29) */
+    get: operations['listPlaybackSessions']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/playback/{sessionId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sessionId: components['parameters']['PlaybackSessionId']
+      }
+      cookie?: never
+    }
+    /** One of your playback sessions */
+    get: operations['getPlayback']
+    put?: never
+    post?: never
+    /** End a playback session (yours, or anyone's for an admin) and save its last position (F006 R8, R32) */
+    delete: operations['stopPlayback']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/playback/{sessionId}/progress': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sessionId: components['parameters']['PlaybackSessionId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Report the position and state; also keeps the session alive (F006 R32)
+     * @description Send it every 10 seconds while playing, and on every pause, seek and stop.
+     */
+    post: operations['reportPlaybackProgress']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/stream/{token}/file': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    /**
+     * The original file, for Direct Play (F006 R10)
+     * @description Authenticated by the token in the path only. Supports `Range` (one range), `If-Range` and `ETag`. An unknown or ended token is a 404 `playback_session_not_found`. Served by a plain handler, not the generated server.
+     */
+    get: operations['streamFile']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    /** Headers of the original file (size, type, ranges) */
+    head: operations['headStreamFile']
+    patch?: never
+    trace?: never
+  }
   '/fs/browse': {
     parameters: {
       query?: never
@@ -1317,6 +1459,7 @@ export interface components {
       /** @description Seasons of a show, episodes of a season; 0 otherwise. */
       childCount: number
       technical: components['schemas']['TechnicalSummary']
+      userState?: components['schemas']['UserState']
     }
     ItemPage: {
       items: components['schemas']['ItemSummary'][]
@@ -1644,7 +1787,184 @@ export interface components {
       parent: string | null
       entries: components['schemas']['BrowseEntry'][]
     }
+    /** @description The active profile's watch state for an item (F006 R36). Absent when no profile is active. */
+    UserState: {
+      /**
+       * Format: int64
+       * @description Resume point, 0 when there's none.
+       */
+      positionMs: number
+      watched: boolean
+      playCount: number
+      /** Format: date-time */
+      lastPlayedAt?: string
+      /** @description Shows and seasons only. */
+      watchedEpisodes?: number
+      /** @description Shows and seasons only. */
+      totalEpisodes?: number
+    }
+    VideoCapability: {
+      /** @description ffprobe codec name, e.g. h264, hevc, av1, vp9. */
+      codec: string
+      /** @description Accepted ffprobe profile names, lowercase (`high`, `main 10`); absent means any. */
+      profiles?: string[]
+      /** @description Highest level, as ffprobe reports it (H.264 51 = 5.1, HEVC 153 = 5.1). */
+      maxLevel?: number
+      maxWidth?: number
+      maxHeight?: number
+      /** @default 8 */
+      maxBitDepth: number
+      /** @description HDR formats shown as HDR; anything else needs tone mapping. */
+      hdr?: ('hdr10' | 'hdr10plus' | 'hlg' | 'dolby_vision')[]
+    }
+    AudioCapability: {
+      /** @description ffprobe codec name, e.g. aac, ac3, eac3, opus, flac, truehd, dts. */
+      codec: string
+      /** @default 2 */
+      maxChannels: number
+    }
+    SubtitleCapability: {
+      /** @description Text formats the client renders itself. */
+      text?: ('vtt' | 'srt' | 'ass')[]
+      /** @description Image formats the client renders itself. */
+      image?: ('pgs' | 'vobsub')[]
+    }
+    /** @description What the client can play (F006 R2). Sent with each playback request, never stored. `preset: external` means "plays everything over HTTP" (VLC, mpv) and ignores the other fields. Unknown codec names are ignored. */
+    CapabilityProfile: {
+      /** @enum {string} */
+      preset?: 'external'
+      protocols?: ('http' | 'hls')[]
+      /** @description Containers for Direct Play, as short names (mp4, mkv, webm, mov, ts, avi). */
+      containers?: string[]
+      video?: components['schemas']['VideoCapability'][]
+      audio?: components['schemas']['AudioCapability'][]
+      subtitles?: components['schemas']['SubtitleCapability']
+      /**
+       * @description The player can pick a non-default audio track inside a file.
+       * @default false
+       */
+      canSwitchAudioTrack: boolean
+      /**
+       * Format: int64
+       * @description Bits per second; null for no limit.
+       */
+      maxBitrate?: number | null
+    }
+    /** @enum {string} */
+    Quality: 'original' | '2160p' | '1080p' | '720p' | '480p' | '360p'
+    PlaybackRequest: {
+      profile: components['schemas']['CapabilityProfile']
+      /** @description Defaults to the best file of the item for this client (R3). */
+      fileId?: string
+      /** @description Defaults to the file's default audio track. */
+      audioStreamIndex?: number
+      /** @description null turns subtitles off; absent picks a forced track in the audio language, if any. */
+      subtitleStreamIndex?: number | null
+      /**
+       * Format: int64
+       * @default 0
+       */
+      startPositionMs: number
+      /** Format: int64 */
+      maxBitrate?: number
+      quality?: components['schemas']['Quality']
+      /** @default false */
+      burnSubtitles: boolean
+      /**
+       * @description For debugging.
+       * @enum {string}
+       */
+      forceMethod?: 'direct_stream' | 'transcode'
+    }
+    /** @enum {string} */
+    PlaybackMethod: 'direct_play' | 'direct_stream' | 'transcode'
+    PlaybackAudioTrack: {
+      index: number
+      codec: string
+      channels: number
+      language: string
+      title?: string
+      default: boolean
+      selected: boolean
+      /** @description The codec the client receives for the selected track, when it's converted (e.g. aac). */
+      delivered?: string
+    }
+    PlaybackSubtitle: {
+      index: number
+      codec: string
+      language: string
+      title?: string
+      forced: boolean
+      selected: boolean
+      /**
+       * @description How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
+       * @enum {string}
+       */
+      delivery: 'embedded' | 'external' | 'burn_in'
+      url?: string
+    }
+    PlaybackSession: {
+      id: string
+      itemId: string
+      fileId: string
+      method: components['schemas']['PlaybackMethod']
+      /** @description Why the method isn't Direct Play, as stable keys: container_not_supported, video_codec_not_supported, video_profile_not_supported, resolution_too_high, bit_depth_not_supported, hdr_not_supported, audio_codec_not_supported, audio_channels_too_many, audio_track_switch_unsupported, subtitle_burn_in, bitrate_too_high, keyframe_index_missing, forced_by_client. */
+      reasons: string[]
+      /** @description Relative to the server, e.g. /api/v1/stream/<token>/file. */
+      url: string
+      expiresAfterIdleSeconds: number
+      /** Format: int64 */
+      durationMs: number
+      /** Format: int64 */
+      startPositionMs: number
+      quality: components['schemas']['Quality']
+      qualities: components['schemas']['Quality'][]
+      /** @description The accelerator in use for a transcode, absent in software or without transcoding. */
+      hardwareAcceleration?: string
+      /** @description Stable keys, e.g. colors_may_be_wrong. */
+      warnings: string[]
+      audioTracks: components['schemas']['PlaybackAudioTrack'][]
+      subtitles: components['schemas']['PlaybackSubtitle'][]
+    }
+    /** @enum {string} */
+    PlaybackState: 'playing' | 'paused' | 'buffering' | 'stopped'
+    PlaybackProgress: {
+      /** Format: int64 */
+      positionMs: number
+      state: components['schemas']['PlaybackState']
+    }
+    PlaybackStop: {
+      /** Format: int64 */
+      positionMs?: number
+    }
+    ActivePlayback: {
+      session: components['schemas']['PlaybackSession']
+      userId: string
+      username: string
+      profileId: string
+      profileName: string
+      deviceName: string
+      itemTitle: string
+      /** Format: int64 */
+      positionMs: number
+      state?: components['schemas']['PlaybackState']
+      /** @description The client is outside the local networks (R22). */
+      remote: boolean
+      /** Format: date-time */
+      startedAt: string
+      /** Format: date-time */
+      lastActivityAt: string
+    }
+    ActivePlaybackList: {
+      sessions: components['schemas']['ActivePlayback'][]
+    }
     Capabilities: {
+      ffmpeg: {
+        /** @description When false, Direct Play still works and other methods answer `ffmpeg_missing` (F006 R31). */
+        found: boolean
+        /** @example 7.1.1 */
+        version?: string
+      }
       ffprobe: {
         /** @description When false, files are listed with `probeStatus` `skipped` (`ffprobe_missing`). */
         found: boolean
@@ -1699,6 +2019,10 @@ export interface components {
     ProfileId: string
     SessionId: string
     UserId: string
+    PlaybackSessionId: string
+    /** @description The playback token from PlaybackSession.url. Never logged. */
+    StreamToken: string
+    Range: string
   }
   requestBodies: never
   headers: never
@@ -3088,6 +3412,261 @@ export interface operations {
       304: {
         headers: {
           ETag?: string
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  startPlayback: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PlaybackRequest']
+      }
+    }
+    responses: {
+      /** @description The playback session */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PlaybackSession']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  markWatched: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Marked */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  markUnwatched: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Unmarked */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listContinueWatching: {
+    parameters: {
+      query?: {
+        /** @description Opaque `nextCursor` of the previous page. */
+        cursor?: components['parameters']['Cursor']
+        limit?: components['parameters']['Limit']
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description A page of items, each with its userState */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ItemPage']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listPlaybackSessions: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Active sessions */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ActivePlaybackList']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getPlayback: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sessionId: components['parameters']['PlaybackSessionId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The session */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PlaybackSession']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  stopPlayback: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sessionId: components['parameters']['PlaybackSessionId']
+      }
+      cookie?: never
+    }
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PlaybackStop']
+      }
+    }
+    responses: {
+      /** @description Ended */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  reportPlaybackProgress: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sessionId: components['parameters']['PlaybackSessionId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PlaybackProgress']
+      }
+    }
+    responses: {
+      /** @description Recorded */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamFile: {
+    parameters: {
+      query?: never
+      header?: {
+        Range?: components['parameters']['Range']
+      }
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The whole file */
+      200: {
+        headers: {
+          'Accept-Ranges'?: string
+          ETag?: string
+          [name: string]: unknown
+        }
+        content: {
+          'application/octet-stream': string
+        }
+      }
+      /** @description The requested range */
+      206: {
+        headers: {
+          'Content-Range'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'application/octet-stream': string
+        }
+      }
+      /** @description Range not satisfiable */
+      416: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  headStreamFile: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Headers only */
+      200: {
+        headers: {
           [name: string]: unknown
         }
         content?: never

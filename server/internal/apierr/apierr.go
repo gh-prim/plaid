@@ -243,3 +243,37 @@ func FieldNotEditable() *Error {
 func AlreadyIdentified() *Error {
 	return New(http.StatusConflict, "already_identified", "this file is already identified")
 }
+
+// Error codes from F006 (playback).
+
+// NotPlayable means the item isn't a movie or an episode, or the client
+// can't receive its file in any way it supports.
+func NotPlayable(message string) *Error {
+	return New(http.StatusUnprocessableEntity, "not_playable", message)
+}
+
+// FileUnavailable means the file to play is missing from disk.
+func FileUnavailable() *Error {
+	return New(http.StatusGone, "file_unavailable", "the file can't be found on disk right now")
+}
+
+// FileNotAnalyzed means the file hasn't been analyzed by ffprobe yet.
+func FileNotAnalyzed() *Error {
+	return New(http.StatusConflict, "file_not_analyzed", "the file hasn't been analyzed yet")
+}
+
+// ProfileRequired means playback needs an active profile.
+func ProfileRequired() *Error {
+	return New(http.StatusForbidden, "profile_required", "pick a profile first")
+}
+
+// FFmpegMissing means the file needs FFmpeg, which isn't available.
+func FFmpegMissing() *Error {
+	return New(http.StatusServiceUnavailable, "ffmpeg_missing", "this file needs FFmpeg to play on this client")
+}
+
+// PlaybackSessionNotFound is an unknown, ended or someone else's playback
+// session, and any stream request with a bad token.
+func PlaybackSessionNotFound() *Error {
+	return New(http.StatusNotFound, "playback_session_not_found", "no such playback session")
+}

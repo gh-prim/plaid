@@ -843,3 +843,49 @@ func TestListItemsUsesMatchedSortTitle(t *testing.T) {
 		t.Errorf("matched order = %v, want Zebra (sorted as Aardvark) first", got)
 	}
 }
+
+// TestPlayableFiles checks what F006 reads to decide how to play an item:
+// the parsed analysis, external subtitle paths, and files whose analysis
+// failed coming back without one.
+func TestPlayableFiles(t *testing.T) {
+	e := newScanEnv(t, TypeMovies)
+	good := e.write("Movie (2019)/Movie (2019).mkv", "video")
+	srt := e.write("Movie (2019)/Movie (2019).fr.forced.srt", "1\n00:00:01,000 --> 00:00:02,000\nSalut\n")
+	broken := e.write("Movie (2019)/Movie (2019) - broken.mkv", "x")
+	e.run(ScanOptions{})
+	raw, err := os.ReadFile("testdata/probe/hevc_hdr10_multiaudio.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.db.Exec(`UPDATE media_files SET probe_json = ? WHERE path = ?`, string(raw), good); err != nil {
+		t.Fatal(err)
+	}
+
+	files, err := e.store.PlayableFiles(context.Background(), e.itemsOf(good)[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	byPath := map[string]PlayableFile{}
+	for _, f := range files {
+		byPath[f.Path] = f
+	}
+	if len(files) != 2 {
+		t.Fatalf("files = %d, want 2", len(files))
+	}
+	g := byPath[good]
+	if g.Probe == nil || g.Probe.Video() == nil || g.Probe.Video().Level != 150 || len(g.Probe.Streams) != 4 {
+		t.Errorf("good file: probe not parsed from probe_json")
+	}
+	var ext *MediaStream
+	for i := range g.Streams {
+		if g.Streams[i].External {
+			ext = &g.Streams[i]
+		}
+	}
+	if ext == nil || ext.ExternalPath != srt || !ext.Forced || ext.Language != "fre" {
+		t.Errorf("external subtitle = %+v, want %s, forced, fre", ext, srt)
+	}
+	if b := byPath[broken]; b.Probe != nil || b.ProbeStatus != "failed" {
+		t.Errorf("broken file = status %q, probe %v", b.ProbeStatus, b.Probe)
+	}
+}

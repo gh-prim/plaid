@@ -1137,6 +1137,194 @@ paths:
                 type: string
         default:
           $ref: "#/components/responses/Error"
+  /items/{itemId}/playback:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: startPlayback
+      summary: Start playing a movie or an episode (F006 R1–R5)
+      description: >-
+        The client says what it wants and what it can play; the server picks Direct Play, Direct Stream or Transcode and
+        says why. Needs an active profile. Items the profile may not see are a 404, like every item read (R9). `url` is
+        relative to the server and carries its own token: players fetch it without any session (R25).
+      tags: [playback]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaybackRequest"
+      responses:
+        "201":
+          description: The playback session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybackSession"
+        default:
+          $ref: "#/components/responses/Error"
+  /items/{itemId}/watched:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: markWatched
+      summary: Mark an item watched for the active profile; a show or season marks every episode (F006 R35)
+      tags: [playback]
+      responses:
+        "204":
+          description: Marked
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: markUnwatched
+      summary: Mark an item unwatched for the active profile; a show or season unmarks every episode (F006 R35)
+      tags: [playback]
+      responses:
+        "204":
+          description: Unmarked
+        default:
+          $ref: "#/components/responses/Error"
+  /me/continue-watching:
+    get:
+      operationId: listContinueWatching
+      summary: In-progress movies and episodes, plus each show's next episode, most recent first (F006 R37)
+      tags: [playback]
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: A page of items, each with its userState
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemPage"
+        default:
+          $ref: "#/components/responses/Error"
+  /playback:
+    get:
+      operationId: listPlaybackSessions
+      summary: Every active playback session (admin, F006 R29)
+      tags: [playback]
+      responses:
+        "200":
+          description: Active sessions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivePlaybackList"
+        default:
+          $ref: "#/components/responses/Error"
+  /playback/{sessionId}:
+    parameters:
+      - $ref: "#/components/parameters/PlaybackSessionId"
+    get:
+      operationId: getPlayback
+      summary: One of your playback sessions
+      tags: [playback]
+      responses:
+        "200":
+          description: The session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybackSession"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: stopPlayback
+      summary: End a playback session (yours, or anyone's for an admin) and save its last position (F006 R8, R32)
+      tags: [playback]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaybackStop"
+      responses:
+        "204":
+          description: Ended
+        default:
+          $ref: "#/components/responses/Error"
+  /playback/{sessionId}/progress:
+    parameters:
+      - $ref: "#/components/parameters/PlaybackSessionId"
+    post:
+      operationId: reportPlaybackProgress
+      summary: Report the position and state; also keeps the session alive (F006 R32)
+      description: Send it every 10 seconds while playing, and on every pause, seek and stop.
+      tags: [playback]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaybackProgress"
+      responses:
+        "204":
+          description: Recorded
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/file:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+    get:
+      operationId: streamFile
+      summary: The original file, for Direct Play (F006 R10)
+      description: >-
+        Authenticated by the token in the path only. Supports `Range` (one range), `If-Range` and `ETag`. An unknown or
+        ended token is a 404 `playback_session_not_found`. Served by a plain handler, not the generated server.
+      tags: [stream]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/Range"
+      responses:
+        "200":
+          description: The whole file
+          headers:
+            Accept-Ranges:
+              schema:
+                type: string
+            ETag:
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "206":
+          description: The requested range
+          headers:
+            Content-Range:
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "416":
+          description: Range not satisfiable
+        default:
+          $ref: "#/components/responses/Error"
+    head:
+      operationId: headStreamFile
+      summary: Headers of the original file (size, type, ranges)
+      tags: [stream]
+      security: []
+      responses:
+        "200":
+          description: Headers only
+        default:
+          $ref: "#/components/responses/Error"
   /fs/browse:
     get:
       operationId: browseFolders
@@ -1220,6 +1408,25 @@ components:
       required: true
       schema:
         type: string
+    PlaybackSessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+    StreamToken:
+      name: token
+      in: path
+      required: true
+      description: The playback token from PlaybackSession.url. Never logged.
+      schema:
+        type: string
+    Range:
+      name: Range
+      in: header
+      schema:
+        type: string
+        examples: ["bytes=0-1048575"]
   responses:
     Error:
       description: Error. `error.code` is a stable key clients translate.
@@ -1891,6 +2098,8 @@ components:
           description: Seasons of a show, episodes of a season; 0 otherwise.
         technical:
           $ref: "#/components/schemas/TechnicalSummary"
+        userState:
+          $ref: "#/components/schemas/UserState"
     ItemPage:
       type: object
       required: [items]
@@ -2530,10 +2739,330 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/BrowseEntry"
+    UserState:
+      type: object
+      description: The active profile's watch state for an item (F006 R36). Absent when no profile is active.
+      required: [positionMs, watched, playCount]
+      properties:
+        positionMs:
+          type: integer
+          format: int64
+          description: Resume point, 0 when there's none.
+        watched:
+          type: boolean
+        playCount:
+          type: integer
+        lastPlayedAt:
+          type: string
+          format: date-time
+        watchedEpisodes:
+          type: integer
+          description: Shows and seasons only.
+        totalEpisodes:
+          type: integer
+          description: Shows and seasons only.
+    VideoCapability:
+      type: object
+      required: [codec]
+      properties:
+        codec:
+          type: string
+          description: ffprobe codec name, e.g. h264, hevc, av1, vp9.
+        profiles:
+          type: array
+          description: Accepted ffprobe profile names, lowercase (`high`, `main 10`); absent means any.
+          items:
+            type: string
+        maxLevel:
+          type: integer
+          description: Highest level, as ffprobe reports it (H.264 51 = 5.1, HEVC 153 = 5.1).
+        maxWidth:
+          type: integer
+        maxHeight:
+          type: integer
+        maxBitDepth:
+          type: integer
+          default: 8
+        hdr:
+          type: array
+          description: HDR formats shown as HDR; anything else needs tone mapping.
+          items:
+            type: string
+            enum: [hdr10, hdr10plus, hlg, dolby_vision]
+    AudioCapability:
+      type: object
+      required: [codec]
+      properties:
+        codec:
+          type: string
+          description: ffprobe codec name, e.g. aac, ac3, eac3, opus, flac, truehd, dts.
+        maxChannels:
+          type: integer
+          default: 2
+    SubtitleCapability:
+      type: object
+      properties:
+        text:
+          type: array
+          description: Text formats the client renders itself.
+          items:
+            type: string
+            enum: [vtt, srt, ass]
+        image:
+          type: array
+          description: Image formats the client renders itself.
+          items:
+            type: string
+            enum: [pgs, vobsub]
+    CapabilityProfile:
+      type: object
+      description: >-
+        What the client can play (F006 R2). Sent with each playback request, never stored. `preset: external` means
+        "plays everything over HTTP" (VLC, mpv) and ignores the other fields. Unknown codec names are ignored.
+      properties:
+        preset:
+          type: string
+          enum: [external]
+        protocols:
+          type: array
+          items:
+            type: string
+            enum: [http, hls]
+        containers:
+          type: array
+          description: Containers for Direct Play, as short names (mp4, mkv, webm, mov, ts, avi).
+          items:
+            type: string
+        video:
+          type: array
+          items:
+            $ref: "#/components/schemas/VideoCapability"
+        audio:
+          type: array
+          items:
+            $ref: "#/components/schemas/AudioCapability"
+        subtitles:
+          $ref: "#/components/schemas/SubtitleCapability"
+        canSwitchAudioTrack:
+          type: boolean
+          default: false
+          description: The player can pick a non-default audio track inside a file.
+        maxBitrate:
+          type: [integer, "null"]
+          format: int64
+          description: Bits per second; null for no limit.
+    Quality:
+      type: string
+      enum: [original, 2160p, 1080p, 720p, 480p, 360p]
+    PlaybackRequest:
+      type: object
+      required: [profile]
+      properties:
+        profile:
+          $ref: "#/components/schemas/CapabilityProfile"
+        fileId:
+          type: string
+          description: Defaults to the best file of the item for this client (R3).
+        audioStreamIndex:
+          type: integer
+          description: Defaults to the file's default audio track.
+        subtitleStreamIndex:
+          type: [integer, "null"]
+          description: null turns subtitles off; absent picks a forced track in the audio language, if any.
+        startPositionMs:
+          type: integer
+          format: int64
+          minimum: 0
+          default: 0
+        maxBitrate:
+          type: integer
+          format: int64
+          minimum: 1
+        quality:
+          $ref: "#/components/schemas/Quality"
+        burnSubtitles:
+          type: boolean
+          default: false
+        forceMethod:
+          type: string
+          enum: [direct_stream, transcode]
+          description: For debugging.
+    PlaybackMethod:
+      type: string
+      enum: [direct_play, direct_stream, transcode]
+    PlaybackAudioTrack:
+      type: object
+      required: [index, codec, channels, language, default, selected]
+      properties:
+        index:
+          type: integer
+        codec:
+          type: string
+        channels:
+          type: integer
+        language:
+          type: string
+        title:
+          type: string
+        default:
+          type: boolean
+        selected:
+          type: boolean
+        delivered:
+          type: string
+          description: The codec the client receives for the selected track, when it's converted (e.g. aac).
+    PlaybackSubtitle:
+      type: object
+      required: [index, codec, language, forced, selected, delivery]
+      properties:
+        index:
+          type: integer
+        codec:
+          type: string
+        language:
+          type: string
+        title:
+          type: string
+        forced:
+          type: boolean
+        selected:
+          type: boolean
+        delivery:
+          type: string
+          enum: [embedded, external, burn_in]
+          description: >-
+            How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct
+            Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
+        url:
+          type: string
+    PlaybackSession:
+      type: object
+      required: [id, itemId, fileId, method, reasons, url, expiresAfterIdleSeconds, durationMs, startPositionMs, quality, qualities, warnings, audioTracks, subtitles]
+      properties:
+        id:
+          type: string
+        itemId:
+          type: string
+        fileId:
+          type: string
+        method:
+          $ref: "#/components/schemas/PlaybackMethod"
+        reasons:
+          type: array
+          description: >-
+            Why the method isn't Direct Play, as stable keys: container_not_supported, video_codec_not_supported,
+            video_profile_not_supported, resolution_too_high, bit_depth_not_supported, hdr_not_supported,
+            audio_codec_not_supported, audio_channels_too_many, audio_track_switch_unsupported, subtitle_burn_in,
+            bitrate_too_high, keyframe_index_missing, forced_by_client.
+          items:
+            type: string
+        url:
+          type: string
+          description: Relative to the server, e.g. /api/v1/stream/<token>/file.
+        expiresAfterIdleSeconds:
+          type: integer
+        durationMs:
+          type: integer
+          format: int64
+        startPositionMs:
+          type: integer
+          format: int64
+        quality:
+          $ref: "#/components/schemas/Quality"
+        qualities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Quality"
+        hardwareAcceleration:
+          type: string
+          description: The accelerator in use for a transcode, absent in software or without transcoding.
+        warnings:
+          type: array
+          description: Stable keys, e.g. colors_may_be_wrong.
+          items:
+            type: string
+        audioTracks:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlaybackAudioTrack"
+        subtitles:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlaybackSubtitle"
+    PlaybackState:
+      type: string
+      enum: [playing, paused, buffering, stopped]
+    PlaybackProgress:
+      type: object
+      required: [positionMs, state]
+      properties:
+        positionMs:
+          type: integer
+          format: int64
+          minimum: 0
+        state:
+          $ref: "#/components/schemas/PlaybackState"
+    PlaybackStop:
+      type: object
+      properties:
+        positionMs:
+          type: integer
+          format: int64
+          minimum: 0
+    ActivePlayback:
+      type: object
+      required: [session, userId, username, profileId, profileName, deviceName, itemTitle, positionMs, remote, startedAt, lastActivityAt]
+      properties:
+        session:
+          $ref: "#/components/schemas/PlaybackSession"
+        userId:
+          type: string
+        username:
+          type: string
+        profileId:
+          type: string
+        profileName:
+          type: string
+        deviceName:
+          type: string
+        itemTitle:
+          type: string
+        positionMs:
+          type: integer
+          format: int64
+        state:
+          $ref: "#/components/schemas/PlaybackState"
+        remote:
+          type: boolean
+          description: The client is outside the local networks (R22).
+        startedAt:
+          type: string
+          format: date-time
+        lastActivityAt:
+          type: string
+          format: date-time
+    ActivePlaybackList:
+      type: object
+      required: [sessions]
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivePlayback"
     Capabilities:
       type: object
-      required: [ffprobe, inotifyLimit, inotifyUsed, watchLimitReached]
+      required: [ffprobe, ffmpeg, inotifyLimit, inotifyUsed, watchLimitReached]
       properties:
+        ffmpeg:
+          type: object
+          required: [found]
+          properties:
+            found:
+              type: boolean
+              description: When false, Direct Play still works and other methods answer `ffmpeg_missing` (F006 R31).
+            version:
+              type: string
+              examples: ["7.1.1"]
         ffprobe:
           type: object
           required: [found]

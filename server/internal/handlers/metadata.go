@@ -551,6 +551,9 @@ func (h *Handlers) GetCollection(ctx context.Context, req api.GetCollectionReque
 	if err != nil {
 		return nil, err
 	}
+	if err := h.withUserStates(ctx, pr, items); err != nil {
+		return nil, err
+	}
 	s := collectionSummary(c)
 	return api.GetCollection200JSONResponse(api.CollectionDetail{Id: s.Id, Name: s.Name, Overview: s.Overview,
 		MovieCount: s.MovieCount, Poster: s.Poster, Backdrop: s.Backdrop, Items: items}), nil
@@ -580,6 +583,9 @@ func (h *Handlers) GetPerson(ctx context.Context, req api.GetPersonRequestObject
 	}
 	sums, err := h.summariesOf(ctx, ids, limit)
 	if err != nil {
+		return nil, err
+	}
+	if err := h.withUserStates(ctx, pr, sums); err != nil {
 		return nil, err
 	}
 	byID := map[string]api.ItemSummary{}

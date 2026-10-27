@@ -70,6 +70,7 @@ func TestMigrationsApplyIncrementally(t *testing.T) {
 	}
 	// Roll back to "only 0001 applied".
 	for _, stmt := range []string{
+		"DROP TABLE watch_state", "DROP TABLE media_keyframes",
 		"DROP TABLE settings", "DROP TABLE sidecar_files", "DROP TABLE file_identifications",
 		"DROP TABLE item_credits", "DROP TABLE people", "DROP TABLE match_candidates",
 		"DROP TABLE item_metadata", "DROP TABLE artwork", "DROP TABLE collections",
@@ -252,5 +253,77 @@ func TestCheckPermissions(t *testing.T) {
 		if got := strings.Contains(buf.String(), "readable by other users"); got != c.warn {
 			t.Errorf("mode %04o: warning = %v, want %v (log: %q)", c.mode, got, c.warn, buf.String())
 		}
+	}
+}
+
+// TestPlaybackMigrationUpgrades rolls a database back to "0004 applied"
+// with a profile and an item, upgrades it, and checks the cascades F006
+// relies on: deleting a profile or an item removes its watch state, and
+// deleting a file only forgets it as the last file used (R33).
+func TestPlaybackMigrationUpgrades(t *testing.T) {
+	dir := t.TempDir()
+	ctx := context.Background()
+	d, err := Open(ctx, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, stmt := range []string{
+		"DROP TABLE watch_state",
+		"DROP TABLE media_keyframes",
+		"DELETE FROM schema_migrations WHERE name = 'migrations/0005_playback.sql'",
+	} {
+		if _, err := d.ExecContext(ctx, stmt); err != nil {
+			t.Fatalf("%s: %v", stmt, err)
+		}
+	}
+	exec := func(q string, args ...any) {
+		t.Helper()
+		if _, err := d.ExecContext(ctx, q, args...); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	now := "2026-10-27T12:00:00Z"
+	exec(`INSERT INTO users (id, username, display_name, password_hash, role, created_at, updated_at) VALUES ('u1', 'bob', 'Bob', 'h', 'admin', ?, ?)`, now, now)
+	exec(`INSERT INTO profiles (id, user_id, name, is_default, created_at, updated_at) VALUES ('p1', 'u1', 'Bob', 1, ?, ?)`, now, now)
+	exec(`INSERT INTO profiles (id, user_id, name, created_at, updated_at) VALUES ('p2', 'u1', 'Kids', ?, ?)`, now, now)
+	exec(`INSERT INTO libraries (id, name, type, created_at, updated_at) VALUES ('l1', 'Movies', 'movies', ?, ?)`, now, now)
+	exec(`INSERT INTO library_folders (id, library_id, path, created_at) VALUES ('f1', 'l1', '/media/movies', ?)`, now)
+	exec(`INSERT INTO items (id, library_id, kind, title, created_at, updated_at) VALUES ('i1', 'l1', 'movie', 'Alien', ?, ?)`, now, now)
+	exec(`INSERT INTO items (id, library_id, kind, title, created_at, updated_at) VALUES ('i2', 'l1', 'movie', 'Aliens', ?, ?)`, now, now)
+	exec(`INSERT INTO media_files (id, library_id, folder_id, path, size, mtime, parse_status, created_at, updated_at) VALUES ('m1', 'l1', 'f1', '/media/movies/Alien (1979).mkv', 1, ?, 'ok', ?, ?)`, now, now, now)
+	d.Close()
+
+	d, err = Open(ctx, dir)
+	if err != nil {
+		t.Fatalf("upgrade: %v", err)
+	}
+	defer d.Close()
+	exec(`INSERT INTO watch_state (profile_id, item_id, position_ms, last_file_id, updated_at) VALUES ('p1', 'i1', 60000, 'm1', ?)`, now)
+	exec(`INSERT INTO watch_state (profile_id, item_id, position_ms, updated_at) VALUES ('p2', 'i2', 60000, ?)`, now)
+	exec(`INSERT INTO watch_state (profile_id, item_id, position_ms, updated_at) VALUES ('p1', 'i2', 60000, ?)`, now)
+	exec(`INSERT INTO media_keyframes (file_id, file_mtime, keyframes, created_at) VALUES ('m1', ?, x'00', ?)`, now, now)
+
+	count := func(q string) int {
+		t.Helper()
+		var n int
+		if err := d.QueryRowContext(ctx, q).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	exec(`DELETE FROM media_files WHERE id = 'm1'`)
+	if n := count(`SELECT COUNT(*) FROM watch_state WHERE item_id = 'i1' AND last_file_id IS NULL`); n != 1 {
+		t.Errorf("deleting the file: %d watch rows kept without it, want 1", n)
+	}
+	if n := count(`SELECT COUNT(*) FROM media_keyframes`); n != 0 {
+		t.Errorf("deleting the file left %d keyframe rows", n)
+	}
+	exec(`DELETE FROM profiles WHERE id = 'p2'`)
+	if n := count(`SELECT COUNT(*) FROM watch_state WHERE profile_id = 'p2'`); n != 0 {
+		t.Errorf("deleting the profile left %d watch rows", n)
+	}
+	exec(`DELETE FROM items WHERE id = 'i1'`)
+	if n := count(`SELECT COUNT(*) FROM watch_state`); n != 1 {
+		t.Errorf("after deleting the item, %d watch rows, want 1 (p1 on i2)", n)
 	}
 }

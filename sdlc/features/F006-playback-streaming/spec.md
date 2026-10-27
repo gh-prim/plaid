@@ -322,4 +322,11 @@ Settled by gh-prim on 2026-10-27. ✅ = resolved, ⏸ = tracked elsewhere.
 - [ ] Given `curl` only, then a developer can sign in, start a session on a movie, and play the returned URL in VLC: phase 1's end goal.
 
 ## Revisions
-_None yet._
+- **2026-10-27, from the plan** (gh-prim):
+  1. No `SupplementaryGroups=render video` in the systemd unit (Packaging, watch-out "systemd hardening"): `postinstall.sh` already adds `plaid` to `video` and `render` when those groups exist, and `SupplementaryGroups` naming a missing group stops the unit from starting (containers, minimal installs). `MemoryDenyWriteExecute=true` and its documented override are unchanged.
+  2. The hls.js part of "`hls.js` and Safari play through 10 minutes" moves to F008, which brings the web player. F006 proves HLS playback with Safari (opening the playlist URL), VLC, and FFmpeg as an HLS client in the tests.
+  3. A `PATCH` that changes the decision (R6) gives the session a new token, so a new `url`; the old URL answers `404` at once, so segments of the old quality never mix in. An unchanged decision keeps the same `url`.
+  4. A transcode slot (R26) stays with its session across pauses, and is released after 10 minutes without any activity (no progress report, no stream request). Resuming after that needs a free slot again.
+- **2026-10-27, during PR A** (gh-prim):
+  5. R33: "less than 2 minutes before the end" only counts once past the middle of the item; otherwise a 3-minute short would be marked watched as soon as it starts. The 90% rule is unchanged.
+  6. R5: a subtitle's `delivery` can also be `embedded`, for a track the player reads from the file it plays directly (VLC with PGS, a player listing the format). `external` and `burn_in` are unchanged.

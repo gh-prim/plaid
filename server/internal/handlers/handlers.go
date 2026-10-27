@@ -8,6 +8,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/api"
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/metadata"
+	"github.com/gh-prim/plaid/server/internal/playback"
 )
 
 // Pinger is the part of *sql.DB the handlers need to check database health.
@@ -23,6 +24,9 @@ type Deps struct {
 	Library    *library.Engine
 	// Metadata is F005; nil leaves items with their parsed data only.
 	Metadata *metadata.Service
+	// Playback is F006; nil makes playback routes answer as if FFmpeg
+	// and every session were missing.
+	Playback *playback.Service
 	// Streams is cancelled when the server shuts down, which ends
 	// long-lived responses such as server-sent events. Nil never ends them.
 	Streams context.Context
@@ -35,6 +39,7 @@ type Handlers struct {
 	serverName string
 	library    *library.Engine
 	metadata   *metadata.Service
+	playback   *playback.Service
 	streams    context.Context
 }
 
@@ -42,5 +47,5 @@ var _ api.StrictServerInterface = (*Handlers)(nil)
 
 // New returns the API handlers.
 func New(d Deps) *Handlers {
-	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, streams: d.Streams}
+	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, streams: d.Streams}
 }

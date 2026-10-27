@@ -23,6 +23,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/httpserver"
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/metadata"
+	"github.com/gh-prim/plaid/server/internal/playback"
 	"github.com/gh-prim/plaid/server/internal/settings"
 	"github.com/gh-prim/plaid/server/internal/webui"
 )
@@ -79,6 +80,11 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{ItemsCreated: meta.ItemsCreated, Sidecars: meta.SidecarsSeen})
 	defer engine.Close()
 
+	// Playback (F006) closes before the library engine: deferred calls
+	// run last-in first-out.
+	play := newPlayback(ctx, cfg, database, engine.Store(), accts, logger)
+	defer play.Close()
+
 	// Cancelled by srv.Shutdown so open event streams don't hold it up.
 	streams, endStreams := context.WithCancel(context.Background())
 	defer endStreams()
@@ -88,10 +94,12 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		ServerName: cfg.ServerName,
 		Library:    engine,
 		Metadata:   meta,
+		Playback:   play,
 		Streams:    streams,
 	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
 		Sessions:       accts,
+		Stream:         handlers.StreamHandler(play),
 	})
 
 	ln, err := (&net.ListenConfig{}).Listen(ctx, "tcp", cfg.Addr())
@@ -118,6 +126,25 @@ func newLibraryEngine(ctx context.Context, cfg config.Config, database *sql.DB, 
 	engine := library.NewEngine(database, opts)
 	engine.Start(ctx)
 	return engine
+}
+
+// newPlayback finds ffmpeg and starts the playback service. A missing
+// ffmpeg is a warning: Direct Play still works (F006 R31).
+func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store *library.Store, accts *accounts.Service, logger *slog.Logger) *playback.Service {
+	ffmpeg, err := playback.FindFFmpeg(ctx, cfg.FFmpegPath)
+	if err != nil {
+		logger.Warn("ffmpeg not found: only Direct Play is available; install ffmpeg or set PLAID_FFMPEG_PATH",
+			"code", "ffmpeg_missing", "err", err)
+		ffmpeg = nil
+	} else {
+		logger.Info("ffmpeg found", "path", ffmpeg.Path, "version", ffmpeg.Version)
+	}
+	svc := playback.New(playback.Options{
+		DB: database, Library: store, Accounts: accts,
+		Settings: settings.New(database), FFmpeg: ffmpeg, Log: logger,
+	})
+	svc.Start(ctx)
+	return svc
 }
 
 // serve runs the HTTP server until ctx is cancelled, then gives in-flight

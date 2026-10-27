@@ -59,6 +59,8 @@ type Stream struct {
 	// Video
 	Width     int
 	Height    int
+	Level     int    // codec level as ffprobe reports it (H.264 41 = 4.1, HEVC 150 = 5.0); 0 when unknown
+	PixFmt    string // e.g. yuv420p10le
 	FrameRate float64
 	BitDepth  int
 	HDR       string // one of the HDR constants, "" for SDR
@@ -157,7 +159,7 @@ func (p *FFprobe) Probe(ctx context.Context, path string) (*ProbeResult, error) 
 	if err != nil {
 		return nil, err
 	}
-	res, err := parseProbe(raw)
+	res, err := ParseProbe(raw)
 	if err != nil {
 		return nil, err
 	}
@@ -182,6 +184,7 @@ type ffStream struct {
 	Width            int               `json:"width"`
 	Height           int               `json:"height"`
 	PixFmt           string            `json:"pix_fmt"`
+	Level            int               `json:"level"`
 	BitsPerRawSample string            `json:"bits_per_raw_sample"`
 	RFrameRate       string            `json:"r_frame_rate"`
 	AvgFrameRate     string            `json:"avg_frame_rate"`
@@ -207,7 +210,8 @@ var imageSubtitleCodecs = map[string]bool{
 	"hdmv_pgs_subtitle": true, "dvd_subtitle": true, "dvb_subtitle": true, "xsub": true,
 }
 
-func parseProbe(raw []byte) (*ProbeResult, error) {
+// ParseProbe reads ffprobe's JSON output, as stored in media_files.probe_json.
+func ParseProbe(raw []byte) (*ProbeResult, error) {
 	var out ffOutput
 	if err := json.Unmarshal(raw, &out); err != nil {
 		return nil, fmt.Errorf("ffprobe output: %w", err)
@@ -235,7 +239,10 @@ func parseProbe(raw []byte) (*ProbeResult, error) {
 		}
 		switch s.CodecType {
 		case "video":
-			st.Width, st.Height = s.Width, s.Height
+			st.Width, st.Height, st.PixFmt = s.Width, s.Height, s.PixFmt
+			if s.Level > 0 {
+				st.Level = s.Level // ffprobe says -99 when it doesn't know
+			}
 			st.FrameRate = frameRate(s.AvgFrameRate)
 			if st.FrameRate == 0 {
 				st.FrameRate = frameRate(s.RFrameRate)

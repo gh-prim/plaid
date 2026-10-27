@@ -118,6 +118,7 @@ func TestServerName(t *testing.T) {
 func TestLoadLibraryOptions(t *testing.T) {
 	cfg, err := Load(env(map[string]string{
 		"PLAID_DATA_DIR":             t.TempDir(),
+		"PLAID_FFMPEG_PATH":          "/opt/ffmpeg/bin/ffmpeg",
 		"PLAID_FFPROBE_PATH":         "/opt/ffmpeg/bin/ffprobe",
 		"PLAID_BROWSE_ROOTS":         "/srv/media: /mnt/usb/ ",
 		"PLAID_TMDB_API_KEY":         " abc123 ",
@@ -135,8 +136,8 @@ func TestLoadLibraryOptions(t *testing.T) {
 			t.Errorf("PLAID_ARTWORK_CACHE_MAX_MB=%s accepted", bad)
 		}
 	}
-	if cfg.FFprobePath != "/opt/ffmpeg/bin/ffprobe" {
-		t.Errorf("FFprobePath = %q", cfg.FFprobePath)
+	if cfg.FFprobePath != "/opt/ffmpeg/bin/ffprobe" || cfg.FFmpegPath != "/opt/ffmpeg/bin/ffmpeg" {
+		t.Errorf("FFprobePath = %q, FFmpegPath = %q", cfg.FFprobePath, cfg.FFmpegPath)
 	}
 	if len(cfg.BrowseRoots) != 2 || cfg.BrowseRoots[0] != "/srv/media" || cfg.BrowseRoots[1] != "/mnt/usb" {
 		t.Errorf("BrowseRoots = %q", cfg.BrowseRoots)

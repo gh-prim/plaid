@@ -178,3 +178,40 @@ func (s *Service) Logout(ctx context.Context, p auth.Principal) error {
 	}
 	return err
 }
+
+// SessionActive reports whether a session can still be used: not revoked,
+// not expired, its account not disabled. F006 ends the playback of a
+// session that isn't, whichever way it ended (R7). Unknown ids are false.
+func (s *Service) SessionActive(ctx context.Context, sessionID string) (bool, error) {
+	var n int
+	err := s.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM sessions s JOIN users u ON u.id = s.user_id
+		WHERE s.id = ? AND s.revoked_at IS NULL AND s.expires_at > ? AND u.disabled_at IS NULL`,
+		sessionID, ts(s.now())).Scan(&n)
+	return n == 1, err
+}
+
+// SessionOwner names who is behind a session, for the admin's list of
+// playback sessions (F006 R29).
+type SessionOwner struct {
+	Username    string
+	ProfileName string // "" with no profile picked
+	DeviceName  string
+}
+
+// SessionOwner returns the names behind p's session.
+func (s *Service) SessionOwner(ctx context.Context, p auth.Principal) (SessionOwner, error) {
+	var (
+		o       SessionOwner
+		profile sql.NullString
+	)
+	err := s.db.QueryRowContext(ctx, `
+		SELECT u.username, s.device_name, (SELECT name FROM profiles WHERE id = ? AND user_id = u.id)
+		FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ?`,
+		p.ProfileID, p.SessionID).Scan(&o.Username, &o.DeviceName, &profile)
+	if errors.Is(err, sql.ErrNoRows) {
+		return SessionOwner{}, apierr.NotFound("no such session")
+	}
+	o.ProfileName = profile.String
+	return o, err
+}
