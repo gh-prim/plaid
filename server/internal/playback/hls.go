@@ -53,7 +53,7 @@ type hlsStream struct {
 	runs      int
 	lastSeg   int
 	lastSegAt time.Time
-	waiting   int // requests waiting on the run: it isn't idle (R28)
+	waiting   int  // requests waiting on the run: it isn't idle (R28)
 	keptFrom  int  // segments before it were deleted
 	slot      bool // holds a transcode slot (R26)
 	hw        *HWConfig
