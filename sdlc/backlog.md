@@ -166,3 +166,12 @@ Built into every Plaid app, so a request can be made straight from the TV.
 | 110 | WebP or AVIF image variants (through FFmpeg, since the server builds without CGO) |
 | 111 | High-resolution backdrops setting (`original` instead of `w1280`) for 4K TV apps |
 | 112 | TVDB provider, anime absolute numbering and alternative episode orderings |
+
+## Playback follow-ups (from F006)
+
+| # | Feature |
+|---|---------|
+| 113 | Preferred audio and subtitle languages per profile, and remembered track choices per show |
+| 114 | Signed short-lived URLs for any artwork (casting, widgets), not only the playing item's |
+| 115 | Keep watch history when an item is deleted and comes back (match by TMDB id) |
+| 116 | Adaptive bitrate (several HLS variants at once) for servers with hardware encoding |

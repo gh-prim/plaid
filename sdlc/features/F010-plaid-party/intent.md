@@ -41,3 +41,4 @@ Built-in video / voice (v2?), SharePlay (phase 4 bonus).
 - [ ] Anonymous guest without an account, with access limited to this one movie: yes or no?
 - [ ] Max room size?
 - [ ] If the host leaves: host transfer or end of the room?
+- [ ] Transcode budget: F006 limits simultaneous transcodes per server (F006-R26, 1 by default on a Pi). Four participants needing a transcode can't all start. Share one transcode between participants who need the same quality, or give each room its own budget?
