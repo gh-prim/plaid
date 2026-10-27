@@ -53,6 +53,7 @@ type hlsStream struct {
 	runs      int
 	lastSeg   int
 	lastSegAt time.Time
+	waiting   int // requests waiting on the run: it isn't idle (R28)
 	keptFrom  int  // segments before it were deleted
 	slot      bool // holds a transcode slot (R26)
 	hw        *HWConfig
@@ -263,7 +264,9 @@ func (s *Service) Segment(ctx context.Context, sess Session, n int) ([]string, e
 		}
 	}
 	run.Resume()
+	st.waiting++
 	st.mu.Unlock()
+	defer s.doneWaiting(st)
 
 	wctx, cancel := context.WithTimeout(ctx, s.t.SegmentWait)
 	defer cancel()
@@ -313,7 +316,9 @@ func (s *Service) Init(ctx context.Context, sess Session) (string, error) {
 		}
 	}
 	run.Resume()
+	st.waiting++
 	st.mu.Unlock()
+	defer s.doneWaiting(st)
 	wctx, cancel := context.WithTimeout(ctx, s.t.SegmentWait)
 	defer cancel()
 	if err := s.waitPiece(wctx, st, run, run.Spec.StartPiece); err != nil {
@@ -323,6 +328,14 @@ func (s *Service) Init(ctx context.Context, sess Session) (string, error) {
 		return "", ErrSegmentNotReady
 	}
 	return st.initPath(), nil
+}
+
+// doneWaiting ends a request's wait: the idle time counts from now.
+func (s *Service) doneWaiting(st *hlsStream) {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	st.waiting--
+	st.lastSegAt = s.o.Now()
 }
 
 // MediaPlaylist is the session's HLS media playlist.
@@ -370,7 +383,7 @@ func (s *Service) housekeep() {
 		st.mu.Lock()
 		if run := st.alive(); run != nil {
 			switch ahead := st.layout.PieceStartMs[max(run.Produced(), run.Spec.StartPiece)] - st.layout.Segments[st.lastSeg].EndMs; {
-			case now.Sub(st.lastSegAt) >= s.t.IdleStop:
+			case st.waiting == 0 && now.Sub(st.lastSegAt) >= s.t.IdleStop:
 				st.run = nil
 				s.o.Log.Info("ffmpeg run idle, stopping", "playback_id", st.sessionID, "run", run.Spec.RunID)
 				go run.Stop()
