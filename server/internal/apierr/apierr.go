@@ -277,3 +277,20 @@ func FFmpegMissing() *Error {
 func PlaybackSessionNotFound() *Error {
 	return New(http.StatusNotFound, "playback_session_not_found", "no such playback session")
 }
+
+// TranscodeLimitReached means every transcode slot is taken (R26).
+func TranscodeLimitReached() *Error {
+	return New(http.StatusServiceUnavailable, "transcode_limit_reached", "the server is already converting as many videos as it's allowed to").
+		WithHeader("Retry-After", "30")
+}
+
+// TranscodeStorageFull means the transcode folder is over its size cap
+// even after deleting old segments (R27).
+func TranscodeStorageFull() *Error {
+	return New(http.StatusServiceUnavailable, "transcode_storage_full", "the transcode folder is full")
+}
+
+// SegmentNotReady means an HLS segment wasn't produced in time (R14).
+func SegmentNotReady() *Error {
+	return New(http.StatusServiceUnavailable, "segment_not_ready", "the segment isn't ready yet").WithHeader("Retry-After", "1")
+}

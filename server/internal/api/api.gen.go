@@ -221,6 +221,27 @@ func (e DeviceType) Valid() bool {
 	}
 }
 
+// Defines values for EncoderPreset.
+const (
+	EncoderPresetBalanced EncoderPreset = "balanced"
+	EncoderPresetFast     EncoderPreset = "fast"
+	EncoderPresetQuality  EncoderPreset = "quality"
+)
+
+// Valid indicates whether the value is a known member of the EncoderPreset enum.
+func (e EncoderPreset) Valid() bool {
+	switch e {
+	case EncoderPresetBalanced:
+		return true
+	case EncoderPresetFast:
+		return true
+	case EncoderPresetQuality:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for HealthDatabase.
 const (
 	HealthDatabaseError HealthDatabase = "error"
@@ -1321,6 +1342,9 @@ type DolbyVision struct {
 	Profile int `json:"profile"`
 }
 
+// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium).
+type EncoderPreset string
+
 // Error defines model for Error.
 type Error struct {
 	Error struct {
@@ -1887,6 +1911,40 @@ type PlaybackSession struct {
 	Warnings []string `json:"warnings"`
 }
 
+// PlaybackSettings defines model for PlaybackSettings.
+type PlaybackSettings struct {
+	// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium).
+	EncoderPreset EncoderPreset `json:"encoderPreset"`
+
+	// LocalNetworks Extra CIDRs counted as local, e.g. 100.64.0.0/10 for Tailscale.
+	LocalNetworks []string `json:"localNetworks"`
+
+	// MaxTranscodes Simultaneous video transcodes (R26).
+	MaxTranscodes int `json:"maxTranscodes"`
+
+	// MaxTranscodesDefault The computed default, from the CPU count.
+	MaxTranscodesDefault int `json:"maxTranscodesDefault"`
+
+	// RemoteMaxBitrate Bits per second for remote clients, 0 for no limit (R22).
+	RemoteMaxBitrate int64 `json:"remoteMaxBitrate"`
+
+	// TranscodeDirMaxBytes Size cap of the transcode folder (R27).
+	TranscodeDirMaxBytes int64 `json:"transcodeDirMaxBytes"`
+
+	// TranscodeDirMaxBytesDefault The default computed at startup from the folder's free space.
+	TranscodeDirMaxBytesDefault int64 `json:"transcodeDirMaxBytesDefault"`
+}
+
+// PlaybackSettingsUpdate defines model for PlaybackSettingsUpdate.
+type PlaybackSettingsUpdate struct {
+	// EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium).
+	EncoderPreset        *EncoderPreset           `json:"encoderPreset,omitempty"`
+	LocalNetworks        *[]string                `json:"localNetworks,omitempty"`
+	MaxTranscodes        nullable.Nullable[int]   `json:"maxTranscodes,omitempty"`
+	RemoteMaxBitrate     *int64                   `json:"remoteMaxBitrate,omitempty"`
+	TranscodeDirMaxBytes nullable.Nullable[int64] `json:"transcodeDirMaxBytes,omitempty"`
+}
+
 // PlaybackState defines model for PlaybackState.
 type PlaybackState string
 
@@ -1911,6 +1969,22 @@ type PlaybackSubtitle struct {
 
 // PlaybackSubtitleDelivery How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
 type PlaybackSubtitleDelivery string
+
+// PlaybackUpdate defines model for PlaybackUpdate.
+type PlaybackUpdate struct {
+	AudioStreamIndex *int  `json:"audioStreamIndex,omitempty"`
+	BurnSubtitles    *bool `json:"burnSubtitles,omitempty"`
+
+	// MaxBitrate null removes the request's limit.
+	MaxBitrate nullable.Nullable[int64] `json:"maxBitrate,omitempty"`
+
+	// PositionMs Where the client is; a new `url` starts there.
+	PositionMs int64    `json:"positionMs"`
+	Quality    *Quality `json:"quality,omitempty"`
+
+	// SubtitleStreamIndex null turns subtitles off; absent keeps the current choice.
+	SubtitleStreamIndex nullable.Nullable[int] `json:"subtitleStreamIndex,omitempty"`
+}
 
 // Profile defines model for Profile.
 type Profile struct {
@@ -2291,11 +2365,17 @@ type ProfileId = string
 // Range Examples: bytes=0-1048575
 type Range = string
 
+// SegmentNumber defines model for SegmentNumber.
+type SegmentNumber = int
+
 // SessionId defines model for SessionId.
 type SessionId = string
 
 // StreamToken defines model for StreamToken.
 type StreamToken = string
+
+// SubtitleIndex defines model for SubtitleIndex.
+type SubtitleIndex = int
 
 // UserId defines model for UserId.
 type UserId = string
@@ -2430,11 +2510,17 @@ type ClaimPairingJSONRequestBody = ClaimPairingRequest
 // StopPlaybackJSONRequestBody defines body for StopPlayback for application/json ContentType.
 type StopPlaybackJSONRequestBody = PlaybackStop
 
+// UpdatePlaybackJSONRequestBody defines body for UpdatePlayback for application/json ContentType.
+type UpdatePlaybackJSONRequestBody = PlaybackUpdate
+
 // ReportPlaybackProgressJSONRequestBody defines body for ReportPlaybackProgress for application/json ContentType.
 type ReportPlaybackProgressJSONRequestBody = PlaybackProgress
 
 // SelectProfileJSONRequestBody defines body for SelectProfile for application/json ContentType.
 type SelectProfileJSONRequestBody = SelectProfileRequest
+
+// UpdatePlaybackSettingsJSONRequestBody defines body for UpdatePlaybackSettings for application/json ContentType.
+type UpdatePlaybackSettingsJSONRequestBody = PlaybackSettingsUpdate
 
 // CreateFirstAdminJSONRequestBody defines body for CreateFirstAdmin for application/json ContentType.
 type CreateFirstAdminJSONRequestBody = SetupAdminRequest
@@ -2612,6 +2698,9 @@ type ServerInterface interface {
 	// GetPlayback One of your playback sessions
 	// (GET /playback/{sessionId})
 	GetPlayback(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId)
+	// UpdatePlayback Change the audio track, subtitles, quality or bitrate of a session (F006 R6)
+	// (PATCH /playback/{sessionId})
+	UpdatePlayback(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId)
 	// ReportPlaybackProgress Report the position and state; also keeps the session alive (F006 R32)
 	// (POST /playback/{sessionId}/progress)
 	ReportPlaybackProgress(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId)
@@ -2624,6 +2713,12 @@ type ServerInterface interface {
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(w http.ResponseWriter, r *http.Request)
+	// GetPlaybackSettings Playback settings (admin, F006 R30)
+	// (GET /settings/playback)
+	GetPlaybackSettings(w http.ResponseWriter, r *http.Request)
+	// UpdatePlaybackSettings Change playback settings (admin, F006 R30)
+	// (PATCH /settings/playback)
+	UpdatePlaybackSettings(w http.ResponseWriter, r *http.Request)
 	// GetSetup First-run setup state
 	// (GET /setup)
 	GetSetup(w http.ResponseWriter, r *http.Request)
@@ -4142,6 +4237,32 @@ func (siw *ServerInterfaceWrapper) GetPlayback(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
+// UpdatePlayback operation middleware
+func (siw *ServerInterfaceWrapper) UpdatePlayback(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId PlaybackSessionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", r.PathValue("sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdatePlayback(w, r, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ReportPlaybackProgress operation middleware
 func (siw *ServerInterfaceWrapper) ReportPlaybackProgress(w http.ResponseWriter, r *http.Request) {
 
@@ -4201,6 +4322,34 @@ func (siw *ServerInterfaceWrapper) SelectProfile(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SelectProfile(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPlaybackSettings operation middleware
+func (siw *ServerInterfaceWrapper) GetPlaybackSettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPlaybackSettings(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdatePlaybackSettings operation middleware
+func (siw *ServerInterfaceWrapper) UpdatePlaybackSettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdatePlaybackSettings(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4589,7 +4738,10 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/playback", wrapper.ListPlaybackSessions)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/playback/{sessionId}", wrapper.StopPlayback)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/playback/{sessionId}", wrapper.GetPlayback)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/playback/{sessionId}", wrapper.UpdatePlayback)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/playback/{sessionId}/progress", wrapper.ReportPlaybackProgress)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/settings/playback", wrapper.GetPlaybackSettings)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/playback", wrapper.UpdatePlaybackSettings)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 
@@ -6749,6 +6901,46 @@ func (response GetPlaybackdefaultJSONResponse) VisitGetPlaybackResponse(w http.R
 	return err
 }
 
+type UpdatePlaybackRequestObject struct {
+	SessionId PlaybackSessionId `json:"sessionId"`
+	Body      *UpdatePlaybackJSONRequestBody
+}
+
+type UpdatePlaybackResponseObject interface {
+	VisitUpdatePlaybackResponse(w http.ResponseWriter) error
+}
+
+type UpdatePlayback200JSONResponse PlaybackSession
+
+func (response UpdatePlayback200JSONResponse) VisitUpdatePlaybackResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePlaybackdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdatePlaybackdefaultJSONResponse) VisitUpdatePlaybackResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ReportPlaybackProgressRequestObject struct {
 	SessionId PlaybackSessionId `json:"sessionId"`
 	Body      *ReportPlaybackProgressJSONRequestBody
@@ -6887,6 +7079,83 @@ type SelectProfiledefaultJSONResponse struct {
 }
 
 func (response SelectProfiledefaultJSONResponse) VisitSelectProfileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPlaybackSettingsRequestObject struct {
+}
+
+type GetPlaybackSettingsResponseObject interface {
+	VisitGetPlaybackSettingsResponse(w http.ResponseWriter) error
+}
+
+type GetPlaybackSettings200JSONResponse PlaybackSettings
+
+func (response GetPlaybackSettings200JSONResponse) VisitGetPlaybackSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPlaybackSettingsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetPlaybackSettingsdefaultJSONResponse) VisitGetPlaybackSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePlaybackSettingsRequestObject struct {
+	Body *UpdatePlaybackSettingsJSONRequestBody
+}
+
+type UpdatePlaybackSettingsResponseObject interface {
+	VisitUpdatePlaybackSettingsResponse(w http.ResponseWriter) error
+}
+
+type UpdatePlaybackSettings200JSONResponse PlaybackSettings
+
+func (response UpdatePlaybackSettings200JSONResponse) VisitUpdatePlaybackSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePlaybackSettingsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdatePlaybackSettingsdefaultJSONResponse) VisitUpdatePlaybackSettingsResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -7396,6 +7665,9 @@ type StrictServerInterface interface {
 	// GetPlayback One of your playback sessions
 	// (GET /playback/{sessionId})
 	GetPlayback(ctx context.Context, request GetPlaybackRequestObject) (GetPlaybackResponseObject, error)
+	// UpdatePlayback Change the audio track, subtitles, quality or bitrate of a session (F006 R6)
+	// (PATCH /playback/{sessionId})
+	UpdatePlayback(ctx context.Context, request UpdatePlaybackRequestObject) (UpdatePlaybackResponseObject, error)
 	// ReportPlaybackProgress Report the position and state; also keeps the session alive (F006 R32)
 	// (POST /playback/{sessionId}/progress)
 	ReportPlaybackProgress(ctx context.Context, request ReportPlaybackProgressRequestObject) (ReportPlaybackProgressResponseObject, error)
@@ -7408,6 +7680,12 @@ type StrictServerInterface interface {
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(ctx context.Context, request SelectProfileRequestObject) (SelectProfileResponseObject, error)
+	// GetPlaybackSettings Playback settings (admin, F006 R30)
+	// (GET /settings/playback)
+	GetPlaybackSettings(ctx context.Context, request GetPlaybackSettingsRequestObject) (GetPlaybackSettingsResponseObject, error)
+	// UpdatePlaybackSettings Change playback settings (admin, F006 R30)
+	// (PATCH /settings/playback)
+	UpdatePlaybackSettings(ctx context.Context, request UpdatePlaybackSettingsRequestObject) (UpdatePlaybackSettingsResponseObject, error)
 	// GetSetup First-run setup state
 	// (GET /setup)
 	GetSetup(ctx context.Context, request GetSetupRequestObject) (GetSetupResponseObject, error)
@@ -8997,6 +9275,39 @@ func (sh *strictHandler) GetPlayback(w http.ResponseWriter, r *http.Request, ses
 	}
 }
 
+// UpdatePlayback operation middleware
+func (sh *strictHandler) UpdatePlayback(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId) {
+	var request UpdatePlaybackRequestObject
+
+	request.SessionId = sessionId
+
+	var body UpdatePlaybackJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdatePlayback(ctx, request.(UpdatePlaybackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdatePlayback")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdatePlaybackResponseObject); ok {
+		if err := validResponse.VisitUpdatePlaybackResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ReportPlaybackProgress operation middleware
 func (sh *strictHandler) ReportPlaybackProgress(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId) {
 	var request ReportPlaybackProgressRequestObject
@@ -9102,6 +9413,61 @@ func (sh *strictHandler) SelectProfile(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(SelectProfileResponseObject); ok {
 		if err := validResponse.VisitSelectProfileResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetPlaybackSettings operation middleware
+func (sh *strictHandler) GetPlaybackSettings(w http.ResponseWriter, r *http.Request) {
+	var request GetPlaybackSettingsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPlaybackSettings(ctx, request.(GetPlaybackSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPlaybackSettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPlaybackSettingsResponseObject); ok {
+		if err := validResponse.VisitGetPlaybackSettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdatePlaybackSettings operation middleware
+func (sh *strictHandler) UpdatePlaybackSettings(w http.ResponseWriter, r *http.Request) {
+	var request UpdatePlaybackSettingsRequestObject
+
+	var body UpdatePlaybackSettingsJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdatePlaybackSettings(ctx, request.(UpdatePlaybackSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdatePlaybackSettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdatePlaybackSettingsResponseObject); ok {
+		if err := validResponse.VisitUpdatePlaybackSettingsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

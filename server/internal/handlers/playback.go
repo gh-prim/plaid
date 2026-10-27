@@ -46,6 +46,105 @@ func (h *Handlers) GetPlayback(ctx context.Context, req api.GetPlaybackRequestOb
 	return api.GetPlayback200JSONResponse(toPlaybackSession(sess)), nil
 }
 
+// UpdatePlayback changes a session's tracks, quality or bitrate (R6).
+func (h *Handlers) UpdatePlayback(ctx context.Context, req api.UpdatePlaybackRequestObject) (api.UpdatePlaybackResponseObject, error) {
+	pr, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if h.playback == nil {
+		return nil, apierr.PlaybackSessionNotFound()
+	}
+	b := req.Body
+	var p problems
+	c := playback.Change{PositionMs: b.PositionMs, AudioIndex: b.AudioStreamIndex, BurnSubtitles: b.BurnSubtitles}
+	if b.PositionMs < 0 {
+		p.add("positionMs", "out_of_range")
+	}
+	if set, v := fromNullable(b.SubtitleStreamIndex); set {
+		c.SubtitleSet, c.SubtitleIndex, c.SubtitlesOff = true, v, v == nil
+	}
+	if set, v := fromNullable(b.MaxBitrate); set {
+		if v == nil {
+			c.MaxBitrateClear = true
+		} else if *v < 1 {
+			p.add("maxBitrate", "out_of_range")
+		} else {
+			c.MaxBitrate = v
+		}
+	}
+	if b.Quality != nil {
+		q := string(*b.Quality)
+		if !slices.Contains(qualityNames(), q) {
+			p.add("quality", "invalid")
+		}
+		c.Quality = &q
+	}
+	if err := p.err(); err != nil {
+		return nil, err
+	}
+	sess, err := h.playback.ChangeSession(ctx, pr, clientinfo.FromContext(ctx), req.SessionId, c)
+	if err != nil {
+		return nil, playbackErr(err)
+	}
+	return api.UpdatePlayback200JSONResponse(toPlaybackSession(sess)), nil
+}
+
+// GetPlaybackSettings returns the playback settings in effect (admin, R30).
+func (h *Handlers) GetPlaybackSettings(ctx context.Context, _ api.GetPlaybackSettingsRequestObject) (api.GetPlaybackSettingsResponseObject, error) {
+	if _, err := admin(ctx); err != nil {
+		return nil, err
+	}
+	if h.playback == nil {
+		return nil, apierr.FFmpegMissing()
+	}
+	return api.GetPlaybackSettings200JSONResponse(toPlaybackSettings(h.playback.Settings())), nil
+}
+
+// UpdatePlaybackSettings changes playback settings (admin, R30).
+func (h *Handlers) UpdatePlaybackSettings(ctx context.Context, req api.UpdatePlaybackSettingsRequestObject) (api.UpdatePlaybackSettingsResponseObject, error) {
+	if _, err := admin(ctx); err != nil {
+		return nil, err
+	}
+	if h.playback == nil {
+		return nil, apierr.FFmpegMissing()
+	}
+	b := req.Body
+	u := playback.ConfigUpdate{RemoteMaxBitrate: b.RemoteMaxBitrate, LocalNetworks: b.LocalNetworks}
+	if set, v := fromNullable(b.MaxTranscodes); set {
+		u.MaxTranscodes, u.ResetMaxTranscodes = v, v == nil
+	}
+	if set, v := fromNullable(b.TranscodeDirMaxBytes); set {
+		u.TranscodeDirMaxBytes, u.ResetTranscodeDirMaxBytes = v, v == nil
+	}
+	if b.EncoderPreset != nil {
+		preset := string(*b.EncoderPreset)
+		u.EncoderPreset = &preset
+	}
+	view, err := h.playback.SaveSettings(ctx, u)
+	var fe *playback.FieldError
+	if errors.As(err, &fe) {
+		return nil, apierr.ValidationFailed(apierr.Detail{Field: fe.Field, Code: fe.Code})
+	}
+	if err != nil {
+		return nil, err
+	}
+	return api.UpdatePlaybackSettings200JSONResponse(toPlaybackSettings(view)), nil
+}
+
+func toPlaybackSettings(v playback.SettingsView) api.PlaybackSettings {
+	nets := make([]string, 0, len(v.LocalNetworks))
+	for _, n := range v.LocalNetworks {
+		nets = append(nets, n.String())
+	}
+	return api.PlaybackSettings{
+		MaxTranscodes: v.MaxTranscodesEffective, MaxTranscodesDefault: v.MaxTranscodesDefault,
+		RemoteMaxBitrate: v.RemoteMaxBitrate, LocalNetworks: nets,
+		TranscodeDirMaxBytes: v.TranscodeDirMaxBytesEffective, TranscodeDirMaxBytesDefault: v.TranscodeDirMaxBytesDefault,
+		EncoderPreset: api.EncoderPreset(v.EncoderPreset),
+	}
+}
+
 // StopPlayback ends a playback session and saves its last position (R8, R32).
 func (h *Handlers) StopPlayback(ctx context.Context, req api.StopPlaybackRequestObject) (api.StopPlaybackResponseObject, error) {
 	pr, err := principal(ctx)
@@ -258,6 +357,14 @@ func playbackErr(err error) error {
 		return apierr.FFmpegMissing()
 	case errors.Is(err, playback.ErrSessionNotFound):
 		return apierr.PlaybackSessionNotFound()
+	case errors.Is(err, playback.ErrTranscodeLimit):
+		return apierr.TranscodeLimitReached()
+	case errors.Is(err, playback.ErrTranscodeStorage):
+		return apierr.TranscodeStorageFull()
+	case errors.Is(err, playback.ErrSegmentNotReady):
+		return apierr.SegmentNotReady()
+	case errors.Is(err, playback.ErrNoSuchSegment), errors.Is(err, playback.ErrNoSuchSubtitle):
+		return apierr.NotFound("no such stream resource")
 	}
 	return err
 }

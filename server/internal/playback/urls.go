@@ -4,7 +4,7 @@ package playback
 const StreamPrefix = "/api/v1/stream/"
 
 // StreamURL is what the client plays, relative to the server: the file
-// itself for Direct Play. HLS playlists come with plan PR B.
+// itself for Direct Play, else the HLS master playlist.
 func StreamURL(s Session) string {
 	if s.Decision.Method == DirectPlay {
 		return StreamPrefix + s.token + "/file"
@@ -22,7 +22,3 @@ func DeliveryOf(s Session, sub Subtitle) string {
 	}
 	return subtitleDelivery(&sub, s.Profile, d.Method == DirectPlay)
 }
-
-// SubtitleURL is where a subtitle delivered separately is fetched. The
-// WebVTT route comes with plan PR B; until then there's none.
-func SubtitleURL(Session, Subtitle) string { return "" }

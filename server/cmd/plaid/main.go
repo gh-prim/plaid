@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -142,6 +143,7 @@ func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store
 	svc := playback.New(playback.Options{
 		DB: database, Library: store, Accounts: accts,
 		Settings: settings.New(database), FFmpeg: ffmpeg, Log: logger,
+		TranscodeDir: cfg.TranscodeDir, CacheDir: filepath.Join(cfg.DataDir, "cache", "playback"),
 	})
 	svc.Start(ctx)
 	return svc

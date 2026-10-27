@@ -16,6 +16,10 @@ func TestFindFFmpeg(t *testing.T) {
 	}
 	f, err := FindFFmpeg(context.Background(), "")
 	if err != nil || f.Version == "" {
-		t.Errorf("ffmpeg = %+v (%v)", f, err)
+		t.Fatalf("ffmpeg = %+v (%v)", f, err)
+	}
+	// Every build has scale and overlay; subtitles depends on libass.
+	if !f.HasFilter("scale") || !f.HasFilter("overlay") || f.HasFilter("no-such-filter") {
+		t.Errorf("filters: scale %v, overlay %v, %d in all", f.HasFilter("scale"), f.HasFilter("overlay"), len(f.Filters))
 	}
 }

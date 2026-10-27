@@ -53,6 +53,9 @@ type Session struct {
 	lastWrite time.Time
 	counted   bool
 	reported  bool
+	// fromSegments is set when the position comes from the segments an
+	// HLS client asked for, without progress reports (R34).
+	fromSegments bool
 }
 
 // Owner names who a session belongs to, for the admin view (R29).
@@ -179,6 +182,45 @@ func (m *Manager) ended(s Session, why string) {
 	if m.OnEnd != nil {
 		m.OnEnd(s)
 	}
+}
+
+// Activity returns when a session was last used, and whether it's live.
+func (m *Manager) Activity(id string) (time.Time, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	s, ok := m.byID[id]
+	if !ok || !m.live(s) {
+		return time.Time{}, false
+	}
+	return s.LastActivity, true
+}
+
+// SegmentPosition records the start of the last segment an HLS client
+// requested as its position, for clients that don't report progress (R34).
+func (m *Manager) SegmentPosition(id string, ms int64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if s, ok := m.byID[id]; ok && !s.reported {
+		s.PositionMs, s.fromSegments = ms, true
+	}
+}
+
+// Rekey changes a session and gives it a new token: its old URLs stop
+// working at once (R6, spec revision 3).
+func (m *Manager) Rekey(id string, change func(*Session)) (Session, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	s, ok := m.byID[id]
+	if !ok || !m.live(s) {
+		return Session{}, ErrSessionNotFound
+	}
+	change(s)
+	delete(m.byToken, s.tokenHash)
+	s.token = auth.NewToken()
+	s.tokenHash = tokenKey(s.token)
+	m.byToken[s.tokenHash] = s
+	s.LastActivity = m.Now()
+	return *s, nil
 }
 
 // List returns every live session, oldest first.
