@@ -39,6 +39,8 @@ A single `make test` target must pass before any PR.
 
 On Apple Silicon, `make test-deb ARCH=amd64` only works on distros with systemd < 255 (e.g. `debian:bookworm`): newer systemd can't run under x86 emulation. Real amd64 coverage is the `package-test` CI job.
 
+**Releases are automatic.** Every push to `main` tags the next version and publishes a GitHub release (binaries, `.deb`, checksums) from that tag. Patch by default; write `#minor` or `#major` in the PR title or description to bump more, `[skip release]` to skip. Version logic: `scripts/next-version.sh`.
+
 Generated files (`api.gen.go`, `schema.d.ts`) are never edited by hand. Web uses TypeScript 6: TypeScript 7 (native) breaks `openapi-typescript` and `typescript-eslint`.
 
 ## Conventions

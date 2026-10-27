@@ -1,18 +1,81 @@
 name: release
 
+# Every push to main gets a release:
+#   1. `tag` computes the next version (scripts/next-version.sh) and pushes the tag.
+#   2. `build` checks out that tag and runs GoReleaser: binaries, .deb, checksums,
+#      published GitHub release. The build only ever runs on a tag.
+# A tag pushed by hand (v*) skips step 1 and builds that tag.
+# Bump: patch by default; put "#minor" or "#major" in the merged commit/PR message,
+# or run the workflow by hand and pick one. "[skip release]" in the message skips it.
+#
+# Tags pushed with GITHUB_TOKEN don't trigger workflows, so step 1 never causes a
+# second run: the build is chained here instead.
+
 on:
   push:
+    branches: [main]
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        type: choice
+        options: [patch, minor, major]
+        default: patch
 
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  goreleaser:
+  tag:
+    if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip release]')
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.next.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Compute next version
+        id: next
+        run: |
+          if existing="$(git tag --points-at HEAD --list 'v*' | head -n1)" && [ -n "$existing" ]; then
+            echo "HEAD is already tagged $existing"
+            echo "tag=$existing" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          tag="$(scripts/next-version.sh "${BUMP}")"
+          echo "Next release: $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        env:
+          BUMP: ${{ inputs.bump }}
+      - name: Push tag
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "$TAG already exists"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+        env:
+          TAG: ${{ steps.next.outputs.tag }}
+
+  build:
+    needs: tag
+    if: >-
+      always() &&
+      (github.ref_type == 'tag' || (needs.tag.result == 'success' && needs.tag.outputs.tag != ''))
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.ref_type == 'tag' && github.ref || format('refs/tags/{0}', needs.tag.outputs.tag) }}
           fetch-depth: 0
       - uses: actions/setup-go@v6
         with:
