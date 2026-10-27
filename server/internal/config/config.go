@@ -4,8 +4,10 @@ package config
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Config is the runtime configuration of the server.
@@ -15,6 +17,8 @@ type Config struct {
 	DataDir   string
 	LogLevel  string
 	LogFormat string
+	// TrustedProxies are the peers whose X-Forwarded-* headers are believed.
+	TrustedProxies []netip.Prefix
 }
 
 // Addr returns the host:port the HTTP server listens on.
@@ -56,8 +60,36 @@ func Load(getenv func(string) string) (Config, error) {
 		return Config{}, fmt.Errorf("PLAID_LOG_FORMAT must be text or json, got %q", cfg.LogFormat)
 	}
 
+	proxies, err := parsePrefixes(getenv("PLAID_TRUSTED_PROXIES"))
+	if err != nil {
+		return Config{}, fmt.Errorf("PLAID_TRUSTED_PROXIES: %w", err)
+	}
+	cfg.TrustedProxies = proxies
+
 	if err := os.MkdirAll(cfg.DataDir, 0o750); err != nil {
 		return Config{}, fmt.Errorf("create data dir %s: %w", cfg.DataDir, err)
 	}
 	return cfg, nil
+}
+
+// parsePrefixes reads a comma-separated list of CIDRs or bare IP addresses.
+func parsePrefixes(list string) ([]netip.Prefix, error) {
+	var out []netip.Prefix
+	for _, item := range strings.Split(list, ",") {
+		item = strings.TrimSpace(item)
+		if item == "" {
+			continue
+		}
+		if p, err := netip.ParsePrefix(item); err == nil {
+			out = append(out, p.Masked())
+			continue
+		}
+		addr, err := netip.ParseAddr(item)
+		if err != nil {
+			return nil, fmt.Errorf("%q is neither an IP address nor a CIDR", item)
+		}
+		addr = addr.Unmap()
+		out = append(out, netip.PrefixFrom(addr, addr.BitLen()))
+	}
+	return out, nil
 }

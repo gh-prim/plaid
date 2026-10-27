@@ -3,7 +3,7 @@ id: F003
 title: Accounts and authentication
 owner: gh-prim
 reviewer: TBD
-status: draft            # draft | approved | in-progress | done
+status: in-progress      # draft | approved | in-progress | done
 spec: ./spec.md
 branch: feat/F003-accounts-auth
 ---
@@ -31,7 +31,7 @@ branch: feat/F003-accounts-auth
 | `server/internal/httpserver/server.go` | modify | `ResponseErrorHandlerFunc` maps `*apierr.Error` → status + shared shape, else 500; middleware order recover → access log → client info → session → CSRF → password-change gate → mux (spec "Behavior per app") |
 | `server/internal/httpserver/errors.go` | modify | `writeError` accepts `details` and extra headers |
 | `server/internal/httpserver/middleware.go` | modify | `statusRecorder.Unwrap()` so `http.ResponseController` and cookies keep working through it (also needed by F004 SSE) |
-| `server/internal/httpserver/clientinfo.go` + `_test.go` | create | Client IP and HTTPS from `RemoteAddr`, `X-Forwarded-For`/`X-Forwarded-Proto` only from `PLAID_TRUSTED_PROXIES`; stored in context (watch-out "reverse proxy") |
+| `server/internal/clientinfo/clientinfo.go` + `_test.go` | create | Client IP and HTTPS from `RemoteAddr`, `X-Forwarded-For`/`X-Forwarded-Proto` only from `PLAID_TRUSTED_PROXIES`; stored in context (watch-out "reverse proxy") |
 | `server/internal/auth/principal.go` | create | `Principal{UserID, Role, ProfileID, SessionID, MustChangePassword}`, `WithPrincipal`, `FromContext`, `Role` type (`admin`, `member`, extensible) (R1) |
 | `server/internal/auth/middleware.go` + `_test.go` | create | `Authenticate` (bearer or cookie → session lookup), public-route allowlist, `RequireAdmin(ctx) error`, CSRF check, `password_change_required` gate (R9, R10, R12, R13, R15) |
 | `server/internal/auth/public_routes_test.go` | create | Parses `api/openapi.yaml`; fails if the operations with `security: []` differ from the middleware allowlist (R12 "mirrored by OpenAPI") |
@@ -77,10 +77,10 @@ branch: feat/F003-accounts-auth
 Each step ends with a commit `F003: …`. Tests are written in the same step as the code.
 
 ### PR 1 — foundations (unblocks F004)
-1. [ ] **Typed errors** (R12 error codes). `internal/apierr`, wired in `ResponseErrorHandlerFunc`; `Error` schema gains optional `details: [{field, code}]`; `writeError` supports headers (`Retry-After`). Test: a handler returning `apierr.Forbidden()` gives `403 {"error":{"code":"forbidden",…}}`; any other error stays `500 internal_error` and is logged. Spec *Revisions* updated.
-2. [ ] **Client info** (watch-out reverse proxy). `PLAID_TRUSTED_PROXIES` in config; `clientinfo` middleware computes IP + HTTPS. Tests: forwarded headers ignored from an untrusted peer, honored from a trusted CIDR, rightmost untrusted hop chosen in a chain.
-3. [ ] **Principal and middleware skeleton** (R1, R12, R13). `auth.Principal`, `FromContext`, `RequireAdmin`; `Authenticate` with the public-route allowlist and a `SessionLookup` interface (stub that always fails until step 7). OpenAPI: `bearerAuth` + `cookieAuth` global, `security: []` on `/health`. `public_routes_test.go`. Tests: `/health` works without a token; any other `/api/v1` path without a session is `401 unauthorized`, including unknown ones (the middleware runs before routing, and not leaking which routes exist is fine); with a valid session an unknown route is the JSON `404`. `go.yaml.in/yaml/v3` (already indirect) becomes a direct dependency for the OpenAPI test.
-4. [ ] **`statusRecorder.Unwrap`** + test that `http.NewResponseController(w).Flush()` works through the access log. → **open PR 1.**
+1. [x] **Typed errors** (R12 error codes). `internal/apierr`, wired in `ResponseErrorHandlerFunc`; `Error` schema gains optional `details: [{field, code}]`; `writeError` supports headers (`Retry-After`). Test: a handler returning `apierr.Forbidden()` gives `403 {"error":{"code":"forbidden",…}}`; any other error stays `500 internal_error` and is logged. Spec *Revisions* updated.
+2. [x] **Client info** (watch-out reverse proxy). `PLAID_TRUSTED_PROXIES` in config; `clientinfo` middleware computes IP + HTTPS. Tests: forwarded headers ignored from an untrusted peer, honored from a trusted CIDR, rightmost untrusted hop chosen in a chain.
+3. [x] **Principal and middleware skeleton** (R1, R12, R13). `auth.Principal`, `FromContext`, `RequireAdmin`; `Authenticate` with the public-route allowlist and a `SessionLookup` interface (stub that always fails until step 7). OpenAPI: `bearerAuth` + `cookieAuth` global, `security: []` on `/health`. `public_routes_test.go`. Tests: `/health` works without a token; any other `/api/v1` path without a session is `401 unauthorized`, including unknown ones (the middleware runs before routing, and not leaking which routes exist is fine); with a valid session an unknown route is the JSON `404`. `go.yaml.in/yaml/v3` (already indirect) becomes a direct dependency for the OpenAPI test.
+4. [x] **`statusRecorder.Unwrap`** + test that `http.NewResponseController(w).Flush()` works through the access log. → **open PR 1.**
 
 ### PR 2 — server
 5. [ ] **Migration `0002_accounts.sql` + store** (R24). Tables exactly as the spec; `accounts.Store` with CRUD. Test: migration applies on a fresh DB and on one with `0001` already applied; cascade deletes work.
@@ -142,4 +142,5 @@ Each step ends with a commit `F003: …`. Tests are written in the same step as 
 - [ ] Manual check: `grep` of the server log after the e2e run shows no password, PIN, token or poll secret
 
 ## Log
-_Nothing yet._
+- 2026-10-27, step 2: client info lives in its own package `internal/clientinfo` instead of `internal/httpserver/clientinfo.go`. Handlers need to read it, and `httpserver`'s tests import `handlers`, so putting it in `httpserver` would create an import cycle. The untrusted-forward flag (clarification 2) also covers `X-Real-IP`. `httpserver.New` takes an `Options` struct, which step 3 extends with the session lookup.
+- 2026-10-27, step 3: `handlers.Deps` (planned with step 5 in the files table) lands in PR 1 as the risk table says, so F004 can add its field without touching the constructor. The middleware guards every `/api/` path, not only `/api/v1/`, so nothing under `/api/` is reachable without a session except the allowlist. A failed session lookup of any kind (database error included) is a `401`.

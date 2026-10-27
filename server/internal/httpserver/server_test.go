@@ -1,8 +1,11 @@
 package httpserver
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -11,6 +14,9 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/gh-prim/plaid/server/internal/api"
+	"github.com/gh-prim/plaid/server/internal/apierr"
+	"github.com/gh-prim/plaid/server/internal/auth"
 	"github.com/gh-prim/plaid/server/internal/handlers"
 )
 
@@ -24,15 +30,34 @@ var builtWeb = fstest.MapFS{
 	"favicon.svg":     {Data: []byte("<svg/>")},
 }
 
+// oneSession accepts the bearer token "valid".
+type oneSession struct{}
+
+func (oneSession) Lookup(_ context.Context, token string) (auth.Principal, error) {
+	if token == "valid" {
+		return auth.Principal{UserID: "u1", SessionID: "s1", Role: auth.RoleMember}, nil
+	}
+	return auth.Principal{}, auth.ErrNoSession
+}
+
 func newTestServer(web fstest.MapFS) http.Handler {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	return New(handlers.New(okPinger{}), web, logger)
+	return New(handlers.New(handlers.Deps{DB: okPinger{}}), web, logger, Options{Sessions: oneSession{}})
 }
 
 func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
 	t.Helper()
+	return getWithToken(t, h, path, "")
+}
+
+func getWithToken(t *testing.T, h http.Handler, path, token string) *httptest.ResponseRecorder {
+	t.Helper()
+	r := httptest.NewRequest(http.MethodGet, path, nil)
+	if token != "" {
+		r.Header.Set("Authorization", "Bearer "+token)
+	}
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
+	h.ServeHTTP(rec, r)
 	return rec
 }
 
@@ -52,8 +77,15 @@ func TestHealthRoute(t *testing.T) {
 	}
 }
 
-func TestUnknownAPIRouteIsJSON404(t *testing.T) {
+func TestUnknownAPIRouteWithoutSessionIs401(t *testing.T) {
 	rec := get(t, newTestServer(builtWeb), "/api/v1/nope")
+	if rec.Code != http.StatusUnauthorized || !strings.Contains(rec.Body.String(), `"code":"unauthorized"`) {
+		t.Fatalf("status %d body %q, want 401 unauthorized", rec.Code, rec.Body)
+	}
+}
+
+func TestUnknownAPIRouteIsJSON404(t *testing.T) {
+	rec := getWithToken(t, newTestServer(builtWeb), "/api/v1/nope", "valid")
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", rec.Code)
 	}
@@ -110,5 +142,41 @@ func TestPanicIsRecovered(t *testing.T) {
 	rec := get(t, h, "/api/v1/anything")
 	if rec.Code != http.StatusInternalServerError || !strings.Contains(rec.Body.String(), "internal_error") {
 		t.Errorf("status %d body %q", rec.Code, rec.Body)
+	}
+}
+
+// erroringHandlers returns err from every operation.
+type erroringHandlers struct{ err error }
+
+func (e erroringHandlers) GetHealth(context.Context, api.GetHealthRequestObject) (api.GetHealthResponseObject, error) {
+	return nil, e.err
+}
+
+func TestHandlerErrors(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		err      error
+		status   int
+		code     string
+		wantLogs bool
+	}{
+		{"api error written as is", apierr.Forbidden(), http.StatusForbidden, "forbidden", false},
+		{"wrapped api error", fmt.Errorf("check: %w", apierr.NotFound("no such thing")), http.StatusNotFound, "not_found", false},
+		{"unexpected error is a logged 500", errors.New("disk on fire"), http.StatusInternalServerError, "internal_error", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var logs bytes.Buffer
+			logger := slog.New(slog.NewTextHandler(&logs, nil))
+			rec := get(t, New(erroringHandlers{tc.err}, builtWeb, logger, Options{}), "/api/v1/health")
+			if rec.Code != tc.status || !strings.Contains(rec.Body.String(), `"code":"`+tc.code+`"`) {
+				t.Errorf("status %d body %q, want %d %s", rec.Code, rec.Body, tc.status, tc.code)
+			}
+			if strings.Contains(rec.Body.String(), "disk on fire") {
+				t.Errorf("internal error leaked to the client: %q", rec.Body)
+			}
+			if got := strings.Contains(logs.String(), "handler error"); got != tc.wantLogs {
+				t.Errorf("logged = %v, want %v (%q)", got, tc.wantLogs, logs.String())
+			}
+		})
 	}
 }

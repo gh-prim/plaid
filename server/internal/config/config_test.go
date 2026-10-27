@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net/netip"
 	"os"
 	"path/filepath"
 	"testing"
@@ -57,6 +58,7 @@ func TestLoadInvalid(t *testing.T) {
 		"port out of range": {"PLAID_PORT": "70000"},
 		"bad log level":     {"PLAID_LOG_LEVEL": "loud"},
 		"bad log format":    {"PLAID_LOG_FORMAT": "xml"},
+		"bad proxy":         {"PLAID_TRUSTED_PROXIES": "10.0.0.0/8, nope"},
 	}
 	for name, vars := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -65,5 +67,39 @@ func TestLoadInvalid(t *testing.T) {
 				t.Error("expected an error")
 			}
 		})
+	}
+}
+
+func TestTrustedProxies(t *testing.T) {
+	cfg, err := Load(env(map[string]string{
+		"PLAID_DATA_DIR":        t.TempDir(),
+		"PLAID_TRUSTED_PROXIES": " 172.18.0.0/16, 127.0.0.1,::1 ,10.1.2.3/8",
+	}))
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	want := []netip.Prefix{
+		netip.MustParsePrefix("172.18.0.0/16"),
+		netip.MustParsePrefix("127.0.0.1/32"),
+		netip.MustParsePrefix("::1/128"),
+		netip.MustParsePrefix("10.0.0.0/8"),
+	}
+	if len(cfg.TrustedProxies) != len(want) {
+		t.Fatalf("TrustedProxies = %v, want %v", cfg.TrustedProxies, want)
+	}
+	for i := range want {
+		if cfg.TrustedProxies[i] != want[i] {
+			t.Errorf("TrustedProxies[%d] = %v, want %v", i, cfg.TrustedProxies[i], want[i])
+		}
+	}
+}
+
+func TestNoTrustedProxiesByDefault(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"PLAID_DATA_DIR": t.TempDir()}))
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if len(cfg.TrustedProxies) != 0 {
+		t.Errorf("TrustedProxies = %v, want none", cfg.TrustedProxies)
 	}
 }
