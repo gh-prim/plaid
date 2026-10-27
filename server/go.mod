@@ -10,6 +10,7 @@ tool (
 require (
 	github.com/google/uuid v1.6.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
+	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/sys v0.49.0
 	modernc.org/sqlite v1.61.0
 )
@@ -49,7 +50,6 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.42.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/text v0.40.0 // indirect

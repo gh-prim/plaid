@@ -254,4 +254,9 @@ Settled by gh-prim on 2026-10-27. ✅ = resolved, ⏸ = tracked elsewhere.
 - [ ] Given a Raspberry Pi 4 (or the throttled `make test-deb` profile), a sign-in completes in under 500 ms.
 
 ## Revisions
-_None yet._
+- **2026-10-27, from the plan** (gh-prim):
+  1. `POST /setup/admin` takes an optional `device` (same shape as login) so the first session has a real device name. Default `{name: "Web browser", type: "web"}`.
+  2. Setup locality is stricter behind a proxy: a request carrying `X-Forwarded-For`, `X-Real-IP` or `Forwarded` from a peer that isn't in `PLAID_TRUSTED_PROXIES` is treated as non-local and needs the setup code (R3). Otherwise a public request through a reverse proxy on `127.0.0.1` would look local.
+  3. Disabled accounts sign in with `401 invalid_credentials` (no account enumeration); disabling an account revokes all its sessions.
+  4. `POST /auth/logout` is also allowed while `password_change_required` is active.
+  5. The `Error` schema gains optional `details: [{field, code}]`, used with `validation_failed`.

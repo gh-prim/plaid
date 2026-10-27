@@ -12,6 +12,11 @@ type Pinger interface {
 	PingContext(ctx context.Context) error
 }
 
+// Deps are the services the handlers use. Each feature adds its own field.
+type Deps struct {
+	DB Pinger
+}
+
 // Handlers implements every operation of the PLAID API.
 type Handlers struct {
 	db Pinger
@@ -20,6 +25,6 @@ type Handlers struct {
 var _ api.StrictServerInterface = (*Handlers)(nil)
 
 // New returns the API handlers.
-func New(db Pinger) *Handlers {
-	return &Handlers{db: db}
+func New(d Deps) *Handlers {
+	return &Handlers{db: d.DB}
 }
