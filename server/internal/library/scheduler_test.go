@@ -366,8 +366,8 @@ func TestEngineStartDoesNotScan(t *testing.T) {
 	if err != nil || p.State != StateIdle {
 		t.Fatalf("after start: %+v %v", p, err)
 	}
-	// Last scanned 10 minutes ago, unwatched: next scan in 5 minutes.
-	if a := ft.active(); len(a) != 1 || a[0].d != 5*time.Minute {
+	// Last scanned 10 minutes ago, watched: next scan 6 h after that.
+	if a := ft.active(); len(a) != 1 || a[0].d != DefaultIntervalWatched-10*time.Minute {
 		t.Fatalf("timers after start: %+v", a)
 	}
 }
