@@ -94,10 +94,10 @@ Each step ends with a commit `F003: …`. Tests are written in the same step as 
 13. [x] **Pairing** (R20). `POST /pairing` (rate-limited 10 / 10 min per IP), `POST /pairing/claim` (wrong codes rate-limited per user through the limiter), `GET /pairing/{id}` with `X-Pairing-Secret`: `202 pending`, then `200` with the token exactly once (in-memory map id → token, deleted on delivery), then `404 pairing_not_found`. Expired → `410 pairing_expired`. Janitor goroutine (hourly) started in `main.go`. Tests: full flow, expiry, restart between claim and poll → `404` (TV starts over), code normalization (`k7p-4qx` = `K7P4QX`). → `make test`, **open PR 2.**
 
 ### PR 3 — web
-14. [ ] **Client + AuthProvider + guards** (R9, R10, R22). `X-Plaid-Client: web` middleware; `AuthProvider` reads `/server` then `/me` (`401` = signed out); `RequireAuth` redirects in the order setup → `/login` → `/change-password` → `/profiles` → app. Tests with stubbed `fetch` for each state.
-15. [ ] **Setup and sign-in pages** (R22). Inline field errors (`aria-describedby`), one-line server error from `errorKey(code)`, `too_many_attempts` shows minutes from `Retry-After` via ICU plural/number. Setup shows the setup-code field only when `requiresSetupCode`. Tests: happy path, mismatch, French rendering.
-16. [ ] **Change password, profile picker, PIN** (R15, R17, R22). One profile → straight to home; several → "Who's watching?" tiles; PIN modal using `PinInput` (4 inputs, `role="group"` + label, auto-advance, backspace, paste). Tests: keyboard-only flow, `invalid_pin`, `profile_locked`.
-17. [ ] **Pair page + sign-out** (R20, R22). Code input accepting `XXX-XXX` or 6 chars, profile select, success line `pairing.done`. Sign-out button on `Welcome`. `make check-i18n`, screenshots of the 5 pages in `en` and `fr`. → **open PR 3.**
+14. [x] **Client + AuthProvider + guards** (R9, R10, R22). `X-Plaid-Client: web` middleware; `AuthProvider` reads `/server` then `/me` (`401` = signed out); `RequireAuth` redirects in the order setup → `/login` → `/change-password` → `/profiles` → app. Tests with stubbed `fetch` for each state.
+15. [x] **Setup and sign-in pages** (R22). Inline field errors (`aria-describedby`), one-line server error from `errorKey(code)`, `too_many_attempts` shows minutes from `Retry-After` via ICU plural/number. Setup shows the setup-code field only when `requiresSetupCode`. Tests: happy path, mismatch, French rendering.
+16. [x] **Change password, profile picker, PIN** (R15, R17, R22). One profile → straight to home; several → "Who's watching?" tiles; PIN modal using `PinInput` (4 inputs, `role="group"` + label, auto-advance, backspace, paste). Tests: keyboard-only flow, `invalid_pin`, `profile_locked`.
+17. [x] **Pair page + sign-out** (R20, R22). Code input accepting `XXX-XXX` or 6 chars, profile select, success line `pairing.done`. Sign-out button on `Welcome`. `make check-i18n`, screenshots of the 5 pages in `en` and `fr`. → **open PR 3.**
 18. [ ] **Pi check** (NFR performance, watch-out argon2id). `make deb && PLAID_TEST_CPUS=0.5 PLAID_TEST_MEMORY=1g make test-deb`, then time 10 sign-ins with `curl` inside the container. If p95 < 250 ms, raise `t` to 3 and record it in the Log; if > 500 ms, stop and discuss (the spec floor is OWASP's minimum).
 
 ### New i18n keys (beyond the spec table)
@@ -133,13 +133,13 @@ Each step ends with a commit `F003: …`. Tests are written in the same step as 
 - **A third-party LRU**: one hand-written map + list for ~1,000 entries is enough and avoids a dependency.
 
 ## Expected evidence
-- [ ] Tests added: `apierr`, `clientinfo`, `auth/*` (incl. `public_routes_test`), `accounts/*`, `handlers/*` + `auth_e2e_test.go` covering every acceptance criterion, web pages and guards
+- [x] Tests added: `apierr`, `clientinfo`, `auth/*` (incl. `public_routes_test`), `accounts/*`, `handlers/*` + `auth_e2e_test.go` covering every acceptance criterion, web pages and guards
 - [ ] `make test` green, output pasted in each PR
-- [ ] Screenshots: setup, sign-in (with error), change password, "Who's watching?" with PIN, pair; `en` and `fr`
-- [ ] Manual check: `make dev`, full journey in the browser through the Vite proxy (setup → sign-in → profile → sign-out)
-- [ ] Manual check: TV pairing with `curl` (create, claim from the browser, poll twice)
+- [x] Screenshots: setup, sign-in (with error), change password, "Who's watching?" with PIN, pair; `en` and `fr` (in [`screenshots/`](screenshots/))
+- [x] Manual check: full journey in the browser through the Vite proxy (setup → sign-in → profile → sign-out)
+- [x] Manual check: TV pairing with `curl` (create, claim from the browser, poll twice)
 - [ ] Manual check: sign-in timing on the throttled `make test-deb` profile (step 18), numbers pasted
-- [ ] Manual check: `grep` of the server log after the e2e run shows no password, PIN, token or poll secret
+- [x] Manual check: `grep` of the server log after the e2e run shows no password, PIN, token or poll secret (also asserted by `TestNoSecretsInLogs`)
 
 ## Log
 - 2026-10-27, step 2: client info lives in its own package `internal/clientinfo` instead of `internal/httpserver/clientinfo.go`. Handlers need to read it, and `httpserver`'s tests import `handlers`, so putting it in `httpserver` would create an import cycle. The untrusted-forward flag (clarification 2) also covers `X-Real-IP`. `httpserver.New` takes an `Options` struct, which step 3 extends with the session lookup.
@@ -153,3 +153,11 @@ Each step ends with a commit `F003: …`. Tests are written in the same step as 
   - **`_txlock=immediate`** on the SQLite DSN: every transaction takes the write lock up front. That makes the setup and last-admin check-then-write sequences atomic without an extra mutex, and avoids `SQLITE_BUSY` on lock upgrades.
   - Revoked and expired sessions are kept 30 days before the janitor purges them; expired pairing codes 10 minutes after expiry (a grace for a TV claimed just before expiry).
   - `auth_e2e_test.go` covers the acceptance criteria. The timing test (`auth_timing_test.go`, real argon2id parameters, `!race`) measured 16.2 ms vs 15.8 ms on an M-series Mac. The Pi measurement (step 18) is still to do.
+- 2026-10-27, PR 3 (steps 14–17):
+  - **The Vite proxy rewrote `Host`**: Vite's string shorthand for `proxy` sets `changeOrigin: true`, so the server saw `Host: localhost:32500` against `Origin: http://localhost:5173` and refused setup with `403 csrf` in `make dev`. This was the risk the plan flagged. `vite.config.ts` now sets `changeOrigin: false`. Production (same origin) was never affected.
+  - **PIN as one field**, not four inputs: one `<input inputMode="numeric" maxLength=4>` spaced out by CSS. Screen readers announce it once (the spec asks for "4 digits announced as one field"), and paste and password managers work without special code.
+  - **`POST /pairing/claim` returns `200` with the TV's `SessionInfo`** instead of `204`, so the page can say "Living room TV is signed in." (`pairing.done` needs the device name). Recorded as spec revision 12.
+  - **API errors in the web app**: every code maps to `errors.<code>` through an explicit `switch` (`src/auth/errors.ts`), so the i18n extractor sees each key; unknown codes fall back to `errors.generic`. Field `details` map to `fieldErrors.*`.
+  - The signed-in home is the F001 `Welcome` page under an account bar (profile, switch profile, pair a TV, sign out) until F008.
+  - The service now returns every time in UTC: `createdAt` came out with the host's offset (`+01:00`), seen during the manual check.
+  - `.claude/launch.json` (Vite on :5173) for the desktop app's browser preview.

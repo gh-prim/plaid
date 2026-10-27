@@ -1,8 +1,84 @@
 {
+  "account": {
+    "label": "Account",
+    "watchingAs": "Watching as {{name}}"
+  },
+  "auth": {
+    "changePassword": {
+      "submit": "Save password",
+      "title": "Choose a new password"
+    },
+    "confirmPassword": "Confirm password",
+    "createAdmin": "Create account",
+    "currentPassword": "Current password",
+    "displayName": "Name",
+    "newPassword": "New password",
+    "password": "Password",
+    "passwordHint": "At least 8 characters.",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "username": "Username",
+    "usernameHint": "3 to 32 characters: lowercase letters, digits, dots, dashes or underscores."
+  },
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "retry": "Try again"
+  },
+  "device": {
+    "webName": "{{browser}} on {{os}}"
+  },
+  "errors": {
+    "csrf": "This request was blocked. Reload the page and try again.",
+    "forbidden": "You're not allowed to do this.",
+    "generic": "Something went wrong. Try again.",
+    "invalid_credentials": "Wrong username or password.",
+    "invalid_pin": "Wrong PIN. Try again.",
+    "last_admin": "This server needs at least one admin.",
+    "last_profile": "An account needs at least one profile.",
+    "pairing_expired": "This code has expired. Ask the TV for a new one.",
+    "pairing_not_found": "No TV is showing this code. Check it and try again.",
+    "password_change_required": "Choose a new password first.",
+    "password_mismatch": "Passwords don't match.",
+    "profile_locked": "Too many wrong PINs. Try again in {{minutes, number}} min.",
+    "setup_code_required": "Enter the setup code from the server log.",
+    "setup_complete": "This server is already set up. Sign in instead.",
+    "too_many_attempts": "Too many attempts. Try again in {{minutes, number}} min.",
+    "unauthorized": "Your session has ended. Sign in again.",
+    "username_taken": "This username is already taken.",
+    "validation_failed": "Some fields need fixing.",
+    "weak_password": "Choose a longer or less common password."
+  },
+  "fieldErrors": {
+    "invalid": "Not valid.",
+    "required": "Required.",
+    "too_common": "Too common. Choose another one.",
+    "too_long": "Too long.",
+    "too_short": "Too short."
+  },
   "language": {
     "en": "English",
     "fr": "Français",
     "label": "Language"
+  },
+  "pairing": {
+    "codeLabel": "Code shown on the TV",
+    "confirm": "Pair",
+    "done": "{{device}} is signed in.",
+    "startProfile": "Start on profile",
+    "title": "Pair a TV"
+  },
+  "profiles": {
+    "enterPin": "Enter the PIN for {{name}}",
+    "open": "Open profile",
+    "switch": "Switch profile",
+    "whoIsWatching": "Who's watching?"
+  },
+  "setup": {
+    "setupCode": "Setup code",
+    "setupCodeHint": "You're not on the server's local network. Find the code in the server log, on the line first_run_setup_code.",
+    "subtitle": "Create the admin account for this server.",
+    "title": "Welcome to PLAID."
   },
   "welcome": {
     "status": {
