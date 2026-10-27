@@ -46,6 +46,16 @@ export interface components {
         code: string
         /** @description Human-readable English message, for logs and developers. Never shown to end users. */
         message: string
+        /** @description Invalid fields, set with code `validation_failed`. */
+        details?: {
+          /** @example username */
+          field: string
+          /**
+           * @description Stable key for this field's problem. Clients translate it through i18n.
+           * @example too_short
+           */
+          code: string
+        }[]
       }
     }
   }

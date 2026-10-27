@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gh-prim/plaid/server/internal/api"
+	"github.com/gh-prim/plaid/server/internal/apierr"
 )
 
 // New returns the root handler: /api/v1/* is the generated API, any other
@@ -15,15 +16,11 @@ func New(h api.StrictServerInterface, web fs.FS, logger *slog.Logger) http.Handl
 	mux := http.NewServeMux()
 
 	badRequest := func(w http.ResponseWriter, _ *http.Request, err error) {
-		writeError(w, http.StatusBadRequest, "bad_request", err.Error())
-	}
-	internal := func(w http.ResponseWriter, r *http.Request, err error) {
-		logger.Error("handler error", "path", r.URL.Path, "err", err)
-		writeError(w, http.StatusInternalServerError, "internal_error", "internal server error")
+		apierr.Write(w, apierr.BadRequest(err.Error()))
 	}
 	strict := api.NewStrictHandlerWithOptions(h, nil, api.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc:  badRequest,
-		ResponseErrorHandlerFunc: internal,
+		ResponseErrorHandlerFunc: handlerErrorFunc(logger),
 	})
 	api.HandlerWithOptions(strict, api.StdHTTPServerOptions{
 		BaseURL:          "/api/v1",

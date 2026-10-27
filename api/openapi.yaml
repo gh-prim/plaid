@@ -64,3 +64,17 @@ components:
             message:
               type: string
               description: Human-readable English message, for logs and developers. Never shown to end users.
+            details:
+              type: array
+              description: Invalid fields, set with code `validation_failed`.
+              items:
+                type: object
+                required: [field, code]
+                properties:
+                  field:
+                    type: string
+                    examples: ["username"]
+                  code:
+                    type: string
+                    description: Stable key for this field's problem. Clients translate it through i18n.
+                    examples: ["too_short"]

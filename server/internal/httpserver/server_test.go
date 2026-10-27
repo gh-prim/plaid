@@ -1,8 +1,11 @@
 package httpserver
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -11,6 +14,8 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/gh-prim/plaid/server/internal/api"
+	"github.com/gh-prim/plaid/server/internal/apierr"
 	"github.com/gh-prim/plaid/server/internal/handlers"
 )
 
@@ -110,5 +115,41 @@ func TestPanicIsRecovered(t *testing.T) {
 	rec := get(t, h, "/api/v1/anything")
 	if rec.Code != http.StatusInternalServerError || !strings.Contains(rec.Body.String(), "internal_error") {
 		t.Errorf("status %d body %q", rec.Code, rec.Body)
+	}
+}
+
+// erroringHandlers returns err from every operation.
+type erroringHandlers struct{ err error }
+
+func (e erroringHandlers) GetHealth(context.Context, api.GetHealthRequestObject) (api.GetHealthResponseObject, error) {
+	return nil, e.err
+}
+
+func TestHandlerErrors(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		err      error
+		status   int
+		code     string
+		wantLogs bool
+	}{
+		{"api error written as is", apierr.Forbidden(), http.StatusForbidden, "forbidden", false},
+		{"wrapped api error", fmt.Errorf("check: %w", apierr.NotFound("no such thing")), http.StatusNotFound, "not_found", false},
+		{"unexpected error is a logged 500", errors.New("disk on fire"), http.StatusInternalServerError, "internal_error", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var logs bytes.Buffer
+			logger := slog.New(slog.NewTextHandler(&logs, nil))
+			rec := get(t, New(erroringHandlers{tc.err}, builtWeb, logger), "/api/v1/health")
+			if rec.Code != tc.status || !strings.Contains(rec.Body.String(), `"code":"`+tc.code+`"`) {
+				t.Errorf("status %d body %q, want %d %s", rec.Code, rec.Body, tc.status, tc.code)
+			}
+			if strings.Contains(rec.Body.String(), "disk on fire") {
+				t.Errorf("internal error leaked to the client: %q", rec.Body)
+			}
+			if got := strings.Contains(logs.String(), "handler error"); got != tc.wantLogs {
+				t.Errorf("logged = %v, want %v (%q)", got, tc.wantLogs, logs.String())
+			}
+		})
 	}
 }
