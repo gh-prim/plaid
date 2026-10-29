@@ -3,6 +3,58 @@
     "label": "Account",
     "watchingAs": "Watching as {{name}}"
   },
+  "admin": {
+    "back": "Back to the library",
+    "backTo": "‹ {{serverName}}",
+    "entry": "Manage {{serverName}}",
+    "group": {
+      "manage": "Manage",
+      "settings": "Settings",
+      "status": "Status"
+    },
+    "home": {
+      "fromLibrary": "From your library",
+      "library": "{{movies, number}} movies · {{shows, number}} shows · last scan {{time}}",
+      "nothingNeedsYou": "Nothing needs you.",
+      "openLibrary": "Open the library",
+      "status": {
+        "playing_one": "{{count, number}} person is watching. All streams keep up.",
+        "playing_other": "{{count, number}} people are watching. All streams keep up.",
+        "problems_one": "One thing needs you.",
+        "problems_other": "{{count, number}} things need you.",
+        "quiet": "All good. Nothing is playing.",
+        "slow_one": "{{count, number}} person is watching. One stream can’t keep up.",
+        "slow_other": "{{count, number}} people are watching. One stream can’t keep up."
+      }
+    },
+    "nav": {
+      "home": "Overview",
+      "libraries": "Libraries",
+      "metadata": "Metadata",
+      "people": "People",
+      "playing": "Playing now",
+      "problems": "Problems",
+      "transcoding": "Transcoding"
+    },
+    "needs": {
+      "hwFallback": "The GPU failed and PLAID switched to software.",
+      "problems_one": "{{count, number}} problem to look at",
+      "problems_other": "{{count, number}} problems to look at",
+      "slow": "{{title}} can’t keep up: it will buffer.",
+      "title": "Needs you"
+    },
+    "prefs": {
+      "hideAdvanced": "Hide advanced",
+      "save": "Save changes",
+      "showAdvanced": "Show advanced"
+    },
+    "sections": "Admin sections",
+    "summary": {
+      "hardwareOff": "Hardware turned off",
+      "playing_one": "{{count, number}} stream",
+      "playing_other": "{{count, number}} streams"
+    }
+  },
   "auth": {
     "changePassword": {
       "submit": "Save password",
@@ -25,7 +77,9 @@
     "copied": "Copied",
     "copy": "Copy",
     "loading": "Loading",
-    "retry": "Try again"
+    "retry": "Try again",
+    "save": "Save",
+    "saved": "Saved."
   },
   "device": {
     "webName": "{{browser}} on {{os}}"
@@ -39,9 +93,9 @@
     "generic": "Something went wrong. Try again.",
     "invalid_credentials": "Wrong username or password.",
     "invalid_pin": "Wrong PIN. Try again.",
-    "last_admin": "This server needs at least one admin.",
+    "last_admin": "You’re the last admin. Make someone else an admin first.",
     "last_profile": "An account needs at least one profile.",
-    "pairing_expired": "This code has expired. Ask the TV for a new one.",
+    "pairing_expired": "This code expired. Show a new one on the TV.",
     "pairing_not_found": "No TV is showing this code. Check it and try again.",
     "password_change_required": "Choose a new password first.",
     "password_mismatch": "Passwords don't match.",
@@ -65,12 +119,22 @@
     "too_short": "Too short."
   },
   "folder": {
+    "fs": {
+      "local": "Local disk",
+      "network": "Network share"
+    },
     "status": {
+      "ok": "Reachable",
       "unavailable": "Unavailable"
     },
     "unavailable": {
+      "body": "{{path}} can’t be reached. Its {{count, number}} movies are hidden until it’s back; nothing is deleted. After 30 days missing, they leave the library.",
       "check": "Its movies are hidden until it’s back; nothing is deleted. After 30 days missing, they leave the library. Check that the disk or share is mounted:",
       "title": "{{path}} can’t be reached."
+    },
+    "watch": {
+      "liveShort": "Watched live",
+      "periodicShort": "Checked every {{minutes, number}} min"
     }
   },
   "home": {
@@ -86,6 +150,37 @@
     "fr": "Français",
     "label": "Language"
   },
+  "libraries": {
+    "counts": {
+      "movies": "{{movies, number}} movies · {{files, number}} files",
+      "shows": "{{shows, number}} shows · {{episodes, number}} episodes · {{files, number}} files"
+    },
+    "delete": {
+      "confirm": "Delete {{name}}? Your files stay on disk. PLAID forgets this library, its matches and its watch history.",
+      "label": "Delete library"
+    },
+    "deleted": "{{name}} is deleted. Its files stay on disk.",
+    "empty": "No libraries yet. Add a folder and PLAID will find your movies and shows.",
+    "fullRescan": {
+      "help": "Reads every file again with ffprobe. On {{name}} that can take a while.",
+      "label": "Full rescan"
+    },
+    "identifyReview": "To identify and to review",
+    "kicker": "Library · {{type}}",
+    "language": {
+      "help": "Titles and synopses are fetched again in the background. Matches you fixed stay."
+    },
+    "lastScan": "Last scan {{time}}",
+    "review": {
+      "help": "Titles with several possible matches, not found, or twice"
+    },
+    "scanning": "Scanning and metadata",
+    "scanNow": "Scan now",
+    "title": "Libraries",
+    "unrecognized": {
+      "help": "File names PLAID couldn’t read a title from"
+    }
+  },
   "library": {
     "add": "Add library",
     "folders": {
@@ -93,7 +188,8 @@
       "count_one": "{{count, number}} folder of 16",
       "count_other": "{{count, number}} folders of 16",
       "label": "Folders",
-      "remove": "Remove {{path}}"
+      "remove": "Remove {{path}}",
+      "removeShort": "Remove"
     },
     "metadata": {
       "language": "Language of titles and synopses",
@@ -109,6 +205,28 @@
       "movies": "Movies",
       "shows": "Shows"
     }
+  },
+  "metadata": {
+    "attributions": "Sources",
+    "key": {
+      "help": "Stored on the server and never shown again."
+    },
+    "perLibrary": "Per library",
+    "progress": "{{matched, number}} matched · {{needsReview, number}} to review · {{unmatched, number}} not found",
+    "source": {
+      "builtin": "Built-in key",
+      "custom": "Your key",
+      "env": "From the environment ({{var}})",
+      "none": "No key"
+    },
+    "state": {
+      "invalid_key": "{{provider}} refused this key. Check it, or go back to the built-in one.",
+      "no_api_key": "No key: artwork from {{provider}} isn’t fetched.",
+      "ok": "Working",
+      "unreachable": "Can’t reach {{provider}} right now. PLAID tries again on its own."
+    },
+    "title": "Metadata",
+    "useOwn": "Use my own key"
   },
   "offline": {
     "body": "Check that it’s on and on the same network. Steps you finished are saved on the server.",
@@ -177,6 +295,41 @@
     "startProfile": "Start on profile",
     "title": "Pair a TV"
   },
+  "people": {
+    "add": "Add a person",
+    "delete": {
+      "confirm": "Delete {{name}}’s account? Their profiles and watch history go with it.",
+      "label": "Delete account"
+    },
+    "deleted": "{{name}}’s account is deleted.",
+    "device": {
+      "current": "This device",
+      "lastSeen": "Last seen {{time}}",
+      "signOut": "Sign out"
+    },
+    "devices": {
+      "empty": "Not signed in on any device.",
+      "label": "Signed-in devices"
+    },
+    "disable": "Disable",
+    "disabled": "Disabled: can’t sign in",
+    "empty": "Only you so far. Add people so each gets their own profiles and watch history.",
+    "enable": "Enable",
+    "mustChange": "Chooses a new password at next sign-in",
+    "pair": "Pair a TV",
+    "resetPassword": "Reset password",
+    "role": {
+      "admin": "Admin",
+      "label": "Role",
+      "user": "Member"
+    },
+    "tempPassword": {
+      "help": "A temporary password. They choose their own at first sign-in.",
+      "label": "Temporary password"
+    },
+    "thisIsYou": "this is you",
+    "title": "People"
+  },
   "picker": {
     "checkAgain": "Check again",
     "checking": "Checking",
@@ -203,11 +356,131 @@
     },
     "use": "Use this folder"
   },
+  "playing": {
+    "capacity_one": "{{count, number}} of {{max, number}} conversion in use",
+    "capacity_other": "{{count, number}} of {{max, number}} conversions in use",
+    "empty": {
+      "label": "Nothing is playing. When someone presses Play, you’ll see how it reaches them here.",
+      "title": "Nothing is playing."
+    },
+    "hw": {
+      "hardware": "On the GPU ({{accelerator}})",
+      "software": "In software"
+    },
+    "method": {
+      "direct_play": "Plays as is (Direct Play)",
+      "direct_stream": "Repackaged (Direct Stream)",
+      "transcode": "Converted (Transcode)"
+    },
+    "position": "{{position}} of {{duration}}",
+    "row": "{{user}} · {{profile}} on {{device}}",
+    "short": {
+      "asIs": "Plays as is",
+      "ok": "Keeps up",
+      "repackaged": "Repackaged",
+      "slow": "Can’t keep up"
+    },
+    "slow": {
+      "advice": {
+        "software": "This server can’t convert this file in real time. Ask {{user}} to pick a lower quality, or to watch on a device that plays the file as it is."
+      }
+    },
+    "speed": {
+      "ok": "Keeps up ({{speed}}×)",
+      "slow": "Can’t keep up ({{speed}}×): it will buffer."
+    },
+    "stop": {
+      "confirm": {
+        "action": "Stop stream",
+        "cancel": "Keep playing",
+        "label": "Stop {{title}} for {{user}}?"
+      },
+      "label": "Stop"
+    },
+    "stopped": "Stopped {{title}} for {{user}}.",
+    "title": "Playing now",
+    "where": {
+      "local": "At home",
+      "remote": "From outside"
+    }
+  },
+  "problems": {
+    "count_one": "{{count, number}} time",
+    "count_other": "{{count, number}} times",
+    "empty": "No problems in the last 7 days.",
+    "ffmpeg": "Converting {{title}} failed on the GPU at {{time}}. PLAID restarted it in software.",
+    "folderGone": "{{path}} disappeared at {{time}}. Its movies are hidden until it’s back.",
+    "folderUnreadable": "PLAID couldn’t read {{path}} at {{time}}.",
+    "hwFallback": {
+      "label": "{{accel}} failed 3 times at {{time}}, so PLAID switched to software.",
+      "todo": "Test the GPU again in Transcoding once the driver is fixed."
+    },
+    "keyRefused": {
+      "label": "{{provider}} refused the metadata key.",
+      "todo": "Check the key in Metadata, or go back to the built-in one."
+    },
+    "lead": "The last 7 days. Each one says what happened and what to do.",
+    "resolved": "Fixed {{time}}",
+    "title": "Problems",
+    "watchLimit": "Linux’s file watch limit is reached, so {{path}} is checked every {{minutes}} minutes instead of live.",
+    "whatToDo": "What to do"
+  },
   "profiles": {
     "enterPin": "Enter the PIN for {{name}}",
     "open": "Open profile",
     "switch": "Switch profile",
     "whoIsWatching": "Who's watching?"
+  },
+  "reason": {
+    "audio_channels_too_many": "This device can’t play this many audio channels, so the sound is mixed down.",
+    "audio_codec_not_supported": "This device can’t play this sound format, so only the audio is converted.",
+    "audio_track_switch_unsupported": "This device can’t switch audio tracks inside a file, so the chosen track is repackaged.",
+    "bit_depth_not_supported": "This device can’t play 10-bit video, so it’s converted to 8-bit.",
+    "bitrate_too_high": {
+      "connection": "Lowered to fit the connection.",
+      "remote_limit": "Watching from outside: lowered to your {{limit}} Mbps limit for remote streams."
+    },
+    "colors_may_be_wrong": "Dolby Vision without an HDR10 layer: colors may look off.",
+    "container_not_supported": "This device can’t open the file format, so it’s repackaged. No quality is lost.",
+    "forced_by_client": "The app asked for a conversion.",
+    "hdr_not_supported": "This screen doesn’t show HDR, so colors are converted to SDR.",
+    "keyframe_index_missing": "This file has no index (often an old AVI or TS), so it’s converted to allow seeking.",
+    "other": "Converted for this device.",
+    "resolution_too_high": "The video is bigger than this device can show, so it’s scaled down.",
+    "subtitle_burn_in": "These subtitles are images, so they’re drawn into the video.",
+    "video_codec_not_supported": "This device can’t play this video format, so it’s converted.",
+    "video_profile_not_supported": "This device can’t play this kind of video, so it’s converted."
+  },
+  "review": {
+    "choose": "This one",
+    "empty": "Nothing to review. Every file found its movie.",
+    "identified": "Identified",
+    "identify": "Identify",
+    "match": "{{score, number(style: percent)}} match",
+    "matched": "{{title}} is matched and locked.",
+    "needs": {
+      "short": "To review",
+      "title_one": "To review ({{count, number}})",
+      "title_other": "To review ({{count, number}})"
+    },
+    "none": "None of these",
+    "parsed": "From the file name: {{parsed}}",
+    "pick": "Which one is it?",
+    "reason": {
+      "candidates": "Several possible matches",
+      "duplicate": "Same title twice",
+      "unmatched": "Not found on TMDB"
+    },
+    "search": {
+      "help": "A title, a year, or a TMDB link.",
+      "label": "Search TMDB"
+    },
+    "unrecognized": {
+      "body": "PLAID couldn’t read a title from these file names. Identify them, or rename the files and scan again.",
+      "title_one": "Not recognized ({{count, number}})",
+      "title_other": "Not recognized ({{count, number}})"
+    },
+    "use": "Use {{title}} ({{year}})"
   },
   "scan": {
     "analyzed": "{{done, number}} of {{total, number}} analyzed",
@@ -232,6 +505,7 @@
     "metadata": {
       "summary": "{{matched, number}} matched · {{needsReview, number}} to review · {{unmatched, number}} not found"
     },
+    "open": "Open {{library}}",
     "startWatching": "Start watching now, the scan keeps going",
     "state": {
       "analyzing": "Reading files with ffprobe",
@@ -271,6 +545,71 @@
       "limit": "Linux’s file watch limit is reached, so {{path}} is checked every {{minutes, number}} minutes instead of live. To raise the limit:",
       "network": "{{path}} is on a network share, so new files aren’t seen right away. PLAID checks it every {{minutes, number}} minutes."
     }
+  },
+  "transcoding": {
+    "cap": {
+      "gb": "Space for conversions (GB)",
+      "help": "Old segments are deleted past this size."
+    },
+    "decodersLabel": "Reads",
+    "device": {
+      "default": "the first GPU"
+    },
+    "encodersLabel": "Converts to",
+    "fallback": {
+      "body": "The GPU failed 3 times in 10 minutes, so PLAID switched to software until the next restart. Streams keep working, more slowly.",
+      "title": "Hardware turned off"
+    },
+    "ffmpeg": {
+      "docker": "On Docker, use the official image: it includes FFmpeg.",
+      "missing": "FFmpeg isn’t installed. Files your devices play as they are still work; the others won’t.",
+      "title": "FFmpeg missing"
+    },
+    "found": "What the hardware test found",
+    "hw": {
+      "auto": "Automatic",
+      "help": "Automatic tries each accelerator and keeps the first that passes the test.",
+      "label": "Hardware acceleration",
+      "none": "Off",
+      "nvenc": "NVIDIA (nvenc)",
+      "qsv": "Intel Quick Sync (qsv)",
+      "testing": "Testing the hardware",
+      "v4l2m2m": "Raspberry Pi (v4l2m2m)",
+      "vaapi": "VA-API (vaapi)"
+    },
+    "max": {
+      "help": "Default here: {{default}}. Streams that play as is don’t count.",
+      "label": "Conversions at once"
+    },
+    "networks": {
+      "help": "One network per line, like 10.8.0.0/24 for a VPN. No limit applies to them.",
+      "invalid": "One network per line, like 10.8.0.0/24.",
+      "label": "Also count as home"
+    },
+    "preset": {
+      "balanced": "Balanced",
+      "fast": "Fast",
+      "help": "Fast uses less CPU. Best quality looks better at the same size but needs a stronger machine.",
+      "label": "Encoder speed",
+      "quality": "Best quality"
+    },
+    "remote": {
+      "help": "Applies to people watching from outside your network. Set it below your upload speed.",
+      "label": "Limit for remote streams",
+      "mbps": "{{n, number}} Mbps",
+      "none": "No limit"
+    },
+    "retest": "Test the GPU again",
+    "test": {
+      "none": "No hardware encoder passed the test. Conversions run in software.",
+      "ok": "{{accelerator}} on {{device}} passed the hardware test."
+    },
+    "title": "Transcoding",
+    "tonemap": {
+      "gpu": "HDR to SDR on the GPU",
+      "software": "HDR to SDR in software"
+    },
+    "tonemapLabel": "HDR to SDR"
   },
   "ui": {
     "clear": "Clear",

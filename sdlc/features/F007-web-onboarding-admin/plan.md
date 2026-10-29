@@ -138,16 +138,16 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 19. [ ] `make test`; real run against `make dev` with a 40-movie folder; PNG exports of `P01`–`P15`, `D01`–`D15` next to screenshots; PR B.
 
 ### PR C — Admin
-20. [ ] `AdminLayout`, lazy routes, member gets forbidden with no admin request (test). (R17)
-21. [ ] Playing now and `reasons.ts` (every F006 reason has a sentence, test), stop with confirmation. (R19)
-22. [ ] Admin home from playback, libraries, capabilities and problems, every status variant tested. (R18)
-23. [ ] Libraries and one library, reusing the picker; scan now, full rescan, language change, delete with confirmation. (R20)
-24. [ ] Not recognized and to review with TMDB search. (R21, R22)
-25. [ ] People, a person, devices, pair a TV, `last_admin`. (R23)
-26. [ ] Transcoding: one group per setting, only the changed field sent, CIDR validation, hardware test and fallback. (R24, R28)
-27. [ ] Metadata with keys write-only and attributions. (R25)
-28. [ ] Problems. (R26, R29)
-29. [ ] Locale pass and light theme as in step 18. (R33)
+20. [x] `AdminLayout`, lazy routes, member gets forbidden with no admin request (test). (R17)
+21. [x] Playing now and `reasons.ts` (every F006 reason has a sentence, test), stop with confirmation. (R19)
+22. [x] Admin home from playback, libraries, capabilities and problems, every status variant tested. (R18)
+23. [x] Libraries and one library, reusing the picker; scan now, full rescan, language change, delete with confirmation. (R20)
+24. [x] Not recognized and to review with TMDB search. (R21, R22)
+25. [x] People, a person, devices, pair a TV, `last_admin`. (R23)
+26. [x] Transcoding: one group per setting, only the changed field sent, CIDR validation, hardware test and fallback. (R24, R28)
+27. [x] Metadata with keys write-only and attributions. (R25)
+28. [x] Problems. (R26, R29)
+29. [x] Locale pass and light theme as in step 18. (R33)
 30. [ ] `make test`; real run on a server with a transcoding stream (the F006 perf clips) and a folder made unavailable; PNG exports `AP01`–`AP17`, `AD01`–`AD17` next to screenshots; PR C. Plan status `done`, roadmap updated.
 
 ## Risks
@@ -203,3 +203,8 @@ Deviations from the plan found during the build (date + what + why).
 - 2026-10-29 (PR B): the end screen's quiet line about unrecognized files doesn't link to the admin yet: `/admin/libraries` arrives in PR C, which adds the link.
 - 2026-10-29 (PR B): the start button of the end screen is `primary`, not `play`: the design system reserves `play` for starting playback.
 - 2026-10-29 (PR B): the `/dev/ui` gallery from PR A is removed, as planned.
+- 2026-10-29 (PR C): the admin screens were first composed loosely and read poorer than the canvas; they were redone from the full `CmpAdmin` board source (index on the raised ground, needs-you cards, the library page in the board's order, review one item at a time, people and person as on AP09/AP10).
+- 2026-10-29 (PR C), at the owner's request: the admin takes its structure from Plex's server settings, with PLAID's tokens. The index becomes a grouped sidebar (Status: Overview, Playing now, Problems · Manage: Libraries, People · Settings: Transcoding, Metadata) with one-line entries; Transcoding becomes one page of dense rows (label, control, help) saved with one button, the rare settings behind "Show advanced"; buttons are 32 px (28 px small) and selects compact in the admin only. This revises R18's index and R24's "each group saved on its own" (spec revision). The design system's `SettingsGroup` and `SectionIndexRow` stay ported but are no longer used by the admin.
+- 2026-10-29 (PR C): F006 decision reasons carry no codec or channel count, so the reason sentences don't name them (`reason.*` reworded); `playing.slow.advice.software` likewise. The ported `StreamCard` gets its poster through the stream token (`artwork/poster`, F006 R40).
+- 2026-10-29 (PR C): the spec table's keys that were both a leaf and a parent got `.label` (`playing.stop`, `playing.empty`, `transcoding.{max,remote,networks,preset,cap}`, `libraries.{delete,fullRescan}`, `people.{delete,devices,tempPassword}`, `problems.{hwFallback,keyRefused}`, `review.search`), `transcoding.fallback` became `.body`. `errors.last_admin` and `errors.pairing_expired` take the spec's wording. Percentages use i18next's `number(style: percent)`.
+- 2026-10-29 (PR C): "Pair a TV" links to the existing F003 `/pair` page instead of an admin copy; the person page has no profile list (the admin user API doesn't return profiles).

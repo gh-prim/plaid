@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import type { ScanState } from '../hooks/useScanEvents'
@@ -114,7 +114,12 @@ export function ScanEnd({
           </p>
         )}
         {(totals.unrecognized > 0 || review > 0) && (
-          <p>{t('scan.later', { unrecognized: totals.unrecognized, review })}</p>
+          <p>
+            {t('scan.later', { unrecognized: totals.unrecognized, review })}{' '}
+            <Link to="/admin/libraries" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+              {t('scan.open', { library: t('libraries.title') })}
+            </Link>
+          </p>
         )}
         <Button onClick={start}>{t('scan.complete.watch')}</Button>
       </div>

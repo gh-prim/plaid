@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireStep } from './auth/RequireAuth'
@@ -10,6 +11,9 @@ import { Account } from './onboarding/Account'
 import { Libraries } from './onboarding/Libraries'
 import { Scan } from './onboarding/Scan'
 import { Start } from './onboarding/Start'
+
+// The admin area is its own chunk (F007 NFR bundle).
+const AdminApp = lazy(() => import('./admin/routes'))
 
 export function AppRoutes() {
   return (
@@ -84,6 +88,16 @@ export function AppRoutes() {
           element={
             <RequireStep allow={['app']}>
               <Home />
+            </RequireStep>
+          }
+        />
+        <Route
+          path="/admin/*"
+          element={
+            <RequireStep allow={['app']} admin>
+              <Suspense>
+                <AdminApp />
+              </Suspense>
             </RequireStep>
           }
         />

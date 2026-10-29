@@ -36,6 +36,7 @@ export function Home() {
         )}
         <Link to="/profiles">{t('profiles.switch')}</Link>
         <Link to="/pair">{t('pairing.title')}</Link>
+        {isAdmin && <Link to="/admin">{t('admin.entry', { serverName: server?.name ?? '' })}</Link>}
         <button type="button" className="link-button" onClick={() => void signOut()}>
           {t('auth.signOut')}
         </button>

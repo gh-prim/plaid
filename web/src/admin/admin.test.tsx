@@ -1,0 +1,542 @@
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { createInstance } from 'i18next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import en from '../locales/en/common.json'
+import { apiError, fakeApi, profile, server, user } from '../test/fakeApi'
+import { renderApp } from '../test/renderApp'
+import { reasonCodes, reasonText } from './reasons'
+import { temporaryPassword } from './People'
+import { parseQuery } from './Review'
+
+const admin = {
+  status: 200,
+  body: { user: user(), profiles: [profile('p1', 'Ada')], activeProfile: profile('p1', 'Ada') },
+}
+const idle = {
+  state: 'idle',
+  queued: false,
+  full: false,
+  counters: {
+    found: 0,
+    new: 0,
+    changed: 0,
+    moved: 0,
+    missing: 0,
+    analyzed: 0,
+    failed: 0,
+    unrecognized: 0,
+  },
+}
+const library = (
+  folders: unknown[] = [
+    { id: 'f1', path: '/srv/media/movies', watched: true, status: 'ok', fsType: 'ext4' },
+  ],
+) => ({
+  id: 'lib1',
+  name: 'Movies',
+  type: 'movies',
+  scanIntervalSeconds: null,
+  metadataLanguage: 'en',
+  metadataRegion: 'US',
+  lastScanAt: '2026-10-29T10:00:00Z',
+  folders,
+  counts: { movies: 1240, shows: 0, episodes: 0, files: 1263, unrecognized: 23 },
+  scan: idle,
+})
+const caps = {
+  status: 200,
+  body: {
+    ffprobe: { found: true },
+    ffmpeg: { found: true },
+    hwAccel: { configured: 'auto', encoders: [], decoders: [], tonemap: false },
+    inotifyLimit: 0,
+    inotifyUsed: 0,
+    watchLimitReached: [],
+  },
+}
+const stream = (
+  id: string,
+  method: string,
+  extra: Record<string, unknown> = {},
+  session: Record<string, unknown> = {},
+) => ({
+  session: {
+    id,
+    itemId: `i-${id}`,
+    fileId: 'f',
+    method,
+    reasons: [],
+    url: '',
+    expiresAfterIdleSeconds: 60,
+    durationMs: 6_000_000,
+    startPositionMs: 0,
+    quality: 'original',
+    qualities: [],
+    warnings: [],
+    audioTracks: [],
+    subtitles: [],
+    ...session,
+  },
+  userId: 'u2',
+  username: 'sam',
+  profileId: 'p2',
+  profileName: 'Sam',
+  deviceName: 'Firefox on Linux',
+  itemTitle: `Movie ${id}`,
+  positionMs: 1_200_000,
+  remote: false,
+  startedAt: '2026-10-29T20:00:00Z',
+  lastActivityAt: '2026-10-29T20:30:00Z',
+  ...extra,
+})
+const settings = {
+  maxTranscodes: 2,
+  maxTranscodesDefault: 2,
+  remoteMaxBitrate: 8_000_000,
+  localNetworks: [],
+  transcodeDirMaxBytes: 0,
+  transcodeDirMaxBytesDefault: 10e9,
+  encoderPreset: 'fast',
+  hwAccel: 'auto',
+  hardware: { configured: 'auto', encoders: [], decoders: [], tonemap: false },
+}
+
+function routes(extra: Record<string, unknown> = {}) {
+  return {
+    'GET /server': server(true),
+    'GET /me': admin,
+    'GET /playback': { status: 200, body: { sessions: [] } },
+    'GET /libraries': { status: 200, body: [library()] },
+    'GET /server/capabilities': caps,
+    'GET /problems': { status: 200, body: { problems: [] } },
+    'GET /settings/playback': { status: 200, body: settings },
+    ...extra,
+  }
+}
+
+beforeEach(() => {
+  vi.stubGlobal('matchMedia', (q: string) => ({
+    matches: false,
+    media: q,
+    addEventListener() {},
+    removeEventListener() {},
+  }))
+})
+
+describe('access', () => {
+  it('sends a member home without asking for admin data', async () => {
+    const member = {
+      status: 200,
+      body: {
+        user: user({ role: 'member' }),
+        profiles: [profile('p1', 'Sam')],
+        activeProfile: profile('p1', 'Sam'),
+      },
+    }
+    const calls = fakeApi({ 'GET /server': server(true), 'GET /me': member })
+    await renderApp('/admin')
+    expect(await screen.findByRole('heading', { name: 'PLAID' })).toBeInTheDocument()
+    expect(calls.some((c) => c.path === '/playback')).toBe(false)
+  })
+})
+
+describe('home', () => {
+  it('says all is well on a quiet evening', async () => {
+    fakeApi(routes())
+    await renderApp('/admin')
+    expect(await screen.findByText('All good. Nothing is playing.')).toBeInTheDocument()
+    expect(screen.queryByText('Needs you')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Libraries' })).toBeInTheDocument()
+    expect(screen.getByText(/1,240 movies · 0 shows · last scan/)).toBeInTheDocument()
+  })
+
+  it('lists an unavailable NAS folder under "needs you"', async () => {
+    fakeApi(
+      routes({
+        'GET /libraries': {
+          status: 200,
+          body: [
+            library([
+              {
+                id: 'f1',
+                path: '/mnt/nas/Films',
+                watched: false,
+                status: 'unavailable',
+                fsType: 'nfs',
+              },
+            ]),
+          ],
+        },
+      }),
+    )
+    await renderApp('/admin')
+    const needs = await screen.findByRole('region', { name: 'Needs you' })
+    expect(within(needs).getByText('/mnt/nas/Films can’t be reached.')).toBeInTheDocument()
+    expect(screen.getByText('One thing needs you.')).toBeInTheDocument()
+  })
+})
+
+describe('playing now', () => {
+  it('puts the slow software transcode first, with its reasons and the advice', async () => {
+    fakeApi(
+      routes({
+        'GET /playback': {
+          status: 200,
+          body: {
+            sessions: [
+              stream('a', 'direct_play'),
+              stream('b', 'transcode', { speed: 0.8 }, { reasons: ['video_codec_not_supported'] }),
+              stream(
+                'c',
+                'transcode',
+                { speed: 1.4, remote: true },
+                { reasons: ['bitrate_too_high'], hardwareAcceleration: 'vaapi' },
+              ),
+              stream('d', 'direct_stream', {}, { reasons: ['container_not_supported'] }),
+            ],
+          },
+        },
+      }),
+    )
+    await renderApp('/admin/playing')
+    const cards = await screen.findAllByRole('article')
+    expect(within(cards[0]!).getAllByText('Movie b')[0]).toBeInTheDocument()
+    expect(within(cards[0]!).getByText('Can’t keep up (0.8×): it will buffer.')).toBeInTheDocument()
+    expect(
+      within(cards[0]!).getByText('This device can’t play this video format, so it’s converted.'),
+    ).toBeInTheDocument()
+    expect(within(cards[0]!).getByText(/Ask Sam to pick a lower quality/)).toBeInTheDocument()
+    expect(
+      screen.getByText('Watching from outside: lowered to your 8 Mbps limit for remote streams.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/4 streams · 2 of 2 conversions in use/)).toBeInTheDocument()
+  })
+
+  it('stops a stream after a confirmation', async () => {
+    let sessions = [stream('b', 'transcode', { speed: 1.2 })]
+    const calls = fakeApi(
+      routes({
+        'GET /playback': () => ({ status: 200, body: { sessions } }),
+        'DELETE /playback/b': () => {
+          sessions = []
+          return { status: 204 }
+        },
+      }),
+    )
+    await renderApp('/admin/playing')
+    await userEvent.click(await screen.findByRole('button', { name: 'Stop' }))
+    const dialog = screen.getByRole('dialog', { name: 'Stop Movie b for Sam?' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Stop stream' }))
+    expect(await screen.findByText('Stopped Movie b for Sam.')).toBeInTheDocument()
+    expect(calls.some((c) => c.method === 'DELETE' && c.path === '/playback/b')).toBe(true)
+    expect(await screen.findByText('Nothing is playing.')).toBeInTheDocument()
+  })
+})
+
+describe('libraries', () => {
+  it('shows an unavailable folder with what to check', async () => {
+    fakeApi(
+      routes({
+        'GET /libraries': {
+          status: 200,
+          body: [
+            library([
+              {
+                id: 'f1',
+                path: '/mnt/nas/Films',
+                watched: false,
+                status: 'unavailable',
+                fsType: 'nfs',
+              },
+            ]),
+          ],
+        },
+      }),
+    )
+    await renderApp('/admin/libraries/lib1')
+    expect(await screen.findByText(/Its movies are hidden until it’s back/)).toBeInTheDocument()
+    expect(
+      screen.getByText(`findmnt '/mnt/nas/Films' || sudo mount '/mnt/nas/Films'`),
+    ).toBeInTheDocument()
+  })
+
+  it('matches an item to the chosen TMDB candidate', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /libraries/lib1/review': {
+          status: 200,
+          body: {
+            items: [
+              {
+                item: { id: 'it1', kind: 'movie', title: 'Dune', year: 2021 },
+                reason: 'needs_review',
+                candidates: [
+                  { tmdbId: 438631, title: 'Dune', year: 2021, confidence: 0.82 },
+                  { tmdbId: 841, title: 'Dune', year: 1984, confidence: 0.61 },
+                ],
+              },
+            ],
+          },
+        },
+        'POST /items/it1/match': { status: 200, body: {} },
+      }),
+    )
+    await renderApp('/admin/libraries/lib1/review')
+    expect(await screen.findByText('82% match')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('radio', { name: /Dune.*1984/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use Dune (1984)' }))
+    await waitFor(() =>
+      expect(calls.find((c) => c.path === '/items/it1/match')?.body).toEqual({ tmdbId: 841 }),
+    )
+    expect(await screen.findByText('Dune is matched and locked.')).toBeInTheDocument()
+  })
+
+  it('identifies an unrecognized file through a TMDB search', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /libraries/lib1/unrecognized': {
+          status: 200,
+          body: {
+            files: [
+              {
+                id: 'mf1',
+                path: '/srv/media/movies/movie.final.FINAL.v2.mkv',
+                size: 1,
+                probeStatus: 'ok',
+              },
+            ],
+          },
+        },
+        'GET /metadata/search': {
+          status: 200,
+          body: { candidates: [{ tmdbId: 19, title: 'Metropolis', year: 1927 }] },
+        },
+        'POST /media-files/mf1/identify': { status: 200, body: {} },
+      }),
+    )
+    await renderApp('/admin/libraries/lib1/unrecognized')
+    await userEvent.click(await screen.findByRole('button', { name: 'Identify' }))
+    await userEvent.type(
+      screen.getByRole('searchbox', { name: 'Search TMDB' }),
+      'Metropolis 1927{Enter}',
+    )
+    await userEvent.click(await screen.findByRole('radio', { name: /Metropolis/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'This one' }))
+    expect(await screen.findByText('Identified')).toBeInTheDocument()
+    const search = calls.find((c) => c.path === '/metadata/search')
+    expect(search).toBeDefined()
+    expect(calls.find((c) => c.path === '/media-files/mf1/identify')?.body).toEqual({ tmdbId: 19 })
+  })
+})
+
+describe('people', () => {
+  const users = [
+    {
+      id: 'u1',
+      username: 'ada',
+      displayName: 'Ada',
+      role: 'admin',
+      locale: 'en',
+      mustChangePassword: false,
+      disabled: false,
+      createdAt: '2026-10-01T00:00:00Z',
+    },
+  ]
+  it('explains the last admin', async () => {
+    fakeApi(
+      routes({
+        'GET /users': { status: 200, body: users },
+        'GET /users/u1/sessions': { status: 200, body: [] },
+        'PATCH /users/u1': apiError(409, 'last_admin'),
+      }),
+    )
+    await renderApp('/admin/people/u1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Disable' }))
+    expect(
+      await screen.findByText('You’re the last admin. Make someone else an admin first.'),
+    ).toBeInTheDocument()
+  })
+
+  it('signs a device out', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /users': { status: 200, body: users },
+        'GET /users/u1/sessions': {
+          status: 200,
+          body: [
+            {
+              id: 's9',
+              deviceName: 'Living-room TV',
+              deviceType: 'tv',
+              createdAt: '2026-10-01T00:00:00Z',
+              lastSeenAt: '2026-10-29T10:00:00Z',
+              current: false,
+            },
+          ],
+        },
+        'DELETE /users/u1/sessions/s9': { status: 204 },
+      }),
+    )
+    await renderApp('/admin/people/u1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'DELETE' && c.path === '/users/u1/sessions/s9')).toBe(
+        true,
+      ),
+    )
+  })
+})
+
+describe('transcoding', () => {
+  it('sends only what changed, saved with one button', async () => {
+    const calls = fakeApi(
+      routes({
+        'PATCH /settings/playback': (_r: Request, body: unknown) => ({
+          status: 200,
+          body: { ...settings, ...(body as object) },
+        }),
+      }),
+    )
+    await renderApp('/admin/transcoding')
+    const field = await screen.findByLabelText('Conversions at once')
+    await userEvent.clear(field)
+    await userEvent.type(field, '3')
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(await screen.findByText('Saved.')).toBeInTheDocument()
+    expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ maxTranscodes: 3 })
+  })
+
+  it('keeps rare settings behind "Show advanced" and refuses an invalid network', async () => {
+    const calls = fakeApi(routes())
+    await renderApp('/admin/transcoding')
+    await screen.findByLabelText('Hardware acceleration')
+    expect(screen.queryByLabelText('Also count as home')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Show advanced' }))
+    await userEvent.type(screen.getByLabelText('Also count as home'), '10.8.0.0/33')
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(screen.getByText('One network per line, like 10.8.0.0/24.')).toBeInTheDocument()
+    expect(calls.some((c) => c.method === 'PATCH')).toBe(false)
+  })
+
+  it('runs the hardware test again', async () => {
+    const calls = fakeApi(
+      routes({
+        'POST /server/capabilities/hardware-test': {
+          status: 200,
+          body: {
+            configured: 'auto',
+            active: 'vaapi',
+            device: '/dev/dri/renderD128',
+            encoders: ['h264_vaapi'],
+            decoders: ['h264'],
+            tonemap: true,
+          },
+        },
+      }),
+    )
+    await renderApp('/admin/transcoding')
+    await userEvent.click(await screen.findByRole('button', { name: 'Test the GPU again' }))
+    expect(
+      await screen.findByText('VAAPI on /dev/dri/renderD128 passed the hardware test.'),
+    ).toBeInTheDocument()
+    expect(
+      calls.some((c) => c.method === 'POST' && c.path === '/server/capabilities/hardware-test'),
+    ).toBe(true)
+  })
+})
+
+describe('metadata', () => {
+  it('stores a key and never shows it again', async () => {
+    let source = 'builtin'
+    const calls = fakeApi(
+      routes({
+        'GET /metadata/settings': () => ({
+          status: 200,
+          body: {
+            tmdb: { keySource: source },
+            fanart: { keySource: 'none', personalKeySet: false },
+          },
+        }),
+        'GET /metadata/status': () => ({
+          status: 200,
+          body: {
+            providers: [{ provider: 'tmdb', state: 'ok', keySource: source }],
+            libraries: [],
+          },
+        }),
+        'PATCH /metadata/settings': () => {
+          source = 'custom'
+          return {
+            status: 200,
+            body: {
+              tmdb: { keySource: 'custom' },
+              fanart: { keySource: 'none', personalKeySet: false },
+            },
+          }
+        },
+      }),
+    )
+    await renderApp('/admin/metadata')
+    await userEvent.click(await screen.findByRole('button', { name: 'Use my own key' }))
+    await userEvent.type(screen.getByLabelText('Use my own key'), 'abc123')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ tmdbApiKey: 'abc123' }),
+    )
+    expect(screen.queryByDisplayValue('abc123')).not.toBeInTheDocument()
+  })
+})
+
+describe('problems', () => {
+  it('lists what happened and what to do; empty after 7 quiet days', async () => {
+    fakeApi(
+      routes({
+        'GET /problems': {
+          status: 200,
+          body: {
+            problems: [
+              {
+                id: 'p1',
+                code: 'hw_fallback',
+                params: { accel: 'vaapi' },
+                firstSeen: '2026-10-27T20:00:00Z',
+                lastSeen: '2026-10-27T20:00:00Z',
+                count: 1,
+              },
+            ],
+          },
+        },
+      }),
+    )
+    await renderApp('/admin/problems')
+    expect(await screen.findByText(/VAAPI failed 3 times at/)).toBeInTheDocument()
+    expect(screen.getByText(/Test the GPU again in Transcoding/)).toBeInTheDocument()
+  })
+
+  it('says when there is nothing', async () => {
+    fakeApi(routes())
+    await renderApp('/admin/problems')
+    expect(await screen.findByText('No problems in the last 7 days.')).toBeInTheDocument()
+  })
+})
+
+describe('helpers', () => {
+  it('has a sentence for every reason the server sends', async () => {
+    const i18n = createInstance()
+    await i18n.init({ lng: 'en', resources: { en: { common: en } }, defaultNS: 'common' })
+    for (const code of reasonCodes) {
+      expect(reasonText(i18n.t, code, {})).not.toBe(en.reason.other)
+    }
+  })
+  it('reads a title, a year or a TMDB link', () => {
+    expect(parseQuery('Metropolis 1927')).toEqual({ query: 'Metropolis', year: 1927 })
+    expect(parseQuery('https://www.themoviedb.org/movie/19-metropolis')).toMatchObject({
+      tmdbId: 19,
+    })
+  })
+  it('makes readable temporary passwords', () => {
+    expect(temporaryPassword(() => 0)).toBe('aaaa-aaaa-aaaa-aaaa')
+    expect(temporaryPassword()).toMatch(/^[a-z]{4}(-[a-z]{4}){3}$/)
+  })
+})
