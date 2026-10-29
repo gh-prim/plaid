@@ -41,15 +41,19 @@ function useThrottled<T>(value: T, every: number): T {
   return shown
 }
 
-/** Done: idle, nothing queued, nothing left to match. */
-export function scanDone(s: ScanState | undefined): boolean {
-  return (
-    !!s?.progress &&
-    s.progress.state === 'idle' &&
-    !s.progress.queued &&
-    (s.metadata?.pending ?? 0) === 0
-  )
+/**
+ * Done: idle, nothing queued, nothing left to match. What's left to match
+ * comes from the stream's metadata counters, or from GET /metadata/status
+ * before the first counter arrives (they're throttled to one every 2 s):
+ * unknown is never "nothing".
+ */
+export function scanDone(s: ScanState | undefined, pendingFromStatus?: number): boolean {
+  const pending = s?.metadata?.pending ?? pendingFromStatus
+  return !!s?.progress && s.progress.state === 'idle' && !s.progress.queued && pending === 0
 }
+
+/** How often the end of the scan asks the server what's left to match. */
+export const statusEvery = 2000
 
 /** The thread's fill: files analyzed while analyzing, then items matched (F007 R11). */
 export function scanFill(s: ScanState | undefined): number {
@@ -119,6 +123,29 @@ export function Scan() {
     }
   }, [navigate, lost])
 
+  // Files are all scanned but no metadata counter arrived yet: ask the
+  // server what's left to match instead of assuming nothing is.
+  const [statusPending, setStatusPending] = useState<Record<string, number>>({})
+  const waitingForCounts =
+    !!libraries?.length &&
+    libraries.every((l) => states[l.id]?.progress?.state === 'idle') &&
+    libraries.some((l) => !states[l.id]?.metadata)
+  useEffect(() => {
+    if (!waitingForCounts) return
+    const ask = () =>
+      api
+        .GET('/metadata/status')
+        .then(({ data }) =>
+          setStatusPending(
+            Object.fromEntries((data?.libraries ?? []).map((c) => [c.libraryId, c.pending])),
+          ),
+        )
+        .catch(lost)
+    ask()
+    const timer = setInterval(ask, statusEvery)
+    return () => clearInterval(timer)
+  }, [waitingForCounts, lost])
+
   const onState = useCallback(
     (id: string, s: ScanState) => setStates((all) => ({ ...all, [id]: s })),
     [],
@@ -148,7 +175,8 @@ export function Scan() {
   )
   const announced = useThrottled(voice, announceEvery)
 
-  const allDone = !!libraries?.length && libraries.every((l) => scanDone(states[l.id]))
+  const allDone =
+    !!libraries?.length && libraries.every((l) => scanDone(states[l.id], statusPending[l.id]))
   if (allDone && libraries) {
     return <ScanEnd libraries={libraries} states={states} />
   }

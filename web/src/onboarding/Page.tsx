@@ -11,7 +11,7 @@ export function useServer() {
   return { serverName: server?.name ?? 'PLAID', version: server?.version ?? '' }
 }
 
-/** One onboarding screen: the "mediabox · PLAID 0.9.2" line, then the step. */
+/** One onboarding screen: the "PLAID 0.9.2 · <server>" line, then the step. */
 export function Page({ center, children }: { center?: boolean; children: ReactNode }) {
   const { t } = useTranslation()
   const { serverName, version } = useServer()

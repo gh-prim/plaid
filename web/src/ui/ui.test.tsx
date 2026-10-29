@@ -66,14 +66,14 @@ describe('FolderPicker', () => {
     const onParent = vi.fn()
     await renderUi(
       <FolderPicker
-        serverName="mediabox"
+        serverName="nas"
         path="/srv/media"
         entries={entries}
         onParent={onParent}
         {...handlers}
       />,
     )
-    expect(screen.getByRole('region', { name: 'Folders on mediabox' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Folders on nas' })).toBeInTheDocument()
     expect(screen.getByText('media')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Parent folder' }))
     expect(onParent).toHaveBeenCalledOnce()
@@ -180,8 +180,8 @@ describe('feedback', () => {
   })
 
   it('an error toast is an alert', async () => {
-    await renderUi(<Toast variant="error">Can’t reach mediabox.</Toast>)
-    expect(screen.getByRole('alert')).toHaveTextContent('Can’t reach mediabox.')
+    await renderUi(<Toast variant="error">Can’t reach nas.</Toast>)
+    expect(screen.getByRole('alert')).toHaveTextContent('Can’t reach nas.')
   })
 })
 

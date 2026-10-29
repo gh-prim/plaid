@@ -434,7 +434,7 @@
   }
 
   .adm__grid--3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .adm__toast {
@@ -643,4 +643,23 @@
 .adm .pl-btn.adm__danger {
   padding: 0;
   height: auto;
+}
+
+@media (min-width: 1440px) {
+  .adm__grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* A candidate without a poster keeps the poster's size (design system: 64 × 96). */
+.pl-cand .pl-slot {
+  width: 64px;
+  height: 96px;
+  flex: none;
+}
+
+.pl-stream .pl-slot {
+  width: 48px;
+  height: 72px;
+  flex: none;
 }

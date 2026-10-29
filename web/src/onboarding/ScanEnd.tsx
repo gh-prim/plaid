@@ -115,7 +115,11 @@ export function ScanEnd({
         )}
         {(totals.unrecognized > 0 || review > 0) && (
           <p>
-            {t('scan.later', { unrecognized: totals.unrecognized, review })}{' '}
+            {totals.unrecognized > 0 && review > 0
+              ? t('scan.later.both', { unrecognized: totals.unrecognized, review })
+              : totals.unrecognized > 0
+                ? t('scan.later.unrecognized', { count: totals.unrecognized })
+                : t('scan.later.review', { count: review })}{' '}
             <Link to="/admin/libraries" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
               {t('scan.open', { library: t('libraries.title') })}
             </Link>

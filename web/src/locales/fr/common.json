@@ -514,7 +514,15 @@
     "failed_one": "{{count, number}} fichier illisible",
     "failed_many": "",
     "failed_other": "{{count, number}} fichiers illisibles",
-    "later": "{{unrecognized, number}} fichiers n’ont pas été reconnus et {{review, number}} titres sont à vérifier. Tout t’attend dans Réglages, Bibliothèques.",
+    "later": {
+      "both": "{{unrecognized, number}} fichiers n’ont pas été reconnus et {{review, number}} titres sont à vérifier. Tout t’attend dans Réglages, Bibliothèques.",
+      "review_one": "{{count, number}} titre est à vérifier. Il t’attend dans Réglages, Bibliothèques.",
+      "review_many": "",
+      "review_other": "{{count, number}} titres sont à vérifier. Ils t’attendent dans Réglages, Bibliothèques.",
+      "unrecognized_one": "{{count, number}} fichier n’a pas été reconnu. Il t’attend dans Réglages, Bibliothèques.",
+      "unrecognized_many": "",
+      "unrecognized_other": "{{count, number}} fichiers n’ont pas été reconnus. Ils t’attendent dans Réglages, Bibliothèques."
+    },
     "leave": "Tu peux fermer cette page. L’analyse continue sur {{serverName}}.",
     "libraries": "Bibliothèques",
     "metadata": {

@@ -499,7 +499,13 @@
     },
     "failed_one": "{{count, number}} file couldn’t be read",
     "failed_other": "{{count, number}} files couldn’t be read",
-    "later": "{{unrecognized, number}} files weren’t recognized and {{review, number}} titles need a second look. Both wait in Settings, Libraries.",
+    "later": {
+      "both": "{{unrecognized, number}} files weren’t recognized and {{review, number}} titles need a second look. Both wait in Settings, Libraries.",
+      "review_one": "{{count, number}} title needs a second look. It waits in Settings, Libraries.",
+      "review_other": "{{count, number}} titles need a second look. They wait in Settings, Libraries.",
+      "unrecognized_one": "{{count, number}} file wasn’t recognized. It waits in Settings, Libraries.",
+      "unrecognized_other": "{{count, number}} files weren’t recognized. They wait in Settings, Libraries."
+    },
     "leave": "You can close this page. The scan keeps running on {{serverName}}.",
     "libraries": "Libraries",
     "metadata": {

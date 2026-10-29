@@ -207,8 +207,8 @@ export function Review() {
           <p className="adm__lead">
             {t('review.parsed', {
               parsed: [it.item.title, it.item.year].filter(Boolean).join(' '),
-            })}{' '}
-            {reason(it.reason)}.
+            })}
+            . {reason(it.reason)}.
           </p>
         )}
       </div>

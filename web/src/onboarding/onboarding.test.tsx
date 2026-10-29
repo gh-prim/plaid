@@ -447,6 +447,35 @@ describe('scan', () => {
     ).toBeInTheDocument()
   })
 
+  it('waits for matching when files are scanned before the first metadata counter', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    stubEventSource()
+    let pending = 30
+    fakeApi(
+      routes({
+        'GET /metadata/status': () => ({
+          status: 200,
+          body: {
+            providers: [],
+            libraries: [{ libraryId: 'lib1', pending, matched: 4, needsReview: 0, unmatched: 0 }],
+          },
+        }),
+        'GET /libraries/lib1/items': { status: 200, body: { items: [] } },
+      }),
+    )
+    await renderApp('/setup/scan')
+    await waitFor(() => expect(FakeEventSource.last).toBeDefined())
+    act(() => FakeEventSource.last!.emit('progress', { type: 'progress', progress: idle }))
+    await act(() => vi.advanceTimersByTimeAsync(100))
+    expect(screen.queryByRole('button', { name: 'Start watching' })).not.toBeInTheDocument()
+    pending = 0
+    await act(() => vi.advanceTimersByTimeAsync(2100))
+    expect(
+      await screen.findByText(/titles? (is|are) home|Nothing to watch yet/),
+    ).toBeInTheDocument()
+    vi.useRealTimers()
+  })
+
   it('ends on the wall, oldest to newest, with what waits for later', async () => {
     stubEventSource()
     const items = [
