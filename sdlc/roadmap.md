@@ -28,7 +28,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [F005](features/F005-metadata/intent.md) | Metadata and artwork | 1 | server | gh-prim | ✅ | [✅](features/F005-metadata/spec.md) | [🚧](features/F005-metadata/plan.md) |
 | [F006](features/F006-playback-streaming/intent.md) | Playback: direct play and transcoding | 1 | server | gh-prim | ✅ | [✅](features/F006-playback-streaming/spec.md) | [🚧](features/F006-playback-streaming/plan.md) |
 | [F007](features/F007-web-onboarding-admin/intent.md) | Web: onboarding and administration | 2 | server, web | gh-prim | ✅ | [✅](features/F007-web-onboarding-admin/spec.md) | [🚧](features/F007-web-onboarding-admin/plan.md) |
-| [F008](features/F008-web-browsing-player/intent.md) | Web: browsing and player | 2 | web | ? | 📝 | — | — |
+| [F008](features/F008-web-browsing-player/intent.md) | Web: browsing and player | 2 | server, web | gh-prim | ✅ | [📝](features/F008-web-browsing-player/spec.md) | — |
 | [F009](features/F009-library-sharing/intent.md) | Library sharing | 3 | server, web | ? | 📝 | — | — |
 | [F010](features/F010-plaid-party/intent.md) | Plaid Party (watch together) | 3 | server, web | ? | 📝 | — | — |
 
