@@ -125,16 +125,16 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 8. [ ] `make test`; PR A with a screenshot of a primitives page in dark and light (dev-only route, removed in PR B).
 
 ### PR B — Onboarding
-9. [ ] `onboarding/step.ts` with tests for every resume case, then routes in `App.tsx` and `RequireAuth`. (R1, R2, R10)
-10. [ ] Start and language, tests for preselection and instant switch. (R3)
-11. [ ] Setup code: tests for wrong code, `Retry-After`, `setup_complete`, the exact copy-pasted command. Update `docs/install.md`. (R4, R5)
-12. [ ] Account: client-side checks and server error mapping, tests first. Delete `pages/Setup*`, `pages/Welcome*` and their keys. (R6)
-13. [ ] Folder picker and row: drill-down, roots, filter over 20, unreadable fix with quoted command and Check again, empty folder, type a path; tests first from the acceptance criteria. (R8, R9)
-14. [ ] Libraries step: form, chips, overlap and not-found errors, several libraries, "later". (R7)
-15. [ ] Scan: counters from fake SSE, thread fill formula, poster wall capped at 48, backdrop crossfade, voice line throttles (3 s visual, 10 s `aria-live`), reduced motion, server facts. (R11–R13)
-16. [ ] End and zero-library end, oldest/newest from items. (R14, R15)
-17. [ ] Connection banner on every step. (R16)
-18. [ ] Locale pass: French and a pseudo-locale at +35 % (test helper that pads every string) render at 375 px with no overflow (jsdom can't measure layout: this is a manual check with screenshots, see Evidence). (R33)
+9. [x] `onboarding/step.ts` with tests for every resume case, then routes in `App.tsx` and `RequireAuth`. (R1, R2, R10)
+10. [x] Start and language, tests for preselection and instant switch. (R3)
+11. [x] Setup code: tests for wrong code, `Retry-After`, `setup_complete`, the exact copy-pasted command. Update `docs/install.md`. (R4, R5)
+12. [x] Account: client-side checks and server error mapping, tests first. Delete `pages/Setup*`, `pages/Welcome*` and their keys. (R6)
+13. [x] Folder picker and row: drill-down, roots, filter over 20, unreadable fix with quoted command and Check again, empty folder, type a path; tests first from the acceptance criteria. (R8, R9)
+14. [x] Libraries step: form, chips, overlap and not-found errors, several libraries, "later". (R7)
+15. [x] Scan: counters from fake SSE, thread fill formula, poster wall capped at 48, backdrop crossfade, voice line throttles (3 s visual, 10 s `aria-live`), reduced motion, server facts. (R11–R13)
+16. [x] End and zero-library end, oldest/newest from items. (R14, R15)
+17. [x] Connection banner on every step. (R16)
+18. [x] Locale pass: French and a pseudo-locale at +35 % (test helper that pads every string) render at 375 px with no overflow (jsdom can't measure layout: this is a manual check with screenshots, see Evidence). (R33)
 19. [ ] `make test`; real run against `make dev` with a 40-movie folder; PNG exports of `P01`–`P15`, `D01`–`D15` next to screenshots; PR B.
 
 ### PR C — Admin
@@ -196,3 +196,10 @@ Deviations from the plan found during the build (date + what + why).
 - 2026-10-29 (PR A): keys the spec table didn't have, needed by the ported components: `ui.*` (loading, show/hide password, clear, dismiss, progress), `common.close`, `picker.checking`, `picker.readable`, `picker.notAllowed`, `picker.rootsLabel`, `picker.openHint`, `picker.filterCount`, `folder.unavailable.title`, `folder.unavailable.check`; `picker.empty` is split into `.title` and `.body`; `picker.filter` takes `total`, not `count` (i18next treats `count` as a plural).
 - 2026-10-29 (PR A): error mapping stays in `web/src/auth/errors.ts` (extended with the new field codes) instead of moving to `lib/errors.ts`: every page already imports it from there.
 - 2026-10-29 (PR A): a development-only `/dev/ui` gallery (`web/src/dev/Gallery.tsx`, not routed in production builds) gives the PR A screenshots; PR B removes it.
+- 2026-10-29 (PR B): the design puts the setup code on the account screen (board P03, a card beside the form), so there's no `/setup/code` route: `Account.tsx` shows the card when `GET /setup` says `requiresSetupCode`. No `SetupCode.tsx`.
+- 2026-10-29 (PR B): the spec's i18n table has keys that are both a leaf and a parent (`onboarding.account.displayName` and `.displayName.help`), which a nested JSON catalog can't hold. The leaves get `.label` (`onboarding.account.{displayName,username,password}.label`, `onboarding.start.language.label`, `library.folders.label`, `library.type.label`, `library.metadata.region.label`) and `scan.complete` becomes `scan.complete.title`. `home.empty` is split into `.title` and `.body` like the design. New keys the screens needed: `onboarding.step`, `onboarding.code.docker`, `onboarding.libraries.added`, `picker.open`, `common.loading`, `library.metadata.language`, `scan.complete.count`, `scan.complete.wall`, `scan.libraries`, `scan.startWatching`, `scan.state.short.scanning`, `scan.wall`, `server.accel.*`. `errors.setup_code_required` takes the spec's new wording.
+- 2026-10-29 (PR B): `RequireStep` gains `admin` so `/setup/libraries` and `/setup/scan` send members home; `Home` sends an admin back to the wizard through `adminStep` (`onboarding/step.ts`).
+- 2026-10-29 (PR B): the real run on a scratch server found two picker bugs, now fixed with tests: `/` showed `//`, and the parent button was enabled at `/`. "Type a path" is also offered in the desktop panel, not only on phones (R8).
+- 2026-10-29 (PR B): the end screen's quiet line about unrecognized files doesn't link to the admin yet: `/admin/libraries` arrives in PR C, which adds the link.
+- 2026-10-29 (PR B): the start button of the end screen is `primary`, not `play`: the design system reserves `play` for starting playback.
+- 2026-10-29 (PR B): the `/dev/ui` gallery from PR A is removed, as planned.

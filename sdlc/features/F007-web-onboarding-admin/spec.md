@@ -607,5 +607,6 @@ Settled at approval (2026-10-28).
 - [ ] Given `make check-i18n`, then no key is missing in `fr` and no screen has a hardcoded string.
 
 ## Revisions
+- 2026-10-29: PR B renames the keys that were both a leaf and a parent (`.label`, `scan.complete.title`), splits `home.empty` into `.title` and `.body`, and adds the keys listed in the plan Log. The setup code sits on the account screen, as designed; there is no separate route.
 - 2026-10-29: i18n keys added by PR A for the ported design system components (see plan Log); `picker.empty` split into `.title` and `.body`; `picker.filter` interpolates `total`.
 - 2026-10-28: approved. R30 and R31 moved to the backlog; three strings adapted so the copy doesn't promise what the API can't do (`playing.stop.confirm`, `scan.slowShare`, `libraries.fullRescan.help`).

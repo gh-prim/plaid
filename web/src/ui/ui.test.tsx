@@ -89,6 +89,24 @@ describe('FolderPicker', () => {
     expect(screen.getByRole('button', { name: 'Use this folder' })).toBeDisabled()
   })
 
+  it('at / shows a single slash, no parent, and lets you type a path on desktop too', async () => {
+    const onTypePath = vi.fn()
+    await renderUi(
+      <FolderPicker
+        serverName="nas"
+        path="/"
+        layout="panel"
+        entries={entries}
+        onTypePath={onTypePath}
+        {...handlers}
+      />,
+    )
+    expect(document.querySelector('.pl-picker__crumbs')).toHaveTextContent(/^\/$/)
+    expect(screen.getByRole('button', { name: 'Parent folder' })).toBeDisabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Type a path' }))
+    expect(onTypePath).toHaveBeenCalledOnce()
+  })
+
   it('says an empty folder can still be the right one', async () => {
     await renderUi(<FolderPicker serverName="nas" path="/srv/empty" entries={[]} {...handlers} />)
     expect(screen.getByText('No sub-folders.')).toBeInTheDocument()

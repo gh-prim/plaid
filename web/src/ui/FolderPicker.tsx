@@ -51,7 +51,10 @@ export function FolderPicker({
   const { t } = useTranslation()
   const crumbs = path.split('/').filter(Boolean)
   const tail = atRoots ? t('picker.rootsLabel') : (crumbs.at(-1) ?? '/')
-  const head = atRoots ? '' : '/' + crumbs.slice(0, -1).join('/') + (crumbs.length > 1 ? '/' : '')
+  const head =
+    atRoots || crumbs.length === 0
+      ? ''
+      : '/' + crumbs.slice(0, -1).join('/') + (crumbs.length > 1 ? '/' : '')
   const title = t('picker.title', { serverName })
   return (
     <section className={cx('pl pl-picker', `pl-picker--${layout}`)} aria-label={title}>
@@ -130,8 +133,8 @@ export function FolderPicker({
         <Button variant="primary" block={layout === 'sheet'} disabled={atRoots} onClick={onUse}>
           {t('picker.use')}
         </Button>
-        {layout === 'sheet' && onTypePath && (
-          <Button variant="ghost" block onClick={onTypePath}>
+        {onTypePath && (
+          <Button variant="ghost" block={layout === 'sheet'} onClick={onTypePath}>
             {t('picker.typePath')}
           </Button>
         )}

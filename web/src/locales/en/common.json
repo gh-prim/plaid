@@ -9,23 +9,22 @@
       "title": "Choose a new password"
     },
     "confirmPassword": "Confirm password",
-    "createAdmin": "Create account",
     "currentPassword": "Current password",
-    "displayName": "Name",
     "newPassword": "New password",
     "password": "Password",
     "passwordHint": "At least 8 characters.",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "username": "Username",
-    "usernameHint": "3 to 32 characters: lowercase letters, digits, dots, dashes or underscores."
+    "username": "Username"
   },
   "common": {
     "back": "Back",
     "cancel": "Cancel",
+    "change": "Change",
     "close": "Close",
     "copied": "Copied",
     "copy": "Copy",
+    "loading": "Loading",
     "retry": "Try again"
   },
   "device": {
@@ -33,6 +32,8 @@
   },
   "errors": {
     "csrf": "This request was blocked. Reload the page and try again.",
+    "folder_not_found": "This folder doesn’t exist anymore.",
+    "folder_overlap": "This folder is already part of {{library}}.",
     "folder_unreadable": "PLAID can’t read this folder.",
     "forbidden": "You're not allowed to do this.",
     "generic": "Something went wrong. Try again.",
@@ -45,7 +46,7 @@
     "password_change_required": "Choose a new password first.",
     "password_mismatch": "Passwords don't match.",
     "profile_locked": "Too many wrong PINs. Try again in {{minutes, number}} min.",
-    "setup_code_required": "Enter the setup code from the server log.",
+    "setup_code_required": "This code doesn’t match. Copy the latest one from the log.",
     "setup_complete": "This server is already set up. Sign in instead.",
     "too_many_attempts": "Too many attempts. Try again in {{minutes, number}} min.",
     "unauthorized": "Your session has ended. Sign in again.",
@@ -72,10 +73,102 @@
       "title": "{{path}} can’t be reached."
     }
   },
+  "home": {
+    "apps": "PLAID plays in this browser. TV and phone apps aren’t out yet.",
+    "empty": {
+      "action": "Add a library",
+      "body": "Add a folder and PLAID will find your movies and shows.",
+      "title": "Nothing to watch yet."
+    }
+  },
   "language": {
     "en": "English",
     "fr": "Français",
     "label": "Language"
+  },
+  "library": {
+    "add": "Add library",
+    "folders": {
+      "add": "Add folder",
+      "count_one": "{{count, number}} folder of 16",
+      "count_other": "{{count, number}} folders of 16",
+      "label": "Folders",
+      "remove": "Remove {{path}}"
+    },
+    "metadata": {
+      "language": "Language of titles and synopses",
+      "region": {
+        "help": "The region sets age ratings and release dates.",
+        "label": "Region (2 letters)"
+      },
+      "summary": "Titles and synopses in {{language}}, {{region}}"
+    },
+    "name": "Name",
+    "type": {
+      "label": "Type",
+      "movies": "Movies",
+      "shows": "Shows"
+    }
+  },
+  "offline": {
+    "body": "Check that it’s on and on the same network. Steps you finished are saved on the server.",
+    "now": "Try now",
+    "retrying": "Trying again in {{seconds, number}} s",
+    "title": "Can’t reach {{serverName}}."
+  },
+  "onboarding": {
+    "account": {
+      "body": "It lives on {{serverName}} only. There’s no PLAID account online.",
+      "displayName": {
+        "help": "Shown to the people you add later.",
+        "label": "Display name"
+      },
+      "password": {
+        "help": "8 characters or more. A long phrase beats symbols.",
+        "label": "Password"
+      },
+      "submit": "Create account",
+      "submitting": "Creating account",
+      "title": "Create the admin account",
+      "username": {
+        "help": "You’ll sign in with it.",
+        "invalid": "Use letters, numbers, dots, dashes or underscores.",
+        "label": "Username"
+      }
+    },
+    "code": {
+      "body": "To prove this server is yours, enter the setup code PLAID wrote to its log when it started.",
+      "deb": "Ubuntu or Debian (.deb)",
+      "docker": "Docker",
+      "label": "Setup code",
+      "other": "Anything else: the terminal where PLAID started.",
+      "title": "You’re connecting from outside your network.",
+      "where": "Where to find it"
+    },
+    "doneElsewhere": {
+      "action": "Sign in",
+      "body": "Someone finished setup a moment ago. Sign in with the account they created.",
+      "title": "This server is already set up."
+    },
+    "libraries": {
+      "added": "Libraries added",
+      "another": "Add another library",
+      "body": "Pick folders on {{serverName}}’s disks, not on this device.",
+      "later": "Add libraries later",
+      "next": "Follow the scan",
+      "title": "Where are your movies and shows?"
+    },
+    "start": {
+      "body": "Three steps: your language, an account that stays on this server, and the folders where your movies live.",
+      "continue": "Continue",
+      "language": {
+        "help": "Also the default language for titles and synopses in your libraries.",
+        "label": "Language"
+      },
+      "title": "Tonight’s movies will come from {{serverName}}.",
+      "version": "PLAID {{version}} · {{serverName}}"
+    },
+    "step": "Step {{step, number}} of {{total, number}}"
   },
   "pairing": {
     "codeLabel": "Code shown on the TV",
@@ -96,6 +189,7 @@
     "noAccess": "No access",
     "noMatch": "No folder matches “{{query}}”.",
     "notAllowed": "Not allowed",
+    "open": "Open",
     "openHint": "Open a folder to use it.",
     "parent": "Parent folder",
     "readable": "Readable",
@@ -115,11 +209,68 @@
     "switch": "Switch profile",
     "whoIsWatching": "Who's watching?"
   },
-  "setup": {
-    "setupCode": "Setup code",
-    "setupCodeHint": "You're not on the server's local network. Find the code in the server log, on the line first_run_setup_code.",
-    "subtitle": "Create the admin account for this server.",
-    "title": "Welcome to PLAID."
+  "scan": {
+    "analyzed": "{{done, number}} of {{total, number}} analyzed",
+    "complete": {
+      "count_one": "{{count, number}} title is home.",
+      "count_other": "{{count, number}} titles are home.",
+      "episodeCount_one": "{{count, number}} episode",
+      "episodeCount_other": "{{count, number}} episodes",
+      "showCount_one": "{{count, number}} show",
+      "showCount_other": "{{count, number}} shows",
+      "shows": "And {{shows}}, {{episodes}}, on {{serverName}}.",
+      "title_one": "From {{oldestTitle}} to {{newestTitle}}, {{count, number}} movie is home.",
+      "title_other": "From {{oldestTitle}} to {{newestTitle}}, {{count, number}} movies are home.",
+      "wall": "Your movies",
+      "watch": "Start watching"
+    },
+    "failed_one": "{{count, number}} file couldn’t be read",
+    "failed_other": "{{count, number}} files couldn’t be read",
+    "later": "{{unrecognized, number}} files weren’t recognized and {{review, number}} titles need a second look. Both wait in Settings, Libraries.",
+    "leave": "You can close this page. The scan keeps running on {{serverName}}.",
+    "libraries": "Libraries",
+    "metadata": {
+      "summary": "{{matched, number}} matched · {{needsReview, number}} to review · {{unmatched, number}} not found"
+    },
+    "startWatching": "Start watching now, the scan keeps going",
+    "state": {
+      "analyzing": "Reading files with ffprobe",
+      "idle": "Done",
+      "queued": "Queued",
+      "scanning": "Looking for files in {{path}}",
+      "short": {
+        "scanning": "Scanning"
+      }
+    },
+    "title": "Scanning your libraries",
+    "unrecognized_one": "{{count, number}} not recognized",
+    "unrecognized_other": "{{count, number}} not recognized",
+    "voice_one": "{{latestTitle}} just arrived. {{count, number}} of your movies is here.",
+    "voice_other": "{{latestTitle}} just arrived. {{count, number}} of your movies are here.",
+    "wall": "Matched in {{library}}"
+  },
+  "server": {
+    "accel": {
+      "nvenc": "NVIDIA GPU",
+      "qsv": "Intel Quick Sync",
+      "v4l2m2m": "Raspberry Pi encoder",
+      "vaapi": "GPU (VA-API)",
+      "videotoolbox": "Mac encoder"
+    },
+    "ffmpeg": {
+      "missing": "FFmpeg isn’t installed. Files your devices play as they are still work; the others won’t."
+    },
+    "ffprobe": {
+      "missing": "ffprobe isn’t installed, so files are listed but not analyzed."
+    },
+    "hw": {
+      "active": "Video conversion uses the {{device}} ({{method}}): up to {{max, number}} at once when a device can’t play a file as it is.",
+      "none": "No hardware encoder. Files your devices play as they are stream fine. Converting happens in software, one video at a time, and 4K may not keep up."
+    },
+    "watch": {
+      "limit": "Linux’s file watch limit is reached, so {{path}} is checked every {{minutes, number}} minutes instead of live. To raise the limit:",
+      "network": "{{path}} is on a network share, so new files aren’t seen right away. PLAID checks it every {{minutes, number}} minutes."
+    }
   },
   "ui": {
     "clear": "Clear",
@@ -131,9 +282,7 @@
   },
   "welcome": {
     "status": {
-      "error": "Can't reach the server. Is it still plugged in?",
-      "loading": "Warming up the couch…",
-      "ok": "Your server is up. Grab the blanket."
+      "error": "Can't reach the server. Is it still plugged in?"
     },
     "title": "PLAID",
     "version": "Version {{version}}"

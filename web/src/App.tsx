@@ -1,4 +1,3 @@
-import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireStep } from './auth/RequireAuth'
@@ -6,13 +5,11 @@ import { ChangePassword } from './pages/ChangePassword'
 import { Home } from './pages/Home'
 import { Pair } from './pages/Pair'
 import { ProfilePicker } from './pages/ProfilePicker'
-import { Setup } from './pages/Setup'
 import { SignIn } from './pages/SignIn'
-
-// Development only: the design system's components (F007 PR A).
-const Gallery = import.meta.env.DEV
-  ? lazy(() => import('./dev/Gallery').then((m) => ({ default: m.Gallery })))
-  : null
+import { Account } from './onboarding/Account'
+import { Libraries } from './onboarding/Libraries'
+import { Scan } from './onboarding/Scan'
+import { Start } from './onboarding/Start'
 
 export function AppRoutes() {
   return (
@@ -22,7 +19,31 @@ export function AppRoutes() {
           path="/setup"
           element={
             <RequireStep allow={['setup']}>
-              <Setup />
+              <Start />
+            </RequireStep>
+          }
+        />
+        <Route
+          path="/setup/account"
+          element={
+            <RequireStep allow={['setup']}>
+              <Account />
+            </RequireStep>
+          }
+        />
+        <Route
+          path="/setup/libraries"
+          element={
+            <RequireStep allow={['app']} admin>
+              <Libraries />
+            </RequireStep>
+          }
+        />
+        <Route
+          path="/setup/scan"
+          element={
+            <RequireStep allow={['app']} admin>
+              <Scan />
             </RequireStep>
           }
         />
@@ -66,16 +87,6 @@ export function AppRoutes() {
             </RequireStep>
           }
         />
-        {Gallery && (
-          <Route
-            path="/dev/ui"
-            element={
-              <Suspense>
-                <Gallery />
-              </Suspense>
-            }
-          />
-        )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>

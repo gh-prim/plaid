@@ -9,23 +9,22 @@
       "title": "Choisis un nouveau mot de passe"
     },
     "confirmPassword": "Confirme le mot de passe",
-    "createAdmin": "Créer le compte",
     "currentPassword": "Mot de passe actuel",
-    "displayName": "Nom",
     "newPassword": "Nouveau mot de passe",
     "password": "Mot de passe",
     "passwordHint": "Au moins 8 caractères.",
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
-    "username": "Nom d'utilisateur",
-    "usernameHint": "3 à 32 caractères : lettres minuscules, chiffres, points, tirets ou tirets bas."
+    "username": "Nom d'utilisateur"
   },
   "common": {
     "back": "Retour",
     "cancel": "Annuler",
+    "change": "Modifier",
     "close": "Fermer",
     "copied": "Copié",
     "copy": "Copier",
+    "loading": "Chargement",
     "retry": "Réessayer"
   },
   "device": {
@@ -33,6 +32,8 @@
   },
   "errors": {
     "csrf": "Cette requête a été bloquée. Recharge la page et réessaie.",
+    "folder_not_found": "Ce dossier n’existe plus.",
+    "folder_overlap": "Ce dossier fait déjà partie de {{library}}.",
     "folder_unreadable": "PLAID ne peut pas lire ce dossier.",
     "forbidden": "Tu n'as pas le droit de faire ça.",
     "generic": "Une erreur s'est produite. Réessaie.",
@@ -45,7 +46,7 @@
     "password_change_required": "Choisis d'abord un nouveau mot de passe.",
     "password_mismatch": "Les mots de passe ne correspondent pas.",
     "profile_locked": "Trop de codes PIN incorrects. Réessaie dans {{minutes, number}} min.",
-    "setup_code_required": "Saisis le code d'installation du journal du serveur.",
+    "setup_code_required": "Ce code ne correspond pas. Copie le plus récent depuis le journal.",
     "setup_complete": "Ce serveur est déjà configuré. Connecte-toi.",
     "too_many_attempts": "Trop de tentatives. Réessaie dans {{minutes, number}} min.",
     "unauthorized": "Ta session est terminée. Reconnecte-toi.",
@@ -72,10 +73,103 @@
       "title": "{{path}} est injoignable."
     }
   },
+  "home": {
+    "apps": "PLAID se regarde dans ce navigateur. Les apps TV et mobile ne sont pas encore sorties.",
+    "empty": {
+      "action": "Ajouter une bibliothèque",
+      "body": "Ajoute un dossier et PLAID trouvera tes films et séries.",
+      "title": "Rien à regarder pour l’instant."
+    }
+  },
   "language": {
     "en": "English",
     "fr": "Français",
     "label": "Langue"
+  },
+  "library": {
+    "add": "Ajouter la bibliothèque",
+    "folders": {
+      "add": "Ajouter un dossier",
+      "count_one": "{{count, number}} dossier sur 16",
+      "count_many": "",
+      "count_other": "{{count, number}} dossiers sur 16",
+      "label": "Dossiers",
+      "remove": "Retirer {{path}}"
+    },
+    "metadata": {
+      "language": "Langue des titres et résumés",
+      "region": {
+        "help": "La région fixe les classifications d’âge et les dates de sortie.",
+        "label": "Région (2 lettres)"
+      },
+      "summary": "Titres et résumés en {{language}}, {{region}}"
+    },
+    "name": "Nom",
+    "type": {
+      "label": "Type",
+      "movies": "Films",
+      "shows": "Séries"
+    }
+  },
+  "offline": {
+    "body": "Vérifie qu’il est allumé et sur le même réseau. Les étapes terminées sont enregistrées sur le serveur.",
+    "now": "Réessayer",
+    "retrying": "Nouvel essai dans {{seconds, number}} s",
+    "title": "Impossible de joindre {{serverName}}."
+  },
+  "onboarding": {
+    "account": {
+      "body": "Il existe uniquement sur {{serverName}}. Il n’y a pas de compte PLAID en ligne.",
+      "displayName": {
+        "help": "Visible par les personnes que tu ajouteras.",
+        "label": "Nom affiché"
+      },
+      "password": {
+        "help": "8 caractères minimum. Une longue phrase vaut mieux que des symboles.",
+        "label": "Mot de passe"
+      },
+      "submit": "Créer le compte",
+      "submitting": "Création du compte",
+      "title": "Crée le compte administrateur",
+      "username": {
+        "help": "Tu t’en serviras pour te connecter.",
+        "invalid": "Utilise des lettres, chiffres, points, tirets ou tirets bas.",
+        "label": "Nom d’utilisateur"
+      }
+    },
+    "code": {
+      "body": "Pour prouver que ce serveur est à toi, saisis le code de configuration que PLAID a écrit dans son journal au démarrage.",
+      "deb": "Ubuntu ou Debian (.deb)",
+      "docker": "Docker",
+      "label": "Code de configuration",
+      "other": "Sinon : le terminal où PLAID a démarré.",
+      "title": "Tu te connectes depuis l’extérieur de ton réseau.",
+      "where": "Où le trouver"
+    },
+    "doneElsewhere": {
+      "action": "Se connecter",
+      "body": "Quelqu’un vient de terminer la configuration. Connecte-toi avec le compte créé.",
+      "title": "Ce serveur est déjà configuré."
+    },
+    "libraries": {
+      "added": "Bibliothèques ajoutées",
+      "another": "Ajouter une autre bibliothèque",
+      "body": "Choisis des dossiers sur les disques de {{serverName}}, pas sur cet appareil.",
+      "later": "Ajouter les bibliothèques plus tard",
+      "next": "Suivre l’analyse",
+      "title": "Où sont tes films et séries ?"
+    },
+    "start": {
+      "body": "Trois étapes : ta langue, un compte qui reste sur ce serveur, et les dossiers où vivent tes films.",
+      "continue": "Continuer",
+      "language": {
+        "help": "C’est aussi la langue par défaut des titres et résumés de tes bibliothèques.",
+        "label": "Langue"
+      },
+      "title": "Ce soir, tes films viendront de {{serverName}}.",
+      "version": "PLAID {{version}} · {{serverName}}"
+    },
+    "step": "Étape {{step, number}} sur {{total, number}}"
   },
   "pairing": {
     "codeLabel": "Code affiché sur la TV",
@@ -96,6 +190,7 @@
     "noAccess": "Pas d’accès",
     "noMatch": "Aucun dossier ne correspond à « {{query}} ».",
     "notAllowed": "Non autorisé",
+    "open": "Ouvrir",
     "openHint": "Ouvre un dossier pour l’utiliser.",
     "parent": "Dossier parent",
     "readable": "Lisible",
@@ -115,11 +210,75 @@
     "switch": "Changer de profil",
     "whoIsWatching": "Qui regarde ?"
   },
-  "setup": {
-    "setupCode": "Code d'installation",
-    "setupCodeHint": "Tu n'es pas sur le réseau local du serveur. Le code est dans le journal du serveur, sur la ligne first_run_setup_code.",
-    "subtitle": "Crée le compte administrateur de ce serveur.",
-    "title": "Bienvenue sur PLAID."
+  "scan": {
+    "analyzed": "{{done, number}} sur {{total, number}} analysés",
+    "complete": {
+      "count_one": "{{count, number}} titre est à la maison.",
+      "count_many": "",
+      "count_other": "{{count, number}} titres sont à la maison.",
+      "episodeCount_one": "{{count, number}} épisode",
+      "episodeCount_many": "",
+      "episodeCount_other": "{{count, number}} épisodes",
+      "showCount_one": "{{count, number}} série",
+      "showCount_many": "",
+      "showCount_other": "{{count, number}} séries",
+      "shows": "Et {{shows}}, {{episodes}}, sur {{serverName}}.",
+      "title_one": "De {{oldestTitle}} à {{newestTitle}}, {{count, number}} film est à la maison.",
+      "title_many": "",
+      "title_other": "De {{oldestTitle}} à {{newestTitle}}, {{count, number}} films sont à la maison.",
+      "wall": "Tes films",
+      "watch": "Commencer"
+    },
+    "failed_one": "{{count, number}} fichier illisible",
+    "failed_many": "",
+    "failed_other": "{{count, number}} fichiers illisibles",
+    "later": "{{unrecognized, number}} fichiers n’ont pas été reconnus et {{review, number}} titres sont à vérifier. Tout t’attend dans Réglages, Bibliothèques.",
+    "leave": "Tu peux fermer cette page. L’analyse continue sur {{serverName}}.",
+    "libraries": "Bibliothèques",
+    "metadata": {
+      "summary": "{{matched, number}} identifiés · {{needsReview, number}} à vérifier · {{unmatched, number}} introuvables"
+    },
+    "startWatching": "Commencer maintenant, l’analyse continue",
+    "state": {
+      "analyzing": "Lecture des fichiers avec ffprobe",
+      "idle": "Terminé",
+      "queued": "En attente",
+      "scanning": "Recherche de fichiers dans {{path}}",
+      "short": {
+        "scanning": "Analyse en cours"
+      }
+    },
+    "title": "Analyse de tes bibliothèques",
+    "unrecognized_one": "{{count, number}} non reconnu",
+    "unrecognized_many": "",
+    "unrecognized_other": "{{count, number}} non reconnus",
+    "voice_one": "{{latestTitle}} vient d’arriver. {{count, number}} de tes films est là.",
+    "voice_many": "",
+    "voice_other": "{{latestTitle}} vient d’arriver. {{count, number}} de tes films sont là.",
+    "wall": "Identifiés dans {{library}}"
+  },
+  "server": {
+    "accel": {
+      "nvenc": "carte NVIDIA",
+      "qsv": "Intel Quick Sync",
+      "v4l2m2m": "encodeur du Raspberry Pi",
+      "vaapi": "GPU (VA-API)",
+      "videotoolbox": "encodeur du Mac"
+    },
+    "ffmpeg": {
+      "missing": "FFmpeg n’est pas installé. Les fichiers lus tels quels fonctionnent, les autres non."
+    },
+    "ffprobe": {
+      "missing": "ffprobe n’est pas installé : les fichiers sont listés mais pas analysés."
+    },
+    "hw": {
+      "active": "La conversion vidéo utilise {{device}} ({{method}}) : jusqu’à {{max, number}} à la fois quand un appareil ne lit pas un fichier tel quel.",
+      "none": "Pas d’encodeur matériel. Les fichiers lus tels quels passent sans problème. La conversion se fait en logiciel, une vidéo à la fois, et la 4K peut ne pas suivre."
+    },
+    "watch": {
+      "limit": "La limite de surveillance de fichiers de Linux est atteinte : {{path}} est vérifié toutes les {{minutes, number}} minutes au lieu d’en direct. Pour l’augmenter :",
+      "network": "{{path}} est sur un partage réseau : les nouveaux fichiers n’apparaissent pas tout de suite. PLAID le vérifie toutes les {{minutes, number}} minutes."
+    }
   },
   "ui": {
     "clear": "Effacer",
@@ -131,9 +290,7 @@
   },
   "welcome": {
     "status": {
-      "error": "Impossible de joindre le serveur. Il est bien branché ?",
-      "loading": "On réchauffe le canapé…",
-      "ok": "Ton serveur est prêt. Attrape le plaid."
+      "error": "Impossible de joindre le serveur. Il est bien branché ?"
     },
     "title": "PLAID",
     "version": "Version {{version}}"
