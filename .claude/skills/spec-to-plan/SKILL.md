@@ -13,6 +13,7 @@ description: Produces the implementation plan.md for a PLAID feature from its ap
    - The risks, with **the riskiest step** named.
    - The rejected options and why.
    - The evidence expected in the PR (tests, screenshots, manual checks).
+   - One PR for the whole feature (see CLAUDE.md): order the steps as commits, never as several PRs.
 4. Write the plan.md in English, but keep talking to the user in their own language.
 5. **Challenge your own plan** before handing it over: what can break? What touches files the other dev is working on (see the `in-progress` plans in `sdlc/features/`)? Could the other dev execute it alone?
 6. Status `draft`. Update `sdlc/roadmap.md`.

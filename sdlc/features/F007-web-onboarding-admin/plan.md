@@ -5,7 +5,7 @@ owner: gh-prim
 reviewer: TBD
 status: in-progress      # draft | approved | in-progress | done
 spec: ./spec.md
-branch: feat/F007-onboarding-admin
+branch: feat/F007-admin
 ---
 
 # F007 — Plan: Web — onboarding and administration
@@ -13,10 +13,10 @@ branch: feat/F007-onboarding-admin
 > This plan must be precise enough for the other dev to execute it alone.
 > If the implementation diverges, this file is updated **in the same commit**.
 
-Three PRs, each green on its own, each with `make test` output and screenshots:
-- **PR A — Foundations**: the API changes and the three server additions (R27–R29), then the web foundations every screen needs (design tokens, fonts, primitives, hooks). No new screen yet.
-- **PR B — Onboarding** (R1–R16): the wizard replaces the F003 `Setup` page.
-- **PR C — Admin** (R17–R26).
+One PR for the whole feature (CLAUDE.md: one PR per feature), built in three parts that land as commits, each green with `make test`:
+- **Part A — Foundations**: the API changes and the three server additions (R27–R29), then the web foundations every screen needs (design tokens, fonts, primitives, hooks). No new screen yet.
+- **Part B — Onboarding** (R1–R16): the wizard replaces the F003 `Setup` page.
+- **Part C — Admin** (R17–R26).
 
 The screens come from the Claude Design canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz). Its boards are named in the steps (`P07Unreadable`, `AD03`…) so each component can be checked against its mockup. Each PR attaches PNG exports of the boards it builds (spec watch-out "Canvas access").
 
@@ -53,7 +53,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | `server/internal/handlers/capabilities.go` (error code) | modify | `hw_test_running` built with `apierr.New(409, …)` like the other codes. |
 | `server/cmd/plaid/main.go` | modify | Build the `problems.Recorder`, pass it to metadata, library, playback and handlers; start the janitor. |
 
-### Web — foundations (PR A)
+### Web — foundations (part A)
 | File | Action | Why |
 |------|--------|-----|
 | `web/src/design/tokens.json` | create | Copy of the PLAID design system's `tokens.json` (version recorded in a `_source` field), the input of the generator. |
@@ -73,7 +73,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | `web/src/locales/en/common.json`, `fr/common.json` | modify | Keys from the spec's i18n table, added PR by PR as screens land (so `check-i18n` never sees unused keys). |
 | `web/src/test/fakeApi.ts`, `web/src/test/fakeEventSource.ts` | modify / create | Fake SSE for scan tests. |
 
-### Web — onboarding (PR B)
+### Web — onboarding (part B)
 | File | Action | Why |
 |------|--------|-----|
 | `web/src/onboarding/step.ts` + test | create | Derives the wizard step from `GET /setup`, `/me`, `/libraries` and the local "later" flag (R1, R10). Extends `auth/RequireAuth.tsx`'s `currentStep`. |
@@ -90,7 +90,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | `web/src/pages/Setup.tsx`, `Setup.test.tsx`, `Welcome.tsx`, `Welcome.test.tsx` | delete | Replaced by the wizard; `Home` keeps its own content until F008. |
 | `web/src/pages/Home.tsx` | modify | Empty state and the admin link (R15, R17). |
 
-### Web — admin (PR C)
+### Web — admin (part C)
 | File | Action | Why |
 |------|--------|-----|
 | `web/src/admin/AdminLayout.tsx` | create | Admin guard, "Back to the library", lazy-loaded chunk (R17, NFR bundle). |
@@ -114,7 +114,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 
 ## Steps, in order
 
-### PR A — Foundations
+### Part A — Foundations
 1. [x] `api/openapi.yaml`: `matched` event and `MatchedItem`, hardware-test route, `/problems` and its schemas, `hw_test_running`. `make generate`. (R27, R28, R29)
 2. [x] Migration `0006_problems.sql` and `internal/problems` with its tests first (dedupe, reopen, resolve, purge). (R29)
 3. [x] Wire `Problems` into library (folder status, watch limit), playback (`hw_fallback`, `ffmpeg_restarted`), metadata (`provider_key_refused`), with a unit test at each call site; `GET /problems` handler and e2e test. (R29)
@@ -122,9 +122,9 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 5. [x] Matched hub in metadata, publish from `Process`, forward on the scan stream; unit test and e2e test on the stream. (R27)
 6. [x] Web: `tokens.json` → `build-tokens.mjs` → `tokens.css`, hooked into `make generate` and the codegen drift check. Fonts and `base.css`. (R33)
 7. [x] Web primitives in `src/ui/` with their state tests, then `useScanEvents` (with `fakeEventSource`), `usePolling`, `useConnection`, `format`, `shellQuote`, `cidr`, error mapping, all test-first. (R9, R16, R24, R32, R34)
-8. [ ] `make test`; PR A with a screenshot of a primitives page in dark and light (dev-only route, removed in PR B).
+8. [x] `make test`; a screenshot of a primitives page in dark and light (dev-only route, removed in part B).
 
-### PR B — Onboarding
+### Part B — Onboarding
 9. [x] `onboarding/step.ts` with tests for every resume case, then routes in `App.tsx` and `RequireAuth`. (R1, R2, R10)
 10. [x] Start and language, tests for preselection and instant switch. (R3)
 11. [x] Setup code: tests for wrong code, `Retry-After`, `setup_complete`, the exact copy-pasted command. Update `docs/install.md`. (R4, R5)
@@ -135,9 +135,9 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 16. [x] End and zero-library end, oldest/newest from items. (R14, R15)
 17. [x] Connection banner on every step. (R16)
 18. [x] Locale pass: French and a pseudo-locale at +35 % (test helper that pads every string) render at 375 px with no overflow (jsdom can't measure layout: this is a manual check with screenshots, see Evidence). (R33)
-19. [ ] `make test`; real run against `make dev` with a 40-movie folder; PNG exports of `P01`–`P15`, `D01`–`D15` next to screenshots; PR B.
+19. [ ] `make test`; real run against `make dev` with a 40-movie folder; PNG exports of `P01`–`P15`, `D01`–`D15` next to screenshots.
 
-### PR C — Admin
+### Part C — Admin
 20. [x] `AdminLayout`, lazy routes, member gets forbidden with no admin request (test). (R17)
 21. [x] Playing now and `reasons.ts` (every F006 reason has a sentence, test), stop with confirmation. (R19)
 22. [x] Admin home from playback, libraries, capabilities and problems, every status variant tested. (R18)
@@ -148,7 +148,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 27. [x] Metadata with keys write-only and attributions. (R25)
 28. [x] Problems. (R26, R29)
 29. [x] Locale pass and light theme as in step 18. (R33)
-30. [ ] `make test`; real run on a server with a transcoding stream (the F006 perf clips) and a folder made unavailable; PNG exports `AP01`–`AP17`, `AD01`–`AD17` next to screenshots; PR C. Plan status `done`, roadmap updated.
+30. [ ] `make test`; real run on a server with a transcoding stream (the F006 perf clips) and a folder made unavailable; PNG exports `AP01`–`AP17`, `AD01`–`AD17` next to screenshots. Plan status `done`, roadmap updated.
 
 ## Risks
 | Risk | Likelihood | Mitigation |
@@ -162,7 +162,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | Hardware retest while transcodes run disturbs them | low | The test uses its own short FFmpeg runs like F006's startup test; running sessions keep their encoder until they restart. |
 | Layout checks can't run in jsdom | high | Manual screenshots at 375 and 1440 in en, fr and the +35 % pseudo-locale are part of the evidence; no claim of automated layout coverage. |
 
-**Riskiest step:** step 15, the scan screen. It combines the SSE stream, two kinds of events at different rates, the poster wall's performance on a phone, the backdrop crossfade, reduced motion and two accessibility throttles, and it is the emotional peak the design was rebuilt around. It gets its tests first and a real-device check before PR B is opened.
+**Riskiest step:** step 15, the scan screen. It combines the SSE stream, two kinds of events at different rates, the poster wall's performance on a phone, the backdrop crossfade, reduced motion and two accessibility throttles, and it is the emotional peak the design was rebuilt around. It gets its tests first and a real-device check before the onboarding is called done.
 
 ## Rejected options
 - **Polling items for the poster wall instead of a `matched` event**: `GET /libraries/{id}/items` sorts by title, so new matches can't be found without a new sort; polling 1,240 items every few seconds is also heavier on a Pi than one event per match.
@@ -209,3 +209,4 @@ Deviations from the plan found during the build (date + what + why).
 - 2026-10-29 (PR C): the spec table's keys that were both a leaf and a parent got `.label` (`playing.stop`, `playing.empty`, `transcoding.{max,remote,networks,preset,cap}`, `libraries.{delete,fullRescan}`, `people.{delete,devices,tempPassword}`, `problems.{hwFallback,keyRefused}`, `review.search`), `transcoding.fallback` became `.body`. `errors.last_admin` and `errors.pairing_expired` take the spec's wording. Percentages use i18next's `number(style: percent)`.
 - 2026-10-29 (PR C): "Pair a TV" links to the existing F003 `/pair` page instead of an admin copy; the person page has no profile list (the admin user API doesn't return profiles).
 - 2026-10-29 (PR C): a real run with a TMDB key (47 real titles) found that the scan screen could end before the first metadata counter arrived (they're throttled to 2 s): it showed 4 posters of 34. The scan now asks `GET /metadata/status` while it has no counter (`scanDone` treats "unknown" as not done), with a test. Also fixed from that run: the end screen's later line drops the half that's zero (`scan.later.{both,unrecognized,review}`), candidates without a poster keep 64 × 96, review cards use 2 columns below 1440 px.
+- 2026-10-29: the three stacked PRs (#50, #51, #52) are gathered into one PR, #52 on `feat/F007-admin`, at the owner's request; CLAUDE.md now says one PR per feature. The Log entries above keep their "(PR A/B/C)" labels as history: read them as parts.
