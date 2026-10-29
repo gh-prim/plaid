@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/gh-prim/plaid/server/internal/clientinfo"
@@ -122,6 +123,8 @@ func TestHardwareFallback(t *testing.T) {
 	ctx := context.Background()
 	ff := fakeFFmpeg(t, "h264_vaapi+hls")
 	s, logs := hlsServiceWith(t, fastTimings, ff)
+	rec := &fakeProblems{}
+	s.o.Problems = rec
 	st, err := ProbeHardware(ctx, ff, HWAuto, "")
 	if err != nil || st.Active != HWVAAPI {
 		t.Fatalf("probe: %+v, %v", st, err)
@@ -158,6 +161,70 @@ func TestHardwareFallback(t *testing.T) {
 	// A settings change tests again and turns hardware back on.
 	if v, err := s.SaveSettings(ctx, ConfigUpdate{HWAccel: ptr(HWAuto)}); err != nil || v.Hardware.Active != HWVAAPI {
 		t.Fatalf("settings change: %+v, %v", v.Hardware, err)
+	}
+	// F007 R29: every software restart, one fallback, resolved by the test.
+	want := append(slices.Repeat([]string{"report ffmpeg_restarted"}, hwMaxFailures),
+		"report hw_fallback vaapi", "resolve hw_fallback vaapi")
+	// The fallback is reported inside the third restart, before it.
+	want[hwMaxFailures-1], want[hwMaxFailures] = want[hwMaxFailures], want[hwMaxFailures-1]
+	if !slices.Equal(rec.codes(), want) {
+		t.Errorf("problems = %q, want %q", rec.codes(), want)
+	}
+}
+
+// fakeProblems records reported problems (F007 R29).
+type fakeProblems struct {
+	mu    sync.Mutex
+	calls []string
+}
+
+func (f *fakeProblems) add(verb, code string, p map[string]string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls = append(f.calls, strings.TrimSpace(verb+" "+code+" "+p["accel"]))
+}
+func (f *fakeProblems) Report(code string, p map[string]string)  { f.add("report", code, p) }
+func (f *fakeProblems) Resolve(code string, p map[string]string) { f.add("resolve", code, p) }
+func (f *fakeProblems) codes() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return slices.Clone(f.calls)
+}
+
+// TestRetestHardware: a retest replaces a fallback, and only one runs at
+// a time (F007 R28).
+func TestRetestHardware(t *testing.T) {
+	ctx := context.Background()
+	s := New(Options{})
+	release, started := make(chan struct{}), make(chan struct{})
+	s.probeHardware = func(_ context.Context, _ *FFmpeg, choice, _ string) (HWStatus, error) {
+		close(started)
+		<-release
+		return HWStatus{Configured: choice, Active: HWVAAPI}, nil
+	}
+	s.hw = HWStatus{Configured: HWAuto, DisabledReason: HWReasonRepeatedFailures}
+	s.hwFellBack = HWVAAPI
+	rec := &fakeProblems{}
+	s.o.Problems = rec
+
+	done := make(chan HWStatus)
+	go func() {
+		st, err := s.RetestHardware(ctx)
+		if err != nil {
+			t.Error(err)
+		}
+		done <- st
+	}()
+	<-started
+	if _, err := s.RetestHardware(ctx); !errors.Is(err, ErrHWTestRunning) {
+		t.Errorf("second test: %v, want ErrHWTestRunning", err)
+	}
+	close(release)
+	if st := <-done; st.Active != HWVAAPI || st.DisabledReason != "" {
+		t.Errorf("after the test: %+v", st)
+	}
+	if got := rec.codes(); !slices.Equal(got, []string{"resolve hw_fallback vaapi"}) {
+		t.Errorf("problems = %q", got)
 	}
 }
 

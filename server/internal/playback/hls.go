@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gh-prim/plaid/server/internal/problems"
 )
 
 // Errors of HLS streams. The handlers turn them into API errors.
@@ -204,6 +206,7 @@ func (s *Service) fallBack(st *hlsStream, failed *Run) *Run {
 	s.o.Log.Warn("hardware transcode failed; restarting in software", "code", "hw_fallback", "playback_id", st.sessionID,
 		"run", failed.Spec.RunID, "accel", accel, "err", failed.Err())
 	s.hwFailed(accel)
+	s.reportRestart(st.sessionID)
 	st.hw = nil
 	s.manager.SetHWAccel(st.sessionID, "")
 	run, err := s.startRun(st, max(failed.Produced()+1, failed.Spec.StartPiece))
@@ -685,4 +688,15 @@ func hlsLanguage(code string) string {
 		return two
 	}
 	return code
+}
+
+// reportRestart tells the admin a transcode fell back to software (F007
+// R29). Only the title goes in: never the token or the command line.
+func (s *Service) reportRestart(sessionID string) {
+	for _, sess := range s.manager.List() {
+		if sess.ID == sessionID {
+			problems.Of(s.o.Problems).Report(problems.FFmpegRestarted, map[string]string{"title": sess.ItemTitle})
+			return
+		}
+	}
 }

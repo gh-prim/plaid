@@ -92,7 +92,7 @@ For safety, this only works from your local network (a private or loopback addre
 
 ```bash
 sudo journalctl -u plaid | grep first_run_setup_code   # native package
-docker compose logs plaid | grep first_run_setup_code  # Docker
+docker logs plaid 2>&1 | grep first_run_setup_code     # Docker
 ```
 
 The code is the only secret PLAID ever writes to its log. It changes at every restart and stops working once the admin account exists.

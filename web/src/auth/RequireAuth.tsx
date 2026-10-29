@@ -28,14 +28,23 @@ export function currentStep(state: Extract<AuthState, { status: 'ready' }>): Ste
  * else redirects to the page of their step. The profile picker is also
  * reachable from the app, to switch profile.
  */
-export function RequireStep({ allow, children }: { allow: Step[]; children: ReactNode }) {
+export function RequireStep({
+  allow,
+  admin,
+  children,
+}: {
+  allow: Step[]
+  /** Admins only: members go home. */
+  admin?: boolean
+  children: ReactNode
+}) {
   const { t } = useTranslation()
   const { state, refresh } = useAuth()
 
   if (state.status === 'loading') {
     return (
       <main className="page">
-        <p role="status">{t('welcome.status.loading')}</p>
+        <p role="status">{t('common.loading')}</p>
       </main>
     )
   }
@@ -51,5 +60,6 @@ export function RequireStep({ allow, children }: { allow: Step[]; children: Reac
   }
   const step = currentStep(state)
   if (!allow.includes(step)) return <Navigate to={stepPath[step]} replace />
+  if (admin && state.me?.user.role !== 'admin') return <Navigate to="/" replace />
   return <>{children}</>
 }

@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gh-prim/plaid/server/internal/metadata/artwork"
@@ -14,6 +15,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/metadata/httpx"
 	"github.com/gh-prim/plaid/server/internal/metadata/provider"
 	"github.com/gh-prim/plaid/server/internal/metadata/tmdb"
+	"github.com/gh-prim/plaid/server/internal/problems"
 	"github.com/gh-prim/plaid/server/internal/settings"
 )
 
@@ -58,6 +60,9 @@ type Options struct {
 	// CheckKey validates a key ("tmdb" or "fanart") before it's saved;
 	// nil asks the provider. Tests replace it.
 	CheckKey func(ctx context.Context, provider, key string) error
+	// Problems records a refused TMDB key for the admin (F007 R29); nil
+	// records nothing.
+	Problems problems.Reporter
 }
 
 // Service matches items and keeps their metadata up to date (F005).
@@ -75,6 +80,10 @@ type Service struct {
 	fanHTTP   *httpx.Client
 	art       *artwork.Store
 	hub       counterHub
+	matched   matchedHub
+	// keyRefused is set while TMDB refuses the key, so the problem is
+	// resolved once, at the next success (F007 R29).
+	keyRefused atomic.Bool
 
 	stop context.CancelFunc
 	wg   sync.WaitGroup
@@ -269,8 +278,18 @@ func (s *Service) Process(ctx context.Context, j Job) error {
 		return nil
 	}
 	s.changed(p.LibraryID)
-	if errors.Is(perr, httpx.ErrInvalidKey) {
+	tmdbKey := map[string]string{"provider": "tmdb"}
+	switch {
+	case errors.Is(perr, httpx.ErrInvalidKey):
+		if !s.keyRefused.Swap(true) {
+			problems.Of(s.o.Problems).Report(problems.ProviderKeyRefused, tmdbKey)
+		}
 		return errors.Join(ErrPaused, perr)
+	case perr == nil:
+		if s.keyRefused.Swap(false) {
+			problems.Of(s.o.Problems).Resolve(problems.ProviderKeyRefused, tmdbKey)
+		}
+		s.publishMatched(ctx, p)
 	}
 	return perr
 }

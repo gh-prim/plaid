@@ -58,7 +58,7 @@ describe('Pair', () => {
     await userEvent.type(await screen.findByLabelText('Code shown on the TV'), 'K7P4QX')
     await userEvent.click(screen.getByRole('button', { name: 'Pair' }))
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'This code has expired. Ask the TV for a new one.',
+      'This code expired. Show a new one on the TV.',
     )
   })
 })

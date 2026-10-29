@@ -1,0 +1,665 @@
+/* Admin area (F007), from the canvas boards AP01–AP17 and AD01–AD17
+   (source: CmpAdmin). Phone: the index is the home, each section its own
+   screen. Desktop: a 400 px index on the raised ground, the section on the
+   right. Every value comes from the design system's tokens. */
+
+.adm {
+  min-height: 100vh;
+  display: flex;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Index ---------- */
+.adm__index {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm__index[hidden] {
+  display: none;
+}
+
+.adm__top {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adm__top .pl-btn {
+  padding: 0 var(--space-1);
+}
+
+.adm__version {
+  font: 400 13px/16px var(--font-text);
+  color: var(--text-tertiary);
+}
+
+.adm__server {
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm__name {
+  margin: 0;
+  font: 600 32px/38px var(--font-text);
+  letter-spacing: -0.015em;
+}
+
+.adm__status {
+  margin: 0;
+  font: 400 17px/26px var(--font-text);
+  color: var(--text-secondary);
+}
+
+/* Phone only: what needs you, in one bordered box above the sections. */
+.adm__needs-box {
+  margin: 0 var(--space-4) var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+}
+
+.adm__needs-box h2 {
+  margin: 0;
+  padding: var(--space-3) var(--space-4) 6px;
+  font: 600 13px/16px var(--font-text);
+  color: var(--text-secondary);
+}
+
+.adm__nav {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.adm__nav .pl-index-row.is-selected {
+  background: var(--surface);
+}
+
+.pl-tone--warning {
+  color: var(--status-warning);
+}
+
+.pl-tone--error {
+  color: var(--status-error);
+}
+
+.pl-tone--success {
+  color: var(--status-success);
+}
+
+/* ---------- Section ---------- */
+.adm__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-4) var(--space-8);
+}
+
+.adm__main[hidden] {
+  display: none;
+}
+
+.adm__back {
+  align-self: flex-start;
+  margin: -4px 0 -12px;
+  padding: 0 var(--space-1);
+}
+
+.adm__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.adm__kicker {
+  margin: 0;
+  font: 600 13px/16px var(--font-text);
+  color: var(--text-tertiary);
+}
+
+.adm__h2 {
+  margin: 0;
+  font: 600 32px/38px var(--font-text);
+  letter-spacing: -0.015em;
+}
+
+.adm__kicker + .adm__h2 {
+  margin-top: var(--space-1);
+}
+
+.adm__lead {
+  margin: 6px 0 0;
+  max-width: 640px;
+  font: 400 15px/22px var(--font-text);
+  color: var(--text-secondary);
+}
+
+.adm__h3 {
+  margin: 0;
+  font: 600 17px/22px var(--font-text);
+}
+
+.adm__help {
+  margin: 0;
+  font: 400 13px/19px var(--font-text);
+  color: var(--text-secondary);
+}
+
+.adm__text {
+  margin: 0;
+  font: 400 15px/22px var(--font-text);
+  color: var(--text-secondary);
+}
+
+.adm__text strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.adm__code {
+  font-family: var(--font-code);
+}
+
+.adm__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.adm__section > .adm__h3 {
+  margin-bottom: var(--space-1);
+}
+
+.adm__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.adm__actions--end {
+  justify-content: flex-end;
+}
+
+.adm__danger {
+  color: var(--status-error);
+  padding: 0;
+}
+
+/* Rows separated by hairlines, like the board's .row. */
+.adm__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm__row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: 14px 0;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.adm__rows > :last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.adm__row--center {
+  align-items: center;
+}
+
+.adm__row--alert {
+  margin: 0 calc(-1 * var(--space-3));
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
+  background: var(--bg-raised);
+  border-radius: var(--radius-m);
+}
+
+.adm__row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm__row-body--spaced {
+  gap: 10px;
+}
+
+.adm__row-title {
+  font: 600 15px/22px var(--font-text);
+}
+
+.adm__path {
+  margin: 0;
+  font: 400 15px/22px var(--font-code);
+  overflow-wrap: anywhere;
+}
+
+.adm__word {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font: 600 13px/16px var(--font-text);
+}
+
+.adm__chev {
+  color: var(--text-tertiary);
+}
+
+.adm__thumb {
+  width: 32px;
+  height: 48px;
+  flex: none;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+}
+
+.adm__posters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.adm__posters img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+
+/* Cards: streams, candidates, settings groups. One column on phones. */
+.adm__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+/* A warning that needs an action (hardware off, FFmpeg missing). */
+.adm__alert {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--space-4);
+  border: 1px solid var(--status-warning);
+  border-radius: var(--radius-l);
+}
+
+.adm__alert p {
+  margin: 0;
+  font: 400 15px/22px var(--font-text);
+}
+
+.adm__dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 6px var(--space-4);
+  font: 400 15px/22px var(--font-text);
+}
+
+.adm__dl dt {
+  color: var(--text-tertiary);
+}
+
+.adm__dl dd {
+  margin: 0;
+}
+
+.adm__settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.adm__settings .pl-settings {
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  background: var(--bg-raised);
+}
+
+.adm__select,
+.adm__textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-m);
+  color: var(--text-primary);
+  font: 400 15px/20px var(--font-text);
+}
+
+.adm__textarea {
+  min-height: 96px;
+  padding: var(--space-3) 14px;
+  font: 400 15px/22px var(--font-code);
+  resize: vertical;
+}
+
+.adm__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 520px;
+}
+
+.adm__avatar-head {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.adm__empty {
+  padding: var(--space-8) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 520px;
+}
+
+.adm__empty p {
+  margin: 0;
+}
+
+.adm__empty .title {
+  font: 600 22px/28px var(--font-text);
+}
+
+.adm__toast {
+  position: fixed;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 30;
+}
+
+.adm__link {
+  color: var(--text-primary);
+  font: 600 15px/22px var(--font-text);
+}
+
+/* ---------- Desktop ---------- */
+@media (min-width: 1024px) {
+  .adm__index,
+  .adm__index[hidden] {
+    display: flex;
+    flex: none;
+    width: 400px;
+    background: var(--bg-raised);
+    border-right: 1px solid var(--border-subtle);
+  }
+
+  .adm__needs-box,
+  .adm__back {
+    display: none;
+  }
+
+  .adm__main,
+  .adm__main[hidden] {
+    display: flex;
+    padding: var(--space-12) var(--space-16);
+  }
+
+  .adm__posters {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .adm__grid,
+  .adm__settings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .adm__grid--3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .adm__toast {
+    left: var(--space-6);
+    right: auto;
+    max-width: 480px;
+  }
+}
+
+/* ---------- Grouped navigation (after Plex's server settings) ---------- */
+.adm__nav {
+  border-top: 0;
+  padding: var(--space-2) 0 var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.adm__group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.adm__group-label {
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-2);
+  font: 600 13px/16px var(--font-text);
+  color: var(--text-tertiary);
+}
+
+.adm__nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-4) 0 var(--space-6);
+  color: var(--text-secondary);
+  font: 400 15px/20px var(--font-text);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+}
+
+.adm__nav-item:hover {
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.adm__nav-item[aria-current='page'] {
+  color: var(--text-primary);
+  font-weight: 600;
+  background: var(--surface);
+  border-left-color: var(--text-primary);
+}
+
+.adm__nav-trail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 13px/16px var(--font-text);
+  color: var(--text-tertiary);
+}
+
+/* ---------- Dense settings rows (after Plex's settings pages) ---------- */
+.adm__prefs {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm__prefs-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-raised);
+  border-radius: var(--radius-m);
+}
+
+.adm__pref {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.adm__pref-label {
+  font: 600 15px/22px var(--font-text);
+}
+
+.adm__pref-control {
+  max-width: 320px;
+}
+
+.adm__pref-control--wide {
+  max-width: none;
+}
+
+.adm__prefs-save {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-4) 0;
+  background: var(--bg-base);
+}
+
+@media (min-width: 1024px) {
+  .adm__pref {
+    grid-template-columns: 240px minmax(0, 1fr);
+    column-gap: var(--space-6);
+    align-items: start;
+  }
+
+  .adm__pref .adm__help {
+    grid-column: 2;
+  }
+
+  .adm__pref-label {
+    padding-top: 13px;
+  }
+}
+
+/* Sections read as one centered column on wide screens, like a settings page. */
+@media (min-width: 1024px) {
+  .adm__main > * {
+    width: 100%;
+    max-width: 960px;
+    margin-inline: auto;
+  }
+}
+
+/* Compact controls in settings rows: sized to their content, not the column. */
+.adm__pref .adm__select {
+  width: auto;
+  min-width: 200px;
+  max-width: 100%;
+  min-height: 36px;
+  height: 36px;
+  padding: 0 var(--space-3);
+  font: 400 14px/20px var(--font-text);
+  border-radius: var(--radius-s);
+}
+
+.adm__pref input.adm__select {
+  width: 96px;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.adm__pref .adm__textarea {
+  min-height: 80px;
+  font-size: 14px;
+  border-radius: var(--radius-s);
+}
+
+@media (min-width: 1024px) {
+  .adm__pref-label {
+    padding-top: 7px;
+  }
+}
+
+/* Denser buttons in the admin, like a server's settings pages. The
+   onboarding keeps the design system's 44 px. */
+.adm .pl-btn {
+  height: 32px;
+  padding: 0 var(--space-3);
+  gap: 6px;
+  font: 600 13px/16px var(--font-text);
+  border-radius: var(--radius-s);
+}
+
+.adm .pl-btn--sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.adm .pl-btn--icon {
+  width: 32px;
+  padding: 0;
+}
+
+.adm .pl-btn--sm.pl-btn--icon {
+  width: 28px;
+}
+
+.adm .pl-btn .pl-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.adm__top .pl-btn,
+.adm__back {
+  height: 28px;
+}
+
+.adm .adm__pref .adm__select {
+  height: 32px;
+  min-height: 32px;
+  font-size: 13px;
+}
+
+.adm .pl-btn.adm__danger {
+  padding: 0;
+  height: auto;
+}
+
+@media (min-width: 1440px) {
+  .adm__grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* A candidate without a poster keeps the poster's size (design system: 64 × 96). */
+.pl-cand .pl-slot {
+  width: 64px;
+  height: 96px;
+  flex: none;
+}
+
+.pl-stream .pl-slot {
+  width: 48px;
+  height: 72px;
+  flex: none;
+}

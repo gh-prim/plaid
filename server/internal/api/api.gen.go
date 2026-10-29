@@ -494,6 +494,24 @@ func (e MatchStatus) Valid() bool {
 	}
 }
 
+// Defines values for MatchedItemKind.
+const (
+	MatchedItemKindMovie MatchedItemKind = "movie"
+	MatchedItemKindShow  MatchedItemKind = "show"
+)
+
+// Valid indicates whether the value is a known member of the MatchedItemKind enum.
+func (e MatchedItemKind) Valid() bool {
+	switch e {
+	case MatchedItemKindMovie:
+		return true
+	case MatchedItemKindShow:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MediaFileHdrFormat.
 const (
 	MediaFileHdrFormatDolbyVision MediaFileHdrFormat = "dolby_vision"
@@ -779,6 +797,36 @@ func (e PlaybackSubtitleDelivery) Valid() bool {
 	}
 }
 
+// Defines values for ProblemCode.
+const (
+	ProblemFFmpegRestarted    ProblemCode = "ffmpeg_restarted"
+	ProblemFolderUnavailable  ProblemCode = "folder_unavailable"
+	ProblemFolderUnreadable   ProblemCode = "folder_unreadable"
+	ProblemHWFallback         ProblemCode = "hw_fallback"
+	ProblemProviderKeyRefused ProblemCode = "provider_key_refused"
+	ProblemWatchLimit         ProblemCode = "watch_limit"
+)
+
+// Valid indicates whether the value is a known member of the ProblemCode enum.
+func (e ProblemCode) Valid() bool {
+	switch e {
+	case ProblemFFmpegRestarted:
+		return true
+	case ProblemFolderUnavailable:
+		return true
+	case ProblemFolderUnreadable:
+		return true
+	case ProblemHWFallback:
+		return true
+	case ProblemProviderKeyRefused:
+		return true
+	case ProblemWatchLimit:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ProviderStatusKeySource.
 const (
 	ProviderStatusKeySourceBuiltin ProviderStatusKeySource = "builtin"
@@ -921,6 +969,7 @@ func (e Role) Valid() bool {
 const (
 	ScanEventTypeCompleted ScanEventType = "completed"
 	ScanEventTypeFailed    ScanEventType = "failed"
+	ScanEventTypeMatched   ScanEventType = "matched"
 	ScanEventTypeMetadata  ScanEventType = "metadata"
 	ScanEventTypeProgress  ScanEventType = "progress"
 )
@@ -931,6 +980,8 @@ func (e ScanEventType) Valid() bool {
 	case ScanEventTypeCompleted:
 		return true
 	case ScanEventTypeFailed:
+		return true
+	case ScanEventTypeMatched:
 		return true
 	case ScanEventTypeMetadata:
 		return true
@@ -1821,6 +1872,24 @@ type MatchRequest struct {
 // MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
 type MatchStatus string
 
+// MatchedItem Set on `matched`: a movie or show of this library just matched (F007 R27). Sent as it happens, for live views; a slow client may miss some, the `metadata` counters stay exact.
+type MatchedItem struct {
+	// Backdrop An image; fetch it with GET /images/{imageId}?w=.
+	Backdrop *Artwork        `json:"backdrop,omitempty"`
+	Id       string          `json:"id"`
+	Kind     MatchedItemKind `json:"kind"`
+
+	// Poster An image; fetch it with GET /images/{imageId}?w=.
+	Poster *Artwork `json:"poster,omitempty"`
+
+	// Title In the library's metadata language.
+	Title string `json:"title"`
+	Year  *int   `json:"year,omitempty"`
+}
+
+// MatchedItemKind defines model for MatchedItem.Kind.
+type MatchedItemKind string
+
 // Me defines model for Me.
 type Me struct {
 	ActiveProfile *Profile  `json:"activeProfile,omitempty"`
@@ -2154,6 +2223,29 @@ type PlaybackUpdate struct {
 	SubtitleStreamIndex nullable.Nullable[int] `json:"subtitleStreamIndex,omitempty"`
 }
 
+// Problem defines model for Problem.
+type Problem struct {
+	Code ProblemCode `json:"code"`
+
+	// Count How many times it happened since it was first seen.
+	Count     int       `json:"count"`
+	FirstSeen time.Time `json:"firstSeen"`
+	Id        string    `json:"id"`
+	LastSeen  time.Time `json:"lastSeen"`
+
+	// Params What the problem is about, by code: `path` (folders, watch limit), `accel` (hw_fallback), `title` (ffmpeg_restarted), `provider` (provider_key_refused). Never tokens or keys.
+	Params     map[string]string `json:"params"`
+	ResolvedAt *time.Time        `json:"resolvedAt,omitempty"`
+}
+
+// ProblemCode defines model for ProblemCode.
+type ProblemCode string
+
+// ProblemList defines model for ProblemList.
+type ProblemList struct {
+	Problems []Problem `json:"problems"`
+}
+
 // Profile defines model for Profile.
 type Profile struct {
 	AllowUnrated bool `json:"allowUnrated"`
@@ -2252,7 +2344,10 @@ type ScanCounters struct {
 // ScanEvent The `data` of a scan server-sent event.
 type ScanEvent struct {
 	// Error Set on `failed`, English, for logs.
-	Error    *string         `json:"error,omitempty"`
+	Error *string `json:"error,omitempty"`
+
+	// Item Set on `matched`: a movie or show of this library just matched (F007 R27). Sent as it happens, for live views; a slow client may miss some, the `metadata` counters stay exact.
+	Item     *MatchedItem    `json:"item,omitempty"`
 	Metadata *MetadataCounts `json:"metadata,omitempty"`
 	Progress *ScanProgress   `json:"progress,omitempty"`
 	Type     ScanEventType   `json:"type"`
@@ -2872,12 +2967,18 @@ type ServerInterface interface {
 	// ReportPlaybackProgress Report the position and state; also keeps the session alive (F006 R32)
 	// (POST /playback/{sessionId}/progress)
 	ReportPlaybackProgress(w http.ResponseWriter, r *http.Request, sessionId PlaybackSessionId)
+	// ListProblems What needs the admin's attention, last 7 days (admin, F007 R29)
+	// (GET /problems)
+	ListProblems(w http.ResponseWriter, r *http.Request)
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(w http.ResponseWriter, r *http.Request)
 	// GetServerCapabilities ffprobe and file watching status (admin)
 	// (GET /server/capabilities)
 	GetServerCapabilities(w http.ResponseWriter, r *http.Request)
+	// TestServerHardware Run the hardware acceleration test again (admin, F007 R28)
+	// (POST /server/capabilities/hardware-test)
+	TestServerHardware(w http.ResponseWriter, r *http.Request)
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(w http.ResponseWriter, r *http.Request)
@@ -4457,6 +4558,20 @@ func (siw *ServerInterfaceWrapper) ReportPlaybackProgress(w http.ResponseWriter,
 	handler.ServeHTTP(w, r)
 }
 
+// ListProblems operation middleware
+func (siw *ServerInterfaceWrapper) ListProblems(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListProblems(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetServerInfo operation middleware
 func (siw *ServerInterfaceWrapper) GetServerInfo(w http.ResponseWriter, r *http.Request) {
 
@@ -4476,6 +4591,20 @@ func (siw *ServerInterfaceWrapper) GetServerCapabilities(w http.ResponseWriter, 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetServerCapabilities(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// TestServerHardware operation middleware
+func (siw *ServerInterfaceWrapper) TestServerHardware(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TestServerHardware(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4912,6 +5041,8 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/playback", wrapper.UpdatePlaybackSettings)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/server/capabilities/hardware-test", wrapper.TestServerHardware)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/problems", wrapper.ListProblems)
 
 	return m
 }
@@ -7143,6 +7274,44 @@ func (response ReportPlaybackProgressdefaultJSONResponse) VisitReportPlaybackPro
 	return err
 }
 
+type ListProblemsRequestObject struct {
+}
+
+type ListProblemsResponseObject interface {
+	VisitListProblemsResponse(w http.ResponseWriter) error
+}
+
+type ListProblems200JSONResponse ProblemList
+
+func (response ListProblems200JSONResponse) VisitListProblemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListProblemsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListProblemsdefaultJSONResponse) VisitListProblemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetServerInfoRequestObject struct {
 }
 
@@ -7208,6 +7377,44 @@ type GetServerCapabilitiesdefaultJSONResponse struct {
 }
 
 func (response GetServerCapabilitiesdefaultJSONResponse) VisitGetServerCapabilitiesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestServerHardwareRequestObject struct {
+}
+
+type TestServerHardwareResponseObject interface {
+	VisitTestServerHardwareResponse(w http.ResponseWriter) error
+}
+
+type TestServerHardware200JSONResponse HardwareStatus
+
+func (response TestServerHardware200JSONResponse) VisitTestServerHardwareResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestServerHardwaredefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response TestServerHardwaredefaultJSONResponse) VisitTestServerHardwareResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -7839,12 +8046,18 @@ type StrictServerInterface interface {
 	// ReportPlaybackProgress Report the position and state; also keeps the session alive (F006 R32)
 	// (POST /playback/{sessionId}/progress)
 	ReportPlaybackProgress(ctx context.Context, request ReportPlaybackProgressRequestObject) (ReportPlaybackProgressResponseObject, error)
+	// ListProblems What needs the admin's attention, last 7 days (admin, F007 R29)
+	// (GET /problems)
+	ListProblems(ctx context.Context, request ListProblemsRequestObject) (ListProblemsResponseObject, error)
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(ctx context.Context, request GetServerInfoRequestObject) (GetServerInfoResponseObject, error)
 	// GetServerCapabilities ffprobe and file watching status (admin)
 	// (GET /server/capabilities)
 	GetServerCapabilities(ctx context.Context, request GetServerCapabilitiesRequestObject) (GetServerCapabilitiesResponseObject, error)
+	// TestServerHardware Run the hardware acceleration test again (admin, F007 R28)
+	// (POST /server/capabilities/hardware-test)
+	TestServerHardware(ctx context.Context, request TestServerHardwareRequestObject) (TestServerHardwareResponseObject, error)
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(ctx context.Context, request SelectProfileRequestObject) (SelectProfileResponseObject, error)
@@ -9509,6 +9722,30 @@ func (sh *strictHandler) ReportPlaybackProgress(w http.ResponseWriter, r *http.R
 	}
 }
 
+// ListProblems operation middleware
+func (sh *strictHandler) ListProblems(w http.ResponseWriter, r *http.Request) {
+	var request ListProblemsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListProblems(ctx, request.(ListProblemsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListProblems")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListProblemsResponseObject); ok {
+		if err := validResponse.VisitListProblemsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetServerInfo operation middleware
 func (sh *strictHandler) GetServerInfo(w http.ResponseWriter, r *http.Request) {
 	var request GetServerInfoRequestObject
@@ -9550,6 +9787,30 @@ func (sh *strictHandler) GetServerCapabilities(w http.ResponseWriter, r *http.Re
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetServerCapabilitiesResponseObject); ok {
 		if err := validResponse.VisitGetServerCapabilitiesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// TestServerHardware operation middleware
+func (sh *strictHandler) TestServerHardware(w http.ResponseWriter, r *http.Request) {
+	var request TestServerHardwareRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TestServerHardware(ctx, request.(TestServerHardwareRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TestServerHardware")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TestServerHardwareResponseObject); ok {
+		if err := validResponse.VisitTestServerHardwareResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

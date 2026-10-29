@@ -71,6 +71,12 @@ export function fieldMessage(t: TFunction, code: string | undefined): string | u
       return t('fieldErrors.too_long')
     case 'too_common':
       return t('fieldErrors.too_common')
+    case 'out_of_range':
+      return t('fieldErrors.out_of_range')
+    case 'too_many':
+      return t('fieldErrors.too_many')
+    case 'not_found':
+      return t('fieldErrors.not_found')
     case 'mismatch':
       return t('errors.password_mismatch')
     default:

@@ -3,45 +3,109 @@
     "label": "Compte",
     "watchingAs": "Profil : {{name}}"
   },
+  "admin": {
+    "back": "Retour à la bibliothèque",
+    "backTo": "‹ {{serverName}}",
+    "entry": "Gérer {{serverName}}",
+    "group": {
+      "manage": "Gérer",
+      "settings": "Réglages",
+      "status": "État"
+    },
+    "home": {
+      "fromLibrary": "Dans ta bibliothèque",
+      "library": "{{movies, number}} films · {{shows, number}} séries · dernière analyse {{time}}",
+      "nothingNeedsYou": "Rien ne demande ton attention.",
+      "openLibrary": "Ouvrir la bibliothèque",
+      "status": {
+        "playing_one": "{{count, number}} personne regarde. Tous les flux suivent.",
+        "playing_many": "",
+        "playing_other": "{{count, number}} personnes regardent. Tous les flux suivent.",
+        "problems_one": "Une chose demande ton attention.",
+        "problems_many": "",
+        "problems_other": "{{count, number}} choses demandent ton attention.",
+        "quiet": "Tout va bien. Rien en lecture.",
+        "slow_one": "{{count, number}} personne regarde. Un flux n’arrive pas à suivre.",
+        "slow_many": "",
+        "slow_other": "{{count, number}} personnes regardent. Un flux n’arrive pas à suivre."
+      }
+    },
+    "nav": {
+      "home": "Vue d’ensemble",
+      "libraries": "Bibliothèques",
+      "metadata": "Métadonnées",
+      "people": "Personnes",
+      "playing": "En lecture",
+      "problems": "Problèmes",
+      "transcoding": "Transcodage"
+    },
+    "needs": {
+      "hwFallback": "Le GPU a échoué et PLAID est passé en logiciel.",
+      "problems_one": "{{count, number}} problème à regarder",
+      "problems_many": "",
+      "problems_other": "{{count, number}} problèmes à regarder",
+      "slow": "{{title}} n’arrive pas à suivre : ça va saccader.",
+      "title": "À traiter"
+    },
+    "prefs": {
+      "hideAdvanced": "Masquer les réglages avancés",
+      "save": "Enregistrer les modifications",
+      "showAdvanced": "Afficher les réglages avancés"
+    },
+    "sections": "Sections de l’admin",
+    "summary": {
+      "hardwareOff": "Matériel désactivé",
+      "playing_one": "{{count, number}} flux",
+      "playing_many": "",
+      "playing_other": "{{count, number}} flux"
+    }
+  },
   "auth": {
     "changePassword": {
       "submit": "Enregistrer le mot de passe",
       "title": "Choisis un nouveau mot de passe"
     },
     "confirmPassword": "Confirme le mot de passe",
-    "createAdmin": "Créer le compte",
     "currentPassword": "Mot de passe actuel",
-    "displayName": "Nom",
     "newPassword": "Nouveau mot de passe",
     "password": "Mot de passe",
     "passwordHint": "Au moins 8 caractères.",
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
-    "username": "Nom d'utilisateur",
-    "usernameHint": "3 à 32 caractères : lettres minuscules, chiffres, points, tirets ou tirets bas."
+    "username": "Nom d'utilisateur"
   },
   "common": {
     "back": "Retour",
     "cancel": "Annuler",
-    "retry": "Réessayer"
+    "change": "Modifier",
+    "close": "Fermer",
+    "copied": "Copié",
+    "copy": "Copier",
+    "loading": "Chargement",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "saved": "Enregistré."
   },
   "device": {
     "webName": "{{browser}} sur {{os}}"
   },
   "errors": {
     "csrf": "Cette requête a été bloquée. Recharge la page et réessaie.",
+    "folder_not_found": "Ce dossier n’existe plus.",
+    "folder_overlap": "Ce dossier fait déjà partie de {{library}}.",
+    "folder_unreadable": "PLAID ne peut pas lire ce dossier.",
     "forbidden": "Tu n'as pas le droit de faire ça.",
     "generic": "Une erreur s'est produite. Réessaie.",
     "invalid_credentials": "Nom d'utilisateur ou mot de passe incorrect.",
     "invalid_pin": "Code PIN incorrect. Réessaie.",
-    "last_admin": "Ce serveur a besoin d'au moins un administrateur.",
+    "last_admin": "Tu es le dernier admin. Nomme d’abord quelqu’un d’autre admin.",
     "last_profile": "Un compte a besoin d'au moins un profil.",
-    "pairing_expired": "Ce code a expiré. Demande-en un nouveau sur la TV.",
+    "pairing_expired": "Ce code a expiré. Affiche-en un nouveau sur la TV.",
     "pairing_not_found": "Aucune TV n'affiche ce code. Vérifie-le et réessaie.",
     "password_change_required": "Choisis d'abord un nouveau mot de passe.",
     "password_mismatch": "Les mots de passe ne correspondent pas.",
     "profile_locked": "Trop de codes PIN incorrects. Réessaie dans {{minutes, number}} min.",
-    "setup_code_required": "Saisis le code d'installation du journal du serveur.",
+    "setup_code_required": "Ce code ne correspond pas. Copie le plus récent depuis le journal.",
     "setup_complete": "Ce serveur est déjà configuré. Connecte-toi.",
     "too_many_attempts": "Trop de tentatives. Réessaie dans {{minutes, number}} min.",
     "unauthorized": "Ta session est terminée. Reconnecte-toi.",
@@ -51,15 +115,184 @@
   },
   "fieldErrors": {
     "invalid": "Invalide.",
+    "not_found": "Introuvable.",
+    "out_of_range": "Hors limites.",
     "required": "Obligatoire.",
+    "too_many": "Trop nombreux.",
     "too_common": "Trop courant. Choisis-en un autre.",
     "too_long": "Trop long.",
     "too_short": "Trop court."
+  },
+  "folder": {
+    "fs": {
+      "local": "Disque local",
+      "network": "Partage réseau"
+    },
+    "status": {
+      "ok": "Accessible",
+      "unavailable": "Indisponible"
+    },
+    "unavailable": {
+      "body": "{{path}} est injoignable. Ses {{count, number}} films sont masqués jusqu’à son retour ; rien n’est supprimé. Après 30 jours d’absence, ils quittent la bibliothèque.",
+      "check": "Ses films sont masqués jusqu’à son retour ; rien n’est supprimé. Après 30 jours d’absence, ils quittent la bibliothèque. Vérifie que le disque ou le partage est monté :",
+      "title": "{{path}} est injoignable."
+    },
+    "watch": {
+      "liveShort": "Surveillé en direct",
+      "periodicShort": "Vérifié toutes les {{minutes, number}} min"
+    }
+  },
+  "home": {
+    "apps": "PLAID se regarde dans ce navigateur. Les apps TV et mobile ne sont pas encore sorties.",
+    "empty": {
+      "action": "Ajouter une bibliothèque",
+      "body": "Ajoute un dossier et PLAID trouvera tes films et séries.",
+      "title": "Rien à regarder pour l’instant."
+    }
   },
   "language": {
     "en": "English",
     "fr": "Français",
     "label": "Langue"
+  },
+  "libraries": {
+    "counts": {
+      "movies": "{{movies, number}} films · {{files, number}} fichiers",
+      "shows": "{{shows, number}} séries · {{episodes, number}} épisodes · {{files, number}} fichiers"
+    },
+    "delete": {
+      "confirm": "Supprimer {{name}} ? Tes fichiers restent sur le disque. PLAID oublie cette bibliothèque, ses correspondances et l’historique de visionnage.",
+      "label": "Supprimer la bibliothèque"
+    },
+    "deleted": "{{name}} est supprimée. Ses fichiers restent sur le disque.",
+    "empty": "Aucune bibliothèque. Ajoute un dossier et PLAID trouvera tes films et séries.",
+    "fullRescan": {
+      "help": "Relit chaque fichier avec ffprobe. Sur {{name}}, ça peut prendre un moment.",
+      "label": "Tout réanalyser"
+    },
+    "identifyReview": "À identifier et à vérifier",
+    "kicker": "Bibliothèque · {{type}}",
+    "language": {
+      "help": "Les titres et résumés sont récupérés à nouveau en arrière-plan. Les correspondances corrigées restent."
+    },
+    "lastScan": "Dernière analyse {{time}}",
+    "review": {
+      "help": "Titres avec plusieurs correspondances, introuvables ou en double"
+    },
+    "scanning": "Analyse et métadonnées",
+    "scanNow": "Analyser",
+    "title": "Bibliothèques",
+    "unrecognized": {
+      "help": "Noms de fichiers dont PLAID n’a pas pu lire le titre"
+    }
+  },
+  "library": {
+    "add": "Ajouter la bibliothèque",
+    "folders": {
+      "add": "Ajouter un dossier",
+      "count_one": "{{count, number}} dossier sur 16",
+      "count_many": "",
+      "count_other": "{{count, number}} dossiers sur 16",
+      "label": "Dossiers",
+      "remove": "Retirer {{path}}",
+      "removeShort": "Retirer"
+    },
+    "metadata": {
+      "language": "Langue des titres et résumés",
+      "region": {
+        "help": "La région fixe les classifications d’âge et les dates de sortie.",
+        "label": "Région (2 lettres)"
+      },
+      "summary": "Titres et résumés en {{language}}, {{region}}"
+    },
+    "name": "Nom",
+    "type": {
+      "label": "Type",
+      "movies": "Films",
+      "shows": "Séries"
+    }
+  },
+  "metadata": {
+    "attributions": "Sources",
+    "key": {
+      "help": "Enregistrée sur le serveur et plus jamais affichée."
+    },
+    "perLibrary": "Par bibliothèque",
+    "progress": "{{matched, number}} identifiés · {{needsReview, number}} à vérifier · {{unmatched, number}} introuvables",
+    "source": {
+      "builtin": "Clé intégrée",
+      "custom": "Ta clé",
+      "env": "Depuis l’environnement ({{var}})",
+      "none": "Aucune clé"
+    },
+    "state": {
+      "invalid_key": "{{provider}} a refusé cette clé. Vérifie-la, ou reviens à la clé intégrée.",
+      "no_api_key": "Aucune clé : les images de {{provider}} ne sont pas récupérées.",
+      "ok": "Fonctionne",
+      "unreachable": "Impossible de joindre {{provider}} pour l’instant. PLAID réessaie tout seul."
+    },
+    "title": "Métadonnées",
+    "useOwn": "Utiliser ma clé"
+  },
+  "offline": {
+    "body": "Vérifie qu’il est allumé et sur le même réseau. Les étapes terminées sont enregistrées sur le serveur.",
+    "now": "Réessayer",
+    "retrying": "Nouvel essai dans {{seconds, number}} s",
+    "title": "Impossible de joindre {{serverName}}."
+  },
+  "onboarding": {
+    "account": {
+      "body": "Il existe uniquement sur {{serverName}}. Il n’y a pas de compte PLAID en ligne.",
+      "displayName": {
+        "help": "Visible par les personnes que tu ajouteras.",
+        "label": "Nom affiché"
+      },
+      "password": {
+        "help": "8 caractères minimum. Une longue phrase vaut mieux que des symboles.",
+        "label": "Mot de passe"
+      },
+      "submit": "Créer le compte",
+      "submitting": "Création du compte",
+      "title": "Crée le compte administrateur",
+      "username": {
+        "help": "Tu t’en serviras pour te connecter.",
+        "invalid": "Utilise des lettres, chiffres, points, tirets ou tirets bas.",
+        "label": "Nom d’utilisateur"
+      }
+    },
+    "code": {
+      "body": "Pour prouver que ce serveur est à toi, saisis le code de configuration que PLAID a écrit dans son journal au démarrage.",
+      "deb": "Ubuntu ou Debian (.deb)",
+      "docker": "Docker",
+      "label": "Code de configuration",
+      "other": "Sinon : le terminal où PLAID a démarré.",
+      "title": "Tu te connectes depuis l’extérieur de ton réseau.",
+      "where": "Où le trouver"
+    },
+    "doneElsewhere": {
+      "action": "Se connecter",
+      "body": "Quelqu’un vient de terminer la configuration. Connecte-toi avec le compte créé.",
+      "title": "Ce serveur est déjà configuré."
+    },
+    "libraries": {
+      "added": "Bibliothèques ajoutées",
+      "another": "Ajouter une autre bibliothèque",
+      "body": "Choisis des dossiers sur les disques de {{serverName}}, pas sur cet appareil.",
+      "later": "Ajouter les bibliothèques plus tard",
+      "next": "Suivre l’analyse",
+      "title": "Où sont tes films et séries ?"
+    },
+    "start": {
+      "body": "Trois étapes : ta langue, un compte qui reste sur ce serveur, et les dossiers où vivent tes films.",
+      "continue": "Continuer",
+      "language": {
+        "help": "C’est aussi la langue par défaut des titres et résumés de tes bibliothèques.",
+        "label": "Langue"
+      },
+      "title": "Ce soir, tes films viendront de {{serverName}}.",
+      "version": "PLAID {{version}} · {{serverName}}"
+    },
+    "step": "Étape {{step, number}} sur {{total, number}}"
   },
   "pairing": {
     "codeLabel": "Code affiché sur la TV",
@@ -68,23 +301,352 @@
     "startProfile": "Profil de départ",
     "title": "Associer une TV"
   },
+  "people": {
+    "add": "Ajouter une personne",
+    "delete": {
+      "confirm": "Supprimer le compte de {{name}} ? Ses profils et son historique partent avec.",
+      "label": "Supprimer le compte"
+    },
+    "deleted": "Le compte de {{name}} est supprimé.",
+    "device": {
+      "current": "Cet appareil",
+      "lastSeen": "Vu {{time}}",
+      "signOut": "Déconnecter"
+    },
+    "devices": {
+      "empty": "Connecté sur aucun appareil.",
+      "label": "Appareils connectés"
+    },
+    "disable": "Désactiver",
+    "disabled": "Désactivé : ne peut pas se connecter",
+    "empty": "Toi seul pour l’instant. Ajoute des personnes pour que chacune ait ses profils et son historique.",
+    "enable": "Réactiver",
+    "mustChange": "Choisira un nouveau mot de passe à la prochaine connexion",
+    "pair": "Associer une TV",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "role": {
+      "admin": "Admin",
+      "label": "Rôle",
+      "user": "Membre"
+    },
+    "tempPassword": {
+      "help": "Un mot de passe temporaire. Il ou elle choisira le sien à la première connexion.",
+      "label": "Mot de passe temporaire"
+    },
+    "thisIsYou": "c’est toi",
+    "title": "Personnes"
+  },
+  "picker": {
+    "checkAgain": "Vérifier à nouveau",
+    "checking": "Vérification",
+    "empty": {
+      "body": "Les fichiers ne sont pas affichés ici : ce dossier peut quand même être le bon.",
+      "title": "Aucun sous-dossier."
+    },
+    "filter": "Filtrer {{total, number}} dossiers",
+    "filterCount": "{{shown, number}} sur {{total, number}}",
+    "noAccess": "Pas d’accès",
+    "noMatch": "Aucun dossier ne correspond à « {{query}} ».",
+    "notAllowed": "Non autorisé",
+    "open": "Ouvrir",
+    "openHint": "Ouvre un dossier pour l’utiliser.",
+    "parent": "Dossier parent",
+    "readable": "Lisible",
+    "roots": "La navigation est limitée à ces dossiers (PLAID_BROWSE_ROOTS).",
+    "rootsLabel": "Dossiers autorisés",
+    "title": "Dossiers sur {{serverName}}",
+    "typePath": "Saisir un chemin",
+    "unreadable": {
+      "docker": "Sur Docker, monte plutôt le dossier dans le conteneur, puis redémarre-le.",
+      "why": "PLAID tourne sous l’utilisateur plaid, qui ne peut pas ouvrir {{name}}. Lance ceci sur le serveur :"
+    },
+    "use": "Utiliser ce dossier"
+  },
+  "playing": {
+    "capacity_one": "{{count, number}} conversion sur {{max, number}} en cours",
+    "capacity_many": "",
+    "capacity_other": "{{count, number}} conversions sur {{max, number}} en cours",
+    "empty": {
+      "label": "Rien en lecture. Quand quelqu’un lance un film, tu verras ici comment il lui parvient.",
+      "title": "Rien en lecture."
+    },
+    "hw": {
+      "hardware": "Sur le GPU ({{accelerator}})",
+      "software": "En logiciel"
+    },
+    "method": {
+      "direct_play": "Lu tel quel (Direct Play)",
+      "direct_stream": "Réemballé (Direct Stream)",
+      "transcode": "Converti (Transcode)"
+    },
+    "position": "{{position}} sur {{duration}}",
+    "row": "{{user}} · {{profile}} sur {{device}}",
+    "short": {
+      "asIs": "Lu tel quel",
+      "ok": "Suit",
+      "repackaged": "Réemballé",
+      "slow": "N’arrive pas à suivre"
+    },
+    "slow": {
+      "advice": {
+        "software": "Ce serveur ne peut pas convertir ce fichier en temps réel. Demande à {{user}} de baisser la qualité, ou de regarder sur un appareil qui lit le fichier tel quel."
+      }
+    },
+    "speed": {
+      "ok": "Suit ({{speed}}×)",
+      "slow": "N’arrive pas à suivre ({{speed}}×) : ça va saccader."
+    },
+    "stop": {
+      "confirm": {
+        "action": "Arrêter le flux",
+        "cancel": "Laisser jouer",
+        "label": "Arrêter {{title}} pour {{user}} ?"
+      },
+      "label": "Arrêter"
+    },
+    "stopped": "{{title}} arrêté pour {{user}}.",
+    "title": "En lecture",
+    "where": {
+      "local": "À la maison",
+      "remote": "De l’extérieur"
+    }
+  },
+  "problems": {
+    "count_one": "{{count, number}} fois",
+    "count_many": "",
+    "count_other": "{{count, number}} fois",
+    "empty": "Aucun problème ces 7 derniers jours.",
+    "ffmpeg": "La conversion de {{title}} a échoué sur le GPU à {{time}}. PLAID l’a relancée en logiciel.",
+    "folderGone": "{{path}} a disparu à {{time}}. Ses films sont masqués jusqu’à son retour.",
+    "folderUnreadable": "PLAID n’a pas pu lire {{path}} à {{time}}.",
+    "hwFallback": {
+      "label": "{{accel}} a échoué 3 fois à {{time}} : PLAID est passé en logiciel.",
+      "todo": "Reteste le GPU dans Transcodage une fois le pilote réparé."
+    },
+    "keyRefused": {
+      "label": "{{provider}} a refusé la clé de métadonnées.",
+      "todo": "Vérifie la clé dans Métadonnées, ou reviens à la clé intégrée."
+    },
+    "lead": "Les 7 derniers jours. Chacun dit ce qui s’est passé et quoi faire.",
+    "resolved": "Réglé {{time}}",
+    "title": "Problèmes",
+    "watchLimit": "La limite de surveillance de fichiers de Linux est atteinte : {{path}} est vérifié toutes les {{minutes}} minutes au lieu d’en direct.",
+    "whatToDo": "Que faire"
+  },
   "profiles": {
     "enterPin": "Saisis le code PIN de {{name}}",
     "open": "Ouvrir le profil",
     "switch": "Changer de profil",
     "whoIsWatching": "Qui regarde ?"
   },
-  "setup": {
-    "setupCode": "Code d'installation",
-    "setupCodeHint": "Tu n'es pas sur le réseau local du serveur. Le code est dans le journal du serveur, sur la ligne first_run_setup_code.",
-    "subtitle": "Crée le compte administrateur de ce serveur.",
-    "title": "Bienvenue sur PLAID."
+  "reason": {
+    "audio_channels_too_many": "Cet appareil ne lit pas autant de canaux : le son est réduit.",
+    "audio_codec_not_supported": "Cet appareil ne lit pas ce format audio : seul le son est converti.",
+    "audio_track_switch_unsupported": "Cet appareil ne change pas de piste audio dans un fichier : la piste choisie est réemballée.",
+    "bit_depth_not_supported": "Cet appareil ne lit pas la vidéo 10 bits : elle est convertie en 8 bits.",
+    "bitrate_too_high": {
+      "connection": "Qualité réduite pour la connexion.",
+      "remote_limit": "Lecture depuis l’extérieur : réduit à ta limite de {{limit}} Mb/s pour les flux à distance."
+    },
+    "colors_may_be_wrong": "Dolby Vision sans couche HDR10 : les couleurs peuvent paraître fausses.",
+    "container_not_supported": "Cet appareil n’ouvre pas ce format de fichier : il est réemballé, sans perte de qualité.",
+    "forced_by_client": "L’application a demandé une conversion.",
+    "hdr_not_supported": "Cet écran n’affiche pas le HDR : les couleurs sont converties en SDR.",
+    "keyframe_index_missing": "Ce fichier n’a pas d’index (souvent un vieux AVI ou TS) : il est converti pour pouvoir avancer.",
+    "other": "Converti pour cet appareil.",
+    "resolution_too_high": "La vidéo est plus grande que ce que l’appareil affiche : elle est réduite.",
+    "subtitle_burn_in": "Ces sous-titres sont des images, ils sont donc incrustés dans la vidéo.",
+    "video_codec_not_supported": "Cet appareil ne lit pas ce format vidéo : il est converti.",
+    "video_profile_not_supported": "Cet appareil ne lit pas cette variante de vidéo : elle est convertie."
+  },
+  "review": {
+    "choose": "Celui-ci",
+    "empty": "Rien à vérifier. Chaque fichier a trouvé son film.",
+    "identified": "Identifié",
+    "identify": "Identifier",
+    "match": "correspond à {{score, number(style: percent)}}",
+    "matched": "{{title}} est identifié et verrouillé.",
+    "needs": {
+      "short": "À vérifier",
+      "title_one": "À vérifier ({{count, number}})",
+      "title_many": "",
+      "title_other": "À vérifier ({{count, number}})"
+    },
+    "none": "Aucun de ceux-là",
+    "parsed": "D’après le nom de fichier : {{parsed}}",
+    "pick": "Lequel est-ce ?",
+    "reason": {
+      "candidates": "Plusieurs correspondances possibles",
+      "duplicate": "Même titre en double",
+      "unmatched": "Introuvable sur TMDB"
+    },
+    "search": {
+      "help": "Un titre, une année ou un lien TMDB.",
+      "label": "Chercher sur TMDB"
+    },
+    "unrecognized": {
+      "body": "PLAID n’a pas pu lire de titre dans ces noms de fichiers. Identifie-les, ou renomme les fichiers et relance l’analyse.",
+      "title_one": "Non reconnu ({{count, number}})",
+      "title_many": "",
+      "title_other": "Non reconnus ({{count, number}})"
+    },
+    "use": "Utiliser {{title}} ({{year}})"
+  },
+  "scan": {
+    "analyzed": "{{done, number}} sur {{total, number}} analysés",
+    "complete": {
+      "count_one": "{{count, number}} titre est à la maison.",
+      "count_many": "",
+      "count_other": "{{count, number}} titres sont à la maison.",
+      "episodeCount_one": "{{count, number}} épisode",
+      "episodeCount_many": "",
+      "episodeCount_other": "{{count, number}} épisodes",
+      "showCount_one": "{{count, number}} série",
+      "showCount_many": "",
+      "showCount_other": "{{count, number}} séries",
+      "shows": "Et {{shows}}, {{episodes}}, sur {{serverName}}.",
+      "title_one": "De {{oldestTitle}} à {{newestTitle}}, {{count, number}} film est à la maison.",
+      "title_many": "",
+      "title_other": "De {{oldestTitle}} à {{newestTitle}}, {{count, number}} films sont à la maison.",
+      "wall": "Tes films",
+      "watch": "Commencer"
+    },
+    "failed_one": "{{count, number}} fichier illisible",
+    "failed_many": "",
+    "failed_other": "{{count, number}} fichiers illisibles",
+    "later": {
+      "both": "{{unrecognized, number}} fichiers n’ont pas été reconnus et {{review, number}} titres sont à vérifier. Tout t’attend dans Réglages, Bibliothèques.",
+      "review_one": "{{count, number}} titre est à vérifier. Il t’attend dans Réglages, Bibliothèques.",
+      "review_many": "",
+      "review_other": "{{count, number}} titres sont à vérifier. Ils t’attendent dans Réglages, Bibliothèques.",
+      "unrecognized_one": "{{count, number}} fichier n’a pas été reconnu. Il t’attend dans Réglages, Bibliothèques.",
+      "unrecognized_many": "",
+      "unrecognized_other": "{{count, number}} fichiers n’ont pas été reconnus. Ils t’attendent dans Réglages, Bibliothèques."
+    },
+    "leave": "Tu peux fermer cette page. L’analyse continue sur {{serverName}}.",
+    "libraries": "Bibliothèques",
+    "metadata": {
+      "summary": "{{matched, number}} identifiés · {{needsReview, number}} à vérifier · {{unmatched, number}} introuvables"
+    },
+    "open": "Ouvrir {{library}}",
+    "startWatching": "Commencer maintenant, l’analyse continue",
+    "state": {
+      "analyzing": "Lecture des fichiers avec ffprobe",
+      "idle": "Terminé",
+      "queued": "En attente",
+      "scanning": "Recherche de fichiers dans {{path}}",
+      "short": {
+        "scanning": "Analyse en cours"
+      }
+    },
+    "title": "Analyse de tes bibliothèques",
+    "unrecognized_one": "{{count, number}} non reconnu",
+    "unrecognized_many": "",
+    "unrecognized_other": "{{count, number}} non reconnus",
+    "voice_one": "{{latestTitle}} vient d’arriver. {{count, number}} de tes films est là.",
+    "voice_many": "",
+    "voice_other": "{{latestTitle}} vient d’arriver. {{count, number}} de tes films sont là.",
+    "wall": "Identifiés dans {{library}}"
+  },
+  "server": {
+    "accel": {
+      "nvenc": "carte NVIDIA",
+      "qsv": "Intel Quick Sync",
+      "v4l2m2m": "encodeur du Raspberry Pi",
+      "vaapi": "GPU (VA-API)",
+      "videotoolbox": "encodeur du Mac"
+    },
+    "ffmpeg": {
+      "missing": "FFmpeg n’est pas installé. Les fichiers lus tels quels fonctionnent, les autres non."
+    },
+    "ffprobe": {
+      "missing": "ffprobe n’est pas installé : les fichiers sont listés mais pas analysés."
+    },
+    "hw": {
+      "active": "La conversion vidéo utilise {{device}} ({{method}}) : jusqu’à {{max, number}} à la fois quand un appareil ne lit pas un fichier tel quel.",
+      "none": "Pas d’encodeur matériel. Les fichiers lus tels quels passent sans problème. La conversion se fait en logiciel, une vidéo à la fois, et la 4K peut ne pas suivre."
+    },
+    "watch": {
+      "limit": "La limite de surveillance de fichiers de Linux est atteinte : {{path}} est vérifié toutes les {{minutes, number}} minutes au lieu d’en direct. Pour l’augmenter :",
+      "network": "{{path}} est sur un partage réseau : les nouveaux fichiers n’apparaissent pas tout de suite. PLAID le vérifie toutes les {{minutes, number}} minutes."
+    }
+  },
+  "transcoding": {
+    "cap": {
+      "gb": "Espace pour les conversions (Go)",
+      "help": "Les anciens segments sont supprimés au-delà de cette taille."
+    },
+    "decodersLabel": "Lit",
+    "device": {
+      "default": "le premier GPU"
+    },
+    "encodersLabel": "Convertit en",
+    "fallback": {
+      "body": "Le GPU a échoué 3 fois en 10 minutes : PLAID est passé en logiciel jusqu’au prochain redémarrage. Les flux continuent, plus lentement.",
+      "title": "Matériel désactivé"
+    },
+    "ffmpeg": {
+      "docker": "Sur Docker, utilise l’image officielle : elle inclut FFmpeg.",
+      "missing": "FFmpeg n’est pas installé. Les fichiers lus tels quels fonctionnent, les autres non.",
+      "title": "FFmpeg manquant"
+    },
+    "found": "Ce que le test matériel a trouvé",
+    "hw": {
+      "auto": "Automatique",
+      "help": "Automatique essaie chaque accélérateur et garde le premier qui réussit le test.",
+      "label": "Accélération matérielle",
+      "none": "Désactivée",
+      "nvenc": "NVIDIA (nvenc)",
+      "qsv": "Intel Quick Sync (qsv)",
+      "testing": "Test du matériel en cours",
+      "v4l2m2m": "Raspberry Pi (v4l2m2m)",
+      "vaapi": "VA-API (vaapi)"
+    },
+    "max": {
+      "help": "Par défaut ici : {{default}}. Les flux lus tels quels ne comptent pas.",
+      "label": "Conversions simultanées"
+    },
+    "networks": {
+      "help": "Un réseau par ligne, comme 10.8.0.0/24 pour un VPN. Aucune limite ne s’y applique.",
+      "invalid": "Un réseau par ligne, comme 10.8.0.0/24.",
+      "label": "Compter aussi comme la maison"
+    },
+    "preset": {
+      "balanced": "Équilibré",
+      "fast": "Rapide",
+      "help": "Rapide utilise moins de CPU. Meilleure qualité est plus belle à taille égale mais demande une machine plus puissante.",
+      "label": "Vitesse d’encodage",
+      "quality": "Meilleure qualité"
+    },
+    "remote": {
+      "help": "S’applique aux personnes hors de ton réseau. Mets-la sous ton débit montant.",
+      "label": "Limite des flux à distance",
+      "mbps": "{{n, number}} Mb/s",
+      "none": "Aucune limite"
+    },
+    "retest": "Retester le GPU",
+    "test": {
+      "none": "Aucun encodeur matériel n’a réussi le test. Les conversions se font en logiciel.",
+      "ok": "{{accelerator}} sur {{device}} a réussi le test matériel."
+    },
+    "title": "Transcodage",
+    "tonemap": {
+      "gpu": "HDR vers SDR sur le GPU",
+      "software": "HDR vers SDR en logiciel"
+    },
+    "tonemapLabel": "HDR vers SDR"
+  },
+  "ui": {
+    "clear": "Effacer",
+    "dismiss": "Fermer",
+    "hidePassword": "Masquer le mot de passe",
+    "loading": "Chargement",
+    "progress": "Progression",
+    "showPassword": "Afficher le mot de passe"
   },
   "welcome": {
     "status": {
-      "error": "Impossible de joindre le serveur. Il est bien branché ?",
-      "loading": "On réchauffe le canapé…",
-      "ok": "Ton serveur est prêt. Attrape le plaid."
+      "error": "Impossible de joindre le serveur. Il est bien branché ?"
     },
     "title": "PLAID",
     "version": "Version {{version}}"

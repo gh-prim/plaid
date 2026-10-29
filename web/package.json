@@ -16,7 +16,7 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "test": "vitest run",
-    "generate": "openapi-typescript ../api/openapi.yaml -o src/api/schema.d.ts && prettier --write src/api/schema.d.ts",
+    "generate": "openapi-typescript ../api/openapi.yaml -o src/api/schema.d.ts && prettier --write src/api/schema.d.ts && node scripts/build-tokens.mjs && prettier --write src/design/tokens.css",
     "i18n:check": "i18next-cli extract --ci --dry-run && i18next-cli status"
   },
   "pnpm": {

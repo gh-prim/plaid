@@ -18,6 +18,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/clientinfo"
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/playback/keyframes"
+	"github.com/gh-prim/plaid/server/internal/problems"
 	"github.com/gh-prim/plaid/server/internal/settings"
 )
 
@@ -64,9 +65,16 @@ type Options struct {
 	// ProbeHardware runs the hardware test at Start (R24). Off, every
 	// transcode runs in software until a settings change asks for a test.
 	ProbeHardware bool
-	Log           *slog.Logger
-	Now           func() time.Time
+	// Problems records hardware fallbacks and software restarts for the
+	// admin (F007 R29); nil records nothing.
+	Problems problems.Reporter
+	Log      *slog.Logger
+	Now      func() time.Time
 }
+
+// ErrHWTestRunning answers a hardware test asked for while one runs
+// (F007 R28).
+var ErrHWTestRunning = errors.New("hardware test already running")
 
 // subtitleCacheMax caps the converted subtitles (R27).
 const subtitleCacheMax = 1 << 30
@@ -88,6 +96,12 @@ type Service struct {
 	hwMu    sync.Mutex
 	hw      HWStatus
 	hwFails []time.Time // hardware runs that failed early (R24)
+	// hwFellBack is the accelerator disabled after repeated failures, until
+	// a test or a settings change replaces the status (F007 R29).
+	hwFellBack string
+	hwTesting  bool
+	// probeHardware is ProbeHardware; tests replace it.
+	probeHardware func(ctx context.Context, ff *FFmpeg, choice, device string) (HWStatus, error)
 
 	mu      sync.Mutex
 	streams map[string]*hlsStream // by session id
@@ -116,6 +130,7 @@ func New(o Options) *Service {
 		hw:        HWStatus{Configured: HWAuto},
 		streams:   map[string]*hlsStream{},
 	}
+	s.probeHardware = ProbeHardware
 	s.manager.Now, s.manager.Log = o.Now, o.Log
 	if o.Accounts != nil {
 		s.manager.Alive = o.Accounts.SessionActive
@@ -146,7 +161,7 @@ func (s *Service) Start(ctx context.Context) {
 	if s.o.ProbeHardware && s.o.FFmpeg != nil {
 		// In the background: Direct Play and software work meanwhile.
 		go func() {
-			st, err := ProbeHardware(ctx, s.o.FFmpeg, cfg.HWAccel, cfg.HWDevice)
+			st, err := s.probeHardware(ctx, s.o.FFmpeg, cfg.HWAccel, cfg.HWDevice)
 			s.setHardware(st)
 			s.logHardware(st, err)
 		}()
@@ -207,8 +222,38 @@ func (s *Service) Hardware() HWStatus {
 
 func (s *Service) setHardware(st HWStatus) {
 	s.hwMu.Lock()
-	defer s.hwMu.Unlock()
-	s.hw, s.hwFails = st, nil
+	fell := s.hwFellBack
+	s.hw, s.hwFails, s.hwFellBack = st, nil, ""
+	s.hwMu.Unlock()
+	if fell != "" {
+		problems.Of(s.o.Problems).Resolve(problems.HWFallback, map[string]string{"accel": fell})
+	}
+}
+
+// RetestHardware runs the hardware test again with the settings in effect
+// and replaces the status, clearing a fallback (F007 R28). One test runs
+// at a time: ErrHWTestRunning otherwise.
+func (s *Service) RetestHardware(ctx context.Context) (HWStatus, error) {
+	s.hwMu.Lock()
+	if s.hwTesting {
+		s.hwMu.Unlock()
+		return HWStatus{}, ErrHWTestRunning
+	}
+	s.hwTesting = true
+	s.hwMu.Unlock()
+	defer func() {
+		s.hwMu.Lock()
+		s.hwTesting = false
+		s.hwMu.Unlock()
+	}()
+	cfg := s.config()
+	st, err := s.probeHardware(ctx, s.o.FFmpeg, cfg.HWAccel, cfg.HWDevice)
+	if err != nil && ctx.Err() != nil {
+		return HWStatus{}, ctx.Err()
+	}
+	s.setHardware(st)
+	s.logHardware(st, err)
+	return s.Hardware(), nil
 }
 
 // hwConfig is the hardware transcodes run on now, nil for software.
@@ -240,9 +285,10 @@ func (s *Service) hwFailed(accel string) {
 	defer s.hwMu.Unlock()
 	s.hwFails = slices.DeleteFunc(append(s.hwFails, now), func(t time.Time) bool { return now.Sub(t) >= hwFailWindow })
 	if len(s.hwFails) >= hwMaxFailures && s.hw.Active == accel {
-		s.hw.Active, s.hw.DisabledReason = "", HWReasonRepeatedFailures
+		s.hw.Active, s.hw.DisabledReason, s.hwFellBack = "", HWReasonRepeatedFailures, accel
 		s.o.Log.Warn("hardware acceleration disabled after repeated failures: transcoding in software until restart or a settings change",
 			"code", "hw_accel_unavailable", "accel", accel, "failures", len(s.hwFails))
+		problems.Of(s.o.Problems).Report(problems.HWFallback, map[string]string{"accel": accel})
 	}
 }
 
@@ -290,7 +336,7 @@ func (s *Service) SaveSettings(ctx context.Context, u ConfigUpdate) (SettingsVie
 		case u.HWDevice != nil:
 			device = *u.HWDevice
 		}
-		st, err := ProbeHardware(ctx, s.o.FFmpeg, choice, device)
+		st, err := s.probeHardware(ctx, s.o.FFmpeg, choice, device)
 		if err != nil {
 			s.o.Log.Warn("hardware acceleration test failed; settings unchanged", "code", "hw_accel_unavailable",
 				"accel", choice, "device", device, "err", err)

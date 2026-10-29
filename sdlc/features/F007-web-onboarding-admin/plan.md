@@ -3,9 +3,9 @@ id: F007
 title: Web — onboarding and administration
 owner: gh-prim
 reviewer: TBD
-status: draft            # draft | approved | in-progress | done
+status: in-progress      # draft | approved | in-progress | done
 spec: ./spec.md
-branch: feat/F007-onboarding-admin
+branch: feat/F007-admin
 ---
 
 # F007 — Plan: Web — onboarding and administration
@@ -13,10 +13,10 @@ branch: feat/F007-onboarding-admin
 > This plan must be precise enough for the other dev to execute it alone.
 > If the implementation diverges, this file is updated **in the same commit**.
 
-Three PRs, each green on its own, each with `make test` output and screenshots:
-- **PR A — Foundations**: the API changes and the three server additions (R27–R29), then the web foundations every screen needs (design tokens, fonts, primitives, hooks). No new screen yet.
-- **PR B — Onboarding** (R1–R16): the wizard replaces the F003 `Setup` page.
-- **PR C — Admin** (R17–R26).
+One PR for the whole feature (CLAUDE.md: one PR per feature), built in three parts that land as commits, each green with `make test`:
+- **Part A — Foundations**: the API changes and the three server additions (R27–R29), then the web foundations every screen needs (design tokens, fonts, primitives, hooks). No new screen yet.
+- **Part B — Onboarding** (R1–R16): the wizard replaces the F003 `Setup` page.
+- **Part C — Admin** (R17–R26).
 
 The screens come from the Claude Design canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz). Its boards are named in the steps (`P07Unreadable`, `AD03`…) so each component can be checked against its mockup. Each PR attaches PNG exports of the boards it builds (spec watch-out "Canvas access").
 
@@ -53,7 +53,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | `server/internal/handlers/capabilities.go` (error code) | modify | `hw_test_running` built with `apierr.New(409, …)` like the other codes. |
 | `server/cmd/plaid/main.go` | modify | Build the `problems.Recorder`, pass it to metadata, library, playback and handlers; start the janitor. |
 
-### Web — foundations (PR A)
+### Web — foundations (part A)
 | File | Action | Why |
 |------|--------|-----|
 | `web/src/design/tokens.json` | create | Copy of the PLAID design system's `tokens.json` (version recorded in a `_source` field), the input of the generator. |
@@ -73,7 +73,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | `web/src/locales/en/common.json`, `fr/common.json` | modify | Keys from the spec's i18n table, added PR by PR as screens land (so `check-i18n` never sees unused keys). |
 | `web/src/test/fakeApi.ts`, `web/src/test/fakeEventSource.ts` | modify / create | Fake SSE for scan tests. |
 
-### Web — onboarding (PR B)
+### Web — onboarding (part B)
 | File | Action | Why |
 |------|--------|-----|
 | `web/src/onboarding/step.ts` + test | create | Derives the wizard step from `GET /setup`, `/me`, `/libraries` and the local "later" flag (R1, R10). Extends `auth/RequireAuth.tsx`'s `currentStep`. |
@@ -90,7 +90,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | `web/src/pages/Setup.tsx`, `Setup.test.tsx`, `Welcome.tsx`, `Welcome.test.tsx` | delete | Replaced by the wizard; `Home` keeps its own content until F008. |
 | `web/src/pages/Home.tsx` | modify | Empty state and the admin link (R15, R17). |
 
-### Web — admin (PR C)
+### Web — admin (part C)
 | File | Action | Why |
 |------|--------|-----|
 | `web/src/admin/AdminLayout.tsx` | create | Admin guard, "Back to the library", lazy-loaded chunk (R17, NFR bundle). |
@@ -114,41 +114,41 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 
 ## Steps, in order
 
-### PR A — Foundations
-1. [ ] `api/openapi.yaml`: `matched` event and `MatchedItem`, hardware-test route, `/problems` and its schemas, `hw_test_running`. `make generate`. (R27, R28, R29)
-2. [ ] Migration `0006_problems.sql` and `internal/problems` with its tests first (dedupe, reopen, resolve, purge). (R29)
-3. [ ] Wire `Problems` into library (folder status, watch limit), playback (`hw_fallback`, `ffmpeg_restarted`), metadata (`provider_key_refused`), with a unit test at each call site; `GET /problems` handler and e2e test. (R29)
-4. [ ] `RetestHardware` + handler + tests (403, 200, 409 concurrent, fallback cleared and resolved). (R28)
-5. [ ] Matched hub in metadata, publish from `Process`, forward on the scan stream; unit test and e2e test on the stream. (R27)
-6. [ ] Web: `tokens.json` → `build-tokens.mjs` → `tokens.css`, hooked into `make generate` and the codegen drift check. Fonts and `base.css`. (R33)
-7. [ ] Web primitives in `src/ui/` with their state tests, then `useScanEvents` (with `fakeEventSource`), `usePolling`, `useConnection`, `format`, `shellQuote`, `cidr`, error mapping, all test-first. (R9, R16, R24, R32, R34)
-8. [ ] `make test`; PR A with a screenshot of a primitives page in dark and light (dev-only route, removed in PR B).
+### Part A — Foundations
+1. [x] `api/openapi.yaml`: `matched` event and `MatchedItem`, hardware-test route, `/problems` and its schemas, `hw_test_running`. `make generate`. (R27, R28, R29)
+2. [x] Migration `0006_problems.sql` and `internal/problems` with its tests first (dedupe, reopen, resolve, purge). (R29)
+3. [x] Wire `Problems` into library (folder status, watch limit), playback (`hw_fallback`, `ffmpeg_restarted`), metadata (`provider_key_refused`), with a unit test at each call site; `GET /problems` handler and e2e test. (R29)
+4. [x] `RetestHardware` + handler + tests (403, 200, 409 concurrent, fallback cleared and resolved). (R28)
+5. [x] Matched hub in metadata, publish from `Process`, forward on the scan stream; unit test and e2e test on the stream. (R27)
+6. [x] Web: `tokens.json` → `build-tokens.mjs` → `tokens.css`, hooked into `make generate` and the codegen drift check. Fonts and `base.css`. (R33)
+7. [x] Web primitives in `src/ui/` with their state tests, then `useScanEvents` (with `fakeEventSource`), `usePolling`, `useConnection`, `format`, `shellQuote`, `cidr`, error mapping, all test-first. (R9, R16, R24, R32, R34)
+8. [x] `make test`; a screenshot of a primitives page in dark and light (dev-only route, removed in part B).
 
-### PR B — Onboarding
-9. [ ] `onboarding/step.ts` with tests for every resume case, then routes in `App.tsx` and `RequireAuth`. (R1, R2, R10)
-10. [ ] Start and language, tests for preselection and instant switch. (R3)
-11. [ ] Setup code: tests for wrong code, `Retry-After`, `setup_complete`, the exact copy-pasted command. Update `docs/install.md`. (R4, R5)
-12. [ ] Account: client-side checks and server error mapping, tests first. Delete `pages/Setup*`, `pages/Welcome*` and their keys. (R6)
-13. [ ] Folder picker and row: drill-down, roots, filter over 20, unreadable fix with quoted command and Check again, empty folder, type a path; tests first from the acceptance criteria. (R8, R9)
-14. [ ] Libraries step: form, chips, overlap and not-found errors, several libraries, "later". (R7)
-15. [ ] Scan: counters from fake SSE, thread fill formula, poster wall capped at 48, backdrop crossfade, voice line throttles (3 s visual, 10 s `aria-live`), reduced motion, server facts. (R11–R13)
-16. [ ] End and zero-library end, oldest/newest from items. (R14, R15)
-17. [ ] Connection banner on every step. (R16)
-18. [ ] Locale pass: French and a pseudo-locale at +35 % (test helper that pads every string) render at 375 px with no overflow (jsdom can't measure layout: this is a manual check with screenshots, see Evidence). (R33)
-19. [ ] `make test`; real run against `make dev` with a 40-movie folder; PNG exports of `P01`–`P15`, `D01`–`D15` next to screenshots; PR B.
+### Part B — Onboarding
+9. [x] `onboarding/step.ts` with tests for every resume case, then routes in `App.tsx` and `RequireAuth`. (R1, R2, R10)
+10. [x] Start and language, tests for preselection and instant switch. (R3)
+11. [x] Setup code: tests for wrong code, `Retry-After`, `setup_complete`, the exact copy-pasted command. Update `docs/install.md`. (R4, R5)
+12. [x] Account: client-side checks and server error mapping, tests first. Delete `pages/Setup*`, `pages/Welcome*` and their keys. (R6)
+13. [x] Folder picker and row: drill-down, roots, filter over 20, unreadable fix with quoted command and Check again, empty folder, type a path; tests first from the acceptance criteria. (R8, R9)
+14. [x] Libraries step: form, chips, overlap and not-found errors, several libraries, "later". (R7)
+15. [x] Scan: counters from fake SSE, thread fill formula, poster wall capped at 48, backdrop crossfade, voice line throttles (3 s visual, 10 s `aria-live`), reduced motion, server facts. (R11–R13)
+16. [x] End and zero-library end, oldest/newest from items. (R14, R15)
+17. [x] Connection banner on every step. (R16)
+18. [x] Locale pass: French and a pseudo-locale at +35 % (test helper that pads every string) render at 375 px with no overflow (jsdom can't measure layout: this is a manual check with screenshots, see Evidence). (R33)
+19. [ ] `make test`; real run against `make dev` with a 40-movie folder; PNG exports of `P01`–`P15`, `D01`–`D15` next to screenshots.
 
-### PR C — Admin
-20. [ ] `AdminLayout`, lazy routes, member gets forbidden with no admin request (test). (R17)
-21. [ ] Playing now and `reasons.ts` (every F006 reason has a sentence, test), stop with confirmation. (R19)
-22. [ ] Admin home from playback, libraries, capabilities and problems, every status variant tested. (R18)
-23. [ ] Libraries and one library, reusing the picker; scan now, full rescan, language change, delete with confirmation. (R20)
-24. [ ] Not recognized and to review with TMDB search. (R21, R22)
-25. [ ] People, a person, devices, pair a TV, `last_admin`. (R23)
-26. [ ] Transcoding: one group per setting, only the changed field sent, CIDR validation, hardware test and fallback. (R24, R28)
-27. [ ] Metadata with keys write-only and attributions. (R25)
-28. [ ] Problems. (R26, R29)
-29. [ ] Locale pass and light theme as in step 18. (R33)
-30. [ ] `make test`; real run on a server with a transcoding stream (the F006 perf clips) and a folder made unavailable; PNG exports `AP01`–`AP17`, `AD01`–`AD17` next to screenshots; PR C. Plan status `done`, roadmap updated.
+### Part C — Admin
+20. [x] `AdminLayout`, lazy routes, member gets forbidden with no admin request (test). (R17)
+21. [x] Playing now and `reasons.ts` (every F006 reason has a sentence, test), stop with confirmation. (R19)
+22. [x] Admin home from playback, libraries, capabilities and problems, every status variant tested. (R18)
+23. [x] Libraries and one library, reusing the picker; scan now, full rescan, language change, delete with confirmation. (R20)
+24. [x] Not recognized and to review with TMDB search. (R21, R22)
+25. [x] People, a person, devices, pair a TV, `last_admin`. (R23)
+26. [x] Transcoding: one group per setting, only the changed field sent, CIDR validation, hardware test and fallback. (R24, R28)
+27. [x] Metadata with keys write-only and attributions. (R25)
+28. [x] Problems. (R26, R29)
+29. [x] Locale pass and light theme as in step 18. (R33)
+30. [ ] `make test`; real run on a server with a transcoding stream (the F006 perf clips) and a folder made unavailable; PNG exports `AP01`–`AP17`, `AD01`–`AD17` next to screenshots. Plan status `done`, roadmap updated.
 
 ## Risks
 | Risk | Likelihood | Mitigation |
@@ -162,7 +162,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | Hardware retest while transcodes run disturbs them | low | The test uses its own short FFmpeg runs like F006's startup test; running sessions keep their encoder until they restart. |
 | Layout checks can't run in jsdom | high | Manual screenshots at 375 and 1440 in en, fr and the +35 % pseudo-locale are part of the evidence; no claim of automated layout coverage. |
 
-**Riskiest step:** step 15, the scan screen. It combines the SSE stream, two kinds of events at different rates, the poster wall's performance on a phone, the backdrop crossfade, reduced motion and two accessibility throttles, and it is the emotional peak the design was rebuilt around. It gets its tests first and a real-device check before PR B is opened.
+**Riskiest step:** step 15, the scan screen. It combines the SSE stream, two kinds of events at different rates, the poster wall's performance on a phone, the backdrop crossfade, reduced motion and two accessibility throttles, and it is the emotional peak the design was rebuilt around. It gets its tests first and a real-device check before the onboarding is called done.
 
 ## Rejected options
 - **Polling items for the poster wall instead of a `matched` event**: `GET /libraries/{id}/items` sorts by title, so new matches can't be found without a new sort; polling 1,240 items every few seconds is also heavier on a Pi than one event per match.
@@ -189,3 +189,24 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 Deviations from the plan found during the build (date + what + why).
 - 2026-10-28 (planning): the spec removes `welcome.status.loading`, but `RequireAuth` shows it while auth loads. Replaced by a new `common.loading` key ("Loading" / "Chargement"); the spec gets a revision line in PR B.
 - 2026-10-28 (planning): the web had no design system code (`styles.css` is "deliberately minimal until F002 lands"). PR A brings the tokens and primitives F007 needs; this is the web part of F002 done early, back-ported later.
+- 2026-10-29 (PR A): the design system already ships F007's components (React, `window.Plaid`) with their CSS: the admin ones were added on 2026-10-27. PR A vendors `bundle.css` unchanged as `web/src/design/components.css` and ports the components to TypeScript in `web/src/ui/` (`Icon`, `Button`/`Spinner`, `TextField`, `controls` (Chip, SegmentedControl, ChoiceRow), `feedback` (Toast, Dialog, BottomSheet, ProgressBar, EmptyState), `CommandBlock`, `FolderRow`, `FolderPicker`, `scan` (PosterSlot, AmbientBackdrop, ServerFact)) instead of designing primitives. Hardcoded English in the bundle goes through i18n. Admin components are ported in PR C. Backlog #120 shrinks to whatever we change here.
+- 2026-10-29 (PR A): `tokens.json` and `components.css` are vendored verbatim, so they're in `web/.prettierignore`; `tokens.css` is generated and formatted. `scripts/check-codegen.sh` diffs it.
+- 2026-10-29 (PR A): the janitor is `RunJanitor` in `problems.go` (no `janitor.go`); `hw_test_running` is an `apierr` constructor like the other codes.
+- 2026-10-29 (PR A): fix commands single-quote paths (`lib/shellQuote.ts`) where the design system shows double quotes: single quotes don't expand `$` or backticks in a folder name.
+- 2026-10-29 (PR A): keys the spec table didn't have, needed by the ported components: `ui.*` (loading, show/hide password, clear, dismiss, progress), `common.close`, `picker.checking`, `picker.readable`, `picker.notAllowed`, `picker.rootsLabel`, `picker.openHint`, `picker.filterCount`, `folder.unavailable.title`, `folder.unavailable.check`; `picker.empty` is split into `.title` and `.body`; `picker.filter` takes `total`, not `count` (i18next treats `count` as a plural).
+- 2026-10-29 (PR A): error mapping stays in `web/src/auth/errors.ts` (extended with the new field codes) instead of moving to `lib/errors.ts`: every page already imports it from there.
+- 2026-10-29 (PR A): a development-only `/dev/ui` gallery (`web/src/dev/Gallery.tsx`, not routed in production builds) gives the PR A screenshots; PR B removes it.
+- 2026-10-29 (PR B): the design puts the setup code on the account screen (board P03, a card beside the form), so there's no `/setup/code` route: `Account.tsx` shows the card when `GET /setup` says `requiresSetupCode`. No `SetupCode.tsx`.
+- 2026-10-29 (PR B): the spec's i18n table has keys that are both a leaf and a parent (`onboarding.account.displayName` and `.displayName.help`), which a nested JSON catalog can't hold. The leaves get `.label` (`onboarding.account.{displayName,username,password}.label`, `onboarding.start.language.label`, `library.folders.label`, `library.type.label`, `library.metadata.region.label`) and `scan.complete` becomes `scan.complete.title`. `home.empty` is split into `.title` and `.body` like the design. New keys the screens needed: `onboarding.step`, `onboarding.code.docker`, `onboarding.libraries.added`, `picker.open`, `common.loading`, `library.metadata.language`, `scan.complete.count`, `scan.complete.wall`, `scan.libraries`, `scan.startWatching`, `scan.state.short.scanning`, `scan.wall`, `server.accel.*`. `errors.setup_code_required` takes the spec's new wording.
+- 2026-10-29 (PR B): `RequireStep` gains `admin` so `/setup/libraries` and `/setup/scan` send members home; `Home` sends an admin back to the wizard through `adminStep` (`onboarding/step.ts`).
+- 2026-10-29 (PR B): the real run on a scratch server found two picker bugs, now fixed with tests: `/` showed `//`, and the parent button was enabled at `/`. "Type a path" is also offered in the desktop panel, not only on phones (R8).
+- 2026-10-29 (PR B): the end screen's quiet line about unrecognized files doesn't link to the admin yet: `/admin/libraries` arrives in PR C, which adds the link.
+- 2026-10-29 (PR B): the start button of the end screen is `primary`, not `play`: the design system reserves `play` for starting playback.
+- 2026-10-29 (PR B): the `/dev/ui` gallery from PR A is removed, as planned.
+- 2026-10-29 (PR C): the admin screens were first composed loosely and read poorer than the canvas; they were redone from the full `CmpAdmin` board source (index on the raised ground, needs-you cards, the library page in the board's order, review one item at a time, people and person as on AP09/AP10).
+- 2026-10-29 (PR C), at the owner's request: the admin takes its structure from Plex's server settings, with PLAID's tokens. The index becomes a grouped sidebar (Status: Overview, Playing now, Problems · Manage: Libraries, People · Settings: Transcoding, Metadata) with one-line entries; Transcoding becomes one page of dense rows (label, control, help) saved with one button, the rare settings behind "Show advanced"; buttons are 32 px (28 px small) and selects compact in the admin only. This revises R18's index and R24's "each group saved on its own" (spec revision). The design system's `SettingsGroup` and `SectionIndexRow` stay ported but are no longer used by the admin.
+- 2026-10-29 (PR C): F006 decision reasons carry no codec or channel count, so the reason sentences don't name them (`reason.*` reworded); `playing.slow.advice.software` likewise. The ported `StreamCard` gets its poster through the stream token (`artwork/poster`, F006 R40).
+- 2026-10-29 (PR C): the spec table's keys that were both a leaf and a parent got `.label` (`playing.stop`, `playing.empty`, `transcoding.{max,remote,networks,preset,cap}`, `libraries.{delete,fullRescan}`, `people.{delete,devices,tempPassword}`, `problems.{hwFallback,keyRefused}`, `review.search`), `transcoding.fallback` became `.body`. `errors.last_admin` and `errors.pairing_expired` take the spec's wording. Percentages use i18next's `number(style: percent)`.
+- 2026-10-29 (PR C): "Pair a TV" links to the existing F003 `/pair` page instead of an admin copy; the person page has no profile list (the admin user API doesn't return profiles).
+- 2026-10-29 (PR C): a real run with a TMDB key (47 real titles) found that the scan screen could end before the first metadata counter arrived (they're throttled to 2 s): it showed 4 posters of 34. The scan now asks `GET /metadata/status` while it has no counter (`scanDone` treats "unknown" as not done), with a test. Also fixed from that run: the end screen's later line drops the half that's zero (`scan.later.{both,unrecognized,review}`), candidates without a poster keep 64 × 96, review cards use 2 columns below 1440 px.
+- 2026-10-29: the three stacked PRs (#50, #51, #52) are gathered into one PR, #52 on `feat/F007-admin`, at the owner's request; CLAUDE.md now says one PR per feature. The Log entries above keep their "(PR A/B/C)" labels as history: read them as parts.

@@ -8,6 +8,7 @@ We follow the SDLC described in [sdlc/README.md](sdlc/README.md): `intent.md` �
 - If the implementation drifts from the plan, update `plan.md` in the same commit.
 - Commits and branches cite the feature ID (`F006: …`, `feat/F006-…`).
 - We are two devs: a PR's author never approves it themselves.
+- **One PR per feature.** All of a feature's code ships in a single PR from a single `feat/FNNN-…` branch. Never split a feature into several PRs, stacked or not (no "PR A/B/C"); split the work into commits instead. The intent, spec and plan keep their own doc PRs.
 
 ## Repo
 | Folder | Contents |

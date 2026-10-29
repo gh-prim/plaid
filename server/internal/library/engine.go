@@ -10,6 +10,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/gh-prim/plaid/server/internal/problems"
 )
 
 // startupDelay is the shortest wait before a library's first periodic scan
@@ -31,6 +33,8 @@ type EngineOptions struct {
 	Log         *slog.Logger
 	// Hooks report scan results to F005 (metadata).
 	Hooks Hooks
+	// Problems records folder and watch-limit problems (F007 R29).
+	Problems problems.Reporter
 	// Now is the clock; tests replace it.
 	Now func() time.Time
 
@@ -77,7 +81,7 @@ func NewEngine(db *sql.DB, o EngineOptions) *Engine {
 	}
 	store := NewStore(db)
 	store.Now = o.Now
-	scanner := &Scanner{Store: store, Workers: o.Workers, Log: o.Log, Hooks: o.Hooks}
+	scanner := &Scanner{Store: store, Workers: o.Workers, Log: o.Log, Hooks: o.Hooks, Problems: o.Problems}
 	if o.Prober != nil {
 		scanner.Prober = NewProbePool(o.Prober, o.Workers)
 	}
@@ -218,11 +222,13 @@ func (e *Engine) armFolders(lib Library) Library {
 				e.overLimit[f.ID] = true
 				e.log.Warn("inotify watch limit reached, folder scanned periodically instead; see docs/install.md",
 					"folder", f.Path, "limit", inotifyLimit())
+				problems.Of(e.opts.Problems).Report(problems.WatchLimit, map[string]string{"path": f.Path})
 			case err != nil:
 				e.log.Warn("folder not watched", "folder", f.Path, "err", err)
 			default:
 				e.watchers[f.ID] = w
 				f.Watched = true
+				problems.Of(e.opts.Problems).Resolve(problems.WatchLimit, map[string]string{"path": f.Path})
 			}
 		}
 		if err := e.store.SetFolderWatch(context.Background(), f.ID, f.FSType, f.Watched); err != nil {
@@ -254,6 +260,7 @@ func (e *Engine) watchLimitReached(libraryID, folderID string) {
 	w.close()
 	e.log.Warn("inotify watch limit reached, folder scanned periodically instead; see docs/install.md",
 		"folder", w.root, "limit", inotifyLimit())
+	problems.Of(e.opts.Problems).Report(problems.WatchLimit, map[string]string{"path": w.root})
 	ctx := context.Background()
 	if err := e.store.SetFolderWatch(ctx, folderID, fsType(w.root), false); err != nil {
 		e.log.Error("folder watch state not saved", "folder", w.root, "err", err)

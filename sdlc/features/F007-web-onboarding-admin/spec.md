@@ -356,7 +356,7 @@ Keys below come from the canvas copy decks, converted to the repo's i18next form
 | `playing.slow.advice.software` | {{server}} can’t convert this file in real time. Ask {{user}} to pick a lower quality, or play it on a device that reads {{codec}}. | {{server}} ne peut pas convertir ce fichier en temps réel. Demande à {{user}} de baisser la qualité, ou de le lire sur un appareil qui lit le {{codec}}. |
 | `playing.quality` | {{resolution}} · {{bitrate}} Mbps | {{resolution}} · {{bitrate}} Mb/s |
 | `playing.stop` | Stop | Arrêter |
-| `playing.stop.confirm` | Stop {{title}} for {{user}}? They’ll see that the admin stopped it. | Arrêter {{title}} pour {{user}} ? |
+| `playing.stop.confirm` | Stop {{title}} for {{user}}? | Arrêter {{title}} pour {{user}} ? |
 | `playing.stop.confirm.action` | Stop stream | Arrêter le flux |
 | `playing.stop.confirm.cancel` | Keep playing | Laisser jouer |
 | `playing.stopped` (toast) | Stopped {{title}} for {{user}}. | {{title}} arrêté pour {{user}}. |
@@ -607,4 +607,7 @@ Settled at approval (2026-10-28).
 - [ ] Given `make check-i18n`, then no key is missing in `fr` and no screen has a hardcoded string.
 
 ## Revisions
+- 2026-10-29: at the owner's request the admin follows Plex's server settings structure with PLAID's tokens: R18's index becomes a grouped sidebar (Status, Manage, Settings) with one-line entries, and R24's settings are one page of rows saved with one button, the rare ones behind "Show advanced" (instead of groups saved on their own). The stop confirmation no longer promises the person will see why (English row fixed). Reason sentences don't name codecs or channels, which F006 doesn't send.
+- 2026-10-29: PR B renames the keys that were both a leaf and a parent (`.label`, `scan.complete.title`), splits `home.empty` into `.title` and `.body`, and adds the keys listed in the plan Log. The setup code sits on the account screen, as designed; there is no separate route.
+- 2026-10-29: i18n keys added by PR A for the ported design system components (see plan Log); `picker.empty` split into `.title` and `.body`; `picker.filter` interpolates `total`.
 - 2026-10-28: approved. R30 and R31 moved to the backlog; three strings adapted so the copy doesn't promise what the API can't do (`playing.stop.confirm`, `scan.slowShare`, `libraries.fullRescan.help`).

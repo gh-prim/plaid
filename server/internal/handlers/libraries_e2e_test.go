@@ -21,6 +21,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/metadata/tmdbtest"
 	"github.com/gh-prim/plaid/server/internal/playback"
+	"github.com/gh-prim/plaid/server/internal/problems"
 	"github.com/gh-prim/plaid/server/internal/settings"
 )
 
@@ -78,6 +79,7 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 		meta  *metadata.Service
 		hooks library.Hooks
 	)
+	probs := problems.New(e.db, logger)
 	if o.tmdb != nil {
 		meta = metadata.New(metadata.Options{DB: e.db, Provider: o.tmdb.Client(), Fanart: o.tmdb.Fanart(), Log: logger,
 			Workers: 2, QueueIdle: 20 * time.Millisecond, DataDir: t.TempDir(), ImageHTTP: o.tmdb.HTTP(), ImageHosts: o.tmdb.ImageHosts(),
@@ -86,19 +88,19 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 					return nil
 				}
 				return metadata.ErrInvalidAPIKey
-			}})
+			}, Problems: probs})
 		meta.Start(context.Background())
 		t.Cleanup(meta.Close)
 		hooks.ItemsCreated, hooks.Sidecars = meta.ItemsCreated, meta.SidecarsSeen
 	}
 	engine := library.NewEngine(e.db, library.EngineOptions{Prober: o.prober, FFprobeVersion: "7.1.1",
-		BrowseRoots: o.browseRoots, Log: logger, Workers: 2, Hooks: hooks})
+		BrowseRoots: o.browseRoots, Log: logger, Workers: 2, Hooks: hooks, Problems: probs})
 	engine.Start(context.Background())
 	t.Cleanup(engine.Close)
 	streams, end := context.WithCancel(context.Background())
 	t.Cleanup(end)
 	po := playback.Options{DB: e.db, Library: engine.Store(), Accounts: e.acct,
-		Settings: settings.New(e.db), Log: logger, Now: e.clock.now}
+		Settings: settings.New(e.db), Log: logger, Now: e.clock.now, Problems: probs}
 	if o.hls != nil {
 		ffmpeg, err := playback.FindFFmpeg(context.Background(), "")
 		if err != nil {
@@ -115,7 +117,7 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	}
 	t.Cleanup(play.Close)
 	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta,
-		Playback: play, Streams: streams})
+		Playback: play, Problems: probs, Streams: streams})
 	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct, Stream: handlers.StreamHandler(play, meta, engine.Store())})
 	le := &libEnv{env: e, engine: engine, play: play, endStream: end}
 	le.admin = e.setup().Token

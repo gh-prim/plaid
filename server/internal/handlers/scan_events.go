@@ -37,10 +37,12 @@ func (h *Handlers) GetLibraryScanEvents(ctx context.Context, req api.GetLibraryS
 		progress: func() (library.Progress, error) { return h.library.Progress(ctx, req.LibraryId) },
 	}
 	// F005 R35: the library's matching counters ride on the same stream.
+	// F007 R27: so do the items as they match, for live views.
 	if h.metadata != nil {
 		counts, stop := h.metadata.Subscribe(req.LibraryId)
-		stream.counts = counts
-		stream.cancel = func() { cancel(); stop() }
+		matched, stopMatched := h.metadata.SubscribeMatched(req.LibraryId)
+		stream.counts, stream.matched = counts, matched
+		stream.cancel = func() { cancel(); stop(); stopMatched() }
 	}
 	return stream, nil
 }
@@ -56,6 +58,7 @@ type scanEventStream struct {
 	first    library.Progress
 	progress func() (library.Progress, error)
 	counts   <-chan metadata.Counters // nil without F005
+	matched  <-chan metadata.Matched  // nil without F005
 }
 
 // VisitGetLibraryScanEventsResponse runs until the client disconnects, the
@@ -112,6 +115,10 @@ func (s scanEventStream) VisitGetLibraryScanEventsResponse(w http.ResponseWriter
 			}}) {
 				return nil
 			}
+		case m := <-s.matched:
+			if !write(api.ScanEvent{Type: api.ScanEventTypeMatched, Item: toMatchedItem(m)}) {
+				return nil
+			}
 		case <-progress.C:
 			// A heartbeat with counters while scanning, even when nothing
 			// changed, so clients see the scan is alive.
@@ -128,4 +135,13 @@ func (s scanEventStream) VisitGetLibraryScanEventsResponse(w http.ResponseWriter
 			}
 		}
 	}
+}
+
+func toMatchedItem(m metadata.Matched) *api.MatchedItem {
+	it := &api.MatchedItem{Id: m.ID, Kind: api.MatchedItemKind(m.Kind), Title: m.Title,
+		Poster: toArtwork(m.Poster), Backdrop: toArtwork(m.Backdrop)}
+	if m.Year > 0 {
+		it.Year = &m.Year
+	}
+	return it
 }

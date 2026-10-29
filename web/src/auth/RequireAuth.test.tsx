@@ -28,7 +28,9 @@ describe('route guards', () => {
   it('sends a fresh server to the setup page', async () => {
     fakeApi({ 'GET /server': server(false) })
     await renderApp('/')
-    expect(await screen.findByRole('heading', { name: 'Welcome to PLAID.' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Tonight’s movies will come from nas.' }),
+    ).toBeInTheDocument()
   })
 
   it('sends a signed-out visitor to sign-in, even from /setup', async () => {
