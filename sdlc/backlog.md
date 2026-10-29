@@ -186,3 +186,5 @@ Built into every Plaid app, so a request can be made straight from the TV.
 | 120 | Back-port F007's web components (folder row, scan thread, poster wall tile, stream card, settings group) to the F002 design system |
 | 121 | Update `vision.md` §5 to the revised design system (warm near-black, amber thread, tartan only in the thread) |
 | 122 | Warn on the setup-code screen when setup happens over plain HTTP from a public address |
+| 123 | Web player: after repeated stalls, offer to lower the quality (F008 watch-out) |
+| 124 | Content Security Policy for the web app, with `frame-src https://www.youtube-nocookie.com` for F008's trailers |

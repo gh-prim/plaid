@@ -3,7 +3,7 @@ id: F008
 title: Web — browsing and player
 owner: gh-prim
 reviewer: TBD
-status: draft
+status: approved
 intent: ./intent.md
 decisions: [0002, 0005]
 ---
@@ -69,7 +69,7 @@ F008 turns PLAID's web app into the place where you watch. After the profile pic
 | F008-R11 | Virtualization: the grid renders only the rows in view plus two screens of buffer; the DOM never holds more than 300 cards whatever the library size. The scroll height comes from `total`, so the scrollbar is right before every page is loaded. Pages of 200 are fetched when their rows come near the view; a fast jump to the middle fetches that page first. Cards not loaded yet show the skeleton. | must |
 | F008-R12 | Sorting: Title (default, A→Z), Recently added, Release date, Rating, Recently watched (by `lastPlayedAt` for the profile), Random (stable for the visit); each with ascending/descending except Random. Shows' "Recently added" uses the date of their newest episode (R26). | must |
 | F008-R13 | Filters, combinable: watch state (All, Unwatched, In progress, Watched), genre (multi-select, from R27), years (decade chips, from R27), resolution (4K, 1080p, 720p and lower), HDR. Active filters show as removable chips with "Clear all"; the count updates. No result: "Nothing matches these filters." with "Clear filters". | must |
-| F008-R14 | Sort, filters and scroll position live in the URL query (`?sort=added&order=desc&genre=Thriller&watch=unwatched`), so links can be shared, Back restores the grid at the same place, and reload keeps the choice. | must |
+| F008-R14 | Sort, filters and scroll position live in the URL query (`?sort=added&order=desc&genre=53&watch=unwatched`), so links can be shared, Back restores the grid at the same place, and reload keeps the choice. | must |
 | F008-R15 | Letter index on the right edge (desktop and tablet) when sorted by title: tapping a letter scrolls to its first item, using R27's letter counts. Hidden on phones. | could |
 | F008-R16 | Collections: a library with collections (F005-R23) gets a "Collections" view (`/library/:id/collections`, `GET /collections`), and a collection page (`/collection/:id`) with its backdrop, overview and movies by release date. | should |
 | **Detail pages** | | |
@@ -84,12 +84,12 @@ F008 turns PLAID's web app into the place where you watch. After the profile pic
 | **Search** | | |
 | F008-R25 | Instant search (`/search?q=`, and a dropdown under the header field on desktop): results from `GET /search` (R28) after each keystroke, debounced 150 ms, from the first character; a request in flight is aborted when a new one starts. Groups: Movies, Shows, Episodes, People, each up to 8 with "See all" to the full list. Arrow keys move through results, Enter opens the highlighted one (the first by default), Esc closes. The query is in the URL. No result: "Nothing called “{{query}}” here." `/` focuses the search from anywhere outside a text field. | must |
 | **Server additions** | | |
-| F008-R26 | `GET /libraries/{id}/items` gains, for top-level items (no `parentId`): `sort` (`title`, `added`, `released`, `rating`, `played`, `random`), `order` (`asc`, `desc`), `seed` (for `random`), filters `watch` (`unwatched`, `in_progress`, `watched`), `genre` (repeatable, any of), `yearFrom`/`yearTo`, `resolution` (repeatable: `2160p`, `1080p`, `720p`, `sd`), `hdr` (boolean), `offset` (instead of `cursor`, for random access) and `total=true` (adds `total` to `ItemPage`). `ItemSummary` gains `addedAt` (`items.created_at`; for a show, its newest episode's). Every filter applies F005-R25's age predicate before counting, so `total` never reveals hidden items. Unknown values are `400 validation_failed`. | must |
-| F008-R27 | `GET /libraries/{id}/facets` returns, over the items the active profile may see: `genres: [{name, count}]` (by count), `decades: [{from, count}]`, `resolutions: [{value, count}]`, `hdr: count`, and `letters: [{letter, count}]` in title sort order (digits and symbols grouped as `#`). | must |
+| F008-R26 | `GET /libraries/{id}/items` gains, for top-level items (no `parentId`): `sort` (`title`, `added`, `released`, `rating`, `played`, `random`), `order` (`asc`, `desc`), `seed` (for `random`), filters `watch` (`unwatched`, `in_progress`, `watched`), `genre` (repeatable TMDB genre id, any of), `yearFrom`/`yearTo`, `resolution` (repeatable: `2160p`, `1080p`, `720p`, `sd`), `hdr` (boolean), `offset` (instead of `cursor`, for random access) and `total=true` (adds `total` to `ItemPage`). `ItemSummary` gains `addedAt` (`items.created_at`; for a show, its newest episode's). Every filter applies F005-R25's age predicate before counting, so `total` never reveals hidden items. Unknown values are `400 validation_failed`. | must |
+| F008-R27 | `GET /libraries/{id}/facets` returns, over the items the active profile may see: `genres: [{id, name, count}]` (by count; `name` as stored for this library), `decades: [{from, count}]`, `resolutions: [{value, count}]`, `hdr: count`, and `letters: [{letter, count}]` in title sort order (digits and symbols grouped as `#`). | must |
 | F008-R28 | `GET /search?q=&limit=` searches every library the profile may see: movies and shows by title and original title, episodes by title, people by name. Matching is case- and accent-insensitive, on word prefixes ("ali" finds *Alien* and *Alice*, "rings" finds *The Lord of the Rings*), through an SQLite FTS5 index kept in sync by F004/F005 writes. Ranked by exact title first, then prefix, then the BM25 rank, with ties by popularity (rating count). Returns `{movies, shows, episodes, people}`, each a list of `ItemSummary` (episodes with their show's title) or `{id, name, portrait}`, applying the age predicate. `q` under 1 character or over 100 is `400`. | must |
 | F008-R29 | The search index covers every library at server start (a one-time build after migration, in the background; search answers from what's indexed meanwhile) and is updated in the same transaction as item and person writes. | must |
 | F008-R30 | `ItemSummary` gains `show: {id, displayTitle, logo?}` on seasons and episodes, so Continue watching cards, search results and the next-episode card name the show without another request. | must |
-| F008-R31 | `GET /home` returns `{hero, rows}` for the active profile. `hero`: the most recent continue-watching item with a backdrop, else a matched item with a backdrop and a logo picked at random among the 50 most recently added, stable for the profile for the day (seeded by profile id and date). `rows`, in order: `continue_watching` (F006-R37), then per library `recently_added` (movies by `addedAt`; shows by their newest episode), then up to 4 `genre` rows: the genres with at least 10 items across the profile's libraries, the profile's most watched first, then by size, each in random order stable for the day. Each row: `{id, type, title params (libraryId, libraryName, genre), items (first 20), nextCursor, seeAll}`; `seeAll` names the library and query the "See all" opens. `GET /home/rows/{rowId}?cursor=` pages a row. | must |
+| F008-R31 | `GET /home` returns `{hero, rows}` for the active profile. `hero`: the most recent continue-watching item with a backdrop, else a matched item with a backdrop and a logo picked at random among the 50 most recently added, stable for the profile for the day (seeded by profile id and date). `rows`, in order: `continue_watching` (F006-R37), then per library `recently_added` (movies by `addedAt`; shows by their newest episode), then up to 4 `genre` rows: the genres (grouped by TMDB genre id, so libraries in different languages merge) with at least 10 items across the profile's libraries, the profile's most watched first, then by size, each in random order stable for the day. Each row: `{id, type, title params (libraryId, libraryName, genre: {id, name}; the name from a library whose metadata language matches the profile's UI language, else the first library's), items (first 20), nextCursor, seeAll}`; `seeAll` names the library and query the "See all" opens. `GET /home/rows/{rowId}?cursor=` pages a row. | must |
 | F008-R32 | `GET /items/{id}/up-next` for the active profile: on a show, the episode to play (the one in progress, else the first unwatched after the last watched, else S1 E1; specials skipped); on a season, the same within it; on an episode, the next one by season and episode number across seasons, specials skipped. Returns `{item: ItemSummary}` or `204` when there's none. Applies the age predicate. | must |
 | **Player** | | |
 | F008-R33 | The player (`/watch/:itemId`, `?fileId=`, `?t=` in seconds) is full-screen in the page, always dark, lazy-loaded with hls.js in its own chunk. It starts a session with `POST /items/{id}/playback` with the R34 profile, the file chosen on the detail page, the start position (resume, `?t=`, or 0), and the profile's last audio and subtitle language choices (R38). | must |
@@ -133,11 +133,12 @@ CREATE VIRTUAL TABLE search_index USING fts5(
 ALTER TABLE items ADD COLUMN newest_child_added_at TEXT;  -- shows: newest episode's created_at
 CREATE INDEX items_library_added ON items(library_id, kind, created_at);
 CREATE TABLE item_genres (
-  item_id  TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
-  genre    TEXT NOT NULL,             -- the name as stored by F005, in the library's language
-  PRIMARY KEY (item_id, genre)
+  item_id   TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+  genre_id  INTEGER NOT NULL,         -- TMDB genre id, the same in every language
+  name      TEXT NOT NULL,            -- the name as stored by F005, in the library's language
+  PRIMARY KEY (item_id, genre_id)
 );
-CREATE INDEX item_genres_genre ON item_genres(genre);
+CREATE INDEX item_genres_genre ON item_genres(genre_id);
 ```
 
 `item_genres` is filled from `item_metadata.genres` when F005 writes metadata (and once by the migration). `newest_child_added_at` is updated when the scanner adds an episode. Resolution and HDR filters reuse what the technical summary already reads from `media_files`. No table for the home rows or up-next: both are computed per request from `watch_state`, `items` and `item_metadata`.
@@ -155,14 +156,14 @@ Carried into `api/openapi.yaml` first, then `make generate`. Every route needs a
 | GET | `/items/{id}/up-next` | `{item: ItemSummary}` or `204` (R32) |
 | — | `ItemSummary` | **Changed**: `addedAt` (R26), `show` on seasons and episodes (R30) |
 
-`HomeRow`: `{id, type: continue_watching | recently_added | genre, libraryId?, libraryName?, genre?, items: [ItemSummary], nextCursor?, seeAll?: {libraryId, sort, order, genre?}}`. Row titles are built by the client from `type` and its params (`home.row.*`), never sent as text.
+`HomeRow`: `{id, type: continue_watching | recently_added | genre, libraryId?, libraryName?, genre?: {id, name}, items: [ItemSummary], nextCursor?, seeAll?: {libraryId, sort, order, genre?: id}}`. Row titles are built by the client from `type` and its params (`home.row.*`), never sent as text.
 
 Everything else F008 uses already exists: `/me`, `/session/profile`, `/libraries`, `/items/{id}`, `/items/{id}/artwork*`, `/items/{id}/refresh`, `/images/{id}`, `/collections*`, `/people/{id}`, `/items/{id}/playback`, `/playback/{id}*`, `/items/{id}/watched`, `/me/continue-watching`, `/server`, `/playback` (admin strip).
 
 No new error code.
 
 ### Behavior per app
-- **server**: the R26 query builder (sort and filters on `items` joined with `item_metadata`, `item_genres`, `watch_state` and the files' technical summary, the age predicate first), facets, the FTS5 index and its writers in F004/F005, `GET /search`, `GET /home` and `GET /items/{id}/up-next` in a small `internal/browse` package that calls `internal/access` and `internal/playback`'s watch state.
+- **server**: the R26 query builder (sort and filters on `items` joined with `item_metadata`, `item_genres`, `watch_state` and the files' technical summary, the age predicate first), facets, the FTS5 index and its writers in F004/F005, `GET /search`, `GET /home` and `GET /items/{id}/up-next` in a small `internal/catalog` package that calls `internal/access` and `internal/playback`'s watch state.
 - **web**: the shell and routes below; home rows, grid, detail, search and player built on the design system tokens and F007's ported components; a virtualized grid; the player module (capability detection, engine choice, hls.js lazy chunk, progress reporter, track memory, shortcuts); `Home` replaced; F007's "Open the library" link becomes the header.
 - **apple / android**: out of scope. The new routes are what their home, search and up-next will use.
 
@@ -179,7 +180,7 @@ No new error code.
 | `/watch/:itemId` | Player (`?fileId=&t=`) |
 
 ### UI / Art direction
-No canvas exists yet for these screens (see watch-outs). The design system's revised rules apply, as in F007:
+Screens come from the Claude Design canvas made with [claude-design-prompt.md](claude-design-prompt.md) (pages Browse and Player); until it exists, the design system's revised rules below govern, as in F007:
 - **The content is the color**: warm near-black ground, the posters and backdrops bring the color, ambient colors (F005-R21) tint the detail header and the hero's scrim; the UI recedes. One amber element per viewport (the primary Play, the focus ring, the timeline's played part).
 - **Signature**: the woven tartan lives only in the player's timeline fill and the progress bars on cards.
 - **Type**: Instrument Serif only for emotional lines (the profile picker title, empty states, the end of a show); Instrument Sans everywhere else. Titles without a logo use the sans at display size.
@@ -408,23 +409,23 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 - **i18n**: no hardcoded string (`make check-i18n`); German-length layouts hold.
 
 ## ⚠️ Watch-outs
-To settle before moving to `approved`.
+Settled by gh-prim on 2026-10-29 (the recommendations were taken). ✅ = resolved, ⏸ = tracked elsewhere.
 
-- [ ] **No canvas for these screens.** F007 had a Claude Design canvas with every screen and state; F008 has nothing yet, and F002 is still a draft intent (its revised design system lives in `web/src/design` and F007's ported components). Options: write a Claude Design prompt for F008 (home, grid, detail, show page, search, player, profile picker, at 375 and 1440 px, with the real `metadata.csv` titles) before planning, or plan from this spec and the design system rules only. F007's flow suggests the canvas first.
-- [ ] **Server additions in a "web" feature.** R26–R29, R31, R32 add a migration, an FTS5 index and four routes. `apps` would become `server, web`, like F007. The alternative is computing rows, search and up-next in the browser, which costs much more on a Pi (whole libraries downloaded) and makes every native app rebuild them. Recommended: keep them server-side.
-- [ ] **FTS5 in the SQLite driver.** `modernc.org/sqlite` should ship FTS5; the plan must prove it (with `remove_diacritics` and prefix indexes) on amd64 and arm64 before relying on it. Fallback: a normalized `LIKE 'x%'` on a title column, slower on large libraries.
-- [ ] **"Profile picker on launch".** F003 keeps the active profile in the server session, so today the picker only shows when none is set. R2 adds "once per browser tab session when the account has 2+ profiles", client-side only. Confirm this is the wanted behavior (Netflix asks at every app start; Plex only when you switch).
-- [ ] **"Who's under the plaid?" vs the design system's kill list.** The revised system forbids cute copy in functional places. R2 treats the profile picker as an emotional moment (serif, warm). Confirm, or keep the current plain "Who's watching?".
-- [ ] **Starting quality from measured bandwidth.** F006 says F008 picks the starting quality from the measured bandwidth, but there's no measurement endpoint, and hls.js can't switch variants (one variant per session, F006-R11). This spec starts with the server's default (best within the effective limit) and lets the user lower it. A "your connection seems slow, lower the quality?" prompt after repeated stalls is a candidate `should`; a bandwidth probe would be a server change. To decide.
-- [ ] **Why a session ended (backlog #119).** Without `stopped_by_admin`, R39 can only say "Playback stopped." when the admin stops a stream or the session expires. Keep it generic in v1, or pull #119 into F008 (a small server change)?
-- [ ] **Trailers and privacy.** R20 embeds `youtube-nocookie.com` only after a click. That is a third-party request from the user's browser, and a future Content Security Policy will need `frame-src` for it (the server sends no CSP today). Alternative: "Open on YouTube" only, no embed.
-- [ ] **No intro/credits detection, no trickplay, no chapters.** The next-episode card shows in the last 30 s (R43) rather than at the credits, and the timeline has no thumbnails. Both wait for their own features (roadmap "Later"). Confirm 30 s.
-- [ ] **Browser codec support is uneven.** MKV Direct Play only works in some Chromium builds; HEVC, E-AC-3 and Dolby Vision depend on the OS and hardware; Firefox has no HEVC. R34's detection decides; R45 retries with a transcode once. The plan needs a matrix test (Chrome, Firefox, Safari macOS, Safari iOS) on the F006 sample files.
-- [ ] **iPhone without MSE.** iOS Safari has `ManagedMediaSource` since 17.1 but native HLS is the safe path; picture-in-picture and full screen behave differently there. R48 promises phone playback: confirm iOS 17.1+ as the floor.
-- [ ] **Genre rows across libraries.** TMDB genres are in each library's metadata language, so a French library and an English one give "Science-Fiction" and "Science Fiction" as two genres. R31 groups by stored name. Grouping by TMDB genre id (also stored in `item_metadata.genres`) would merge them; `item_genres` could keep the id. To decide.
-- [ ] **Random hero and rows on a Pi.** "Random among the 50 most recent, stable for the day" (R31) is cheap. Confirm this choice over "most popular" or "a random unwatched movie".
-- [ ] **Hidden items and `total`.** R26 counts after the age predicate, so a child's profile sees "312 movies" where the parent sees 1,240. That's intended (counts must not leak hidden items), but worth confirming for the admin strip and library headers.
-- [ ] **No PWA.** Settled in the intent: no manifest, no service worker, no install prompt. The app must still be usable when added to the home screen as a plain bookmark (title and icon only).
+- [x] **No canvas for these screens** — ✅ A Claude Design prompt ships with the plan ([claude-design-prompt.md](claude-design-prompt.md)). The server steps don't depend on it; the web steps take the canvas as their input, and the PR attaches PNG exports of what it builds. The catalogs win over the canvas once merged.
+- [x] **Server additions in a "web" feature** — ✅ Kept server-side (R26–R32); `apps: [server, web]`, like F007. The native apps reuse them.
+- [x] **FTS5 in the SQLite driver** — ✅ Kept. The plan's first server step proves FTS5 with `remove_diacritics` and prefix indexes on amd64 and arm64 before anything relies on it; the normalized `LIKE` fallback is the plan's rejected-but-ready option.
+- [x] **"Profile picker on launch"** — ✅ R2 as written: once per browser tab session when the account has two or more profiles, and whenever no profile is active.
+- [x] **"Who's under the plaid?" vs the kill list** — ✅ Kept: the intent asks for it, and the profile picker is an emotional moment (serif, warm), not a functional control.
+- [x] **Starting quality from measured bandwidth** — ✅ The server's default (best within the effective limit), lowered by the user. ⏸ A "lower the quality?" prompt after repeated stalls is backlog #123.
+- [x] **Why a session ended (backlog #119)** — ⏸ Stays in the backlog. R39 says "Playback stopped." for every end.
+- [x] **Trailers and privacy** — ✅ R20 as written: `youtube-nocookie.com`, loaded only after the click. ⏸ The `frame-src` a future Content Security Policy needs is backlog #124.
+- [x] **No intro/credits detection, no trickplay, no chapters** — ✅ The next-episode card shows in the last 30 s (R43); thumbnails and chapters wait for their own features.
+- [x] **Browser codec support is uneven** — ✅ R34's detection decides, R45 retries once with a transcode; the plan has a manual matrix (Chrome, Firefox, Safari macOS, Safari iOS) on F006's sample files.
+- [x] **iPhone without MSE** — ✅ iOS and iPadOS 17.1+ is the floor, through native HLS.
+- [x] **Genre rows across libraries** — ✅ Grouped by TMDB genre id (`item_genres.genre_id`); the name shown comes from a library in the UI's language when there is one (R31). The `genre` filter takes ids (R26).
+- [x] **Random hero and rows on a Pi** — ✅ As written in R31.
+- [x] **Hidden items and `total`** — ✅ Counts are always after the age predicate, everywhere.
+- [x] **No PWA** — ✅ Settled in the intent.
 
 ## Acceptance criteria
 **Shell and profiles**
@@ -445,7 +446,7 @@ To settle before moving to `approved`.
 **Libraries**
 - [ ] Given a library of 5,000 movies, when I scroll the grid from top to bottom, then the DOM never holds more than 300 cards and the scrollbar's size is right from the first page.
 - [ ] Given I drag the scrollbar to the middle, then the page at that offset is fetched first (`offset=2400`) and skeletons show until it arrives.
-- [ ] Given sort "Recently added", "Unwatched" and genre "Thriller", then the request carries `sort=added&order=desc&watch=unwatched&genre=Thriller&total=true`, the header count is the response's `total`, and the URL holds the same query.
+- [ ] Given sort "Recently added", "Unwatched" and genre "Thriller", then the request carries `sort=added&order=desc&watch=unwatched&genre=53&total=true` (53 is TMDB's Thriller), the header count is the response's `total`, and the URL holds the same query.
 - [ ] Given I open a movie from the grid and press Back, then the grid is back at the same scroll position with the same filters.
 - [ ] Given filters with no result, then "Nothing matches these filters." shows with "Clear filters".
 - [ ] Given a profile with max age 10, when it opens the grid, then `total` and the facets' counts don't include items above 10 or unrated items (unless allowed).
@@ -488,7 +489,7 @@ To settle before moving to `approved`.
 
 **Server**
 - [ ] Given `GET /libraries/{id}/items?sort=rating&order=desc&total=true&limit=50`, then items come by rating, highest first, with `total` and `addedAt`.
-- [ ] Given `genre=Comedy&genre=Drama`, then items with either genre are returned.
+- [ ] Given `genre=35&genre=18` (Comedy, Drama), then items with either genre are returned.
 - [ ] Given `sort=random&seed=42` twice, then both pages come in the same order.
 - [ ] Given `GET /libraries/{id}/facets`, then genres come with counts by count and letters in title order with `#` for digits.
 - [ ] Given `GET /search?q=amel` with *Amélie* in a library, then it's in `movies`; given the item is above the profile's age limit, then it isn't.
@@ -503,3 +504,5 @@ To settle before moving to `approved`.
 - [ ] Given keyboard only, then I can pick a profile, search, open a movie, start it, change subtitles and leave the player.
 
 ## Revisions
+- 2026-10-29 (planning): the package is `internal/catalog` (`library/browse.go` already means the folder picker); `item_genres`, `newest_child_added_at` and the search index are kept in sync by SQLite triggers, and a `search_docs` table gives each FTS row a stable rowid (plan step 3).
+- 2026-10-29: approved. Genres are grouped and filtered by TMDB genre id (R26, R27, R31, data model). Backlog #123 (stall prompt) and #124 (CSP `frame-src`).
