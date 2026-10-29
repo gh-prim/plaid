@@ -115,13 +115,13 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 ## Steps, in order
 
 ### PR A — Foundations
-1. [ ] `api/openapi.yaml`: `matched` event and `MatchedItem`, hardware-test route, `/problems` and its schemas, `hw_test_running`. `make generate`. (R27, R28, R29)
-2. [ ] Migration `0006_problems.sql` and `internal/problems` with its tests first (dedupe, reopen, resolve, purge). (R29)
-3. [ ] Wire `Problems` into library (folder status, watch limit), playback (`hw_fallback`, `ffmpeg_restarted`), metadata (`provider_key_refused`), with a unit test at each call site; `GET /problems` handler and e2e test. (R29)
-4. [ ] `RetestHardware` + handler + tests (403, 200, 409 concurrent, fallback cleared and resolved). (R28)
-5. [ ] Matched hub in metadata, publish from `Process`, forward on the scan stream; unit test and e2e test on the stream. (R27)
-6. [ ] Web: `tokens.json` → `build-tokens.mjs` → `tokens.css`, hooked into `make generate` and the codegen drift check. Fonts and `base.css`. (R33)
-7. [ ] Web primitives in `src/ui/` with their state tests, then `useScanEvents` (with `fakeEventSource`), `usePolling`, `useConnection`, `format`, `shellQuote`, `cidr`, error mapping, all test-first. (R9, R16, R24, R32, R34)
+1. [x] `api/openapi.yaml`: `matched` event and `MatchedItem`, hardware-test route, `/problems` and its schemas, `hw_test_running`. `make generate`. (R27, R28, R29)
+2. [x] Migration `0006_problems.sql` and `internal/problems` with its tests first (dedupe, reopen, resolve, purge). (R29)
+3. [x] Wire `Problems` into library (folder status, watch limit), playback (`hw_fallback`, `ffmpeg_restarted`), metadata (`provider_key_refused`), with a unit test at each call site; `GET /problems` handler and e2e test. (R29)
+4. [x] `RetestHardware` + handler + tests (403, 200, 409 concurrent, fallback cleared and resolved). (R28)
+5. [x] Matched hub in metadata, publish from `Process`, forward on the scan stream; unit test and e2e test on the stream. (R27)
+6. [x] Web: `tokens.json` → `build-tokens.mjs` → `tokens.css`, hooked into `make generate` and the codegen drift check. Fonts and `base.css`. (R33)
+7. [x] Web primitives in `src/ui/` with their state tests, then `useScanEvents` (with `fakeEventSource`), `usePolling`, `useConnection`, `format`, `shellQuote`, `cidr`, error mapping, all test-first. (R9, R16, R24, R32, R34)
 8. [ ] `make test`; PR A with a screenshot of a primitives page in dark and light (dev-only route, removed in PR B).
 
 ### PR B — Onboarding
@@ -189,3 +189,10 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 Deviations from the plan found during the build (date + what + why).
 - 2026-10-28 (planning): the spec removes `welcome.status.loading`, but `RequireAuth` shows it while auth loads. Replaced by a new `common.loading` key ("Loading" / "Chargement"); the spec gets a revision line in PR B.
 - 2026-10-28 (planning): the web had no design system code (`styles.css` is "deliberately minimal until F002 lands"). PR A brings the tokens and primitives F007 needs; this is the web part of F002 done early, back-ported later.
+- 2026-10-29 (PR A): the design system already ships F007's components (React, `window.Plaid`) with their CSS: the admin ones were added on 2026-10-27. PR A vendors `bundle.css` unchanged as `web/src/design/components.css` and ports the components to TypeScript in `web/src/ui/` (`Icon`, `Button`/`Spinner`, `TextField`, `controls` (Chip, SegmentedControl, ChoiceRow), `feedback` (Toast, Dialog, BottomSheet, ProgressBar, EmptyState), `CommandBlock`, `FolderRow`, `FolderPicker`, `scan` (PosterSlot, AmbientBackdrop, ServerFact)) instead of designing primitives. Hardcoded English in the bundle goes through i18n. Admin components are ported in PR C. Backlog #120 shrinks to whatever we change here.
+- 2026-10-29 (PR A): `tokens.json` and `components.css` are vendored verbatim, so they're in `web/.prettierignore`; `tokens.css` is generated and formatted. `scripts/check-codegen.sh` diffs it.
+- 2026-10-29 (PR A): the janitor is `RunJanitor` in `problems.go` (no `janitor.go`); `hw_test_running` is an `apierr` constructor like the other codes.
+- 2026-10-29 (PR A): fix commands single-quote paths (`lib/shellQuote.ts`) where the design system shows double quotes: single quotes don't expand `$` or backticks in a folder name.
+- 2026-10-29 (PR A): keys the spec table didn't have, needed by the ported components: `ui.*` (loading, show/hide password, clear, dismiss, progress), `common.close`, `picker.checking`, `picker.readable`, `picker.notAllowed`, `picker.rootsLabel`, `picker.openHint`, `picker.filterCount`, `folder.unavailable.title`, `folder.unavailable.check`; `picker.empty` is split into `.title` and `.body`; `picker.filter` takes `total`, not `count` (i18next treats `count` as a plural).
+- 2026-10-29 (PR A): error mapping stays in `web/src/auth/errors.ts` (extended with the new field codes) instead of moving to `lib/errors.ts`: every page already imports it from there.
+- 2026-10-29 (PR A): a development-only `/dev/ui` gallery (`web/src/dev/Gallery.tsx`, not routed in production builds) gives the PR A screenshots; PR B removes it.

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireStep } from './auth/RequireAuth'
@@ -7,6 +8,11 @@ import { Pair } from './pages/Pair'
 import { ProfilePicker } from './pages/ProfilePicker'
 import { Setup } from './pages/Setup'
 import { SignIn } from './pages/SignIn'
+
+// Development only: the design system's components (F007 PR A).
+const Gallery = import.meta.env.DEV
+  ? lazy(() => import('./dev/Gallery').then((m) => ({ default: m.Gallery })))
+  : null
 
 export function AppRoutes() {
   return (
@@ -60,6 +66,16 @@ export function AppRoutes() {
             </RequireStep>
           }
         />
+        {Gallery && (
+          <Route
+            path="/dev/ui"
+            element={
+              <Suspense>
+                <Gallery />
+              </Suspense>
+            }
+          />
+        )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>

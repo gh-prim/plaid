@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import { I18nextProvider } from 'react-i18next'
 import { App } from './App'
 import { createI18n } from './i18n'
+import './design/fonts.css'
+import './design/tokens.css'
+import './design/components.css'
+import './design/base.css'
 import './styles.css'
 
 const i18n = await createI18n()

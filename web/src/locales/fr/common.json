@@ -23,6 +23,9 @@
   "common": {
     "back": "Retour",
     "cancel": "Annuler",
+    "close": "Fermer",
+    "copied": "Copié",
+    "copy": "Copier",
     "retry": "Réessayer"
   },
   "device": {
@@ -30,6 +33,7 @@
   },
   "errors": {
     "csrf": "Cette requête a été bloquée. Recharge la page et réessaie.",
+    "folder_unreadable": "PLAID ne peut pas lire ce dossier.",
     "forbidden": "Tu n'as pas le droit de faire ça.",
     "generic": "Une erreur s'est produite. Réessaie.",
     "invalid_credentials": "Nom d'utilisateur ou mot de passe incorrect.",
@@ -51,10 +55,22 @@
   },
   "fieldErrors": {
     "invalid": "Invalide.",
+    "not_found": "Introuvable.",
+    "out_of_range": "Hors limites.",
     "required": "Obligatoire.",
+    "too_many": "Trop nombreux.",
     "too_common": "Trop courant. Choisis-en un autre.",
     "too_long": "Trop long.",
     "too_short": "Trop court."
+  },
+  "folder": {
+    "status": {
+      "unavailable": "Indisponible"
+    },
+    "unavailable": {
+      "check": "Ses films sont masqués jusqu’à son retour ; rien n’est supprimé. Après 30 jours d’absence, ils quittent la bibliothèque. Vérifie que le disque ou le partage est monté :",
+      "title": "{{path}} est injoignable."
+    }
   },
   "language": {
     "en": "English",
@@ -68,6 +84,31 @@
     "startProfile": "Profil de départ",
     "title": "Associer une TV"
   },
+  "picker": {
+    "checkAgain": "Vérifier à nouveau",
+    "checking": "Vérification",
+    "empty": {
+      "body": "Les fichiers ne sont pas affichés ici : ce dossier peut quand même être le bon.",
+      "title": "Aucun sous-dossier."
+    },
+    "filter": "Filtrer {{total, number}} dossiers",
+    "filterCount": "{{shown, number}} sur {{total, number}}",
+    "noAccess": "Pas d’accès",
+    "noMatch": "Aucun dossier ne correspond à « {{query}} ».",
+    "notAllowed": "Non autorisé",
+    "openHint": "Ouvre un dossier pour l’utiliser.",
+    "parent": "Dossier parent",
+    "readable": "Lisible",
+    "roots": "La navigation est limitée à ces dossiers (PLAID_BROWSE_ROOTS).",
+    "rootsLabel": "Dossiers autorisés",
+    "title": "Dossiers sur {{serverName}}",
+    "typePath": "Saisir un chemin",
+    "unreadable": {
+      "docker": "Sur Docker, monte plutôt le dossier dans le conteneur, puis redémarre-le.",
+      "why": "PLAID tourne sous l’utilisateur plaid, qui ne peut pas ouvrir {{name}}. Lance ceci sur le serveur :"
+    },
+    "use": "Utiliser ce dossier"
+  },
   "profiles": {
     "enterPin": "Saisis le code PIN de {{name}}",
     "open": "Ouvrir le profil",
@@ -79,6 +120,14 @@
     "setupCodeHint": "Tu n'es pas sur le réseau local du serveur. Le code est dans le journal du serveur, sur la ligne first_run_setup_code.",
     "subtitle": "Crée le compte administrateur de ce serveur.",
     "title": "Bienvenue sur PLAID."
+  },
+  "ui": {
+    "clear": "Effacer",
+    "dismiss": "Fermer",
+    "hidePassword": "Masquer le mot de passe",
+    "loading": "Chargement",
+    "progress": "Progression",
+    "showPassword": "Afficher le mot de passe"
   },
   "welcome": {
     "status": {

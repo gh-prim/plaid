@@ -23,6 +23,9 @@
   "common": {
     "back": "Back",
     "cancel": "Cancel",
+    "close": "Close",
+    "copied": "Copied",
+    "copy": "Copy",
     "retry": "Try again"
   },
   "device": {
@@ -30,6 +33,7 @@
   },
   "errors": {
     "csrf": "This request was blocked. Reload the page and try again.",
+    "folder_unreadable": "PLAID can’t read this folder.",
     "forbidden": "You're not allowed to do this.",
     "generic": "Something went wrong. Try again.",
     "invalid_credentials": "Wrong username or password.",
@@ -51,10 +55,22 @@
   },
   "fieldErrors": {
     "invalid": "Not valid.",
+    "not_found": "Not found.",
+    "out_of_range": "Out of range.",
     "required": "Required.",
+    "too_many": "Too many.",
     "too_common": "Too common. Choose another one.",
     "too_long": "Too long.",
     "too_short": "Too short."
+  },
+  "folder": {
+    "status": {
+      "unavailable": "Unavailable"
+    },
+    "unavailable": {
+      "check": "Its movies are hidden until it’s back; nothing is deleted. After 30 days missing, they leave the library. Check that the disk or share is mounted:",
+      "title": "{{path}} can’t be reached."
+    }
   },
   "language": {
     "en": "English",
@@ -68,6 +84,31 @@
     "startProfile": "Start on profile",
     "title": "Pair a TV"
   },
+  "picker": {
+    "checkAgain": "Check again",
+    "checking": "Checking",
+    "empty": {
+      "body": "Files aren’t listed here, so this can still be the right folder.",
+      "title": "No sub-folders."
+    },
+    "filter": "Filter {{total, number}} folders",
+    "filterCount": "{{shown, number}} of {{total, number}}",
+    "noAccess": "No access",
+    "noMatch": "No folder matches “{{query}}”.",
+    "notAllowed": "Not allowed",
+    "openHint": "Open a folder to use it.",
+    "parent": "Parent folder",
+    "readable": "Readable",
+    "roots": "Browsing is limited to these folders (PLAID_BROWSE_ROOTS).",
+    "rootsLabel": "Allowed folders",
+    "title": "Folders on {{serverName}}",
+    "typePath": "Type a path",
+    "unreadable": {
+      "docker": "On Docker, mount the folder into the container instead, then restart it.",
+      "why": "PLAID runs as the plaid user, which can’t open {{name}}. Run this on the server:"
+    },
+    "use": "Use this folder"
+  },
   "profiles": {
     "enterPin": "Enter the PIN for {{name}}",
     "open": "Open profile",
@@ -79,6 +120,14 @@
     "setupCodeHint": "You're not on the server's local network. Find the code in the server log, on the line first_run_setup_code.",
     "subtitle": "Create the admin account for this server.",
     "title": "Welcome to PLAID."
+  },
+  "ui": {
+    "clear": "Clear",
+    "dismiss": "Dismiss",
+    "hidePassword": "Hide password",
+    "loading": "Loading",
+    "progress": "Progress",
+    "showPassword": "Show password"
   },
   "welcome": {
     "status": {
