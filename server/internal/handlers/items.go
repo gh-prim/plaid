@@ -98,7 +98,10 @@ func (h *Handlers) GetItem(ctx context.Context, req api.GetItemRequestObject) (a
 	if err := h.withUserStates(ctx, pr, sum); err != nil {
 		return nil, err
 	}
-	out.UserState = sum[0].UserState
+	if err := h.withShows(ctx, sum); err != nil {
+		return nil, err
+	}
+	out.UserState, out.Show = sum[0].UserState, sum[0].Show
 	return api.GetItem200JSONResponse(out), nil
 }
 
@@ -130,7 +133,7 @@ func (h *Handlers) itemDetail(ctx context.Context, id string, limit access.Limit
 		}
 	}
 	out := api.ItemDetail{
-		Id: s.Id, Kind: s.Kind, ParentId: s.ParentId, Title: s.Title, Year: s.Year,
+		Id: s.Id, Kind: s.Kind, LibraryId: s.LibraryId, ParentId: s.ParentId, Title: s.Title, Year: s.Year,
 		SeasonNumber: s.SeasonNumber, EpisodeNumber: s.EpisodeNumber, AirDate: s.AirDate, Hints: s.Hints,
 		FileCount: s.FileCount, ChildCount: s.ChildCount, Technical: s.Technical,
 		DisplayTitle: s.DisplayTitle, MatchStatus: s.MatchStatus, ReleaseDate: s.ReleaseDate, Rating: s.Rating,
@@ -296,6 +299,10 @@ func withSummary(s *api.ItemSummary, m metadata.Summary) {
 	s.AgeRating = m.AgeRating
 	s.Genres = m.Genres
 	s.Poster, s.Backdrop, s.Still = toArtwork(m.Poster), toArtwork(m.Backdrop), toArtwork(m.Still)
+	s.RuntimeMinutes = optionalInt(m.Runtime)
+	if s.Kind == api.ItemKindSeason || s.Kind == api.ItemKindEpisode {
+		s.Overview = optional(m.Overview)
+	}
 }
 
 func toArtwork(a *metadata.Art) *api.Artwork {
@@ -318,7 +325,8 @@ func toItemMetadata(d metadata.Detail) *api.ItemMetadata {
 		CertificationRegion: optional(d.CertRegion), Studios: d.Studios, FieldLanguages: d.FieldLanguages,
 		LockedFields: d.LockedFields, LocalFields: d.LocalFields, DuplicateOf: optional(d.DuplicateOf),
 		Trailers: make([]api.Trailer, 0, len(d.Trailers)), Credits: make([]api.Credit, 0, len(d.Credits)),
-		Logo: toArtwork(d.Logo), Clearart: toArtwork(d.Clearart), Backdrops: make([]api.Artwork, 0, len(d.Backdrops)),
+		Genres: make([]api.GenreRef, 0, len(d.GenreRefs)),
+		Logo:   toArtwork(d.Logo), Clearart: toArtwork(d.Clearart), Backdrops: make([]api.Artwork, 0, len(d.Backdrops)),
 		ProviderIds: api.ProviderIds{Tmdb: optionalInt(d.TMDBID), Imdb: optional(d.IMDbID), Tvdb: optionalInt(d.TVDBID)},
 	}
 	if d.MatchSource != "" {
@@ -348,12 +356,15 @@ func toItemMetadata(d metadata.Detail) *api.ItemMetadata {
 	for i := range d.Backdrops {
 		out.Backdrops = append(out.Backdrops, *toArtwork(&d.Backdrops[i]))
 	}
+	for _, g := range d.GenreRefs {
+		out.Genres = append(out.Genres, api.GenreRef{Id: g.ID, Name: g.Name})
+	}
 	return out
 }
 
 func toItemSummary(it library.Item) api.ItemSummary {
 	out := api.ItemSummary{
-		Id: it.ID, Kind: api.ItemKind(it.Kind), ParentId: optional(it.ParentID), Title: optional(it.Title),
+		Id: it.ID, Kind: api.ItemKind(it.Kind), LibraryId: optional(it.LibraryID), ParentId: optional(it.ParentID), Title: optional(it.Title),
 		DisplayTitle: it.Title, MatchStatus: api.MatchStatusPending, Genres: []string{},
 		Year: optionalInt(it.Year), SeasonNumber: it.Season, EpisodeNumber: it.Episode,
 		FileCount: it.FileCount, ChildCount: it.ChildCount,

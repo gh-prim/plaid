@@ -28,7 +28,7 @@ const itemSortKey = `CASE items.kind
 	WHEN 'episode' THEN printf('%06d|%s', COALESCE(items.episode_number, 999999), COALESCE(items.air_date, ''))
 	ELSE COALESCE(m.sort_title, items.sort_title, '') END`
 
-const itemColumns = `SELECT items.id, items.kind, COALESCE(items.parent_id, ''), COALESCE(items.title, ''),
+const itemColumns = `SELECT items.id, items.kind, items.library_id, COALESCE(items.parent_id, ''), COALESCE(items.title, ''),
 	COALESCE(items.year, 0), COALESCE(items.season_number, (SELECT p.season_number FROM items p
 		WHERE p.id = items.parent_id AND items.kind = 'episode')), items.episode_number, COALESCE(items.air_date, ''),
 	COALESCE(items.hints, ''), m.age_rating, items.created_at, COALESCE(items.newest_child_added_at, '')
@@ -63,11 +63,12 @@ func pageSize(n int) int {
 
 // Item is an item as the read API shows it (R22).
 type Item struct {
-	ID       string
-	Kind     string
-	ParentID string
-	Title    string
-	Year     int // 0 when unknown
+	ID        string
+	Kind      string
+	LibraryID string
+	ParentID  string
+	Title     string
+	Year      int // 0 when unknown
 	// Season is an episode's season number too (the scanner stores it on
 	// the season), so a list of episodes can say S1 E4.
 	Season  *int
@@ -245,7 +246,7 @@ func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
 			season, episode, age   sql.NullInt64
 			hints, created, newest string
 		)
-		if err := rows.Scan(&it.ID, &it.Kind, &it.ParentID, &it.Title, &it.Year, &season, &episode,
+		if err := rows.Scan(&it.ID, &it.Kind, &it.LibraryID, &it.ParentID, &it.Title, &it.Year, &season, &episode,
 			&it.AirDate, &hints, &age, &created, &newest); err != nil {
 			_ = rows.Close()
 			return nil, err

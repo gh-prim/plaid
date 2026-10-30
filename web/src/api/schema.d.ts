@@ -1778,6 +1778,8 @@ export interface components {
     ItemSummary: {
       id: string
       kind: components['schemas']['ItemKind']
+      /** @description The library holding the item (F008 R17, R21). */
+      libraryId?: string
       parentId?: string
       /** @description Parsed from names. See displayTitle for what to show. */
       title?: string
@@ -1815,6 +1817,10 @@ export interface components {
        * @description When the item was added; for a show, when its newest episode was (F008 R26).
        */
       addedAt?: string
+      /** @description TMDB runtime (F008 R21 episode rows, R7 cards). */
+      runtimeMinutes?: number
+      /** @description Seasons and episodes only, for episode lists (F008 R21); other kinds have it in ItemDetail.metadata. */
+      overview?: string
       show?: components['schemas']['ShowRef']
     }
     /** @description The show of a season or an episode (F008 R30). */
@@ -2128,6 +2134,8 @@ export interface components {
     MatchStatus: 'pending' | 'matched' | 'needs_review' | 'unmatched'
     /** @description What F005 knows about an item, beyond the summary (R7, R8, R22, R23). */
     ItemMetadata: {
+      /** @description With their TMDB ids, for links to the library filtered by genre (F008 R17); 0 for a genre an admin typed. */
+      genres: components['schemas']['GenreRef'][]
       /** @enum {string} */
       matchSource?: 'nfo' | 'hint' | 'auto' | 'manual' | 'parent'
       confidence?: number

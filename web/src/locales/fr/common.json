@@ -238,13 +238,72 @@
     }
   },
   "item": {
+    "cast": "Distribution",
+    "collection": {
+      "partOf": "Fait partie de {{name}}",
+      "thisMovie": "Ce film"
+    },
+    "createdBy": "Créée par {{names}}",
+    "directedBy": "Réalisé par {{names}}",
+    "episode": {
+      "inProgress": "Encore {{duration}}"
+    },
+    "episodes_one": "{{count, number}} épisode",
+    "episodes_many": "",
+    "episodes_other": "{{count, number}} épisodes",
+    "episodeTitle": "{{number, number}}. {{title}}",
+    "filesMissing": "Les fichiers de ce titre sont introuvables pour l’instant.",
+    "markSeasonUnwatched": "Marquer la saison comme non vue",
+    "markSeasonWatched": "Marquer la saison comme vue",
     "markUnwatched": "Marquer comme non vu",
     "markWatched": "Marquer comme vu",
+    "originalTitle": "Titre original : {{title}}",
+    "play": "Lire",
+    "playEpisode": "Lire S{{season, number}} É{{episode, number}}",
+    "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
+    "rating_many": "",
+    "rating_other": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} votes",
+    "resumeEpisode": "Reprendre S{{season, number}} É{{episode, number}}",
+    "season": "Saison {{number, number}}",
+    "seasonPicker": {
+      "jump": "Tape un numéro pour y aller",
+      "label": "Choisir une saison",
+      "title_one": "{{count, number}} saison et épisodes spéciaux",
+      "title_many": "",
+      "title_other": "{{count, number}} saisons et épisodes spéciaux"
+    },
+    "seasons_one": "{{count, number}} saison",
+    "seasons_many": "",
+    "seasons_other": "{{count, number}} saisons",
+    "specials": "Épisodes spéciaux",
+    "status": {
+      "canceled": "Annulée",
+      "ended": "Terminée",
+      "in_production": "En production",
+      "returning": "Renouvelée"
+    },
+    "tech": {
+      "audio": "Audio : {{languages}}"
+    },
+    "trailer": {
+      "notice": "Lue depuis YouTube quand tu cliques.",
+      "openYouTube": "Ouvrir sur YouTube",
+      "play": "Lire la bande-annonce",
+      "title": "Bande-annonce"
+    },
     "unavailable": {
       "back": "Retour à l’accueil",
       "body": "Il a été retiré de la bibliothèque, ou ce profil ne peut pas le voir.",
       "title": "Ce titre n’est pas disponible sur ce profil."
-    }
+    },
+    "version": "Version",
+    "versions": {
+      "auto": "La meilleure pour cet appareil"
+    },
+    "watchedCount_one": "{{count, number}} vu",
+    "watchedCount_many": "",
+    "watchedCount_other": "{{count, number}} vus",
+    "writtenBy": "Écrit par {{names}}"
   },
   "language": {
     "en": "English",
@@ -483,6 +542,10 @@
       "why": "PLAID tourne sous l’utilisateur plaid, qui ne peut pas ouvrir {{name}}. Lance ceci sur le serveur :"
     },
     "use": "Utiliser ce dossier"
+  },
+  "playback": {
+    "resume": "Reprendre à {{position}}",
+    "startOver": "Recommencer"
   },
   "playing": {
     "capacity_one": "{{count, number}} conversion sur {{max, number}} en cours",

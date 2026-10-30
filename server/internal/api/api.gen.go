@@ -1791,12 +1791,18 @@ type ItemDetail struct {
 	Id    string     `json:"id"`
 	Kind  ItemKind   `json:"kind"`
 
+	// LibraryId The library holding the item (F008 R17, R21).
+	LibraryId *string `json:"libraryId,omitempty"`
+
 	// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
 	MatchStatus MatchStatus `json:"matchStatus"`
 
 	// Metadata What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
 	Metadata *ItemMetadata `json:"metadata,omitempty"`
-	ParentId *string       `json:"parentId,omitempty"`
+
+	// Overview Seasons and episodes only, for episode lists (F008 R21); other kinds have it in ItemDetail.metadata.
+	Overview *string `json:"overview,omitempty"`
+	ParentId *string `json:"parentId,omitempty"`
 
 	// Poster An image; fetch it with GET /images/{imageId}?w=.
 	Poster *Artwork `json:"poster,omitempty"`
@@ -1805,8 +1811,11 @@ type ItemDetail struct {
 	Rating *float32 `json:"rating,omitempty"`
 
 	// ReleaseDate Movie release, show first air date, season or episode air date.
-	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
-	SeasonNumber *int                `json:"seasonNumber,omitempty"`
+	ReleaseDate *openapi_types.Date `json:"releaseDate,omitempty"`
+
+	// RuntimeMinutes TMDB runtime (F008 R21 episode rows, R7 cards).
+	RuntimeMinutes *int `json:"runtimeMinutes,omitempty"`
+	SeasonNumber   *int `json:"seasonNumber,omitempty"`
 
 	// Show The show of a season or an episode (F008 R30).
 	Show *ShowRef `json:"show,omitempty"`
@@ -1854,6 +1863,9 @@ type ItemMetadata struct {
 
 	// FieldLanguages Language of text fields that fell back to English, e.g. {"overview": "en"} (R11).
 	FieldLanguages map[string]string `json:"fieldLanguages"`
+
+	// Genres With their TMDB ids, for links to the library filtered by genre (F008 R17); 0 for a genre an admin typed.
+	Genres []GenreRef `json:"genres"`
 
 	// LocalFields Fields taken from a local .nfo (R12).
 	LocalFields []string `json:"localFields"`
@@ -1926,9 +1938,15 @@ type ItemSummary struct {
 	Id    string     `json:"id"`
 	Kind  ItemKind   `json:"kind"`
 
+	// LibraryId The library holding the item (F008 R17, R21).
+	LibraryId *string `json:"libraryId,omitempty"`
+
 	// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
 	MatchStatus MatchStatus `json:"matchStatus"`
-	ParentId    *string     `json:"parentId,omitempty"`
+
+	// Overview Seasons and episodes only, for episode lists (F008 R21); other kinds have it in ItemDetail.metadata.
+	Overview *string `json:"overview,omitempty"`
+	ParentId *string `json:"parentId,omitempty"`
 
 	// Poster An image; fetch it with GET /images/{imageId}?w=.
 	Poster *Artwork `json:"poster,omitempty"`
@@ -1937,8 +1955,11 @@ type ItemSummary struct {
 	Rating *float32 `json:"rating,omitempty"`
 
 	// ReleaseDate Movie release, show first air date, season or episode air date.
-	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
-	SeasonNumber *int                `json:"seasonNumber,omitempty"`
+	ReleaseDate *openapi_types.Date `json:"releaseDate,omitempty"`
+
+	// RuntimeMinutes TMDB runtime (F008 R21 episode rows, R7 cards).
+	RuntimeMinutes *int `json:"runtimeMinutes,omitempty"`
+	SeasonNumber   *int `json:"seasonNumber,omitempty"`
 
 	// Show The show of a season or an episode (F008 R30).
 	Show *ShowRef `json:"show,omitempty"`

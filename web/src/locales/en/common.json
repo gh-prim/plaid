@@ -226,13 +226,67 @@
     }
   },
   "item": {
+    "cast": "Cast",
+    "collection": {
+      "partOf": "Part of {{name}}",
+      "thisMovie": "This movie"
+    },
+    "createdBy": "Created by {{names}}",
+    "directedBy": "Directed by {{names}}",
+    "episode": {
+      "inProgress": "{{duration}} left"
+    },
+    "episodes_one": "{{count, number}} episode",
+    "episodes_other": "{{count, number}} episodes",
+    "episodeTitle": "{{number, number}}. {{title}}",
+    "filesMissing": "This title’s files can’t be found right now.",
+    "markSeasonUnwatched": "Mark season as unwatched",
+    "markSeasonWatched": "Mark season as watched",
     "markUnwatched": "Mark as unwatched",
     "markWatched": "Mark as watched",
+    "originalTitle": "Original title: {{title}}",
+    "play": "Play",
+    "playEpisode": "Play S{{season, number}} E{{episode, number}}",
+    "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
+    "rating_other": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} votes",
+    "resumeEpisode": "Resume S{{season, number}} E{{episode, number}}",
+    "season": "Season {{number, number}}",
+    "seasonPicker": {
+      "jump": "Type a number to jump",
+      "label": "Choose a season",
+      "title_one": "{{count, number}} season and Specials",
+      "title_other": "{{count, number}} seasons and Specials"
+    },
+    "seasons_one": "{{count, number}} season",
+    "seasons_other": "{{count, number}} seasons",
+    "specials": "Specials",
+    "status": {
+      "canceled": "Canceled",
+      "ended": "Ended",
+      "in_production": "In production",
+      "returning": "Returning"
+    },
+    "tech": {
+      "audio": "Audio: {{languages}}"
+    },
+    "trailer": {
+      "notice": "Plays from YouTube when you click.",
+      "openYouTube": "Open on YouTube",
+      "play": "Play trailer",
+      "title": "Trailer"
+    },
     "unavailable": {
       "back": "Back to home",
       "body": "It was removed from the library, or this profile can’t see it.",
       "title": "This title isn’t available on this profile."
-    }
+    },
+    "version": "Version",
+    "versions": {
+      "auto": "Best for this device"
+    },
+    "watchedCount_one": "{{count, number}} watched",
+    "watchedCount_other": "{{count, number}} watched",
+    "writtenBy": "Written by {{names}}"
   },
   "language": {
     "en": "English",
@@ -468,6 +522,10 @@
       "why": "PLAID runs as the plaid user, which can’t open {{name}}. Run this on the server:"
     },
     "use": "Use this folder"
+  },
+  "playback": {
+    "resume": "Resume from {{position}}",
+    "startOver": "Start over"
   },
   "playing": {
     "capacity_one": "{{count, number}} of {{max, number}} conversion in use",

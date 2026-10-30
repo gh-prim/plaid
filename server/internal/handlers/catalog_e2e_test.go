@@ -205,6 +205,20 @@ func TestItemSummaryShow(t *testing.T) {
 		}
 	}
 	first := page.Items[0].ID
+	// F008-R17, R21: summaries name their library; details give genres with their TMDB ids.
+	var detail struct {
+		LibraryID string `json:"libraryId"`
+		Metadata  struct {
+			Genres []struct {
+				ID   int `json:"id"`
+				Name string
+			}
+		}
+	}
+	e.do("GET", "/items/"+dark, nil, bearer(e.admin)).json(&detail)
+	if detail.LibraryID != sl.ID || len(detail.Metadata.Genres) == 0 || detail.Metadata.Genres[0].ID == 0 {
+		t.Errorf("Dark's detail: library %q, genres %+v", detail.LibraryID, detail.Metadata.Genres)
+	}
 	e.do("GET", "/libraries/"+sl.ID+"/items?parentId="+dark, nil, bearer(e.admin)).json(&page)
 	if s := page.Items[0].Show; page.Items[0].Kind != "season" || s == nil || s.ID != dark {
 		t.Errorf("season show = %+v", s)

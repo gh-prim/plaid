@@ -2514,6 +2514,9 @@ components:
           type: string
         kind:
           $ref: "#/components/schemas/ItemKind"
+        libraryId:
+          type: string
+          description: The library holding the item (F008 R17, R21).
         parentId:
           type: string
         title:
@@ -2571,6 +2574,12 @@ components:
           type: string
           format: date-time
           description: When the item was added; for a show, when its newest episode was (F008 R26).
+        runtimeMinutes:
+          type: integer
+          description: TMDB runtime (F008 R21 episode rows, R7 cards).
+        overview:
+          type: string
+          description: Seasons and episodes only, for episode lists (F008 R21); other kinds have it in ItemDetail.metadata.
         show:
           $ref: "#/components/schemas/ShowRef"
     ShowRef:
@@ -3197,8 +3206,13 @@ components:
     ItemMetadata:
       type: object
       description: What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
-      required: [fieldLanguages, lockedFields, localFields, studios, trailers, credits, providerIds, backdrops]
+      required: [fieldLanguages, lockedFields, localFields, studios, trailers, credits, providerIds, backdrops, genres]
       properties:
+        genres:
+          type: array
+          description: With their TMDB ids, for links to the library filtered by genre (F008 R17); 0 for a genre an admin typed.
+          items:
+            $ref: "#/components/schemas/GenreRef"
         matchSource:
           type: string
           enum: [nfo, hint, auto, manual, parent]
