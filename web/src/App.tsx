@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireStep } from './auth/RequireAuth'
+import { Shell } from './browse/Shell'
 import { ChangePassword } from './pages/ChangePassword'
 import { Home } from './pages/Home'
 import { Pair } from './pages/Pair'
@@ -83,14 +84,18 @@ export function AppRoutes() {
             </RequireStep>
           }
         />
+        {/* The browsing screens share the shell (F008-R1). */}
         <Route
-          path="/"
           element={
             <RequireStep allow={['app']}>
-              <Home />
+              <Shell>
+                <Outlet />
+              </Shell>
             </RequireStep>
           }
-        />
+        >
+          <Route path="/" element={<Home />} />
+        </Route>
         <Route
           path="/admin/*"
           element={

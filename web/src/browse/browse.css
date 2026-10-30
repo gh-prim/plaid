@@ -156,6 +156,7 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .br-server__state {
   font-size: 13px;

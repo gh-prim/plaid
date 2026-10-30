@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
-import { Shell } from '../browse/Shell'
 import { adminStep } from '../onboarding/step'
 
 /** The signed-in home until the browsing screens (F008) exist. */
@@ -30,13 +29,11 @@ export function Home() {
   }, [isAdmin, navigate])
 
   return (
-    <Shell>
-      <div className="welcome">
-        <h1>{t('welcome.title')}</h1>
-        {server && (
-          <p className="welcome__version">{t('welcome.version', { version: server.version })}</p>
-        )}
-      </div>
-    </Shell>
+    <div className="welcome">
+      <h1>{t('welcome.title')}</h1>
+      {server && (
+        <p className="welcome__version">{t('welcome.version', { version: server.version })}</p>
+      )}
+    </div>
   )
 }
