@@ -69,6 +69,20 @@
     "signOut": "Se déconnecter",
     "username": "Nom d'utilisateur"
   },
+  "card": {
+    "episode": "S{{season, number}} É{{episode, number}} · {{title}}",
+    "episodeShort": "S{{season, number}} É{{episode, number}}",
+    "goToShow": "Voir la série",
+    "menu": "Plus d’actions pour {{title}}",
+    "moreInfo": "Plus d’infos",
+    "progressLabel": "Vu à {{percent, number}} %",
+    "separator": " · ",
+    "timeLeft": "Encore {{duration}}",
+    "unwatchedBadge_one": "{{count, number}} nouveau",
+    "unwatchedBadge_many": "",
+    "unwatchedBadge_other": "{{count, number}} nouveaux",
+    "watched": "Vu"
+  },
   "common": {
     "back": "Retour",
     "cancel": "Annuler",
@@ -143,7 +157,14 @@
       "action": "Ajouter une bibliothèque",
       "body": "Ajoute un dossier et PLAID trouvera tes films et séries.",
       "title": "Rien à regarder pour l’instant."
+    },
+    "row": {
+      "seeAll": "Tout voir"
     }
+  },
+  "item": {
+    "markUnwatched": "Marquer comme non vu",
+    "markWatched": "Marquer comme vu"
   },
   "language": {
     "en": "English",

@@ -3410,6 +3410,10 @@ components:
           type: integer
           format: int64
           description: Resume point, 0 when there's none.
+        durationMs:
+          type: integer
+          format: int64
+          description: Length of the file last played, when known, for the time left (F008 R7).
         watched:
           type: boolean
         playCount:

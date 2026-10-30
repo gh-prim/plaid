@@ -351,6 +351,10 @@ func (h *Handlers) withUserStates(ctx context.Context, pr auth.Principal, items 
 
 func toUserState(st playback.UserState, kind api.ItemKind) *api.UserState {
 	out := &api.UserState{PositionMs: st.PositionMs, Watched: st.Watched, PlayCount: st.PlayCount, LastPlayedAt: st.LastPlayedAt}
+	if st.DurationMs > 0 {
+		d := st.DurationMs
+		out.DurationMs = &d
+	}
 	if kind == api.ItemKindShow || kind == api.ItemKindSeason {
 		w, t := st.WatchedEpisodes, st.TotalEpisodes
 		out.WatchedEpisodes, out.TotalEpisodes = &w, &t

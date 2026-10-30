@@ -2833,6 +2833,8 @@ type User struct {
 
 // UserState The active profile's watch state for an item (F006 R36). Absent when no profile is active.
 type UserState struct {
+	// DurationMs Length of the file last played, when known, for the time left (F008 R7).
+	DurationMs   *int64     `json:"durationMs,omitempty"`
 	LastPlayedAt *time.Time `json:"lastPlayedAt,omitempty"`
 	PlayCount    int        `json:"playCount"`
 

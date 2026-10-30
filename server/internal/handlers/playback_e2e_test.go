@@ -66,11 +66,12 @@ type sessionJSON struct {
 }
 
 type userStateJSON struct {
-	PositionMs      int64 `json:"positionMs"`
-	Watched         bool  `json:"watched"`
-	PlayCount       int   `json:"playCount"`
-	WatchedEpisodes *int  `json:"watchedEpisodes"`
-	TotalEpisodes   *int  `json:"totalEpisodes"`
+	PositionMs      int64  `json:"positionMs"`
+	DurationMs      *int64 `json:"durationMs"`
+	Watched         bool   `json:"watched"`
+	PlayCount       int    `json:"playCount"`
+	WatchedEpisodes *int   `json:"watchedEpisodes"`
+	TotalEpisodes   *int   `json:"totalEpisodes"`
 }
 
 // playEnv is a library with a 64 KiB "MP4", a "4K MKV" and a two-episode
@@ -285,7 +286,7 @@ func TestWatchStateThroughTheAPI(t *testing.T) {
 	}
 	s := e.start(e.admin, e.movie, map[string]any{"profile": external})
 	progress(s.ID, 3_600_000, "playing")
-	if st := e.userState(e.admin, e.movie); st.PositionMs != 3_600_000 || st.Watched {
+	if st := e.userState(e.admin, e.movie); st.PositionMs != 3_600_000 || st.Watched || st.DurationMs == nil || *st.DurationMs <= st.PositionMs {
 		t.Errorf("halfway = %+v", st)
 	}
 	var page struct{ Items []struct{ ID string } }

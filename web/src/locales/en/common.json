@@ -64,6 +64,19 @@
     "signOut": "Sign out",
     "username": "Username"
   },
+  "card": {
+    "episode": "S{{season, number}} E{{episode, number}} · {{title}}",
+    "episodeShort": "S{{season, number}} E{{episode, number}}",
+    "goToShow": "Go to show",
+    "menu": "More actions for {{title}}",
+    "moreInfo": "More info",
+    "progressLabel": "{{percent, number}} % watched",
+    "separator": " · ",
+    "timeLeft": "{{duration}} left",
+    "unwatchedBadge_one": "{{count, number}} new",
+    "unwatchedBadge_other": "{{count, number}} new",
+    "watched": "Watched"
+  },
   "common": {
     "back": "Back",
     "cancel": "Cancel",
@@ -138,7 +151,14 @@
       "action": "Add a library",
       "body": "Add a folder and PLAID will find your movies and shows.",
       "title": "Nothing to watch yet."
+    },
+    "row": {
+      "seeAll": "See all"
     }
+  },
+  "item": {
+    "markUnwatched": "Mark as unwatched",
+    "markWatched": "Mark as watched"
   },
   "language": {
     "en": "English",

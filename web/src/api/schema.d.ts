@@ -2247,6 +2247,11 @@ export interface components {
        * @description Resume point, 0 when there's none.
        */
       positionMs: number
+      /**
+       * Format: int64
+       * @description Length of the file last played, when known, for the time left (F008 R7).
+       */
+      durationMs?: number
       watched: boolean
       playCount: number
       /** Format: date-time */
