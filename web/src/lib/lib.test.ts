@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { isCIDR, parseNetworks } from './cidr'
-import { formatBytes, formatClock, formatMbps, formatRelative, nativeLanguageName } from './format'
+import {
+  durationFallback,
+  formatBytes,
+  formatClock,
+  formatDuration,
+  formatMbps,
+  formatRelative,
+  nativeLanguageName,
+} from './format'
 import { mountCommand, setfaclCommand, shellQuote } from './shellQuote'
 
 describe('shellQuote', () => {
@@ -60,5 +68,24 @@ describe('format', () => {
   it('names each language in itself', () => {
     expect(nativeLanguageName('fr')).toBe('Français')
     expect(nativeLanguageName('en')).toBe('English')
+  })
+})
+
+describe('formatDuration', () => {
+  it('formats hours and minutes in the locale', () => {
+    expect(formatDuration('en', 6_240_000)).toBe('1h 44m')
+    expect(formatDuration('fr', 6_240_000)).toBe('1h 44min')
+    expect(formatDuration('en', 600_000)).toBe('10m')
+    expect(formatDuration('en', 7_200_000)).toBe('2h')
+  })
+  it('rounds to the minute, never shows 0 for something left', () => {
+    expect(formatDuration('en', 20_000)).toBe('1m')
+    expect(formatDuration('en', 0)).toBe('0m')
+    expect(formatDuration('en', 89_000)).toBe('1m')
+  })
+  it('falls back without Intl.DurationFormat', () => {
+    expect(durationFallback('en', { hours: 1, minutes: 44 })).toBe('1h 44m')
+    expect(durationFallback('fr', { hours: 1, minutes: 44 })).toBe('1h 44min')
+    expect(durationFallback('fr', { minutes: 10 })).toBe('10min')
   })
 })

@@ -97,7 +97,7 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 10. [x] `perf_test.go` in `catalog`, run unthrottled and in the `--cpus 0.5 --memory 1g` container; numbers pasted in the PR against the NFRs (search p95 < 100 ms, home < 150 ms). Add the command to `CLAUDE.md`. `make test`. (NFR)
 
 ### Part B — Web foundations
-11. [ ] Dependencies: `hls.js` and `@tanstack/react-virtual`, pinned. `format.ts` durations with tests (en, fr, the fallback without `Intl.DurationFormat`). (R47)
+11. [x] Dependencies: `hls.js` and `@tanstack/react-virtual`, pinned. `format.ts` durations with tests (en, fr, the fallback without `Intl.DurationFormat`). (R47)
 12. [ ] Theme (`theme.ts`) and the shell: sidebar with library counts (facets `total`), top bar with search, profile menu with Appearance, bottom tab bar under 768 px, server card for admins (who watches what, polls `GET /playback` every 30 s while visible, never for members: test), About link with attributions. (R1, R4, R50)
 13. [ ] Profile picker: restyle, `profiles.title`, PIN on `pl-pin`, tab-session flag in `RequireAuth`, profile locale applied on switch (tests: 3 profiles new tab → picker; 1 profile → home; `fr` profile switches language). (R2, R3)
 14. [ ] Cards and rows: `PosterCard`, `LandscapeCard`, `CardMenu` (mark watched), `Row` with paging, `AmbientTop`; tests for every state (progress, watched, unwatched count, missing artwork, `S1 E4` line, time left). Port any card component the canvas adds to `src/ui/` like F007 did. (R6–R8)
