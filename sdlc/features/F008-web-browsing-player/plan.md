@@ -150,9 +150,9 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 - **Storing track memory and autoplay on the server**: a new settings API for per-profile preferences; `localStorage` per profile is enough for one browser in v1 (the native apps will want a server setting later).
 
 ## Expected evidence
-- [ ] Tests added: FTS5 and trigger tests in `db`, `catalog` unit tests (list, facets, search, home, up-next), `catalog_e2e_test.go` with age limits; web tests for every browsing and player acceptance criterion, `gridQuery`, `useSearch`, `capabilities`, `engine`, `session`, `trackMemory`, `shortcuts`, `upNext`, `format`.
-- [ ] `make test` green, output pasted in the PR (last line `✅ all checks passed`).
-- [ ] Perf: catalog numbers (search p95, home, filtered total) unthrottled and in the Pi-like container; F004 scan and F005 metadata perf before/after the migration.
+- [x] Tests added: FTS5 and trigger tests in `db`, `catalog` unit tests (list, facets, search, home, up-next), `catalog_e2e_test.go` with age limits; web tests for every browsing and player acceptance criterion, `gridQuery`, `useSearch`, `capabilities`, `engine`, `session`, `trackMemory`, `shortcuts`, `upNext`, `format`.
+- [x] `make test` green, output pasted in the PR (last line `✅ all checks passed`).
+- [x] Perf: catalog numbers (search p95, home, filtered total) unthrottled and in the Pi-like container; F004 scan and F005 metadata perf before/after the migration.
 - [ ] Screenshots next to the canvas exports: profile picker, home (states), grid (filtered, empty, skeletons), movie (bright and dark backdrop, no artwork, versions, admin Edit), show, person, search, unavailable, player (controls on white and black frames, menus, info, next episode, still watching, errors); French and +35 % at 375 px; light theme on home and a movie page.
 - [ ] Browser matrix table (step 32), including 10 minutes of hls.js playback without a stall.
 - [ ] Manual check: 5,000-item grid on a mid-range laptop and a phone, smooth, Back restores the place.
