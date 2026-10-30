@@ -2,11 +2,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useParams } from 'react-router'
 import { api } from '../api/client'
+import { useAuth } from '../auth/AuthProvider'
 import type { components } from '../api/schema'
 import { formatBytes, formatClock } from '../lib/format'
 import { Icon } from '../ui'
 import { PosterCard } from './cards/PosterCard'
 import { CastRow } from './CastRow'
+import { EditMenu } from './EditMenu'
 import { presentFiles, pickTrailer, resolutionName } from './itemFacts'
 import { firstYear, MovieHeader } from './MovieHeader'
 import { ShowSeasons, useUpNext } from './ShowSeasons'
@@ -71,6 +73,13 @@ function WatchedButton({ item, reload }: { item: ItemDetail; reload: () => Promi
   )
 }
 
+/** The Edit menu, for admins only (F008-R23). */
+function AdminEdit({ item, reload }: { item: ItemDetail; reload: () => Promise<void> }) {
+  const { state } = useAuth()
+  if (state.status !== 'ready' || state.me?.user.role !== 'admin') return null
+  return <EditMenu item={item} onChange={reload} />
+}
+
 function MoviePage({ item, reload }: { item: ItemDetail; reload: () => Promise<void> }) {
   const { t, i18n } = useTranslation()
   const files = presentFiles(item.files)
@@ -115,6 +124,7 @@ function MoviePage({ item, reload }: { item: ItemDetail; reload: () => Promise<v
         </label>
       )}
       <WatchedButton item={item} reload={reload} />
+      <AdminEdit item={item} reload={reload} />
     </>
   )
   const notice = missing ? (
@@ -203,6 +213,7 @@ function ShowPage({ item, reload }: { item: ItemDetail; reload: () => Promise<vo
         </Link>
       )}
       <WatchedButton item={item} reload={reload} />
+      <AdminEdit item={item} reload={reload} />
     </>
   )
   return (

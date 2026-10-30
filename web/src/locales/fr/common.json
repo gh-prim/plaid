@@ -245,6 +245,24 @@
     },
     "createdBy": "Créée par {{names}}",
     "directedBy": "Réalisé par {{names}}",
+    "edit": {
+      "artwork": {
+        "auto": "PLAID choisit la meilleure",
+        "automatic": "Revenir au choix automatique",
+        "backdrop": "Arrière-plan",
+        "kind": "Type d’image",
+        "label": "Changer l’image",
+        "logo": "Logo",
+        "noLanguage": "Sans texte",
+        "option": "{{language}} · {{width}} × {{height}}",
+        "poster": "Affiche",
+        "title": "Changer l’image · {{title}}"
+      },
+      "fixMatch": "Corriger l’identification",
+      "label": "Modifier",
+      "refresh": "Actualiser les métadonnées",
+      "refreshed": "Actualisation en cours. Ça peut prendre une minute."
+    },
     "episode": {
       "inProgress": "Encore {{duration}}"
     },
@@ -516,6 +534,17 @@
     },
     "thisIsYou": "c’est toi",
     "title": "Personnes"
+  },
+  "person": {
+    "role": {
+      "cast": "Interprétation",
+      "creator": "Création",
+      "director": "Réalisation",
+      "writer": "Scénario"
+    },
+    "summary_one": "Sur {{serverName}} · {{count, number}} titre",
+    "summary_many": "",
+    "summary_other": "Sur {{serverName}} · {{count, number}} titres"
   },
   "picker": {
     "checkAgain": "Vérifier à nouveau",

@@ -6,6 +6,7 @@ import { CollectionPage } from './browse/CollectionPage'
 import { Collections } from './browse/Collections'
 import { HomePage } from './browse/HomePage'
 import { ItemPage } from './browse/ItemPage'
+import { PersonPage } from './browse/PersonPage'
 import { LibraryGrid } from './browse/LibraryGrid'
 import { Shell } from './browse/Shell'
 import { ChangePassword } from './pages/ChangePassword'
@@ -103,6 +104,7 @@ export function AppRoutes() {
           <Route path="/library/:libraryId/collections" element={<Collections />} />
           <Route path="/collection/:collectionId" element={<CollectionPage />} />
           <Route path="/item/:itemId" element={<ItemPage />} />
+          <Route path="/person/:personId" element={<PersonPage />} />
         </Route>
         <Route
           path="/admin/*"

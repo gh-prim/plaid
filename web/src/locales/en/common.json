@@ -233,6 +233,24 @@
     },
     "createdBy": "Created by {{names}}",
     "directedBy": "Directed by {{names}}",
+    "edit": {
+      "artwork": {
+        "auto": "PLAID picks the best one",
+        "automatic": "Back to automatic",
+        "backdrop": "Backdrop",
+        "kind": "Kind of artwork",
+        "label": "Change artwork",
+        "logo": "Logo",
+        "noLanguage": "No text",
+        "option": "{{language}} · {{width}} × {{height}}",
+        "poster": "Poster",
+        "title": "Change artwork · {{title}}"
+      },
+      "fixMatch": "Fix match",
+      "label": "Edit",
+      "refresh": "Refresh metadata",
+      "refreshed": "Refreshing. It can take a minute."
+    },
     "episode": {
       "inProgress": "{{duration}} left"
     },
@@ -496,6 +514,16 @@
     },
     "thisIsYou": "this is you",
     "title": "People"
+  },
+  "person": {
+    "role": {
+      "cast": "Acting",
+      "creator": "Created",
+      "director": "Directing",
+      "writer": "Writing"
+    },
+    "summary_one": "On {{serverName}} · {{count, number}} title",
+    "summary_other": "On {{serverName}} · {{count, number}} titles"
   },
   "picker": {
     "checkAgain": "Check again",
