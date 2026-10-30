@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireStep } from './auth/RequireAuth'
 import { HomePage } from './browse/HomePage'
+import { LibraryGrid } from './browse/LibraryGrid'
 import { Shell } from './browse/Shell'
 import { ChangePassword } from './pages/ChangePassword'
 import { Pair } from './pages/Pair'
@@ -95,6 +96,7 @@ export function AppRoutes() {
           }
         >
           <Route path="/" element={<HomePage />} />
+          <Route path="/library/:libraryId" element={<LibraryGrid />} />
         </Route>
         <Route
           path="/admin/*"

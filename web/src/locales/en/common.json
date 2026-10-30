@@ -145,6 +145,62 @@
       "periodicShort": "Checked every {{minutes, number}} min"
     }
   },
+  "grid": {
+    "count": {
+      "movies_one": "{{count, number}} movie",
+      "movies_other": "{{count, number}} movies",
+      "shows_one": "{{count, number}} show",
+      "shows_other": "{{count, number}} shows"
+    },
+    "empty": {
+      "action": "Clear filters",
+      "body": "Remove a filter, or clear them all.",
+      "title": "Nothing matches these filters."
+    },
+    "end_one": "That’s the only title.",
+    "end_other": "That’s all {{count, number}} titles.",
+    "filter": {
+      "clear": "Clear all",
+      "decade": "{{decade}}s",
+      "genre": "Genre",
+      "hdrOnly": "HDR only",
+      "remove": "Remove filter {{name}}",
+      "resolution": {
+        "label": "Resolution",
+        "sd": "720p and lower",
+        "uhd": "4K"
+      },
+      "watch": {
+        "all": "All",
+        "in_progress": "In progress",
+        "label": "Viewing",
+        "unwatched": "Not watched",
+        "watched": "Watched"
+      },
+      "years": "Years"
+    },
+    "filters": {
+      "apply_one": "Show {{count, number}} title",
+      "apply_other": "Show {{count, number}} titles",
+      "count_one": "Filters ({{count, number}})",
+      "count_other": "Filters ({{count, number}})",
+      "label": "Filters"
+    },
+    "letters": "Jump to letter",
+    "order": {
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
+    "sort": {
+      "added": "Recently added",
+      "label": "Sort",
+      "played": "Recently watched",
+      "random": "Random",
+      "rating": "Rating",
+      "released": "Release date",
+      "title": "Title"
+    }
+  },
   "home": {
     "apps": "PLAID plays in this browser. TV and phone apps aren’t out yet.",
     "empty": {
@@ -170,7 +226,12 @@
   },
   "item": {
     "markUnwatched": "Mark as unwatched",
-    "markWatched": "Mark as watched"
+    "markWatched": "Mark as watched",
+    "unavailable": {
+      "back": "Back to home",
+      "body": "It was removed from the library, or this profile can’t see it.",
+      "title": "This title isn’t available on this profile."
+    }
   },
   "language": {
     "en": "English",

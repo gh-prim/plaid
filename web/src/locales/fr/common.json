@@ -151,6 +151,67 @@
       "periodicShort": "Vérifié toutes les {{minutes, number}} min"
     }
   },
+  "grid": {
+    "count": {
+      "movies_one": "{{count, number}} film",
+      "movies_many": "",
+      "movies_other": "{{count, number}} films",
+      "shows_one": "{{count, number}} série",
+      "shows_many": "",
+      "shows_other": "{{count, number}} séries"
+    },
+    "empty": {
+      "action": "Effacer les filtres",
+      "body": "Retire un filtre, ou efface-les tous.",
+      "title": "Rien ne correspond à ces filtres."
+    },
+    "end_one": "C’est le seul titre.",
+    "end_many": "",
+    "end_other": "Voilà les {{count, number}} titres.",
+    "filter": {
+      "clear": "Tout effacer",
+      "decade": "Années {{decade}}",
+      "genre": "Genre",
+      "hdrOnly": "HDR uniquement",
+      "remove": "Retirer le filtre {{name}}",
+      "resolution": {
+        "label": "Résolution",
+        "sd": "720p et moins",
+        "uhd": "4K"
+      },
+      "watch": {
+        "all": "Tout",
+        "in_progress": "En cours",
+        "label": "Visionnage",
+        "unwatched": "Pas vus",
+        "watched": "Vus"
+      },
+      "years": "Années"
+    },
+    "filters": {
+      "apply_one": "Afficher {{count, number}} titre",
+      "apply_many": "",
+      "apply_other": "Afficher {{count, number}} titres",
+      "count_one": "Filtres ({{count, number}})",
+      "count_many": "",
+      "count_other": "Filtres ({{count, number}})",
+      "label": "Filtres"
+    },
+    "letters": "Aller à la lettre",
+    "order": {
+      "asc": "Croissant",
+      "desc": "Décroissant"
+    },
+    "sort": {
+      "added": "Ajouts récents",
+      "label": "Trier",
+      "played": "Vu récemment",
+      "random": "Aléatoire",
+      "rating": "Note",
+      "released": "Date de sortie",
+      "title": "Titre"
+    }
+  },
   "home": {
     "apps": "PLAID se regarde dans ce navigateur. Les apps TV et mobile ne sont pas encore sorties.",
     "empty": {
@@ -177,7 +238,12 @@
   },
   "item": {
     "markUnwatched": "Marquer comme non vu",
-    "markWatched": "Marquer comme vu"
+    "markWatched": "Marquer comme vu",
+    "unavailable": {
+      "back": "Retour à l’accueil",
+      "body": "Il a été retiré de la bibliothèque, ou ce profil ne peut pas le voir.",
+      "title": "Ce titre n’est pas disponible sur ce profil."
+    }
   },
   "language": {
     "en": "English",
