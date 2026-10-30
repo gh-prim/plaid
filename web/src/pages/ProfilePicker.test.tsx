@@ -30,7 +30,9 @@ describe('ProfilePicker', () => {
     const calls = setup({ status: 200, body: {} })
     await renderApp('/profiles')
     await userEvent.click(await screen.findByRole('button', { name: /Kids/ }))
-    expect(await screen.findByText('Watching as Kids')).toBeInTheDocument()
+    expect(
+      await screen.findAllByRole('button', { name: 'Profile menu for Kids' }),
+    ).not.toHaveLength(0)
     expect(calls.find((c) => c.path === '/session/profile')?.body).toEqual({ profileId: 'p2' })
   })
 
@@ -52,7 +54,9 @@ describe('ProfilePicker', () => {
     expect(pin).toHaveAccessibleDescription('Wrong PIN. Try again.')
 
     await userEvent.keyboard('1234{Enter}')
-    expect(await screen.findByText('Watching as Ada')).toBeInTheDocument()
+    expect(await screen.findAllByRole('button', { name: 'Profile menu for Ada' })).not.toHaveLength(
+      0,
+    )
     expect(
       calls
         .filter((c) => c.path === '/session/profile')

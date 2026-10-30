@@ -1,0 +1,347 @@
+/* F008 browsing layout, on the design tokens. Component styles stay in
+   design/components.css. Sidebar from 768 px, tab bar below. */
+
+.br-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-text);
+}
+.br-main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.br-content {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.br-wordmark {
+  font-family: var(--font-display);
+  font-size: 38px;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+/* Sidebar */
+.br-side {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  width: 232px;
+  flex: none;
+  box-sizing: border-box;
+  padding: 22px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-raised);
+  border-right: 1px solid var(--border-subtle);
+  overflow-y: auto;
+}
+.br-side__brand {
+  padding: 0 12px 24px;
+  text-decoration: none;
+  border-radius: var(--radius-m);
+}
+.br-side__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.br-side__label {
+  padding: 20px 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+.br-side__item {
+  min-height: 40px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: var(--text-secondary);
+  font: 600 15px/20px var(--font-text);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.br-side__item:hover {
+  background: var(--surface-hover);
+}
+.br-side__item.active {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+.br-side__item--small {
+  font-size: 13px;
+}
+.br-side__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.br-side__count {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+.br-side__fill {
+  flex: 1;
+  min-height: 32px;
+}
+.br-side__foot {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.br-side__profile {
+  position: relative;
+}
+.br-side__me {
+  width: 100%;
+  min-height: 52px;
+  color: var(--text-primary);
+}
+.br-side__me .br-side__text {
+  display: flex;
+  flex-direction: column;
+}
+.br-side__me .br-side__text span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+/* Server card (admins) */
+.br-server {
+  margin: 0 4px;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.br-server__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.br-server__mark {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--status-success);
+}
+.br-server__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.br-server__state {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.br-server__stream {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.br-server__who {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  line-height: 17px;
+}
+.br-server__who span {
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Top bar */
+.br-top {
+  position: relative;
+  z-index: 2;
+  height: 68px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.br-top__brand,
+.br-top__phone {
+  display: none;
+}
+.br-top__fill {
+  flex: 1;
+}
+.br-top__profile {
+  position: relative;
+}
+.br-top__me {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: none;
+  cursor: pointer;
+}
+.br-search {
+  min-height: 40px;
+  width: 320px;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  background: color-mix(in oklch, var(--bg-base) 60%, transparent);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-m);
+  color: var(--text-tertiary);
+  font-size: 15px;
+  text-decoration: none;
+}
+.br-pill {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  color: var(--text-primary);
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Menus */
+.br-menu {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 260px;
+}
+.br-menu--up {
+  left: 0;
+  bottom: calc(100% + 8px);
+}
+.br-menu--down {
+  right: 0;
+  top: calc(100% + 8px);
+}
+.br-menu--sheet {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: 80px;
+}
+.br-menu__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px;
+}
+.br-menu__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+.br-menu__button {
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+.br-menu a {
+  text-decoration: none;
+}
+
+/* Tab bar (phones) */
+.br-tabs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .br-side {
+    display: none;
+  }
+  .br-top {
+    height: 56px;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .br-top__brand,
+  .br-top__phone {
+    display: flex;
+    text-decoration: none;
+  }
+  .br-search {
+    display: none;
+  }
+  .br-content {
+    padding-bottom: 80px;
+  }
+  .br-tabs {
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 72px;
+    padding-bottom: env(safe-area-inset-bottom, 12px);
+    box-sizing: border-box;
+    display: flex;
+    background: var(--bg-raised);
+    border-top: 1px solid var(--border-subtle);
+  }
+  .br-tab {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: 0;
+    background: none;
+    color: var(--text-tertiary);
+    font: 600 11px/14px var(--font-text);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .br-tab.active {
+    color: var(--text-primary);
+  }
+  .br-tab__text {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

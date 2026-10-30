@@ -1,12 +1,7 @@
 {
-  "account": {
-    "label": "Compte",
-    "watchingAs": "Profil : {{name}}"
-  },
   "admin": {
     "back": "Retour à la bibliothèque",
     "backTo": "‹ {{serverName}}",
-    "entry": "Gérer {{serverName}}",
     "group": {
       "manage": "Gérer",
       "settings": "Réglages",
@@ -233,6 +228,32 @@
     },
     "title": "Métadonnées",
     "useOwn": "Utiliser ma clé"
+  },
+  "nav": {
+    "about": "À propos de PLAID",
+    "admin": "Admin",
+    "appearance": {
+      "dark": "Sombre",
+      "label": "Apparence",
+      "light": "Clair",
+      "system": "Système"
+    },
+    "home": "Accueil",
+    "libraries": "Bibliothèques",
+    "main": "Principal",
+    "more": "Plus",
+    "profileMenu": "Menu du profil {{name}}",
+    "search": "Rechercher",
+    "server": "Serveur",
+    "serverCard": {
+      "idle": "Rien en lecture",
+      "watching_one": "{{count, number}} en lecture",
+      "watching_many": "",
+      "watching_other": "{{count, number}} en lecture"
+    },
+    "serverStrip_one": "{{serverName}} · {{count, number}} en lecture",
+    "serverStrip_many": "",
+    "serverStrip_other": "{{serverName}} · {{count, number}} en lecture"
   },
   "offline": {
     "body": "Vérifie qu’il est allumé et sur le même réseau. Les étapes terminées sont enregistrées sur le serveur.",
@@ -547,6 +568,9 @@
     "voice_many": "",
     "voice_other": "{{latestTitle}} vient d’arriver. {{count, number}} de tes films sont là.",
     "wall": "Identifiés dans {{library}}"
+  },
+  "search": {
+    "placeholder": "Films, séries, personnes"
   },
   "server": {
     "accel": {

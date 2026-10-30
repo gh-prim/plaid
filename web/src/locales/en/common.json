@@ -1,12 +1,7 @@
 {
-  "account": {
-    "label": "Account",
-    "watchingAs": "Watching as {{name}}"
-  },
   "admin": {
     "back": "Back to the library",
     "backTo": "‹ {{serverName}}",
-    "entry": "Manage {{serverName}}",
     "group": {
       "manage": "Manage",
       "settings": "Settings",
@@ -227,6 +222,30 @@
     },
     "title": "Metadata",
     "useOwn": "Use my own key"
+  },
+  "nav": {
+    "about": "About PLAID",
+    "admin": "Admin",
+    "appearance": {
+      "dark": "Dark",
+      "label": "Appearance",
+      "light": "Light",
+      "system": "System"
+    },
+    "home": "Home",
+    "libraries": "Libraries",
+    "main": "Main",
+    "more": "More",
+    "profileMenu": "Profile menu for {{name}}",
+    "search": "Search",
+    "server": "Server",
+    "serverCard": {
+      "idle": "Nothing playing",
+      "watching_one": "{{count, number}} watching",
+      "watching_other": "{{count, number}} watching"
+    },
+    "serverStrip_one": "{{serverName}} · {{count, number}} watching",
+    "serverStrip_other": "{{serverName}} · {{count, number}} watching"
   },
   "offline": {
     "body": "Check that it’s on and on the same network. Steps you finished are saved on the server.",
@@ -528,6 +547,9 @@
     "voice_one": "{{latestTitle}} just arrived. {{count, number}} of your movies is here.",
     "voice_other": "{{latestTitle}} just arrived. {{count, number}} of your movies are here.",
     "wall": "Matched in {{library}}"
+  },
+  "search": {
+    "placeholder": "Movies, shows, people"
   },
   "server": {
     "accel": {

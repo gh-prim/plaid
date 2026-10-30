@@ -1,15 +1,16 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
+import { Shell } from '../browse/Shell'
 import { adminStep } from '../onboarding/step'
 
 /** The signed-in home until the browsing screens (F008) exist. */
 export function Home() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { state, signOut } = useAuth()
+  const { state } = useAuth()
   const me = state.status === 'ready' ? state.me : null
   const server = state.status === 'ready' ? state.server : undefined
   const isAdmin = me?.user.role === 'admin'
@@ -29,24 +30,13 @@ export function Home() {
   }, [isAdmin, navigate])
 
   return (
-    <>
-      <nav className="account-bar" aria-label={t('account.label')}>
-        {me?.activeProfile && (
-          <span>{t('account.watchingAs', { name: me.activeProfile.name })}</span>
-        )}
-        <Link to="/profiles">{t('profiles.switch')}</Link>
-        <Link to="/pair">{t('pairing.title')}</Link>
-        {isAdmin && <Link to="/admin">{t('admin.entry', { serverName: server?.name ?? '' })}</Link>}
-        <button type="button" className="link-button" onClick={() => void signOut()}>
-          {t('auth.signOut')}
-        </button>
-      </nav>
-      <main className="welcome">
+    <Shell>
+      <div className="welcome">
         <h1>{t('welcome.title')}</h1>
         {server && (
           <p className="welcome__version">{t('welcome.version', { version: server.version })}</p>
         )}
-      </main>
-    </>
+      </div>
+    </Shell>
   )
 }
