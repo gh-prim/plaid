@@ -123,7 +123,7 @@ export function browserProbe(): Probe {
   const w = window as Window & {
     ManagedMediaSource?: { isTypeSupported(t: string): boolean }
   }
-  const ms = w.ManagedMediaSource ?? w.MediaSource
+  const ms = w.ManagedMediaSource ?? (typeof MediaSource === 'undefined' ? undefined : MediaSource)
   const video = document.createElement('video')
   return {
     mse: (t) => {

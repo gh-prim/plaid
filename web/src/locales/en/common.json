@@ -94,6 +94,9 @@
   },
   "errors": {
     "csrf": "This request was blocked. Reload the page and try again.",
+    "ffmpeg_missing": "This video needs FFmpeg, which isn’t installed on the server.",
+    "file_not_analyzed": "This file is still being analyzed. Try again in a minute.",
+    "file_unavailable": "This file can’t be found right now. Its drive may be unplugged. It plays again as soon as the drive is back.",
     "folder_not_found": "This folder doesn’t exist anymore.",
     "folder_overlap": "This folder is already part of {{library}}.",
     "folder_unreadable": "PLAID can’t read this folder.",
@@ -103,14 +106,18 @@
     "invalid_pin": "Wrong PIN. Try again.",
     "last_admin": "You’re the last admin. Make someone else an admin first.",
     "last_profile": "An account needs at least one profile.",
+    "not_playable": "This file can’t be played.",
     "pairing_expired": "This code expired. Show a new one on the TV.",
     "pairing_not_found": "No TV is showing this code. Check it and try again.",
     "password_change_required": "Choose a new password first.",
     "password_mismatch": "Passwords don't match.",
     "profile_locked": "Too many tries. Try again in {{minutes, number}} min.",
+    "profile_required": "Pick a profile first.",
     "setup_code_required": "This code doesn’t match. Copy the latest one from the log.",
     "setup_complete": "This server is already set up. Sign in instead.",
     "too_many_attempts": "Too many attempts. Try again in {{minutes, number}} min.",
+    "transcode_limit_reached": "The server is busy converting other videos. Try again in a moment, or pick a lower quality.",
+    "transcode_storage_full": "The server is out of space for video conversion. Ask the admin to free some up.",
     "unauthorized": "Your session has ended. Sign in again.",
     "username_taken": "This username is already taken.",
     "validation_failed": "Some fields need fixing.",
@@ -552,8 +559,137 @@
     "use": "Use this folder"
   },
   "playback": {
+    "method": {
+      "direct_play": "Direct play",
+      "direct_stream": "Direct stream",
+      "transcode": "Converting"
+    },
     "resume": "Resume from {{position}}",
     "startOver": "Start over"
+  },
+  "player": {
+    "audio": {
+      "label": "Audio",
+      "reloadNote": "Changing the audio reloads the video at the same moment.",
+      "track": "{{language}} · {{channels}}"
+    },
+    "back": "Back",
+    "back10": "Back 10 seconds",
+    "cantPlay": {
+      "body": "Copy the link and open it in VLC, or in another app that plays network streams.",
+      "title": "This video can’t play in this browser."
+    },
+    "channels": {
+      "mono": "Mono",
+      "stereo": "Stereo",
+      "surround": "{{layout}}"
+    },
+    "copied": "Link copied",
+    "copyVlcLink": "Copy link for VLC",
+    "endOfShow": {
+      "back": "Back to {{show}}",
+      "title": "That’s the last episode of {{show}} for now."
+    },
+    "error": {
+      "ffmpegAdmin": "You’re the admin: install it on the server, then try again.",
+      "ffmpegMember": "Ask your server’s admin to install it.",
+      "notFound": "This video isn’t here anymore."
+    },
+    "exitFullscreen": "Exit full screen",
+    "forward10": "Forward 10 seconds",
+    "fullscreen": "Full screen",
+    "info": {
+      "audioConverted": "{{track}}, converted to {{codec}}",
+      "browser": "This browser plays",
+      "conversion": "Conversion",
+      "copied": "{{track}}, copied as is",
+      "hardware": "Converted on the GPU",
+      "label": "Playback info",
+      "method": "How it reaches you",
+      "quality": "Quality",
+      "software": "Converted by the processor",
+      "textSubs": "{{language}}, text",
+      "why": "Why"
+    },
+    "key": {
+      "close": "Close a menu, then leave full screen",
+      "fullscreen": "Full screen",
+      "jump": "Jump to 0 % to 90 %",
+      "mute": "Mute or unmute",
+      "next": "Next episode",
+      "playPause": "Play or pause",
+      "seek": "Back or forward 10 seconds",
+      "startEnd": "Start or end",
+      "subtitles": "Subtitles on or off",
+      "volume": "Volume up or down"
+    },
+    "lowerQuality": "Lower quality",
+    "mute": "Mute",
+    "next": {
+      "auto": "Play next episode automatically",
+      "cancel": "Cancel",
+      "countdown_one": "Playing in {{count, number}} second",
+      "countdown_other": "Playing in {{count, number}} seconds",
+      "label": "Next episode",
+      "playNow": "Play now"
+    },
+    "pause": "Pause",
+    "pip": "Picture in picture",
+    "play": "Play",
+    "quality": {
+      "asIs": "plays the file as is",
+      "converted": "converted",
+      "current": "{{quality}} · {{bitrate}}",
+      "label": "Quality",
+      "note": "Lower qualities are converted by the server and start a few seconds later.",
+      "original": "Original"
+    },
+    "reload": {
+      "audio": "Switching to {{track}}",
+      "quality": "Switching to {{quality}}",
+      "subtitles": "Adding {{language}} subtitles"
+    },
+    "remaining": "{{duration}} left",
+    "resume": {
+      "text": "You stopped at {{position}} in {{title}}.",
+      "title": "Pick up where you left off?"
+    },
+    "retryIn": "Try again in {{seconds, number}} s",
+    "shortcuts": {
+      "hint": "Press ? to see this again.",
+      "label": "Keyboard shortcuts"
+    },
+    "stillWatching": {
+      "continue": "Continue",
+      "stop": "Stop",
+      "title": "Still watching?"
+    },
+    "stopped": {
+      "body": "Your place is saved.",
+      "restart": "Start again from {{position}}",
+      "title": "Playback stopped."
+    },
+    "subtitles": {
+      "forced": "{{language}} (forced)",
+      "imageNote": "Image subtitles: the video reloads",
+      "label": "Subtitles",
+      "off": "Off",
+      "sdhName": "{{language}} SDH",
+      "sdhNote": "SDH: for deaf and hard of hearing viewers"
+    },
+    "timeline": {
+      "label": "Timeline",
+      "valueText": "{{elapsed}} of {{duration}}"
+    },
+    "track": {
+      "unknown": "Unknown language"
+    },
+    "tryAgain": "Try again",
+    "unmute": "Unmute",
+    "volume": {
+      "label": "Volume",
+      "valueText": "Volume {{percent, number}} %"
+    }
   },
   "playing": {
     "capacity_one": "{{count, number}} of {{max, number}} conversion in use",

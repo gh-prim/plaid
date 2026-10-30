@@ -101,7 +101,7 @@ describe('LandscapeCard', () => {
   it('names the show and the episode, with the time left, and plays directly', async () => {
     await inRouter(<LandscapeCard item={episode} />)
     const link = screen.getByRole('link', { name: /The Simpsons/ })
-    expect(link).toHaveAttribute('href', '/watch/e4')
+    expect(link).toHaveAttribute('href', '/watch/e4?t=780')
     expect(
       within(link).getByText('S1 E4 · There’s No Disgrace Like Home · 10m left'),
     ).toBeInTheDocument()

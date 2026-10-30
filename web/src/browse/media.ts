@@ -31,3 +31,9 @@ export function unwatchedEpisodes(item: ItemSummary): number {
   if (!st?.totalEpisodes) return 0
   return Math.max(0, st.totalEpisodes - (st.watchedEpisodes ?? 0))
 }
+
+/** The player at the resume point: a Resume button doesn't ask again (F008-R40). */
+export function watchLink(item: { id: string; userState?: { positionMs: number } }): string {
+  const ms = item.userState?.positionMs ?? 0
+  return `/watch/${item.id}${ms > 0 ? `?t=${Math.floor(ms / 1000)}` : ''}`
+}

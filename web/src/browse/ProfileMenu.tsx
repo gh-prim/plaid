@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/AuthProvider'
 import { Button, Dialog, SegmentedControl } from '../ui'
+import { loadAutoplay, rememberAutoplay } from '../player/trackMemory'
 import { useTheme, type Theme } from './theme'
 
 /**
@@ -23,6 +24,8 @@ export function ProfileMenu({
   const { state, signOut } = useAuth()
   const [theme, setTheme] = useTheme()
   const [about, setAbout] = useState(false)
+  const profileId = state.status === 'ready' ? (state.me?.activeProfile?.id ?? '') : ''
+  const [autoplay, setAutoplay] = useState(() => loadAutoplay(profileId))
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -58,6 +61,18 @@ export function ProfileMenu({
           ]}
         />
       </div>
+      <label className={`pl-toggle br-menu__toggle ${autoplay ? 'is-checked' : ''}`}>
+        <input
+          type="checkbox"
+          checked={autoplay}
+          onChange={(e) => {
+            setAutoplay(e.target.checked)
+            rememberAutoplay(profileId, e.target.checked)
+          }}
+        />
+        <span className="pl-toggle__track" aria-hidden="true" />
+        {t('player.next.auto')}
+      </label>
       <Link to="/pair" role="menuitem" className="pl-menu__item pl-focusable" onClick={onClose}>
         {t('pairing.title')}
       </Link>

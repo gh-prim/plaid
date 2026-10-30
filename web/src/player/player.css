@@ -1,0 +1,518 @@
+/* The player (F008-R33–R46): layout on the tokens, direction A of the
+   canvas. Component styles (pl-player, pl-tl, pl-ppanel, pl-next,
+   pl-resume, pl-pmsg) stay in components.css. */
+
+.pv-player {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  border-radius: 0;
+  background: #000;
+}
+
+.pv-stage {
+  position: absolute;
+  inset: 0;
+}
+.pv-stage.is-hidden {
+  cursor: none;
+}
+
+.pv-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.pv-video.is-waiting {
+  visibility: hidden;
+}
+.pv-video::cue {
+  /* Drawn by the player itself; the browser draws them only in iPhone's
+     native full screen. */
+  font: 600 1em/1.3 var(--font-text);
+  background: rgba(9, 11, 22, 0.62);
+}
+
+.pv-surface {
+  position: absolute;
+  inset: 0;
+}
+
+/* Controls: in fast, out slow; never hidden while paused, in a menu,
+   hovered or focused (the stage class decides). */
+.pv-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-controls) var(--ease-exit);
+}
+.pv-controls > * {
+  pointer-events: auto;
+}
+.pv-stage.is-shown .pv-controls {
+  opacity: 1;
+  transition: opacity var(--duration-hover) var(--ease-standard);
+}
+.pv-stage.is-hidden .pv-controls {
+  opacity: 0;
+}
+.pv-stage .pl-player__scrim {
+  z-index: 0;
+}
+.pv-top {
+  z-index: 1;
+  padding: var(--space-4) var(--space-5);
+}
+.pv-bottom {
+  z-index: 1;
+}
+.pv-left {
+  color: var(--text-secondary);
+}
+.pv-row {
+  margin-top: 2px;
+}
+
+/* One amber per viewport: the played part turns cream while a control
+   has keyboard focus, a menu is open or the next card shows. */
+.pv-stage.has-menu .pl-tl__played,
+.pv-stage.has-next .pl-tl__played,
+.pv-controls:has(:focus-visible:not(.pl-tl)) .pl-tl__played {
+  background: var(--text-primary);
+}
+.pl-tl:focus-visible {
+  outline: none;
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-focus);
+}
+.pl-tl:focus-visible .pl-tl__thumb {
+  transform: translate(-50%, -50%) scale(1);
+}
+.pv-tip {
+  position: absolute;
+  bottom: 22px;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: var(--radius-m);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-raised);
+  font: 600 14px/20px var(--font-text);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.pv-skip {
+  position: relative;
+}
+.pv-skip__n {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -38%);
+  font: 700 8px/1 var(--font-text);
+}
+
+/* Volume: the slider opens on hover or focus. */
+.pv-vol__range {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 0;
+  height: 5px;
+  margin: 0;
+  border-radius: var(--radius-m);
+  background: linear-gradient(
+    to right,
+    var(--text-primary) var(--v),
+    rgba(244, 236, 220, 0.25) var(--v)
+  );
+  opacity: 0;
+  cursor: pointer;
+  transition:
+    width var(--duration-focus) var(--ease-standard),
+    margin var(--duration-focus) var(--ease-standard);
+}
+.pv-vol:hover .pv-vol__range,
+.pv-vol:focus-within .pv-vol__range {
+  width: 112px;
+  margin: 0 var(--space-4) 0 var(--space-1);
+  opacity: 1;
+}
+.pv-vol:hover,
+.pv-vol:focus-within {
+  background: rgba(244, 236, 220, 0.1);
+}
+.pv-vol__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-primary);
+}
+.pv-vol__range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--text-primary);
+}
+.pv-vol__range:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Pills name what plays; their panels sit above them. */
+.pv-menuwrap {
+  position: relative;
+}
+.pv-pill {
+  max-width: 240px;
+}
+.pv-pill__value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pl-pbtn.is-open {
+  background: rgba(244, 236, 220, 0.2);
+}
+.pv-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  z-index: 3;
+}
+.pv-panel:focus {
+  outline: none;
+}
+.pv-prow:focus {
+  outline: none;
+}
+.pv-prow:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--focus-ring);
+  background: var(--surface-hover);
+}
+.pv-prow.is-selected {
+  background: var(--surface);
+}
+.pv-prow__check {
+  flex: none;
+  color: var(--text-primary);
+}
+.pv-info {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-3);
+}
+.pv-info__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 2fr;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  font: 600 14px/20px var(--font-text);
+}
+.pv-info__row dt {
+  color: var(--text-secondary);
+}
+.pv-info__row dd {
+  margin: 0;
+}
+
+/* Subtitles: low when the controls hide, above them when they show. */
+.pv-subs {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 7%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  color: #fff;
+  font: 600 clamp(16px, 3.7vh, 44px) / 1.3 var(--font-text);
+  text-shadow:
+    0 0 2px rgba(0, 0, 0, 0.9),
+    0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  transition: bottom var(--duration-controls) var(--ease-exit);
+}
+.pv-subs span {
+  padding: 2px 0.35em;
+  border-radius: var(--radius-xs);
+  background: rgba(9, 11, 22, 0.62);
+}
+.pv-stage.is-shown .pv-subs {
+  bottom: 150px;
+  transition-duration: var(--duration-hover);
+}
+.pv-stage.has-next .pv-subs {
+  right: 30%;
+}
+
+/* Track and quality reloads: words in a corner, the last frame stays. */
+.pv-reload {
+  position: absolute;
+  top: 80px;
+  right: var(--space-5);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 220px;
+  padding: 10px 14px;
+  border-radius: var(--radius-l);
+  background: rgba(14, 12, 9, 0.86);
+  font: 600 14px/20px var(--font-text);
+}
+.pv-reload__line {
+  position: relative;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(244, 236, 220, 0.22);
+}
+.pv-reload__line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  border-radius: 2px;
+  background: var(--text-primary);
+  animation: pv-slide 1.4s var(--ease-standard) infinite;
+}
+@keyframes pv-slide {
+  from {
+    left: -35%;
+  }
+  to {
+    left: 100%;
+  }
+}
+.pv-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 140px;
+  z-index: 5;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 32px));
+}
+
+/* Overlays: resume, still watching, end of show, shortcuts. */
+.pv-center {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+.pv-dim {
+  background: rgba(10, 8, 6, 0.72);
+}
+.pv-resume {
+  max-width: 100%;
+}
+.pv-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pv-resume__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: rgba(244, 236, 220, 0.22);
+}
+.pv-resume__bar > div {
+  height: 100%;
+  background: var(--text-primary);
+}
+.pv-msg {
+  z-index: 6;
+}
+.pv-next {
+  position: absolute;
+  right: var(--space-6);
+  bottom: 120px;
+  z-index: 5;
+  max-width: calc(100% - 32px);
+  animation: pv-arrive var(--duration-panel) var(--ease-standard) both;
+}
+@keyframes pv-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+.pv-stage.is-hidden .pv-next {
+  bottom: var(--space-8);
+}
+.pv-warm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 760px;
+  text-align: center;
+}
+.pv-warm__title {
+  margin: 0;
+  font: 400 clamp(36px, 6vw, 64px) / 1.1 var(--font-display);
+}
+.pv-warm__text {
+  margin: 0;
+  font: 500 15px/22px var(--font-text);
+  color: var(--text-secondary);
+}
+.pv-warm__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.pv-keys {
+  width: min(720px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-6) var(--space-5);
+  border-radius: var(--radius-l);
+  background: var(--bg-raised);
+  box-shadow:
+    var(--shadow-raised),
+    inset 0 0 0 1px var(--border-subtle);
+}
+.pv-keys__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+.pv-keys__head h2 {
+  margin: 0;
+  font: 600 18px/24px var(--font-text);
+}
+.pv-keys__list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pv-keys__list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  border-bottom: 1px solid var(--border-subtle);
+  font: 500 14px/20px var(--font-text);
+  color: var(--text-secondary);
+}
+.pv-keys__keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 150px;
+  flex: none;
+}
+.pv-keys kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  box-shadow:
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px var(--border-subtle);
+  font: 600 13px/1 var(--font-text);
+  color: var(--text-primary);
+}
+.pv-keys__hint {
+  margin: var(--space-4) 0 0;
+  font: 500 13px/18px var(--font-text);
+  color: var(--text-tertiary);
+}
+
+/* Phones: menus become bottom sheets, the row wraps, pills keep their icon. */
+@media (max-width: 600px) {
+  .pv-top {
+    padding: var(--space-3) var(--space-2);
+  }
+  .pl-player__bottom.pv-bottom {
+    padding: 0 var(--space-3) var(--space-2);
+  }
+  .pv-row {
+    flex-wrap: wrap;
+  }
+  .pv-pill__value {
+    display: none;
+  }
+  .pv-pill {
+    padding: 0;
+    width: 44px;
+  }
+  .pv-vol__range {
+    display: none;
+  }
+  .pv-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 70vh;
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  }
+  .pv-stage.is-shown .pv-subs {
+    bottom: 130px;
+  }
+  .pv-next {
+    left: var(--space-4);
+    right: var(--space-4);
+    width: auto;
+  }
+  .pv-keys__list {
+    grid-template-columns: 1fr;
+  }
+  .pv-info__row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-controls,
+  .pv-stage.is-shown .pv-controls,
+  .pv-subs {
+    transition: none;
+  }
+  .pv-next {
+    animation: none;
+  }
+  .pv-reload__line::after {
+    animation: none;
+    left: 20%;
+  }
+  .ring-fill {
+    transition: none;
+  }
+  .pv-ring {
+    display: none;
+  }
+}
+
+/* The profile menu's autoplay switch. */
+.br-menu__toggle {
+  padding: var(--space-2) var(--space-3);
+  font-size: 14px;
+}

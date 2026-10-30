@@ -142,7 +142,7 @@ describe('engine', () => {
     const video = {
       textTracks: Object.assign(tracks, { length: 3 }),
     } as unknown as HTMLVideoElement
-    showSubtitle(video, 2)
+    showSubtitle(video, 2, 'showing')
     expect(tracks.map((t) => t.mode)).toEqual(['showing', 'disabled', 'disabled'])
     showSubtitle(video, null)
     expect(tracks.map((t) => t.mode)).toEqual(['disabled', 'disabled', 'disabled'])

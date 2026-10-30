@@ -118,15 +118,21 @@ function seekOnLoad(video: HTMLVideoElement, ms: number) {
 }
 
 /**
- * Shows the subtitle track with this stream index, hides every other one,
- * HLS renditions that Safari adds on its own included. `null` turns them off.
+ * Turns on the subtitle track with this stream index and off every other
+ * one, HLS renditions that Safari adds on its own included; `null` turns
+ * them all off. `hidden` keeps the cues for the player to draw itself;
+ * `showing` lets the browser draw them (iPhone's native full screen).
  */
-export function showSubtitle(video: HTMLVideoElement, index: number | null) {
+export function showSubtitle(
+  video: HTMLVideoElement,
+  index: number | null,
+  on: 'hidden' | 'showing' = 'hidden',
+) {
   const tracks = video.textTracks as TextTrackList | undefined
   if (!tracks) return
   for (let i = 0; i < tracks.length; i++) {
     const track = tracks[i]!
     const ours = track.id.startsWith('sub-')
-    track.mode = ours && index !== null && track.id === `sub-${index}` ? 'showing' : 'disabled'
+    track.mode = ours && index !== null && track.id === `sub-${index}` ? on : 'disabled'
   }
 }

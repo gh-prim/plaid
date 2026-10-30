@@ -87,7 +87,7 @@ describe('home', () => {
     ])
     expect(within(rows[0]!).getByRole('link', { name: /Dune: Part Two/ })).toHaveAttribute(
       'href',
-      '/watch/m1',
+      '/watch/m1?t=3734',
     )
     expect(within(rows[0]!).getByText('1h 44m left')).toBeInTheDocument()
     expect(within(rows[1]!).getByRole('link', { name: 'See all' })).toHaveAttribute(

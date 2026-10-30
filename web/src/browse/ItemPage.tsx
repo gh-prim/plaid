@@ -10,6 +10,7 @@ import { PosterCard } from './cards/PosterCard'
 import { CastRow } from './CastRow'
 import { EditMenu } from './EditMenu'
 import { presentFiles, pickTrailer, resolutionName } from './itemFacts'
+import { watchLink } from './media'
 import { firstYear, MovieHeader } from './MovieHeader'
 import { ShowSeasons, useUpNext } from './ShowSeasons'
 import { TrailerSlot } from './TrailerSlot'
@@ -96,7 +97,10 @@ function MoviePage({ item, reload }: { item: ItemDetail; reload: () => Promise<v
   const actions = (
     <>
       {!missing && files.length > 0 && (
-        <Link to={watchPath('')} className="pl-btn pl-btn--primary pl-focusable">
+        <Link
+          to={watchPath(position > 0 ? `t=${Math.floor(position / 1000)}` : '')}
+          className="pl-btn pl-btn--primary pl-focusable"
+        >
           <Icon name="play" size={18} />
           {position > 0
             ? t('playback.resume', { position: formatClock(position) })
@@ -205,7 +209,7 @@ function ShowPage({ item, reload }: { item: ItemDetail; reload: () => Promise<vo
   const actions = (
     <>
       {ep && ep.seasonNumber !== undefined && ep.episodeNumber !== undefined && (
-        <Link to={`/watch/${ep.id}`} className="pl-btn pl-btn--primary pl-focusable">
+        <Link to={watchLink(ep)} className="pl-btn pl-btn--primary pl-focusable">
           <Icon name="play" size={18} />
           {(ep.userState?.positionMs ?? 0) > 0
             ? t('item.resumeEpisode', { season: ep.seasonNumber, episode: ep.episodeNumber })

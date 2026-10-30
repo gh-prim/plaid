@@ -18,7 +18,13 @@ describe('session', () => {
       'POST /items/m1/playback': apiError(503, 'transcode_limit_reached', { 'Retry-After': '30' }),
       'PATCH /playback/s1': { status: 200, body: { id: 's1', url: '/new' } },
     })
-    expect(await startSession('m1', { profile: {} })).toEqual({
+    expect(
+      await startSession('m1', {
+        profile: { canSwitchAudioTrack: false },
+        startPositionMs: 0,
+        burnSubtitles: false,
+      }),
+    ).toEqual({
       failure: { code: 'transcode_limit_reached', retryAfter: 30 },
     })
     expect(await updateSession('s1', { positionMs: 5 })).toMatchObject({

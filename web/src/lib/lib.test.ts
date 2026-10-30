@@ -7,6 +7,7 @@ import {
   formatDuration,
   formatMbps,
   formatRelative,
+  formatSpokenTime,
   nativeLanguageName,
 } from './format'
 import { mountCommand, setfaclCommand, shellQuote } from './shellQuote'
@@ -87,5 +88,13 @@ describe('formatDuration', () => {
     expect(durationFallback('en', { hours: 1, minutes: 44 })).toBe('1h 44m')
     expect(durationFallback('fr', { hours: 1, minutes: 44 })).toBe('1h 44min')
     expect(durationFallback('fr', { minutes: 10 })).toBe('10min')
+  })
+})
+
+describe('formatSpokenTime', () => {
+  it('says a position in words', () => {
+    expect(formatSpokenTime('en', 3_733_000)).toMatch(/1 hour, 2 minutes,? 13 seconds/)
+    expect(formatSpokenTime('en', 65_000)).toMatch(/1 minute,? 5 seconds/)
+    expect(formatSpokenTime('fr', 0)).toMatch(/0\sseconde/)
   })
 })

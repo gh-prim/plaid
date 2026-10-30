@@ -21,6 +21,8 @@ import { Start } from './onboarding/Start'
 
 // The admin area is its own chunk (F007 NFR bundle).
 const AdminApp = lazy(() => import('./admin/routes'))
+// The player and hls.js are their own chunk too (F008-R33).
+const Player = lazy(() => import('./player/Player'))
 
 export function AppRoutes() {
   return (
@@ -108,6 +110,16 @@ export function AppRoutes() {
           <Route path="/person/:personId" element={<PersonPage />} />
           <Route path="/search" element={<SearchPage />} />
         </Route>
+        <Route
+          path="/watch/:itemId"
+          element={
+            <RequireStep allow={['app']}>
+              <Suspense>
+                <Player />
+              </Suspense>
+            </RequireStep>
+          }
+        />
         <Route
           path="/admin/*"
           element={

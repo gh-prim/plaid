@@ -100,6 +100,9 @@
   },
   "errors": {
     "csrf": "Cette requête a été bloquée. Recharge la page et réessaie.",
+    "ffmpeg_missing": "Cette vidéo a besoin de FFmpeg, qui n’est pas installé sur le serveur.",
+    "file_not_analyzed": "Ce fichier est encore en cours d’analyse. Réessaie dans une minute.",
+    "file_unavailable": "Ce fichier est introuvable pour l’instant. Son disque est peut-être débranché. La lecture reprend dès qu’il revient.",
     "folder_not_found": "Ce dossier n’existe plus.",
     "folder_overlap": "Ce dossier fait déjà partie de {{library}}.",
     "folder_unreadable": "PLAID ne peut pas lire ce dossier.",
@@ -109,14 +112,18 @@
     "invalid_pin": "Code PIN incorrect. Réessaie.",
     "last_admin": "Tu es le dernier admin. Nomme d’abord quelqu’un d’autre admin.",
     "last_profile": "Un compte a besoin d'au moins un profil.",
+    "not_playable": "Ce fichier ne peut pas être lu.",
     "pairing_expired": "Ce code a expiré. Affiche-en un nouveau sur la TV.",
     "pairing_not_found": "Aucune TV n'affiche ce code. Vérifie-le et réessaie.",
     "password_change_required": "Choisis d'abord un nouveau mot de passe.",
     "password_mismatch": "Les mots de passe ne correspondent pas.",
     "profile_locked": "Trop d’essais. Réessaie dans {{minutes, number}} min.",
+    "profile_required": "Choisis d’abord un profil.",
     "setup_code_required": "Ce code ne correspond pas. Copie le plus récent depuis le journal.",
     "setup_complete": "Ce serveur est déjà configuré. Connecte-toi.",
     "too_many_attempts": "Trop de tentatives. Réessaie dans {{minutes, number}} min.",
+    "transcode_limit_reached": "Le serveur convertit déjà d’autres vidéos. Réessaie dans un instant, ou choisis une qualité plus basse.",
+    "transcode_storage_full": "Le serveur n’a plus de place pour convertir la vidéo. Demande à l’admin d’en libérer.",
     "unauthorized": "Ta session est terminée. Reconnecte-toi.",
     "username_taken": "Ce nom d'utilisateur est déjà pris.",
     "validation_failed": "Certains champs sont à corriger.",
@@ -573,8 +580,138 @@
     "use": "Utiliser ce dossier"
   },
   "playback": {
+    "method": {
+      "direct_play": "Lecture directe",
+      "direct_stream": "Flux direct",
+      "transcode": "Conversion"
+    },
     "resume": "Reprendre à {{position}}",
     "startOver": "Recommencer"
+  },
+  "player": {
+    "audio": {
+      "label": "Audio",
+      "reloadNote": "Changer l’audio recharge la vidéo au même moment.",
+      "track": "{{language}} · {{channels}}"
+    },
+    "back": "Retour",
+    "back10": "Reculer de 10 secondes",
+    "cantPlay": {
+      "body": "Copie le lien et ouvre-le dans VLC, ou dans une autre app qui lit les flux réseau.",
+      "title": "Cette vidéo ne peut pas être lue dans ce navigateur."
+    },
+    "channels": {
+      "mono": "Mono",
+      "stereo": "Stéréo",
+      "surround": "{{layout}}"
+    },
+    "copied": "Lien copié",
+    "copyVlcLink": "Copier le lien pour VLC",
+    "endOfShow": {
+      "back": "Retour à {{show}}",
+      "title": "C’était le dernier épisode de {{show}} pour l’instant."
+    },
+    "error": {
+      "ffmpegAdmin": "Tu es l’admin : installe-le sur le serveur, puis réessaie.",
+      "ffmpegMember": "Demande à l’admin de ton serveur de l’installer.",
+      "notFound": "Cette vidéo n’est plus là."
+    },
+    "exitFullscreen": "Quitter le plein écran",
+    "forward10": "Avancer de 10 secondes",
+    "fullscreen": "Plein écran",
+    "info": {
+      "audioConverted": "{{track}}, converti en {{codec}}",
+      "browser": "Ce navigateur lit",
+      "conversion": "Conversion",
+      "copied": "{{track}}, copié tel quel",
+      "hardware": "Converti par la carte graphique",
+      "label": "Infos de lecture",
+      "method": "Comment la vidéo te parvient",
+      "quality": "Qualité",
+      "software": "Converti par le processeur",
+      "textSubs": "{{language}}, texte",
+      "why": "Pourquoi"
+    },
+    "key": {
+      "close": "Fermer un menu, puis quitter le plein écran",
+      "fullscreen": "Plein écran",
+      "jump": "Aller de 0 % à 90 %",
+      "mute": "Couper ou rétablir le son",
+      "next": "Épisode suivant",
+      "playPause": "Lire ou mettre en pause",
+      "seek": "Reculer ou avancer de 10 secondes",
+      "startEnd": "Début ou fin",
+      "subtitles": "Activer ou couper les sous-titres",
+      "volume": "Monter ou baisser le volume"
+    },
+    "lowerQuality": "Baisser la qualité",
+    "mute": "Couper le son",
+    "next": {
+      "auto": "Lire l’épisode suivant automatiquement",
+      "cancel": "Annuler",
+      "countdown_one": "Lecture dans {{count, number}} seconde",
+      "countdown_many": "Lecture dans {{count, number}} secondes",
+      "countdown_other": "Lecture dans {{count, number}} secondes",
+      "label": "Épisode suivant",
+      "playNow": "Lire maintenant"
+    },
+    "pause": "Pause",
+    "pip": "Image dans l’image",
+    "play": "Lire",
+    "quality": {
+      "asIs": "lit le fichier tel quel",
+      "converted": "convertie",
+      "current": "{{quality}} · {{bitrate}}",
+      "label": "Qualité",
+      "note": "Les qualités plus basses sont converties par le serveur et démarrent quelques secondes plus tard.",
+      "original": "Originale"
+    },
+    "reload": {
+      "audio": "Passage à {{track}}",
+      "quality": "Passage en {{quality}}",
+      "subtitles": "Ajout des sous-titres {{language}}"
+    },
+    "remaining": "Encore {{duration}}",
+    "resume": {
+      "text": "Tu en étais à {{position}} dans {{title}}.",
+      "title": "Reprendre là où tu en étais ?"
+    },
+    "retryIn": "Réessayer dans {{seconds, number}} s",
+    "shortcuts": {
+      "hint": "Appuie sur ? pour revoir cette liste.",
+      "label": "Raccourcis clavier"
+    },
+    "stillWatching": {
+      "continue": "Continuer",
+      "stop": "Arrêter",
+      "title": "Tu regardes toujours ?"
+    },
+    "stopped": {
+      "body": "Ta position est enregistrée.",
+      "restart": "Reprendre à {{position}}",
+      "title": "Lecture arrêtée."
+    },
+    "subtitles": {
+      "forced": "{{language}} (forcés)",
+      "imageNote": "Sous-titres en image : la vidéo se recharge",
+      "label": "Sous-titres",
+      "off": "Aucun",
+      "sdhName": "{{language}} SME",
+      "sdhNote": "SME : pour les sourds et malentendants"
+    },
+    "timeline": {
+      "label": "Barre de lecture",
+      "valueText": "{{elapsed}} sur {{duration}}"
+    },
+    "track": {
+      "unknown": "Langue inconnue"
+    },
+    "tryAgain": "Réessayer",
+    "unmute": "Rétablir le son",
+    "volume": {
+      "label": "Volume",
+      "valueText": "Volume {{percent, number}} %"
+    }
   },
   "playing": {
     "capacity_one": "{{count, number}} conversion sur {{max, number}} en cours",

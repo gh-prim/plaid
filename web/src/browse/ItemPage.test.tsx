@@ -95,7 +95,7 @@ describe('movie page', () => {
     expect(screen.getByText('Directed by Denis Villeneuve')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Resume from 1:02:13' })).toHaveAttribute(
       'href',
-      '/watch/m1',
+      '/watch/m1?t=3733',
     )
     expect(screen.getByRole('link', { name: 'Start over' })).toHaveAttribute(
       'href',
@@ -251,7 +251,7 @@ describe('show page', () => {
     expect(await screen.findByText('2017–2020 · Ended · 3 seasons')).toBeInTheDocument()
     expect(await screen.findByRole('link', { name: 'Resume S2 E1' })).toHaveAttribute(
       'href',
-      '/watch/s2e1',
+      '/watch/s2e1?t=60',
     )
     // The up-next episode's season opens first.
     const pick = await screen.findByRole('button', { name: /Season 2/ })

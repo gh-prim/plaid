@@ -108,3 +108,27 @@ export function nativeLanguageName(code: string): string {
   const name = new Intl.DisplayNames([code], { type: 'language' }).of(code) ?? code
   return name.charAt(0).toLocaleUpperCase(code) + name.slice(1)
 }
+
+/**
+ * A media position in words, for screen readers: "1 hour, 2 minutes,
+ * 13 seconds" (F008 NFR accessibility, the timeline's aria-valuetext).
+ */
+export function formatSpokenTime(locale: string, ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000))
+  const parts = {
+    hours: Math.floor(s / 3600),
+    minutes: Math.floor((s % 3600) / 60),
+    seconds: s % 60,
+  }
+  const DF = (
+    Intl as { DurationFormat?: new (l: string, o: object) => { format(d: object): string } }
+  ).DurationFormat
+  if (DF && s > 0) return new DF(locale, { style: 'long' }).format(parts)
+  const units = (['hour', 'minute', 'second'] as const)
+    .map((u, i) => [u, [parts.hours, parts.minutes, parts.seconds][i]!] as const)
+    .filter(([u, v]) => v > 0 || (u === 'second' && s === 0))
+    .map(([u, v]) =>
+      new Intl.NumberFormat(locale, { style: 'unit', unit: u, unitDisplay: 'long' }).format(v),
+    )
+  return new Intl.ListFormat(locale, { type: 'unit', style: 'long' }).format(units)
+}

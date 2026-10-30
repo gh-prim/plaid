@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import type { components } from '../../api/schema'
 import { formatDuration } from '../../lib/format'
-import { imageSrc, imageSrcSet, progress } from '../media'
+import { imageSrc, imageSrcSet, progress, watchLink } from '../media'
 import { CardMenu } from './CardMenu'
 import { Thread } from './Thread'
 
@@ -45,7 +45,7 @@ export function LandscapeCard({
   }
   return (
     <div className="br-card br-card--landscape">
-      <Link to={`/watch/${item.id}`} className="br-card__link pl-focusable">
+      <Link to={watchLink(item)} className="br-card__link pl-focusable">
         <span className="br-card__art">
           {art ? (
             <img
