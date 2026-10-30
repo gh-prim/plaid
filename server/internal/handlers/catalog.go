@@ -18,8 +18,54 @@ func notImplemented() error {
 }
 
 // GetLibraryFacets lists what a library's grid can be filtered by (F008-R27).
-func (h *Handlers) GetLibraryFacets(_ context.Context, _ api.GetLibraryFacetsRequestObject) (api.GetLibraryFacetsResponseObject, error) {
-	return nil, notImplemented()
+func (h *Handlers) GetLibraryFacets(ctx context.Context, req api.GetLibraryFacetsRequestObject) (api.GetLibraryFacetsResponseObject, error) {
+	pr, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if h.catalog == nil {
+		return nil, notImplemented()
+	}
+	lim, err := h.accounts.AccessLimit(ctx, pr)
+	if err != nil {
+		return nil, err
+	}
+	lib, err := h.library.Store().GetLibrary(ctx, req.LibraryId)
+	if err != nil {
+		return nil, libraryErr(err, nil)
+	}
+	f, err := h.catalog.Facets(ctx, lib.ID, topKind(lib), lim)
+	if err != nil {
+		return nil, err
+	}
+	out := api.LibraryFacets{
+		Total: f.Total, Hdr: f.HDR,
+		Genres:      make([]api.GenreFacet, 0, len(f.Genres)),
+		Decades:     make([]api.DecadeFacet, 0, len(f.Decades)),
+		Resolutions: make([]api.ResolutionFacet, 0, len(f.Resolutions)),
+		Letters:     make([]api.LetterFacet, 0, len(f.Letters)),
+	}
+	for _, g := range f.Genres {
+		out.Genres = append(out.Genres, api.GenreFacet{Id: g.ID, Name: g.Name, Count: g.Count})
+	}
+	for _, d := range f.Decades {
+		out.Decades = append(out.Decades, api.DecadeFacet{From: d.From, Count: d.Count})
+	}
+	for _, r := range f.Resolutions {
+		out.Resolutions = append(out.Resolutions, api.ResolutionFacet{Value: api.ResolutionFilter(r.Value), Count: r.Count})
+	}
+	for _, l := range f.Letters {
+		out.Letters = append(out.Letters, api.LetterFacet{Letter: l.Letter, Count: l.Count})
+	}
+	return api.GetLibraryFacets200JSONResponse(out), nil
+}
+
+// topKind is a library's top-level kind: movie or show.
+func topKind(lib library.Library) string {
+	if lib.Type == library.TypeShows {
+		return library.KindShow
+	}
+	return library.KindMovie
 }
 
 // Search finds movies, shows, episodes and people by word prefix (F008-R28).
@@ -70,12 +116,9 @@ func (h *Handlers) listCatalog(ctx context.Context, req api.ListLibraryItemsRequ
 		return nil, libraryErr(err, nil)
 	}
 	q := catalog.Query{
-		LibraryID: lib.ID, Kind: library.KindMovie, ProfileID: pr.ProfileID, Access: lim,
+		LibraryID: lib.ID, Kind: topKind(lib), ProfileID: pr.ProfileID, Access: lim,
 		Sort: catalog.SortTitle, Seed: value(prm.Seed), WithTotal: value(prm.Total),
 		YearFrom: value(prm.YearFrom), YearTo: value(prm.YearTo), HDR: prm.Hdr,
-	}
-	if lib.Type == library.TypeShows {
-		q.Kind = library.KindShow
 	}
 	var p problems
 	if prm.ParentId != nil {

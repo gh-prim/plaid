@@ -96,6 +96,12 @@ func TestListLibraryItemsSortAndFilter(t *testing.T) {
 		t.Errorf("plain listing: %v", got)
 	}
 
+	// Facets (F008-R27).
+	if f := e.facets(ml.ID); f.Total != 3 || len(f.Genres) != 1 || f.Genres[0].ID != 878 || f.Genres[0].Count != 1 ||
+		len(f.Letters) != 3 || f.Letters[0].Letter != "A" || len(f.Decades) != 3 {
+		t.Errorf("facets = %+v", f)
+	}
+
 	// A kids profile: the total and the filters never count what it can't see.
 	r := e.do("POST", "/me/profiles", map[string]any{"name": "Kids", "maxAge": 12}, bearer(e.admin))
 	e.expect(r, http.StatusCreated, "")
@@ -108,6 +114,34 @@ func TestListLibraryItemsSortAndFilter(t *testing.T) {
 	if p := e.catalog(ml.ID, "?genre=878&total=true"); p.Total == nil || *p.Total != 0 {
 		t.Errorf("kids, a genre only Alien has: total %v", p.Total)
 	}
+	if f := e.facets(ml.ID); f.Total != 1 || len(f.Genres) != 0 || len(f.Letters) != 1 || f.Letters[0].Letter != "P" {
+		t.Errorf("kids facets = %+v", f)
+	}
+	e.expect(e.do("GET", "/libraries/nope/facets", nil, bearer(e.admin)), http.StatusNotFound, "not_found")
+}
+
+type facetsJSON struct {
+	Total  int
+	Genres []struct {
+		ID    int `json:"id"`
+		Name  string
+		Count int
+	}
+	Decades []struct{ From, Count int }
+	Letters []struct {
+		Letter string
+		Count  int
+	}
+	Hdr int
+}
+
+func (e *libEnv) facets(libraryID string) facetsJSON {
+	e.t.Helper()
+	r := e.do("GET", "/libraries/"+libraryID+"/facets", nil, bearer(e.admin))
+	e.expect(r, http.StatusOK, "")
+	var f facetsJSON
+	r.json(&f)
+	return f
 }
 
 func TestListLibraryItemsValidation(t *testing.T) {

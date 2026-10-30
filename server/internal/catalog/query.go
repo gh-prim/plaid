@@ -42,6 +42,20 @@ func resolutionBucket(w, h string) string {
 		WHEN ` + w + ` > 0 THEN 'sd' END`
 }
 
+// techCTE sums up, per top-level item, the files present under it: a
+// movie's own, a show's episodes'. Its arguments: library, kind, library.
+const techCTE = `t AS (
+	SELECT root, MAX(f.width) AS w, MAX(f.height) AS h, MAX(COALESCE(f.hdr_format, '') <> '') AS hdr FROM (
+		SELECT x.item_id AS root, x.file_id FROM item_files x JOIN items r ON r.id = x.item_id
+		WHERE r.library_id = ? AND r.kind = ?
+		UNION ALL
+		SELECT s.parent_id, x.file_id FROM items s JOIN items e ON e.parent_id = s.id JOIN item_files x ON x.item_id = e.id
+		WHERE s.library_id = ? AND s.kind = 'season'
+	) fo JOIN media_files f ON f.id = fo.file_id AND f.missing_since IS NULL GROUP BY root)`
+
+// yearExpr is an item's year: its release date's, else the parsed one.
+const yearExpr = "COALESCE(CAST(substr(m.release_date, 1, 4) AS INTEGER), i.year)"
+
 // Query selects a page of a library's top-level items.
 type Query struct {
 	LibraryID string
@@ -164,7 +178,7 @@ func (c *Catalog) filtered(q Query) (string, []any) {
 		where = append(where, "NOT "+watched, "NOT "+progress)
 	}
 
-	year := "COALESCE(CAST(substr(m.release_date, 1, 4) AS INTEGER), i.year)"
+	year := yearExpr
 	if q.YearFrom > 0 {
 		where = append(where, year+" >= ?")
 		args = append(args, q.YearFrom)
@@ -180,17 +194,9 @@ func (c *Catalog) filtered(q Query) (string, []any) {
 		}
 	}
 
-	// Files present under each item: a movie's own, a show's episodes'.
 	joinTech := ""
 	if len(q.Resolutions) > 0 || q.HDR != nil {
-		with = append(with, `t AS (
-			SELECT root, MAX(f.width) AS w, MAX(f.height) AS h, MAX(COALESCE(f.hdr_format, '') <> '') AS hdr FROM (
-				SELECT x.item_id AS root, x.file_id FROM item_files x JOIN items r ON r.id = x.item_id
-				WHERE r.library_id = ? AND r.kind = ?
-				UNION ALL
-				SELECT s.parent_id, x.file_id FROM items s JOIN items e ON e.parent_id = s.id JOIN item_files x ON x.item_id = e.id
-				WHERE s.library_id = ? AND s.kind = 'season'
-			) fo JOIN media_files f ON f.id = fo.file_id AND f.missing_since IS NULL GROUP BY root)`)
+		with = append(with, techCTE)
 		wargs = append(wargs, q.LibraryID, q.Kind, q.LibraryID)
 		joinTech = " LEFT JOIN t ON t.root = i.id"
 		if len(q.Resolutions) > 0 {
