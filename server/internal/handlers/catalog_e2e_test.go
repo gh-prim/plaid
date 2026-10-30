@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"slices"
@@ -267,4 +268,64 @@ func TestSearchThroughTheAPI(t *testing.T) {
 	for _, q := range []string{"/search?q=", "/search?q=%20%20", "/search?q=" + strings.Repeat("a", 101), "/search?q=a&limit=0", "/search?q=a&limit=51"} {
 		e.expect(e.do("GET", q, nil, bearer(e.admin)), http.StatusUnprocessableEntity, "validation_failed")
 	}
+}
+
+// F008-R32: up next through the API.
+func TestUpNextThroughTheAPI(t *testing.T) {
+	e := newLibEnv(t, libOpts{})
+	shows := t.TempDir()
+	touch(t, shows, "Dark/Season 1/Dark S01E01.mkv", "Dark/Season 1/Dark S01E02.mkv", "Dark/Season 2/Dark S02E01.mkv")
+	sl := e.create("Shows", "shows", shows)
+	e.waitIdle(sl.ID)
+	var shows1 catalogPage
+	e.do("GET", "/libraries/"+sl.ID+"/items", nil, bearer(e.admin)).json(&shows1)
+	dark := shows1.Items[0].ID
+	// The scanner numbers seasons on the season and episodes on the episode.
+	num := map[string]string{}
+	var seasons itemPage
+	e.do("GET", "/libraries/"+sl.ID+"/items?parentId="+dark, nil, bearer(e.admin)).json(&seasons)
+	for _, s := range seasons.Items {
+		var eps itemPage
+		e.do("GET", "/libraries/"+sl.ID+"/items?parentId="+s.ID, nil, bearer(e.admin)).json(&eps)
+		for _, ep := range eps.Items {
+			num[fmt.Sprintf("S%dE%d", *s.SeasonNumber, *ep.EpisodeNumber)] = ep.ID
+		}
+	}
+	if len(num) != 3 {
+		t.Fatalf("episodes: %v", num)
+	}
+
+	upNext := func(id string) string {
+		t.Helper()
+		r := e.do("GET", "/items/"+id+"/up-next", nil, bearer(e.admin))
+		if r.Code == http.StatusNoContent {
+			return ""
+		}
+		e.expect(r, http.StatusOK, "")
+		var out struct {
+			Item struct {
+				ID   string
+				Show *struct{ ID string }
+			}
+		}
+		r.json(&out)
+		if out.Item.Show == nil || out.Item.Show.ID != dark {
+			t.Errorf("up next of %s doesn't name its show: %+v", id, out.Item)
+		}
+		return out.Item.ID
+	}
+	if got := upNext(dark); got != num["S1E1"] {
+		t.Errorf("fresh show: %s", got)
+	}
+	e.expect(e.do("PUT", "/items/"+num["S1E1"]+"/watched", nil, bearer(e.admin)), http.StatusNoContent, "")
+	if got := upNext(dark); got != num["S1E2"] {
+		t.Errorf("after S1 E1: %s", got)
+	}
+	if got := upNext(num["S1E2"]); got != num["S2E1"] {
+		t.Errorf("after S1 E2: %s", got)
+	}
+	if got := upNext(num["S2E1"]); got != "" {
+		t.Errorf("after the last: %s", got)
+	}
+	e.expect(e.do("GET", "/items/nope/up-next", nil, bearer(e.admin)), http.StatusNotFound, "not_found")
 }

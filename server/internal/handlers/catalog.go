@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 	"unicode/utf8"
@@ -144,8 +145,36 @@ func (h *Handlers) GetHomeRow(_ context.Context, _ api.GetHomeRowRequestObject) 
 }
 
 // GetUpNext returns the episode to play next (F008-R32).
-func (h *Handlers) GetUpNext(_ context.Context, _ api.GetUpNextRequestObject) (api.GetUpNextResponseObject, error) {
-	return nil, notImplemented()
+func (h *Handlers) GetUpNext(ctx context.Context, req api.GetUpNextRequestObject) (api.GetUpNextResponseObject, error) {
+	pr, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if h.catalog == nil {
+		return nil, notImplemented()
+	}
+	lim, err := h.accounts.AccessLimit(ctx, pr)
+	if err != nil {
+		return nil, err
+	}
+	id, err := h.catalog.UpNext(ctx, req.ItemId, pr.ProfileID, lim)
+	if errors.Is(err, catalog.ErrNotFound) {
+		return nil, apierr.NotFound("no such item")
+	}
+	if err != nil {
+		return nil, err
+	}
+	if id == "" {
+		return api.GetUpNext204Response{}, nil
+	}
+	page, err := h.itemPage(ctx, pr, []string{id})
+	if err != nil {
+		return nil, err
+	}
+	if len(page.Items) == 0 {
+		return api.GetUpNext204Response{}, nil
+	}
+	return api.GetUpNext200JSONResponse(api.UpNext{Item: page.Items[0]}), nil
 }
 
 // value returns what p points to, or T's zero value.
