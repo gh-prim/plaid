@@ -166,16 +166,16 @@ Deviations from the plan found during the build (date + what + why).
 - 2026-10-29: plan approved by gh-prim; build starts on `feat/F008-browsing-player`.
 - 2026-10-30 (step 32, partly): browser matrix on generated clips (an H.264 MP4; Arrival, an H.264 MKV with English and French audio, English, French, English SDH and French forced text subtitles and a PGS track; a 12-minute HEVC Main 10 MKV), against the dev server on an M-series Mac with VideoToolbox:
 
-  | Case | Chrome 152 (macOS) | Safari (iOS 26.5 simulator, iPhone 17 Pro) |
-  |------|--------------------|--------------------------------------------|
-  | H.264 MP4 | Direct Play, plays | Direct Play, plays |
-  | HEVC Main 10 MKV | Direct Play (Chrome plays MKV and HEVC here) | Direct Stream (MKV repackaged, HEVC copied), native HLS |
-  | Forced and SDH text subtitles | Listed as "French (forced)" and "English SDH", switched in the page, drawn by the player | Same, in the bottom sheet |
-  | PGS subtitle | Reloads as a transcode with burn-in, "Adding Korean subtitles" status, the image is in the picture; back to a text track reloads as Direct Stream | Same |
-  | Audio switch | Reloads at the same second, subtitles kept | Same (transcode with burn-in kept) |
-  | 10 min of hls.js | 480p transcode through hls.js (native HLS hidden to force it): 613 s of wall clock, 614 s played, two `waiting` events under a second at 583 s, when the server restarted FFmpeg for the file's last 0.02 s segment | n/a (native HLS) |
+  | Case | Chrome 152 (macOS) | Safari 27 (macOS) | Safari (iOS 26.5 simulator, iPhone 17 Pro) |
+  |------|--------------------|-------------------|--------------------------------------------|
+  | H.264 MP4 | Direct Play, plays | Direct Play, plays | Direct Play, plays |
+  | HEVC Main 10 MKV | Direct Play (Chrome plays MKV and HEVC here) | Direct Stream (MKV repackaged, HEVC copied), native HLS | Same as Safari on macOS |
+  | Forced and SDH text subtitles | Listed as "French (forced)" and "English SDH", switched in the page, drawn by the player | Same | Same, in the bottom sheet |
+  | PGS subtitle | Reloads as a transcode with burn-in, "Adding Korean subtitles" status, the image is in the picture; back to a text track reloads as Direct Stream | Same | Same |
+  | Audio switch | Reloads at the same second, subtitles kept | Same (transcode with burn-in kept) | Same |
+  | 10 min of hls.js | 480p transcode through hls.js (native HLS hidden to force it): 613 s of wall clock, 614 s played, two `waiting` events under a second at 583 s, when the server restarted FFmpeg for the file's last 0.02 s segment | n/a (native HLS) | n/a (native HLS) |
 
-  Firefox isn't installed on this machine, and Safari on macOS needs "Allow remote automation" to be driven: both are still to run by hand. Fixed on the way:
+  Safari on macOS was driven through `safaridriver`: opened from a typed URL, it refuses autoplay, so the player waits on its Play button (from a click in the app it starts on its own). Firefox isn't installed on this machine: its column, the one that runs hls.js for real, is still to fill by hand. Fixed on the way:
   - **The quality menu did nothing on a file that plays directly.** F006's decider only honored a lower quality when something else already forced a conversion, so `PATCH {quality: "480p"}` kept Direct Play. A lower quality now converts on its own, with `forced_by_client` as the reason (`decide.go`, test added).
   - Subtitles were sized on the viewport's height, so twice too big on a portrait phone: now 3.7 % of the picture (`min(3.7vh, 2.1vw)`, at least 16 px).
   - Touch screens kept the player buttons' hover background after a tap: no hover background where there is no hover.
