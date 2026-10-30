@@ -29,7 +29,8 @@ const itemSortKey = `CASE items.kind
 	ELSE COALESCE(m.sort_title, items.sort_title, '') END`
 
 const itemColumns = `SELECT items.id, items.kind, COALESCE(items.parent_id, ''), COALESCE(items.title, ''),
-	COALESCE(items.year, 0), items.season_number, items.episode_number, COALESCE(items.air_date, ''),
+	COALESCE(items.year, 0), COALESCE(items.season_number, (SELECT p.season_number FROM items p
+		WHERE p.id = items.parent_id AND items.kind = 'episode')), items.episode_number, COALESCE(items.air_date, ''),
 	COALESCE(items.hints, ''), m.age_rating, items.created_at, COALESCE(items.newest_child_added_at, '')
 	FROM items LEFT JOIN item_metadata m ON m.item_id = items.id WHERE items.id IN (`
 
@@ -67,10 +68,12 @@ type Item struct {
 	ParentID string
 	Title    string
 	Year     int // 0 when unknown
-	Season   *int
-	Episode  *int
-	AirDate  string
-	Hints    map[string]string
+	// Season is an episode's season number too (the scanner stores it on
+	// the season), so a list of episodes can say S1 E4.
+	Season  *int
+	Episode *int
+	AirDate string
+	Hints   map[string]string
 	// AgeRating is the minimum age from F005's certification, nil when
 	// unrated.
 	AgeRating *int

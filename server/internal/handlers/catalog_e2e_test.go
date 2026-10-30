@@ -280,16 +280,12 @@ func TestUpNextThroughTheAPI(t *testing.T) {
 	var shows1 catalogPage
 	e.do("GET", "/libraries/"+sl.ID+"/items", nil, bearer(e.admin)).json(&shows1)
 	dark := shows1.Items[0].ID
-	// The scanner numbers seasons on the season and episodes on the episode.
+	// Episodes carry their season's number (F008-R7's S1 E4).
 	num := map[string]string{}
-	var seasons itemPage
-	e.do("GET", "/libraries/"+sl.ID+"/items?parentId="+dark, nil, bearer(e.admin)).json(&seasons)
-	for _, s := range seasons.Items {
-		var eps itemPage
-		e.do("GET", "/libraries/"+sl.ID+"/items?parentId="+s.ID, nil, bearer(e.admin)).json(&eps)
-		for _, ep := range eps.Items {
-			num[fmt.Sprintf("S%dE%d", *s.SeasonNumber, *ep.EpisodeNumber)] = ep.ID
-		}
+	var eps itemPage
+	e.do("GET", "/libraries/"+sl.ID+"/items?kind=episode", nil, bearer(e.admin)).json(&eps)
+	for _, ep := range eps.Items {
+		num[fmt.Sprintf("S%dE%d", *ep.SeasonNumber, *ep.EpisodeNumber)] = ep.ID
 	}
 	if len(num) != 3 {
 		t.Fatalf("episodes: %v", num)

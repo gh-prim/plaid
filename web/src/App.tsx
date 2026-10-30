@@ -2,9 +2,9 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireStep } from './auth/RequireAuth'
+import { HomePage } from './browse/HomePage'
 import { Shell } from './browse/Shell'
 import { ChangePassword } from './pages/ChangePassword'
-import { Home } from './pages/Home'
 import { Pair } from './pages/Pair'
 import { ProfilePicker } from './pages/ProfilePicker'
 import { SignIn } from './pages/SignIn'
@@ -94,7 +94,7 @@ export function AppRoutes() {
             </RequireStep>
           }
         >
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomePage />} />
         </Route>
         <Route
           path="/admin/*"

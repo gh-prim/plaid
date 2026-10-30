@@ -156,9 +156,22 @@
     "empty": {
       "action": "Ajouter une bibliothèque",
       "body": "Ajoute un dossier et PLAID trouvera tes films et séries.",
+      "member": {
+        "body": "Demande à l’admin du serveur d’ajouter une bibliothèque.",
+        "title": "Rien ici pour l’instant."
+      },
+      "scanning": {
+        "body_one": "{{count, number}} trouvé pour l’instant. Il apparaît ici dès qu’il est identifié.",
+        "body_many": "",
+        "body_other": "{{count, number}} trouvés pour l’instant. Ils apparaissent ici au fil des identifications.",
+        "title": "Tes films arrivent."
+      },
       "title": "Rien à regarder pour l’instant."
     },
     "row": {
+      "continueWatching": "Reprendre",
+      "genre": "{{genre}}",
+      "recentlyAdded": "Ajouts récents dans {{libraryName}}",
       "seeAll": "Tout voir"
     }
   },

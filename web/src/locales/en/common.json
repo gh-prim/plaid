@@ -150,9 +150,21 @@
     "empty": {
       "action": "Add a library",
       "body": "Add a folder and PLAID will find your movies and shows.",
+      "member": {
+        "body": "Ask your server’s admin to add a library.",
+        "title": "Nothing here yet."
+      },
+      "scanning": {
+        "body_one": "{{count, number}} found so far. They appear here as they’re matched.",
+        "body_other": "{{count, number}} found so far. They appear here as they’re matched.",
+        "title": "Your movies are on their way."
+      },
       "title": "Nothing to watch yet."
     },
     "row": {
+      "continueWatching": "Continue watching",
+      "genre": "{{genre}}",
+      "recentlyAdded": "Recently added in {{libraryName}}",
       "seeAll": "See all"
     }
   },
