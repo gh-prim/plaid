@@ -3,7 +3,7 @@ id: F008
 title: Web — browsing and player
 owner: gh-prim
 reviewer: TBD
-status: draft            # draft | approved | in-progress | done
+status: in-progress      # draft | approved | in-progress | done
 spec: ./spec.md
 branch: feat/F008-browsing-player
 ---
@@ -19,14 +19,14 @@ One PR for the whole feature (CLAUDE.md), from `feat/F008-browsing-player`, buil
 - **Part C — Browsing** (R5–R25): home, grids, detail pages, search.
 - **Part D — Player** (R33–R46).
 
-The screens come from the Claude Design canvas made with [claude-design-prompt.md](claude-design-prompt.md) (pages Browse and Player). Parts B–D take it as input; the PR attaches PNG exports of the boards it builds next to screenshots. If the canvas isn't ready when Part A is done, Part B starts from the design system's existing components (`pl-player`, `pl-tl`, `pl-next`, `pl-resume`, `pl-ppanel`, `pl-pmsg`, `pl-vol`, `pl-still`, `pl-avatar`, `pl-pin`, `pl-person`, `pl-menu`, `pl-select`, `pl-slider`, `pl-toggle`, all already in `web/src/design/components.css`) and the spec's UI rules, and the Log records what changed once the canvas lands.
+The screens come from the Claude Design canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz), pages Browse and Player, made with [claude-design-prompt.md](claude-design-prompt.md). Parts B–D take it as input; the PR attaches PNG exports of the boards it builds next to screenshots. Its wrap-up boards ("Rejected directions, proposed components, keys added" and "Player: motion, rejected directions, proposed components") list the components to port; they're built on the design system's existing ones (`pl-player`, `pl-tl`, `pl-next`, `pl-resume`, `pl-ppanel`, `pl-pmsg`, `pl-vol`, `pl-still`, `pl-avatar`, `pl-pin`, `pl-person`, `pl-menu`, `pl-select`, `pl-slider`, `pl-toggle`, all already in `web/src/design/components.css`).
 
 ## Files touched
 
 ### API
 | File | Action | Why |
 |------|--------|-----|
-| `api/openapi.yaml` | modify | `listLibraryItems` gains `sort`, `order`, `seed`, `watch`, `genre[]`, `yearFrom`, `yearTo`, `resolution[]`, `hdr`, `offset`, `total` (R26); `ItemPage.total`; `ItemSummary.addedAt` and `ItemSummary.show` (`ShowRef: {id, displayTitle, logo?}`) (R26, R30). New routes `GET /libraries/{id}/facets` → `LibraryFacets`, `GET /search` → `SearchResults` (`PersonRef`), `GET /home` → `Home` (`HomeRow`, `HomeRowType`, `GenreRef`, `SeeAll`), `GET /home/rows/{rowId}` → `ItemPage`, `GET /items/{id}/up-next` → `UpNext` or `204` (R27, R28, R31, R32). New tag `catalog`. |
+| `api/openapi.yaml` | modify | `listLibraryItems` gains `sort`, `order`, `seed`, `watch`, `genre[]`, `yearFrom`, `yearTo`, `resolution[]`, `hdr`, `offset`, `total` (R26); `ItemPage.total`; `ItemSummary.addedAt` and `ItemSummary.show` (`ShowRef: {id, displayTitle, logo?}`) (R26, R30). New routes `GET /libraries/{id}/facets` → `LibraryFacets` (with `total`), `GET /search` → `SearchResults` (`PersonRef`), `GET /home` → `Home` (`ambient`, `HomeRow`, `HomeRowType`, `GenreRef`, `SeeAll`), `GET /home/rows/{rowId}` → `ItemPage`, `GET /items/{id}/up-next` → `UpNext` or `204` (R27, R28, R31, R32). New tag `catalog`. |
 | `server/internal/api/api.gen.go`, `web/src/api/schema.d.ts` | regenerate | `make generate`, never by hand. |
 
 ### Server
@@ -53,10 +53,10 @@ The screens come from the Claude Design canvas made with [claude-design-prompt.m
 | `web/src/pages/Home.tsx` | replace | The F003 placeholder becomes the R5 home; the `adminStep` redirect stays. `welcome.*` keys removed. |
 | `web/src/pages/ProfilePicker.tsx` + test | modify | R2: restyled with `Avatar`/`pl-pin`, `profiles.title`, the tab-session flag. |
 | `web/src/auth/RequireAuth.tsx` + test | modify | Sends to `/profiles` once per tab session when the account has 2+ profiles (R2). |
-| `web/src/browse/Shell.tsx`, `Header.tsx`, `TabBar.tsx`, `ProfileMenu.tsx`, `ServerStrip.tsx` | create | R1, R4, R50; `ServerStrip` reuses F007's polling hook at 30 s. |
+| `web/src/browse/Shell.tsx`, `Sidebar.tsx`, `TopBar.tsx`, `TabBar.tsx`, `ProfileMenu.tsx`, `ServerCard.tsx` | create | R1, R4, R50: sidebar ≥ 768 px with library counts from facets `total`, top bar with search, tab bar under 768 px; `ServerCard` reuses F007's polling hook at 30 s. |
 | `web/src/browse/theme.ts` | create | R4: `System`/`Dark`/`Light` in `localStorage`, `data-theme` on `<html>`. |
 | `web/src/browse/cards/PosterCard.tsx`, `LandscapeCard.tsx`, `CardMenu.tsx` | create | R7, R8: `srcset` over F005 widths, `loading="lazy"`, missing-artwork state, progress thread, watched mark, unwatched count. |
-| `web/src/browse/Row.tsx`, `Hero.tsx` | create | R5, R6: row paging on scroll end, hero with ambient colors. |
+| `web/src/browse/Row.tsx`, `AmbientTop.tsx` | create | R5, R6: shelf paging on scroll end, the ambient backdrop behind the first shelves. |
 | `web/src/browse/HomePage.tsx` | create | R5–R9 from `GET /home`. |
 | `web/src/browse/LibraryGrid.tsx`, `FilterBar.tsx`, `LetterIndex.tsx`, `gridQuery.ts` + tests | create | R10–R15: virtualized grid, URL ↔ query mapping (`gridQuery.ts`, pure and tested). |
 | `web/src/browse/Collections.tsx`, `CollectionPage.tsx` | create | R16. |
@@ -85,22 +85,22 @@ The screens come from the Claude Design canvas made with [claude-design-prompt.m
 ## Steps, in order
 
 ### Part A — Server
-1. [ ] **Prove FTS5 first**: a test in `db_test.go` that opens a DB, checks `ENABLE_FTS5` in `pragma_compile_options`, creates a `unicode61 remove_diacritics 2` table with `prefix='1 2 3'`, and finds "Amélie" with `amel*` and "The Lord of the Rings" with `rings*`. Run it on amd64 and in an arm64 container (`docker run --platform linux/arm64 golang:1.26 go test ./internal/db/`). If it fails, stop and switch to the rejected `LIKE` option with a Log entry. (R28)
+1. [x] **Prove FTS5 first**: a test in `db_test.go` that opens a DB, checks `ENABLE_FTS5` in `pragma_compile_options`, creates a `unicode61 remove_diacritics 2` table with `prefix='1 2 3'`, and finds "Amélie" with `amel*` and "The Lord of the Rings" with `rings*`. Run it on amd64 and in an arm64 container (`docker run --platform linux/arm64 golang:1.26 go test ./internal/db/`). If it fails, stop and switch to the rejected `LIKE` option with a Log entry. (R28)
 2. [ ] `api/openapi.yaml`: every change in the API table, `make generate`, stub handlers returning `501` so the build stays green. (R26–R32)
 3. [ ] Migration `0007_catalog.sql`, tests first in `db_test.go`: triggers on `item_metadata` insert/update fill `item_genres` from `json_each(genres)` (skipping `id = 0`, which admin edits produce) and upsert `search_docs`/`search_index` with the display title (metadata title, else the parsed one) and original title; triggers on `items` insert/update/delete keep episode and parsed-title rows and set the show's `newest_child_added_at` when an episode is inserted; triggers on `people` insert/update/delete keep person rows. `search_docs(rowid INTEGER PRIMARY KEY, kind, ref_id UNIQUE, library_id)` gives each document a stable rowid so a trigger deletes by rowid, never by scanning. The migration backfills from existing rows. (R26, R28, R29, data model)
 4. [ ] `catalog.List`: tests first on a seeded store for each sort (title, added, released, rating, played with the profile's `watch_state`, random), both orders, each filter alone and combined, `offset`, `total` after the age predicate, shows' `added` by newest episode. `random` takes the filtered ids and shuffles them in Go with `seed` (a library is at most a few thousand ids). Handler: parameter validation (`400 validation_failed` with field details), `addedAt`, e2e tests. (R26)
 5. [ ] `ItemSummary.show`: `metadata.Summary` gains `Logo`; `withShows` fills `show` for seasons and episodes from one query per page (episode → season → show). Test on continue watching and an episode list. (R30)
-6. [ ] `catalog.Facets` + handler: genres by count with ids, decades, resolutions, HDR, letters with `#`, all after the age predicate; tests then e2e. (R27)
+6. [ ] `catalog.Facets` + handler: `total` (top-level items, for the sidebar counts), genres by count with ids, decades, resolutions, HDR, letters with `#`, all after the age predicate; tests then e2e. (R27)
 7. [ ] `catalog.Search` + handler: `MATCH` on the normalized query with each word as a prefix (`"ali"*`), FTS5 special characters escaped, joined to `items`/`item_metadata` for `hidden = 0` and the age predicate, people only when they have a visible credit; ranking exact → prefix → `bm25` → `rating_count`; groups capped by `limit`. Tests: accents, case, word prefix, special characters (`"`, `*`, `:`), a hidden item, a child profile, a new item found right after its metadata is written. (R28, R29)
 8. [ ] `catalog.UpNext` + handler: show, season, episode cases, specials skipped, across seasons, end of show → `204`, age predicate. Reuses the ordering `WatchStore.ContinueWatching` uses (`season 0` last). (R32)
-9. [ ] `catalog.Home` + handlers: hero rule (latest continue-watching item with a backdrop, else a seeded daily pick among the 50 most recently added with a backdrop and a logo), `continue_watching` from `WatchStore.ContinueWatching`, `recently_added` per visible library, up to 4 genre rows grouped by `genre_id` (≥ 10 items, the profile's most watched genres first, then size; seeded daily order; name from a library in the UI's language), row ids encoding type and params, `GET /home/rows/{rowId}` paging. Tests with a fixed clock for "stable for the day". (R31)
+9. [ ] `catalog.Home` + handlers: `ambient` (latest continue-watching item with a backdrop, else the most recently added matched item with a backdrop), `continue_watching` from `WatchStore.ContinueWatching`, `recently_added` per visible library, up to 4 genre rows grouped by `genre_id` (≥ 10 items, the profile's most watched genres first, then size; seeded daily order; name from a library in the UI's language), row ids encoding type and params, `GET /home/rows/{rowId}` paging. Tests with a fixed clock for "stable for the day". (R31)
 10. [ ] `perf_test.go` in `catalog`, run unthrottled and in the `--cpus 0.5 --memory 1g` container; numbers pasted in the PR against the NFRs (search p95 < 100 ms, home < 150 ms). Add the command to `CLAUDE.md`. `make test`. (NFR)
 
 ### Part B — Web foundations
 11. [ ] Dependencies: `hls.js` and `@tanstack/react-virtual`, pinned. `format.ts` durations with tests (en, fr, the fallback without `Intl.DurationFormat`). (R47)
-12. [ ] Theme (`theme.ts`) and the shell: header, profile menu with Appearance, bottom tab bar under 768 px, server strip for admins (polls `GET /playback` every 30 s while visible, never for members: test), About link with attributions. (R1, R4, R50)
+12. [ ] Theme (`theme.ts`) and the shell: sidebar with library counts (facets `total`), top bar with search, profile menu with Appearance, bottom tab bar under 768 px, server card for admins (who watches what, polls `GET /playback` every 30 s while visible, never for members: test), About link with attributions. (R1, R4, R50)
 13. [ ] Profile picker: restyle, `profiles.title`, PIN on `pl-pin`, tab-session flag in `RequireAuth`, profile locale applied on switch (tests: 3 profiles new tab → picker; 1 profile → home; `fr` profile switches language). (R2, R3)
-14. [ ] Cards and rows: `PosterCard`, `LandscapeCard`, `CardMenu` (mark watched), `Row` with paging, `Hero` with ambient colors; tests for every state (progress, watched, unwatched count, missing artwork, `S1 E4` line, time left). Port any card component the canvas adds to `src/ui/` like F007 did. (R6–R8)
+14. [ ] Cards and rows: `PosterCard`, `LandscapeCard`, `CardMenu` (mark watched), `Row` with paging, `AmbientTop`; tests for every state (progress, watched, unwatched count, missing artwork, `S1 E4` line, time left). Port any card component the canvas adds to `src/ui/` like F007 did. (R6–R8)
 15. [ ] Routes in `App.tsx`, player lazy chunk; `make test`; screenshots of the shell and cards in dark and light.
 
 ### Part C — Browsing
@@ -163,3 +163,6 @@ The screens come from the Claude Design canvas made with [claude-design-prompt.m
 
 ## Log
 Deviations from the plan found during the build (date + what + why).
+- 2026-10-29: plan approved by gh-prim; build starts on `feat/F008-browsing-player`.
+- 2026-10-30: spec aligned on the canvas (sidebar shell, no home hero, `ambient` in `GET /home`, `LibraryFacets.total`, copy). Steps 6, 9, 12 and 14 and the files table follow; `Hero.tsx`/`ServerStrip.tsx`/`Header.tsx` become `AmbientTop.tsx`/`ServerCard.tsx`/`Sidebar.tsx` + `TopBar.tsx`.
+- 2026-10-29 (step 1): FTS5 proven (`TestFTS5Search`): `ENABLE_FTS5` compiled in, `remove_diacritics 2` and prefix queries pass on darwin/arm64, linux/arm64 and linux/amd64 (`golang:1.26` containers). The `LIKE` fallback is not needed.

@@ -1,6 +1,6 @@
 # Claude Design prompts — F008 browsing and player
 
-> Result: canvas _to add once made_ (pages Browse and Player).
+> Result: canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz), pages Browse and Player (2026-10-30). Prompt A was sent in two rounds (the second asked for the screens the first left out); Prompt B got a Method section (copy first, three control-bar directions, amber budget, one motion per surface) and focus, French and German-length deliverables.
 >
 > Prompts sent in order in **one** Claude Design project with the PLAID design system selected, ideally the same project as F007's canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz), so the browsing screens inherit what F007 settled (header strip, poster tile, missing-artwork state, copy rules):
 > 1. **Prompt A**: browsing (profile picker, home, library grid, detail pages, search).

@@ -11,14 +11,14 @@ decisions: [0002, 0005]
 # F008 — Spec: Web — browsing and player
 
 ## Summary
-F008 turns PLAID's web app into the place where you watch. After the profile picker ("Who's under the plaid?"), the **home** opens on a hero and rows: Continue watching, Recently added per library, then a few genres. Each **library** is a poster grid that stays smooth with thousands of titles, with sorting and filters. **Movie and show pages** sit on the title's backdrop and ambient colors, with the cast, the trailer, seasons and episodes. **Search** answers while you type, across libraries and people. The **player** plays what F006 decides (Direct Play in `<video>`, HLS through the browser or hls.js), resumes where you stopped, switches quality, audio and subtitles, has keyboard shortcuts and plays the next episode on its own. It's a responsive web app for desktop, tablet and phone browsers, not a PWA: phones and TVs get the native apps (phases 4 and 5, ADR 0005). F008 is mostly web on top of the F003–F006 API. It adds the server pieces F004 and F005 left to it (sorting, filters, search, "recently added") and two small ones the player needs (a home endpoint and "up next"), so the native apps reuse them instead of rebuilding them on the client.
+F008 turns PLAID's web app into the place where you watch. After the profile picker ("Who's under the plaid?"), the **home** opens on shelves under the ambient backdrop of what you were last watching: Continue watching, Recently added per library, then a few genres. Each **library** is a poster grid that stays smooth with thousands of titles, with sorting and filters. **Movie and show pages** sit on the title's backdrop and ambient colors, with the cast, the trailer, seasons and episodes. **Search** answers while you type, across libraries and people. The **player** plays what F006 decides (Direct Play in `<video>`, HLS through the browser or hls.js), resumes where you stopped, switches quality, audio and subtitles, has keyboard shortcuts and plays the next episode on its own. It's a responsive web app for desktop, tablet and phone browsers, not a PWA: phones and TVs get the native apps (phases 4 and 5, ADR 0005). F008 is mostly web on top of the F003–F006 API. It adds the server pieces F004 and F005 left to it (sorting, filters, search, "recently added") and two small ones the player needs (a home endpoint and "up next"), so the native apps reuse them instead of rebuilding them on the client.
 
 ## User journeys
 
 **Member, Friday night, on the laptop**
 1. They open `http://mediabox:32500`. They're signed in, the account has three profiles, so the picker shows: "Who's under the plaid?". They pick "Alex".
-2. Home: the hero shows the backdrop and logo of *Dune: Part Two*, which Alex stopped at 1:02:13 yesterday, with "Resume" and "More info". Below: Continue watching (landscape cards with the time left), Recently added in Movies, Recently added in Shows, Science Fiction, Comedy.
-3. "Resume" opens the player at 1:02:13, in under 3 s on the local network. Space pauses, → skips 10 s, F goes full screen.
+2. Home: the backdrop of *Dune: Part Two*, which Alex stopped at 1:02:13 yesterday, tints the top of the page, and the first shelf is Continue watching with *Dune* first (landscape card, "1h 44m left"). Below: Recently added in Movies, Recently added in Shows, Science Fiction, Comedy.
+3. The *Dune* card opens the player at 1:02:13, in under 3 s on the local network. Space pauses, → skips 10 s, F goes full screen.
 4. They close the tab. The position is saved.
 
 **Member, looking for something to watch**
@@ -54,13 +54,13 @@ F008 turns PLAID's web app into the place where you watch. After the profile pic
 | ID | Requirement | Priority |
 |----|-------------|----------|
 | **Shell and profiles** | | |
-| F008-R1 | Signed-in shell for every browsing route: a header with the PLAID mark (to `/`), one entry per library visible to the profile (in `GET /libraries` order), the search field, the profile menu (switch profile, pair a TV, account, sign out) and, for admins, the server strip (F007-R17) with the server name and the number of active streams (`GET /playback`, polled every 30 s while visible). On phones (< 768 px), the libraries move to a bottom tab bar (Home, one per library up to 3 then "More", Search). The player has no shell. | must |
+| F008-R1 | Signed-in shell for every browsing route. **Desktop and tablet (≥ 768 px)**: a sidebar with the PLAID wordmark (to `/`), Home, "Libraries" with one entry per library visible to the profile (in `GET /libraries` order) and its count (`total` of `GET /libraries/{id}/facets`, R27, so the age predicate applies), and at the bottom the profile menu (switch profile, appearance, pair a TV, account, sign out); a top bar with the search field. Entries are text with a glyph, never icons alone. For admins, the sidebar adds the **server card** (F007-R17's strip, moved): the server name, the active streams with who watches what (`profileName` · `itemTitle` from `GET /playback`, polled every 30 s while visible), "Scanning" with the woven thread during a scan; it opens `/admin`, and an "Admin" entry sits under it. **Phones (< 768 px)**: a top bar with the wordmark and the profile button, and a bottom tab bar: Home, one tab per library up to 3, Search, More (further libraries, Pair a TV, appearance, sign out). The player has no shell. | must |
 | F008-R2 | Profile picker: the existing F003 screen restyled on the design system, titled "Who's under the plaid?" (`profiles.title`), avatar tiles with the profile's `avatarColor`, PIN entry for profiles that have one. It shows when the session has no active profile (F003-R17) and, when the account has two or more profiles, at the first route of each browser tab session (a `sessionStorage` flag); choosing calls `POST /session/profile`. "Switch profile" in the profile menu opens it at any time. With one profile, it never shows on its own. | must |
 | F008-R3 | The active profile's `locale`, when set, overrides the account locale for the UI, through the existing `createI18n` order. Switching profile re-renders in the new profile's language without a reload. | should |
 | F008-R4 | Theme: dark by default, light from the profile menu ("Appearance": System, Dark, Light), remembered per browser in `localStorage`. The player is always dark. | should |
 | **Home** | | |
-| F008-R5 | Home (`/`) from `GET /home` (R31): a hero, then the rows the server returns, in its order, each a horizontal row with a title and "See all" when the row has a destination. Rows with no items aren't shown. Each row loads its first 20 items with the page; scrolling a row to its end loads the next page. | must |
-| F008-R6 | Hero: one item, chosen by the server (R31): its largest backdrop (`w1920` on desktop, `w780` on phone), its logo when there is one (else the title in the display face), year, runtime or seasons count, certification, two lines of synopsis, "Resume" (with the time left) or "Play", and "More info". The hero's text color follows the backdrop's `colors.onDominant`, over a scrim from `colors.dark`. | must |
+| F008-R5 | Home (`/`) from `GET /home` (R31): the rows the server returns as shelves, in its order, each a horizontal row with a title and "See all" when the row has a destination. Rows with no items aren't shown. Each row loads its first 20 items with the page; scrolling a row to its end loads the next page. | must |
+| F008-R6 | Ambient top: the backdrop of `GET /home`'s `ambient` item (R31) fills the top of the home behind the first shelves (`w1280` on desktop, `w780` on phone, 420 px tall at 1440), dimmed and fading into the base color; it carries no text and no button, so the first shelf is the first thing to read and the one amber stays on the cards' woven progress. No ambient item: the plain base color. In the light theme it is lighter and fainter. | must |
 | F008-R7 | Continue watching row: landscape cards (16:9, the episode `still` else the item backdrop) with title, `S1 E4 · Title` for episodes, a progress bar, and the time left formatted with the locale (`Intl.DurationFormat`, or a fallback formatter where it's missing). The card plays directly; its menu has "Mark as watched" (`PUT /items/{id}/watched`) and "Go to show"/"More info". Empty: the row is hidden. | must |
 | F008-R8 | Other rows use poster cards (2:3): poster at `w342` (`w185` on phone), title and year under it, a progress bar when in progress, a watched mark when watched, an unwatched-episodes count on shows (`totalEpisodes − watchedEpisodes`, when above 0). Cards without a poster show the design system's missing-artwork state with the title. | must |
 | F008-R9 | Empty home states: no library at all, admin → the F007 "Add a library" empty state; member → "Nothing here yet. Ask {{adminName}} to add a library." Libraries exist but nothing is matched yet (first scan) → "Your movies are on their way." with each library's scan progress line. | must |
@@ -85,11 +85,11 @@ F008 turns PLAID's web app into the place where you watch. After the profile pic
 | F008-R25 | Instant search (`/search?q=`, and a dropdown under the header field on desktop): results from `GET /search` (R28) after each keystroke, debounced 150 ms, from the first character; a request in flight is aborted when a new one starts. Groups: Movies, Shows, Episodes, People, each up to 8 with "See all" to the full list. Arrow keys move through results, Enter opens the highlighted one (the first by default), Esc closes. The query is in the URL. No result: "Nothing called “{{query}}” here." `/` focuses the search from anywhere outside a text field. | must |
 | **Server additions** | | |
 | F008-R26 | `GET /libraries/{id}/items` gains, for top-level items (no `parentId`): `sort` (`title`, `added`, `released`, `rating`, `played`, `random`), `order` (`asc`, `desc`), `seed` (for `random`), filters `watch` (`unwatched`, `in_progress`, `watched`), `genre` (repeatable TMDB genre id, any of), `yearFrom`/`yearTo`, `resolution` (repeatable: `2160p`, `1080p`, `720p`, `sd`), `hdr` (boolean), `offset` (instead of `cursor`, for random access) and `total=true` (adds `total` to `ItemPage`). `ItemSummary` gains `addedAt` (`items.created_at`; for a show, its newest episode's). Every filter applies F005-R25's age predicate before counting, so `total` never reveals hidden items. Unknown values are `400 validation_failed`. | must |
-| F008-R27 | `GET /libraries/{id}/facets` returns, over the items the active profile may see: `genres: [{id, name, count}]` (by count; `name` as stored for this library), `decades: [{from, count}]`, `resolutions: [{value, count}]`, `hdr: count`, and `letters: [{letter, count}]` in title sort order (digits and symbols grouped as `#`). | must |
+| F008-R27 | `GET /libraries/{id}/facets` returns `total` (the library's top-level items after the age predicate, for the sidebar count, R1) and, over the items the active profile may see: `genres: [{id, name, count}]` (by count; `name` as stored for this library), `decades: [{from, count}]`, `resolutions: [{value, count}]`, `hdr: count`, and `letters: [{letter, count}]` in title sort order (digits and symbols grouped as `#`). | must |
 | F008-R28 | `GET /search?q=&limit=` searches every library the profile may see: movies and shows by title and original title, episodes by title, people by name. Matching is case- and accent-insensitive, on word prefixes ("ali" finds *Alien* and *Alice*, "rings" finds *The Lord of the Rings*), through an SQLite FTS5 index kept in sync by F004/F005 writes. Ranked by exact title first, then prefix, then the BM25 rank, with ties by popularity (rating count). Returns `{movies, shows, episodes, people}`, each a list of `ItemSummary` (episodes with their show's title) or `{id, name, portrait}`, applying the age predicate. `q` under 1 character or over 100 is `400`. | must |
 | F008-R29 | The search index covers every library at server start (a one-time build after migration, in the background; search answers from what's indexed meanwhile) and is updated in the same transaction as item and person writes. | must |
 | F008-R30 | `ItemSummary` gains `show: {id, displayTitle, logo?}` on seasons and episodes, so Continue watching cards, search results and the next-episode card name the show without another request. | must |
-| F008-R31 | `GET /home` returns `{hero, rows}` for the active profile. `hero`: the most recent continue-watching item with a backdrop, else a matched item with a backdrop and a logo picked at random among the 50 most recently added, stable for the profile for the day (seeded by profile id and date). `rows`, in order: `continue_watching` (F006-R37), then per library `recently_added` (movies by `addedAt`; shows by their newest episode), then up to 4 `genre` rows: the genres (grouped by TMDB genre id, so libraries in different languages merge) with at least 10 items across the profile's libraries, the profile's most watched first, then by size, each in random order stable for the day. Each row: `{id, type, title params (libraryId, libraryName, genre: {id, name}; the name from a library whose metadata language matches the profile's UI language, else the first library's), items (first 20), nextCursor, seeAll}`; `seeAll` names the library and query the "See all" opens. `GET /home/rows/{rowId}?cursor=` pages a row. | must |
+| F008-R31 | `GET /home` returns `{ambient, rows}` for the active profile. `ambient`: the most recent continue-watching item with a backdrop, else the most recently added matched item with a backdrop (no logo needed, no randomness). `rows`, in order: `continue_watching` (F006-R37), then per library `recently_added` (movies by `addedAt`; shows by their newest episode), then up to 4 `genre` rows: the genres (grouped by TMDB genre id, so libraries in different languages merge) with at least 10 items across the profile's libraries, the profile's most watched first, then by size, each in random order stable for the day. Each row: `{id, type, title params (libraryId, libraryName, genre: {id, name}; the name from a library whose metadata language matches the profile's UI language, else the first library's), items (first 20), nextCursor, seeAll}`; `seeAll` names the library and query the "See all" opens. `GET /home/rows/{rowId}?cursor=` pages a row. | must |
 | F008-R32 | `GET /items/{id}/up-next` for the active profile: on a show, the episode to play (the one in progress, else the first unwatched after the last watched, else S1 E1; specials skipped); on a season, the same within it; on an episode, the next one by season and episode number across seasons, specials skipped. Returns `{item: ItemSummary}` or `204` when there's none. Applies the age predicate. | must |
 | **Player** | | |
 | F008-R33 | The player (`/watch/:itemId`, `?fileId=`, `?t=` in seconds) is full-screen in the page, always dark, lazy-loaded with hls.js in its own chunk. It starts a session with `POST /items/{id}/playback` with the R34 profile, the file chosen on the detail page, the start position (resume, `?t=`, or 0), and the profile's last audio and subtitle language choices (R38). | must |
@@ -149,9 +149,9 @@ Carried into `api/openapi.yaml` first, then `make generate`. Every route needs a
 | Method | Route | Description |
 |--------|-------|-------------|
 | GET | `/libraries/{id}/items` | **Changed** (R26): `sort`, `order`, `seed`, `watch`, `genre[]`, `yearFrom`, `yearTo`, `resolution[]`, `hdr`, `offset`, `total`; `ItemPage.total`; `ItemSummary.addedAt` |
-| GET | `/libraries/{id}/facets` | `{genres, decades, resolutions, hdr, letters}` (R27) |
+| GET | `/libraries/{id}/facets` | `{total, genres, decades, resolutions, hdr, letters}` (R27) |
 | GET | `/search` | `?q=&limit=` (default 8, max 50) → `{movies, shows, episodes, people}` (R28) |
-| GET | `/home` | `{hero?: ItemSummary, rows: [HomeRow]}` (R31) |
+| GET | `/home` | `{ambient?: ItemSummary, rows: [HomeRow]}` (R31) |
 | GET | `/home/rows/{rowId}` | `?cursor=` → `ItemPage` for one row (R31) |
 | GET | `/items/{id}/up-next` | `{item: ItemSummary}` or `204` (R32) |
 | — | `ItemSummary` | **Changed**: `addedAt` (R26), `show` on seasons and episodes (R30) |
@@ -180,12 +180,13 @@ No new error code.
 | `/watch/:itemId` | Player (`?fileId=&t=`) |
 
 ### UI / Art direction
-Screens come from the Claude Design canvas made with [claude-design-prompt.md](claude-design-prompt.md) (pages Browse and Player); until it exists, the design system's revised rules below govern, as in F007:
-- **The content is the color**: warm near-black ground, the posters and backdrops bring the color, ambient colors (F005-R21) tint the detail header and the hero's scrim; the UI recedes. One amber element per viewport (the primary Play, the focus ring, the timeline's played part).
+Screens come from the Claude Design canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz), pages **Browse** and **Player**, made with [claude-design-prompt.md](claude-design-prompt.md). Directions kept: the home as shelves under an ambient top (A, marquee, and B, a framed hero, were rejected: a hero cost a screen of scrolling before Continue watching and competed for the one amber), the show page with a season picker that opens a list or a sheet (B), the player with the design system's scrim and timeline and track pills that name what plays (A). The strings below are the canvas copy decks; the catalogs win over the canvas once merged. The rules:
+- **The content is the color**: warm near-black ground, the posters and backdrops bring the color, ambient colors (F005-R21) tint the detail header and the top of the home; the UI recedes. One amber element per viewport (the primary Play, the focus ring, the timeline's played part).
 - **Signature**: the woven tartan lives only in the player's timeline fill and the progress bars on cards.
 - **Type**: Instrument Serif only for emotional lines (the profile picker title, empty states, the end of a show); Instrument Sans everywhere else. Titles without a logo use the sans at display size.
-- **Motion**: one per surface: the hero backdrop crossfade, the card focus lift, the controls fading. All off with `prefers-reduced-motion`.
+- **Motion**: one per surface: the ambient backdrop crossfade on the home, the card focus lift, the controls fading, the next-episode card arriving. All off with `prefers-reduced-motion`.
 - **States** for every screen: loading (skeleton cards, never a spinner over posters), empty, error (inline, with retry), offline (F007-R16 banner), missing artwork, unmatched title (parsed name, quiet "Not identified" for admins only).
+- **Canvas rules**: when the page's main button already points to an item in progress, that item's progress thread is neutral; detail pages fade the backdrop into the base color and the ambient color never reaches buttons or text; more than 12 seasons turn the season picker into a number grid, Specials always last; every status has words (Watched, N new, Not identified), a mark only adds color; missing data is a plate with the title or initials; the TMDB rating is hidden under 50 votes; menus in the player are panels anchored above their pill on desktop, a bottom sheet on a portrait phone, a side sheet in landscape; a reload (audio, quality, image subtitles) shows a corner status (`player.reload.*`) over the last frame, never a spinner over the picture; subtitles are Instrument Sans 600 on the scrim color at 62 %, 3.7 % of the picture height (16 px minimum), two lines max, raised above the timeline while the controls show.
 - **Copy rule**: warm on the profile picker, the empty states, the end of a series and "Still watching?"; plain and exact everywhere else (buttons, menus, errors, the player).
 
 ### i18n
@@ -197,8 +198,15 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 |-----|----|----|
 | `profiles.title` (serif, warm) | Who’s under the plaid? | Qui est sous le plaid ? |
 | `profiles.pin.title` | Enter {{name}}’s PIN | Saisis le code de {{name}} |
+| `profiles.pin.wrong` | Wrong PIN. Try again. | Code incorrect. Réessaie. |
+| `profiles.pin.cancel` | Choose another profile | Choisir un autre profil |
+| `profiles.pin.badge` | PIN | Code |
 | `profiles.manage` | Manage profiles | Gérer les profils |
 | `nav.home` | Home | Accueil |
+| `nav.libraries` | Libraries | Bibliothèques |
+| `nav.admin` | Admin | Admin |
+| `nav.pairTv` | Pair a TV | Associer une TV |
+| `nav.signOut` | Sign out | Se déconnecter |
 | `nav.search` | Search | Rechercher |
 | `nav.more` | More | Plus |
 | `nav.profileMenu` | Profile menu for {{name}} | Menu du profil {{name}} |
@@ -210,13 +218,15 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `nav.serverStrip_one` | {{serverName}} · {{count, number}} watching | {{serverName}} · {{count, number}} en lecture |
 | `nav.serverStrip_other` | {{serverName}} · {{count, number}} watching | {{serverName}} · {{count, number}} en lecture |
 | `nav.serverStrip.quiet` | {{serverName}} | {{serverName}} |
+| `nav.serverCard.idle` | Nothing playing | Rien en lecture |
+| `nav.serverCard.stream` | {{profileName}} · {{title}} | {{profileName}} · {{title}} |
+| `nav.serverCard.scanning` | Scanning {{libraryName}}, {{percent, number}} % | Analyse de {{libraryName}}, {{percent, number}} % |
 | `nav.about` | About PLAID | À propos de PLAID |
 
 **Home**
 
 | Key | en | fr |
 |-----|----|----|
-| `home.hero.moreInfo` | More info | Plus d’infos |
 | `home.row.continueWatching` | Continue watching | Reprendre |
 | `home.row.recentlyAdded` | Recently added in {{libraryName}} | Ajouts récents dans {{libraryName}} |
 | `home.row.genre` | {{genre}} | {{genre}} |
@@ -224,17 +234,22 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `home.empty.member.title` (warm) | Nothing here yet. | Rien ici pour l’instant. |
 | `home.empty.member.body` | Ask {{adminName}} to add a library. | Demande à {{adminName}} d’ajouter une bibliothèque. |
 | `home.empty.scanning.title` (warm) | Your movies are on their way. | Tes films arrivent. |
+| `home.empty.scanning.body` | {{count, number}} found so far. They appear here as they’re matched. | {{count, number}} trouvés pour l’instant. Ils apparaissent ici au fil des identifications. |
 | `card.timeLeft` | {{duration}} left | Encore {{duration}} |
 | `card.episode` | S{{season, number}} E{{episode, number}} · {{title}} | S{{season, number}} É{{episode, number}} · {{title}} |
 | `card.episodeShort` | S{{season, number}} E{{episode, number}} | S{{season, number}} É{{episode, number}} |
 | `card.unwatchedEpisodes_one` | {{count, number}} new episode | {{count, number}} nouvel épisode |
 | `card.unwatchedEpisodes_other` | {{count, number}} new episodes | {{count, number}} nouveaux épisodes |
+| `card.unwatchedBadge` | {{count, number}} new | {{count, number}} nouveau(x) |
+| `card.progressLabel` (screen reader) | {{percent, number}} % watched | Vu à {{percent, number}} % |
 | `card.watched` | Watched | Vu |
 | `card.menu` | More actions for {{title}} | Plus d’actions pour {{title}} |
 | `card.goToShow` | Go to show | Voir la série |
 | `item.markWatched` | Mark as watched | Marquer comme vu |
 | `item.markUnwatched` | Mark as unwatched | Marquer comme non vu |
 | `item.missingArtwork` | No artwork for {{title}} | Pas d’image pour {{title}} |
+| `item.notIdentified` (admins only) | Not identified | Non identifié |
+| `item.notIdentified.body` | PLAID couldn’t match this file to a movie. Only admins see this. | PLAID n’a pas pu associer ce fichier à un film. Seuls les admins voient ce message. |
 
 **Library grid**
 
@@ -246,7 +261,7 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `grid.count.shows_other` | {{count, number}} shows | {{count, number}} séries |
 | `grid.sort` | Sort | Trier |
 | `grid.sort.title` | Title | Titre |
-| `grid.sort.added` | Recently added | Ajout récent |
+| `grid.sort.added` | Recently added | Ajouts récents |
 | `grid.sort.released` | Release date | Date de sortie |
 | `grid.sort.rating` | Rating | Note |
 | `grid.sort.played` | Recently watched | Vu récemment |
@@ -254,9 +269,9 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `grid.order.asc` | Ascending | Croissant |
 | `grid.order.desc` | Descending | Décroissant |
 | `grid.filters` | Filters | Filtres |
-| `grid.filter.watch` | Watch state | État |
+| `grid.filter.watch` | Viewing | Visionnage |
 | `grid.filter.watch.all` | All | Tout |
-| `grid.filter.watch.unwatched` | Unwatched | Non vus |
+| `grid.filter.watch.unwatched` | Not watched | Pas vus |
 | `grid.filter.watch.in_progress` | In progress | En cours |
 | `grid.filter.watch.watched` | Watched | Vus |
 | `grid.filter.genre` | Genre | Genre |
@@ -264,44 +279,60 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `grid.filter.resolution` | Resolution | Résolution |
 | `grid.filter.resolution.sd` | 720p and lower | 720p et moins |
 | `grid.filter.hdr` | HDR | HDR |
+| `grid.filter.hdrOnly` | HDR only | HDR uniquement |
 | `grid.filter.remove` | Remove filter {{name}} | Retirer le filtre {{name}} |
 | `grid.filter.clear` | Clear all | Tout effacer |
 | `grid.empty.title` | Nothing matches these filters. | Rien ne correspond à ces filtres. |
+| `grid.empty.body` | Remove a filter, or clear them all. | Retire un filtre, ou efface-les tous. |
 | `grid.empty.action` | Clear filters | Effacer les filtres |
 | `grid.collections` | Collections | Collections |
 | `grid.letters` | Jump to letter | Aller à la lettre |
+| `grid.filters.apply_one` | Show {{count, number}} title | Afficher {{count, number}} titre |
+| `grid.filters.apply_other` | Show {{count, number}} titles | Afficher {{count, number}} titres |
+| `grid.end_one` | That’s the only title. | C’est le seul titre. |
+| `grid.end_other` | That’s all {{count, number}} titles. | Voilà les {{count, number}} titres. |
 
 **Detail pages**
 
 | Key | en | fr |
 |-----|----|----|
-| `item.play` | Play | Lecture |
+| `item.play` | Play | Lire |
 | `playback.resume` (F006) | Resume from {{position}} | Reprendre à {{position}} |
-| `playback.startOver` (F006) | Start over | Reprendre du début |
+| `playback.startOver` (F006, fr changed) | Start over | Recommencer |
 | `item.playEpisode` | Play S{{season, number}} E{{episode, number}} | Lire S{{season, number}} É{{episode, number}} |
 | `item.resumeEpisode` | Resume S{{season, number}} E{{episode, number}} | Reprendre S{{season, number}} É{{episode, number}} |
 | `item.trailer` | Trailer | Bande-annonce |
 | `item.trailer.openYouTube` | Open on YouTube | Ouvrir sur YouTube |
+| `item.trailer.play` | Play trailer | Lire la bande-annonce |
+| `item.trailer.notice` | Plays from YouTube when you click. | Lue depuis YouTube quand tu cliques. |
 | `item.version` | Version | Version |
+| `item.versions.option` | {{edition}} · {{resolution}} · {{size}} | {{edition}} · {{resolution}} · {{size}} |
+| `item.tech.audio` | Audio: {{languages, list}} | Audio : {{languages, list}} |
 | `item.runtime` | {{duration}} | {{duration}} |
-| `item.rating` | {{rating, number}} ({{count, number}} votes) | {{rating, number}} ({{count, number}} votes) |
+| `item.rating` (hidden under 50 votes) | TMDB {{rating, number}} · {{count, number}} votes | TMDB {{rating, number}} · {{count, number}} votes |
 | `item.originalTitle` | Original title: {{title}} | Titre original : {{title}} |
 | `item.directedBy` | Directed by {{names, list}} | Réalisé par {{names, list}} |
 | `item.writtenBy` | Written by {{names, list}} | Écrit par {{names, list}} |
 | `item.createdBy` | Created by {{names, list}} | Créée par {{names, list}} |
 | `item.cast` | Cast | Distribution |
 | `item.collection` | Part of {{name}} | Fait partie de {{name}} |
+| `item.collection.thisMovie` | This movie | Ce film |
 | `item.seasons_one` | {{count, number}} season | {{count, number}} saison |
 | `item.seasons_other` | {{count, number}} seasons | {{count, number}} saisons |
 | `item.season` | Season {{number, number}} | Saison {{number, number}} |
 | `item.specials` | Specials | Épisodes spéciaux |
 | `item.markSeasonWatched` | Mark season as watched | Marquer la saison comme vue |
+| `item.seasonPicker.title` | {{count, number}} seasons and Specials | {{count, number}} saisons et épisodes spéciaux |
+| `item.seasonPicker.jump` | Type a number to jump | Tape un numéro pour y aller |
+| `item.season.summary` | {{year}} · {{episodes}} · {{watched, number}} watched | {{year}} · {{episodes}} · {{watched, number}} vu(s) |
 | `item.status.ended` | Ended | Terminée |
-| `item.status.returning` | Returning | En cours |
+| `item.status.returning` | Returning | Renouvelée |
 | `item.status.canceled` | Canceled | Annulée |
 | `item.status.in_production` | In production | En production |
 | `item.filesMissing` | This title’s files can’t be found right now. | Les fichiers de ce titre sont introuvables pour l’instant. |
+| `item.filesMissing.body` (admins) | The drive with {{path}} is unplugged or asleep. It plays again as soon as the drive is back. | Le disque de {{path}} est débranché ou en veille. La lecture reprend dès qu’il revient. |
 | `item.unavailable.title` | This title isn’t available on this profile. | Ce titre n’est pas disponible sur ce profil. |
+| `item.unavailable.body` | It was removed from the library, or this profile can’t see it. | Il a été retiré de la bibliothèque, ou ce profil ne peut pas le voir. |
 | `item.unavailable.back` | Back to home | Retour à l’accueil |
 | `item.edit` | Edit | Modifier |
 | `item.edit.artwork` | Change artwork | Changer l’image |
@@ -310,12 +341,17 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `item.edit.artwork.logo` | Logo | Logo |
 | `item.edit.fixMatch` | Fix match | Corriger l’identification |
 | `item.edit.artwork.automatic` | Back to automatic | Revenir au choix automatique |
+| `item.edit.artwork.title` | Change artwork · {{title}} | Changer l’image · {{title}} |
+| `item.edit.artwork.auto` | PLAID picks the best one | PLAID choisit la meilleure |
+| `item.edit.artwork.option` | {{language}} · {{width}} × {{height}} | {{language}} · {{width}} × {{height}} |
 | `item.edit.refresh` | Refresh metadata | Actualiser les métadonnées |
 | `item.edit.refreshed` | Refreshing. It can take a minute. | Actualisation en cours. Ça peut prendre une minute. |
 | `person.role.cast` | Acting | Interprétation |
 | `person.role.director` | Directing | Réalisation |
 | `person.role.writer` | Writing | Scénario |
 | `person.role.creator` | Created | Création |
+| `person.summary_one` | On {{serverName}} · {{count, number}} title | Sur {{serverName}} · {{count, number}} titre |
+| `person.summary_other` | On {{serverName}} · {{count, number}} titles | Sur {{serverName}} · {{count, number}} titres |
 | `about.attribution` | Metadata and images | Métadonnées et images |
 
 **Search**
@@ -331,25 +367,31 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `search.seeAll` | See all {{count, number}} | Voir les {{count, number}} |
 | `search.empty` | Nothing called “{{query}}” here. | Rien qui s’appelle « {{query}} » ici. |
 | `search.episodeOf` | {{show}} · S{{season, number}} E{{episode, number}} | {{show}} · S{{season, number}} É{{episode, number}} |
+| `search.originalTitle` | Original title: {{title}} | Titre original : {{title}} |
 
 **Player**
 
 | Key | en | fr |
 |-----|----|----|
 | `player.back` | Back | Retour |
-| `player.play` | Play | Lecture |
+| `player.play` | Play | Lire |
 | `player.pause` | Pause | Pause |
 | `player.back10` | Back 10 seconds | Reculer de 10 secondes |
 | `player.forward10` | Forward 10 seconds | Avancer de 10 secondes |
 | `player.timeline` | Timeline | Barre de lecture |
+| `player.timeline.valueText` | {{elapsed}} of {{duration}} | {{elapsed}} sur {{duration}} |
 | `player.remaining` | {{duration}} left | Encore {{duration}} |
 | `player.volume` | Volume | Volume |
+| `player.volume.valueText` | Volume {{percent, number}} % | Volume {{percent, number}} % |
 | `player.mute` | Mute | Couper le son |
 | `player.unmute` | Unmute | Rétablir le son |
 | `player.subtitles` | Subtitles | Sous-titres |
-| `player.subtitles.off` | Off | Désactivés |
+| `player.subtitles.off` | Off | Aucun |
 | `player.subtitles.forced` | {{language}} (forced) | {{language}} (forcés) |
 | `player.subtitles.sdh` | {{language}} SDH | {{language}} SME |
+| `player.subtitles.sdh.long` | SDH: for deaf and hard of hearing viewers | SME : pour les sourds et malentendants |
+| `player.subtitles.imageNote` | Image subtitles: the video reloads | Sous-titres en image : la vidéo se recharge |
+| `player.audio.reloadNote` | Changing the audio reloads the video at the same moment. | Changer l’audio recharge la vidéo au même moment. |
 | `player.audio` | Audio | Audio |
 | `player.audio.track` | {{language}} · {{channels}} | {{language}} · {{channels}} |
 | `player.channels.mono` | Mono | Mono |
@@ -358,14 +400,26 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `player.quality` | Quality | Qualité |
 | `player.quality.original` | Original | Originale |
 | `player.quality.current` | {{quality}} · {{bitrate}} | {{quality}} · {{bitrate}} |
+| `player.quality.note` | Lower qualities are converted by the server and start a few seconds later. | Les qualités plus basses sont converties par le serveur et démarrent quelques secondes plus tard. |
+| `player.quality.asIs` | plays the file as is | lit le fichier tel quel |
+| `player.quality.converted` | converted | convertie |
+| `player.reload.audio` | Switching to {{track}} | Passage à {{track}} |
+| `player.reload.quality` | Switching to {{quality}} | Passage en {{quality}} |
+| `player.reload.subtitles` | Adding {{language}} subtitles | Ajout des sous-titres {{language}} |
 | `player.info` | Playback info | Infos de lecture |
+| `player.info.method` | How it reaches you | Comment la vidéo te parvient |
+| `player.info.why` | Why | Pourquoi |
+| `player.info.quality` | Quality | Qualité |
+| `player.info.conversion` | Conversion | Conversion |
+| `player.info.copied` | {{track}}, copied as is | {{track}}, copié tel quel |
+| `player.info.textSubs` | {{language}}, text | {{language}}, texte |
 | `player.info.hardware` | Converted on the GPU | Converti par la carte graphique |
 | `player.info.software` | Converted by the processor | Converti par le processeur |
 | `player.pip` | Picture in picture | Image dans l’image |
 | `player.fullscreen` | Full screen | Plein écran |
 | `player.exitFullscreen` | Exit full screen | Quitter le plein écran |
 | `player.shortcuts` | Keyboard shortcuts | Raccourcis clavier |
-| `player.next.title` | Next: {{episode}} | Ensuite : {{episode}} |
+| `player.next.label` | Next episode | Épisode suivant |
 | `player.next.countdown_one` | Playing in {{count, number}} second | Lecture dans {{count, number}} seconde |
 | `player.next.countdown_other` | Playing in {{count, number}} seconds | Lecture dans {{count, number}} secondes |
 | `player.next.playNow` | Play now | Lire maintenant |
@@ -375,10 +429,14 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `player.stillWatching.continue` | Continue | Continuer |
 | `player.stillWatching.stop` | Stop | Arrêter |
 | `player.endOfShow` (serif, warm) | That’s the last episode of {{show}} for now. | C’était le dernier épisode de {{show}} pour l’instant. |
-| `player.resume.title` | Pick up where you left off? | Reprendre là où tu t’étais arrêté ? |
+| `player.endOfShow.back` | Back to {{show}} | Retour à {{show}} |
+| `player.resume.title` | Pick up where you left off? | Reprendre là où tu en étais ? |
+| `player.resume.text` | You stopped at {{position}} in {{title}}. | Tu en étais à {{position}} dans {{title}}. |
 | `player.stopped.title` | Playback stopped. | Lecture arrêtée. |
+| `player.stopped.body` | Your place is saved. | Ta position est enregistrée. |
 | `player.stopped.restart` | Start again from {{position}} | Reprendre à {{position}} |
 | `player.cantPlay` | This video can’t play in this browser. | Cette vidéo ne peut pas être lue dans ce navigateur. |
+| `player.cantPlay.body` | Copy the link and open it in VLC, or in another app that plays network streams. | Copie le lien et ouvre-le dans VLC, ou dans une autre app qui lit les flux réseau. |
 | `player.copyVlcLink` | Copy link for VLC | Copier le lien pour VLC |
 | `player.lowerQuality` | Lower quality | Baisser la qualité |
 | `player.tryAgain` | Try again | Réessayer |
@@ -386,23 +444,26 @@ Keys in the repo's i18next format (`{{var}}`, `{{n, number}}`, `_one`/`_other` w
 | `playback.method.direct_stream` (F006) | Direct stream | Flux direct |
 | `playback.method.transcode` (F006) | Converting | Conversion |
 | `errors.transcode_limit_reached` (F006) | The server is busy converting other videos. Try again in a moment, or pick a lower quality. | Le serveur convertit déjà d’autres vidéos. Réessaie dans un instant, ou choisis une qualité plus basse. |
+| `errors.transcode_limit_reached.retryIn` | Try again in {{seconds, number}} s | Réessayer dans {{seconds, number}} s |
 | `errors.transcode_storage_full` (F006) | The server is out of space for video conversion. Ask the admin to free some up. | Le serveur n’a plus de place pour convertir la vidéo. Demande à l’admin d’en libérer. |
-| `errors.file_unavailable` (F006) | This file can’t be found right now. Its drive may be unplugged. | Ce fichier est introuvable pour l’instant. Son disque est peut-être débranché. |
+| `errors.file_unavailable` (F006, changed) | This file can’t be found right now. Its drive may be unplugged. It plays again as soon as the drive is back. | Ce fichier est introuvable pour l’instant. Son disque est peut-être débranché. La lecture reprend dès qu’il revient. |
 | `errors.ffmpeg_missing` (F006) | This video needs FFmpeg, which isn’t installed on the server. | Cette vidéo a besoin de FFmpeg, qui n’est pas installé sur le serveur. |
+| `errors.ffmpeg_missing.admin` | You’re the admin: install it on the server, then try again. | Tu es l’admin : installe-le sur le serveur, puis réessaie. |
+| `errors.ffmpeg_missing.member` | Ask {{adminName}} to install it. | Demande à {{adminName}} de l’installer. |
 | `errors.file_not_analyzed` | This file is still being analyzed. Try again in a minute. | Ce fichier est encore en cours d’analyse. Réessaie dans une minute. |
 | `errors.not_playable` | This file can’t be played. | Ce fichier ne peut pas être lu. |
 | `errors.profile_required` (F006) | Pick a profile first. | Choisis d’abord un profil. |
 
-**Keyboard shortcuts dialog** (`player.key.*`): one key per R42 line (`playPause`, `seek`, `volume`, `mute`, `fullscreen`, `subtitles`, `next`, `jump`, `search`), plain verbs, translated; key names (Space, Esc, ←) use the platform's names and aren't translated.
+**Keyboard shortcuts dialog** (`player.key.*`): one key per R42 line (`playPause` Play or pause / Lire ou mettre en pause, `seek` Back or forward 10 seconds / Reculer ou avancer de 10 secondes, `volume` Volume up or down / Monter ou baisser le volume, `mute` Mute or unmute / Couper ou rétablir le son, `fullscreen` Full screen / Plein écran, `subtitles` Subtitles on or off / Activer ou couper les sous-titres, `next` Next episode / Épisode suivant, `jump` Jump to 0 % to 90 % / Aller de 0 % à 90 %, `startEnd` Start or end / Début ou fin, `close` Close a menu, then leave full screen / Fermer un menu, puis quitter le plein écran, `search`), plus `player.shortcuts.hint` Press ? to see this again. / Appuie sur ? pour revoir cette liste.; key names (Space, Esc, ←) use the platform's names and aren't translated.
 
 ## Non-functional requirements
 - **Time to play** (local network, from pressing Play to the first frame): Direct Play < 2 s, Direct Stream < 3 s, Transcode within F006's start times + 1 s. Measured on a 1080p H.264 MP4 and a 4K HEVC MKV.
-- **Home**: first meaningful paint (header, hero image requested, first row of posters) under 1.5 s on a local network from a warm server; `GET /home` under 150 ms on a Raspberry Pi 4 with 2,000 movies and 200 shows.
+- **Home**: first meaningful paint (shell, ambient backdrop requested, first shelf of cards) under 1.5 s on a local network from a warm server; `GET /home` under 150 ms on a Raspberry Pi 4 with 2,000 movies and 200 shows.
 - **Grid**: 60 fps scrolling (no long task over 50 ms while scrolling) with 5,000 posters on a 2020 mid-range laptop; at most 300 cards in the DOM; posters requested at the displayed width (`srcset` over F005's widths), lazy-loaded, never above `w500` in grids.
 - **Search**: `GET /search` p95 under 100 ms on a Pi 4 with 10,000 items and 30,000 people; results shown under 300 ms after the last keystroke on a local network.
 - **Server cost**: the web never polls except the admin strip (30 s, visible tab only) and the player's progress (10 s). Home rows page on demand. Artwork responses are immutable (F005-R19), so revisits hit the browser cache.
 - **Bundle**: hls.js and the player are a lazy chunk; the home's initial JS (gzip) stays under 150 kB beyond F007's shared code.
-- **Accessibility**: WCAG 2.2 AA. Cards are links with the title as name, rows are lists with a heading, the grid exposes its size (`aria-rowcount`) and position, every control in the player is a labeled button reachable by keyboard, the timeline is a slider with the time in words (`aria-valuetext`), subtitles are on when the profile chose them, focus is visible on every card and control, `prefers-reduced-motion` stops crossfades and autoplaying hero motion, touch targets ≥ 44 px.
+- **Accessibility**: WCAG 2.2 AA. Cards are links with the title as name, rows are lists with a heading, the grid exposes its size (`aria-rowcount`) and position, every control in the player is a labeled button reachable by keyboard, the timeline is a slider with the time in words (`aria-valuetext`), subtitles are on when the profile chose them, focus is visible on every card and control, `prefers-reduced-motion` stops crossfades and the controls' fade, touch targets ≥ 44 px.
 - **Privacy**: no request to a third party before the user asks for it (the trailer is the only one, R20); images come from the server, never from TMDB.
 - **Security**: everything the profile can see is decided by the server (F005-R25 on every new route); the web never filters for age on its own. Stream URLs carry their own token (F006-R25) and are never logged by the web app or put in error reports.
 - **Browsers**: the last two versions of Chrome, Edge, Firefox and Safari (macOS and iOS/iPadOS 17.1+). On iOS, playback relies on native HLS.
@@ -423,7 +484,7 @@ Settled by gh-prim on 2026-10-29 (the recommendations were taken). ✅ = resolve
 - [x] **Browser codec support is uneven** — ✅ R34's detection decides, R45 retries once with a transcode; the plan has a manual matrix (Chrome, Firefox, Safari macOS, Safari iOS) on F006's sample files.
 - [x] **iPhone without MSE** — ✅ iOS and iPadOS 17.1+ is the floor, through native HLS.
 - [x] **Genre rows across libraries** — ✅ Grouped by TMDB genre id (`item_genres.genre_id`); the name shown comes from a library in the UI's language when there is one (R31). The `genre` filter takes ids (R26).
-- [x] **Random hero and rows on a Pi** — ✅ As written in R31.
+- [x] **Random hero and rows on a Pi** — ✅ As written in R31. (2026-10-30: the hero became the ambient top, with no randomness; genre rows keep their daily order.)
 - [x] **Hidden items and `total`** — ✅ Counts are always after the age predicate, everywhere.
 - [x] **No PWA** — ✅ Settled in the intent.
 
@@ -432,12 +493,13 @@ Settled by gh-prim on 2026-10-29 (the recommendations were taken). ✅ = resolve
 - [ ] Given an account with three profiles and a new browser tab, when I open `/`, then the picker titled "Who's under the plaid?" shows; when I pick a profile with a PIN and type it, then `POST /session/profile` is sent and the home loads for that profile.
 - [ ] Given an account with one profile, when I open `/`, then the home shows without the picker.
 - [ ] Given a profile with `locale: "fr"` on an English account, when I pick it, then the UI switches to French without a reload.
-- [ ] Given an admin, then the header shows the server strip with the server name and the active streams count, and it opens `/admin`; given a member, then it isn't there and `GET /playback` is never called.
-- [ ] Given a 375 px wide screen, then the libraries are in the bottom tab bar and nothing scrolls horizontally except the rows.
+- [ ] Given an admin on a 1440 px screen, then the sidebar shows the server card with the server name and who watches what, and it opens `/admin`; given a member, then it isn't there and `GET /playback` is never called.
+- [ ] Given a child profile, then the sidebar's library counts are the ones the profile can see.
+- [ ] Given a 375 px wide screen, then there's no sidebar, the libraries are in the bottom tab bar and nothing scrolls horizontally except the rows.
 
 **Home**
-- [ ] Given a movie stopped at 1:02:13 with a backdrop, when I open the home, then the hero shows it with "Resume" and the time left, and Continue watching lists it first with a progress bar.
-- [ ] Given nothing in progress, then the Continue watching row isn't shown and the hero is a recently added item with a backdrop and a logo, the same one all day for this profile.
+- [ ] Given a movie stopped at 1:02:13 with a backdrop, when I open the home, then its backdrop tints the top of the page and Continue watching lists it first with a progress bar and the time left.
+- [ ] Given nothing in progress, then the Continue watching row isn't shown and the ambient backdrop is the most recently added item with a backdrop.
 - [ ] Given two libraries, then the home shows "Recently added in Movies" and "Recently added in Shows", the latter ordered by each show's newest episode.
 - [ ] Given a row with 45 items, when I scroll it to the end, then the next page is fetched with `GET /home/rows/{rowId}?cursor=`.
 - [ ] Given a member on a server with no library, then the home says "Nothing here yet." and names the admin.
@@ -495,7 +557,7 @@ Settled by gh-prim on 2026-10-29 (the recommendations were taken). ✅ = resolve
 - [ ] Given `GET /search?q=amel` with *Amélie* in a library, then it's in `movies`; given the item is above the profile's age limit, then it isn't.
 - [ ] Given a new movie scanned and matched, when I search its title, then it's found without a restart.
 - [ ] Given a show with S1 E1–E3 watched, then `GET /items/{showId}/up-next` returns S1 E4; given the last episode of S1, then `up-next` on it returns S2 E1; given the last episode of the show, then `204`.
-- [ ] Given `GET /home` for a profile with nothing in progress, then there's no `continue_watching` row, and the hero is the same on two calls the same day.
+- [ ] Given `GET /home` for a profile with nothing in progress, then there's no `continue_watching` row, `ambient` is the most recently added item with a backdrop, and the genre rows keep their order on two calls the same day.
 
 **Cross-cutting**
 - [ ] Given every browsing screen at 375 px in French with German-length strings, then nothing overflows and there's no horizontal page scroll.
@@ -506,3 +568,4 @@ Settled by gh-prim on 2026-10-29 (the recommendations were taken). ✅ = resolve
 ## Revisions
 - 2026-10-29 (planning): the package is `internal/catalog` (`library/browse.go` already means the folder picker); `item_genres`, `newest_child_added_at` and the search index are kept in sync by SQLite triggers, and a `search_docs` table gives each FTS row a stable rowid (plan step 3).
 - 2026-10-29: approved. Genres are grouped and filtered by TMDB genre id (R26, R27, R31, data model). Backlog #123 (stall prompt) and #124 (CSP `frame-src`).
+- 2026-10-30: aligned on the canvas (pages Browse and Player). Desktop shell is a sidebar with library counts and the admin server card, the search in a top bar (R1); the home hero is gone: `GET /home` returns an `ambient` item whose backdrop tints the top of the home, chosen without randomness (R5, R6, R31); `LibraryFacets.total` for the sidebar counts (R27); copy from the canvas decks (14 changes, keys added for PIN, server card, grid, detail, search and player; `player.next.title` becomes `player.next.label`; `home.hero.moreInfo` removed); canvas rules in UI. Approval stands: the owner asked for this alignment.

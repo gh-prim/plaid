@@ -327,3 +327,42 @@ func TestPlaybackMigrationUpgrades(t *testing.T) {
 		t.Errorf("after deleting the item, %d watch rows, want 1 (p1 on i2)", n)
 	}
 }
+
+// F008's search index needs FTS5 with diacritic folding and prefix indexes,
+// on every architecture we ship (modernc.org/sqlite is pure Go).
+func TestFTS5Search(t *testing.T) {
+	ctx := context.Background()
+	d, err := Open(ctx, t.TempDir())
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer d.Close()
+
+	var n int
+	if err := d.QueryRowContext(ctx,
+		"SELECT count(*) FROM pragma_compile_options WHERE compile_options = 'ENABLE_FTS5'").Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatal("SQLite is built without ENABLE_FTS5")
+	}
+
+	for _, q := range []string{
+		`CREATE VIRTUAL TABLE fts_probe USING fts5(title, tokenize = 'unicode61 remove_diacritics 2', prefix = '1 2 3')`,
+		`INSERT INTO fts_probe(rowid, title) VALUES (1, 'Le Fabuleux Destin d''Amélie Poulain'), (2, 'The Lord of the Rings'), (3, 'Casablanca')`,
+	} {
+		if _, err := d.ExecContext(ctx, q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	for match, want := range map[string]int64{`"amel"*`: 1, `"AMÉLIE"`: 1, `"rings"*`: 2, `"lord"* "ri"*`: 2, `"casa"*`: 3} {
+		var got int64
+		if err := d.QueryRowContext(ctx, "SELECT rowid FROM fts_probe WHERE fts_probe MATCH ?", match).Scan(&got); err != nil {
+			t.Errorf("MATCH %s: %v", match, err)
+			continue
+		}
+		if got != want {
+			t.Errorf("MATCH %s = row %d, want %d", match, got, want)
+		}
+	}
+}
