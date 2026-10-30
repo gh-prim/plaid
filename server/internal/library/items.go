@@ -28,9 +28,10 @@ const itemSortKey = `CASE items.kind
 	WHEN 'episode' THEN printf('%06d|%s', COALESCE(items.episode_number, 999999), COALESCE(items.air_date, ''))
 	ELSE COALESCE(m.sort_title, items.sort_title, '') END`
 
-const itemColumns = `SELECT items.id, items.kind, COALESCE(items.parent_id, ''), COALESCE(items.title, ''),
-	COALESCE(items.year, 0), items.season_number, items.episode_number, COALESCE(items.air_date, ''),
-	COALESCE(items.hints, ''), m.age_rating
+const itemColumns = `SELECT items.id, items.kind, items.library_id, COALESCE(items.parent_id, ''), COALESCE(items.title, ''),
+	COALESCE(items.year, 0), COALESCE(items.season_number, (SELECT p.season_number FROM items p
+		WHERE p.id = items.parent_id AND items.kind = 'episode')), items.episode_number, COALESCE(items.air_date, ''),
+	COALESCE(items.hints, ''), m.age_rating, items.created_at, COALESCE(items.newest_child_added_at, '')
 	FROM items LEFT JOIN item_metadata m ON m.item_id = items.id WHERE items.id IN (`
 
 // cursor is the keyset position after the last row of a page.
@@ -62,18 +63,25 @@ func pageSize(n int) int {
 
 // Item is an item as the read API shows it (R22).
 type Item struct {
-	ID       string
-	Kind     string
-	ParentID string
-	Title    string
-	Year     int // 0 when unknown
-	Season   *int
-	Episode  *int
-	AirDate  string
-	Hints    map[string]string
+	ID        string
+	Kind      string
+	LibraryID string
+	ParentID  string
+	Title     string
+	Year      int // 0 when unknown
+	// Season is an episode's season number too (the scanner stores it on
+	// the season), so a list of episodes can say S1 E4.
+	Season  *int
+	Episode *int
+	AirDate string
+	Hints   map[string]string
 	// AgeRating is the minimum age from F005's certification, nil when
 	// unrated.
 	AgeRating *int
+	// CreatedAt is when the scanner added the item; NewestChildAddedAt,
+	// for a show, when its newest episode was added ("" when none).
+	CreatedAt          time.Time
+	NewestChildAddedAt time.Time
 	// FileCount counts files present on disk, ChildCount visible children.
 	FileCount  int
 	ChildCount int
@@ -180,6 +188,40 @@ func (s *Store) GetItem(ctx context.Context, id string) (Item, error) {
 	return items[0], nil
 }
 
+// Shows maps seasons and episodes, by id, to their show's id; other
+// items are left out.
+func (s *Store) Shows(ctx context.Context, ids []string) (map[string]string, error) {
+	out := map[string]string{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	q := `SELECT i.id, CASE i.kind WHEN 'season' THEN i.parent_id ELSE p.parent_id END
+		FROM items i LEFT JOIN items p ON p.id = i.parent_id
+		WHERE i.kind IN ('season', 'episode') AND i.id IN (` + placeholders(len(ids)) + `)` //nolint:gosec // only placeholders
+	err := s.scanRows(ctx, q, args, func(r *sql.Rows) error {
+		var id string
+		var show sql.NullString
+		if err := r.Scan(&id, &show); err != nil {
+			return err
+		}
+		if show.Valid {
+			out[id] = show.String
+		}
+		return nil
+	})
+	return out, err
+}
+
+// Items loads items by id, hidden or not, in the given order; unknown ids
+// are left out.
+func (s *Store) Items(ctx context.Context, ids []string) ([]Item, error) {
+	return s.items(ctx, ids)
+}
+
 // items loads items by id, in the given order, with counts and technical
 // summaries.
 func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
@@ -200,12 +242,12 @@ func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
 	}
 	for rows.Next() {
 		var (
-			it                   Item
-			season, episode, age sql.NullInt64
-			hints                string
+			it                     Item
+			season, episode, age   sql.NullInt64
+			hints, created, newest string
 		)
-		if err := rows.Scan(&it.ID, &it.Kind, &it.ParentID, &it.Title, &it.Year, &season, &episode,
-			&it.AirDate, &hints, &age); err != nil {
+		if err := rows.Scan(&it.ID, &it.Kind, &it.LibraryID, &it.ParentID, &it.Title, &it.Year, &season, &episode,
+			&it.AirDate, &hints, &age, &created, &newest); err != nil {
 			_ = rows.Close()
 			return nil, err
 		}
@@ -224,6 +266,8 @@ func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
 			n := int(age.Int64)
 			it.AgeRating = &n
 		}
+		it.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
+		it.NewestChildAddedAt, _ = time.Parse(time.RFC3339Nano, newest)
 		it.Technical = Technical{HDRFormats: []string{}, AudioLanguages: []string{}}
 		byID[it.ID] = &it
 	}

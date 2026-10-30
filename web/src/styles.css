@@ -134,19 +134,3 @@
   cursor: pointer;
   align-self: flex-start;
 }
-
-.account-bar {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0.75rem 1rem;
-}
-
-.account-bar a {
-  color: inherit;
-}
-
-.account-bar button {
-  font: inherit;
-}

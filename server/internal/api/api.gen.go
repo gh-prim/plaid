@@ -323,6 +323,27 @@ func (e HealthStatus) Valid() bool {
 	}
 }
 
+// Defines values for HomeRowType.
+const (
+	ContinueWatching HomeRowType = "continue_watching"
+	Genre            HomeRowType = "genre"
+	RecentlyAdded    HomeRowType = "recently_added"
+)
+
+// Valid indicates whether the value is a known member of the HomeRowType enum.
+func (e HomeRowType) Valid() bool {
+	switch e {
+	case ContinueWatching:
+		return true
+	case Genre:
+		return true
+	case RecentlyAdded:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for HwAccelSetting.
 const (
 	HwAccelAuto         HwAccelSetting = "auto"
@@ -425,6 +446,36 @@ func (e ItemMetadataShowStatus) Valid() bool {
 	case InProduction:
 		return true
 	case Returning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ItemSort.
+const (
+	Added    ItemSort = "added"
+	Played   ItemSort = "played"
+	Random   ItemSort = "random"
+	Rating   ItemSort = "rating"
+	Released ItemSort = "released"
+	Title    ItemSort = "title"
+)
+
+// Valid indicates whether the value is a known member of the ItemSort enum.
+func (e ItemSort) Valid() bool {
+	switch e {
+	case Added:
+		return true
+	case Played:
+		return true
+	case Random:
+		return true
+	case Rating:
+		return true
+	case Released:
+		return true
+	case Title:
 		return true
 	default:
 		return false
@@ -898,28 +949,52 @@ func (e ProviderStatusState) Valid() bool {
 
 // Defines values for Quality.
 const (
-	N1080p   Quality = "1080p"
-	N2160p   Quality = "2160p"
-	N360p    Quality = "360p"
-	N480p    Quality = "480p"
-	N720p    Quality = "720p"
-	Original Quality = "original"
+	QualityN1080p   Quality = "1080p"
+	QualityN2160p   Quality = "2160p"
+	QualityN360p    Quality = "360p"
+	QualityN480p    Quality = "480p"
+	QualityN720p    Quality = "720p"
+	QualityOriginal Quality = "original"
 )
 
 // Valid indicates whether the value is a known member of the Quality enum.
 func (e Quality) Valid() bool {
 	switch e {
-	case N1080p:
+	case QualityN1080p:
 		return true
-	case N2160p:
+	case QualityN2160p:
 		return true
-	case N360p:
+	case QualityN360p:
 		return true
-	case N480p:
+	case QualityN480p:
 		return true
-	case N720p:
+	case QualityN720p:
 		return true
-	case Original:
+	case QualityOriginal:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ResolutionFilter.
+const (
+	ResolutionFilterN1080p ResolutionFilter = "1080p"
+	ResolutionFilterN2160p ResolutionFilter = "2160p"
+	ResolutionFilterN720p  ResolutionFilter = "720p"
+	ResolutionFilterSd     ResolutionFilter = "sd"
+)
+
+// Valid indicates whether the value is a known member of the ResolutionFilter enum.
+func (e ResolutionFilter) Valid() bool {
+	switch e {
+	case ResolutionFilterN1080p:
+		return true
+	case ResolutionFilterN2160p:
+		return true
+	case ResolutionFilterN720p:
+		return true
+	case ResolutionFilterSd:
 		return true
 	default:
 		return false
@@ -1010,6 +1085,24 @@ func (e ScanState) Valid() bool {
 	case Queued:
 		return true
 	case Scanning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SortOrder.
+const (
+	Asc  SortOrder = "asc"
+	Desc SortOrder = "desc"
+)
+
+// Valid indicates whether the value is a known member of the SortOrder enum.
+func (e SortOrder) Valid() bool {
+	switch e {
+	case Asc:
+		return true
+	case Desc:
 		return true
 	default:
 		return false
@@ -1154,6 +1247,27 @@ func (e VideoCapabilityHdr) Valid() bool {
 	case VideoCapabilityHdrHdr10plus:
 		return true
 	case VideoCapabilityHdrHlg:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WatchFilter.
+const (
+	InProgress WatchFilter = "in_progress"
+	Unwatched  WatchFilter = "unwatched"
+	Watched    WatchFilter = "watched"
+)
+
+// Valid indicates whether the value is a known member of the WatchFilter enum.
+func (e WatchFilter) Valid() bool {
+	switch e {
+	case InProgress:
+		return true
+	case Unwatched:
+		return true
+	case Watched:
 		return true
 	default:
 		return false
@@ -1483,6 +1597,14 @@ type Credit struct {
 // CreditRole defines model for Credit.Role.
 type CreditRole string
 
+// DecadeFacet defines model for DecadeFacet.
+type DecadeFacet struct {
+	Count int `json:"count"`
+
+	// From First year of the decade, e.g. 1990.
+	From int `json:"from"`
+}
+
 // Device defines model for Device.
 type Device struct {
 	ClientVersion *string `json:"clientVersion,omitempty"`
@@ -1529,6 +1651,20 @@ type Error struct {
 		// Message Human-readable English message, for logs and developers. Never shown to end users.
 		Message string `json:"message"`
 	} `json:"error"`
+}
+
+// GenreFacet defines model for GenreFacet.
+type GenreFacet struct {
+	Count int    `json:"count"`
+	Id    int    `json:"id"`
+	Name  string `json:"name"`
+}
+
+// GenreRef defines model for GenreRef.
+type GenreRef struct {
+	// Id TMDB genre id.
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 // HardwareStatus The result of the last hardware test (F006 R24, R31).
@@ -1585,6 +1721,34 @@ type HealthDatabase string
 // HealthStatus defines model for Health.Status.
 type HealthStatus string
 
+// Home defines model for Home.
+type Home struct {
+	// Ambient Whose backdrop tints the top of the home (F008 R6).
+	Ambient *ItemSummary `json:"ambient,omitempty"`
+
+	// Rows In display order; rows with no items are left out.
+	Rows []HomeRow `json:"rows"`
+}
+
+// HomeRow The client builds the title from `type` and its params, never from text sent here.
+type HomeRow struct {
+	Genre       *GenreRef     `json:"genre,omitempty"`
+	Id          string        `json:"id"`
+	Items       []ItemSummary `json:"items"`
+	LibraryId   *string       `json:"libraryId,omitempty"`
+	LibraryName *string       `json:"libraryName,omitempty"`
+
+	// NextCursor Absent when the row has no more items; page with GET /home/rows/{rowId}.
+	NextCursor *string `json:"nextCursor,omitempty"`
+
+	// SeeAll The library grid query that "See all" opens.
+	SeeAll *SeeAll     `json:"seeAll,omitempty"`
+	Type   HomeRowType `json:"type"`
+}
+
+// HomeRowType defines model for HomeRowType.
+type HomeRowType string
+
 // HwAccelSetting Hardware acceleration (F006 R24). `auto` tries vaapi, qsv, nvenc, v4l2m2m, then videotoolbox (macOS, development only) and keeps the first that passes a test encode.
 type HwAccelSetting string
 
@@ -1599,6 +1763,9 @@ type IdentifyRequest struct {
 
 // ItemDetail defines model for ItemDetail.
 type ItemDetail struct {
+	// AddedAt When the item was added; for a show, when its newest episode was (F008 R26).
+	AddedAt *time.Time `json:"addedAt,omitempty"`
+
 	// AgeRating Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated.
 	AgeRating *int                `json:"ageRating,omitempty"`
 	AirDate   *openapi_types.Date `json:"airDate,omitempty"`
@@ -1624,12 +1791,18 @@ type ItemDetail struct {
 	Id    string     `json:"id"`
 	Kind  ItemKind   `json:"kind"`
 
+	// LibraryId The library holding the item (F008 R17, R21).
+	LibraryId *string `json:"libraryId,omitempty"`
+
 	// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
 	MatchStatus MatchStatus `json:"matchStatus"`
 
 	// Metadata What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
 	Metadata *ItemMetadata `json:"metadata,omitempty"`
-	ParentId *string       `json:"parentId,omitempty"`
+
+	// Overview Seasons and episodes only, for episode lists (F008 R21); other kinds have it in ItemDetail.metadata.
+	Overview *string `json:"overview,omitempty"`
+	ParentId *string `json:"parentId,omitempty"`
 
 	// Poster An image; fetch it with GET /images/{imageId}?w=.
 	Poster *Artwork `json:"poster,omitempty"`
@@ -1638,8 +1811,14 @@ type ItemDetail struct {
 	Rating *float32 `json:"rating,omitempty"`
 
 	// ReleaseDate Movie release, show first air date, season or episode air date.
-	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
-	SeasonNumber *int                `json:"seasonNumber,omitempty"`
+	ReleaseDate *openapi_types.Date `json:"releaseDate,omitempty"`
+
+	// RuntimeMinutes TMDB runtime (F008 R21 episode rows, R7 cards).
+	RuntimeMinutes *int `json:"runtimeMinutes,omitempty"`
+	SeasonNumber   *int `json:"seasonNumber,omitempty"`
+
+	// Show The show of a season or an episode (F008 R30).
+	Show *ShowRef `json:"show,omitempty"`
 
 	// Still An image; fetch it with GET /images/{imageId}?w=.
 	Still *Artwork `json:"still,omitempty"`
@@ -1685,6 +1864,9 @@ type ItemMetadata struct {
 	// FieldLanguages Language of text fields that fell back to English, e.g. {"overview": "en"} (R11).
 	FieldLanguages map[string]string `json:"fieldLanguages"`
 
+	// Genres With their TMDB ids, for links to the library filtered by genre (F008 R17); 0 for a genre an admin typed.
+	Genres []GenreRef `json:"genres"`
+
 	// LocalFields Fields taken from a local .nfo (R12).
 	LocalFields []string `json:"localFields"`
 
@@ -1719,10 +1901,19 @@ type ItemPage struct {
 
 	// NextCursor Absent on the last page.
 	NextCursor *string `json:"nextCursor,omitempty"`
+
+	// Total Every item matching the query, when `total=true` (F008 R26).
+	Total *int `json:"total,omitempty"`
 }
+
+// ItemSort defines model for ItemSort.
+type ItemSort string
 
 // ItemSummary defines model for ItemSummary.
 type ItemSummary struct {
+	// AddedAt When the item was added; for a show, when its newest episode was (F008 R26).
+	AddedAt *time.Time `json:"addedAt,omitempty"`
+
 	// AgeRating Minimum age derived from the certification (0, 7, 10, 12, 13, 16, 18); absent when unrated.
 	AgeRating *int                `json:"ageRating,omitempty"`
 	AirDate   *openapi_types.Date `json:"airDate,omitempty"`
@@ -1747,9 +1938,15 @@ type ItemSummary struct {
 	Id    string     `json:"id"`
 	Kind  ItemKind   `json:"kind"`
 
+	// LibraryId The library holding the item (F008 R17, R21).
+	LibraryId *string `json:"libraryId,omitempty"`
+
 	// MatchStatus pending: not matched yet (or no TMDB key). needs_review: candidates are waiting for an admin. unmatched: TMDB found nothing; it's tried again later (F005 R5).
 	MatchStatus MatchStatus `json:"matchStatus"`
-	ParentId    *string     `json:"parentId,omitempty"`
+
+	// Overview Seasons and episodes only, for episode lists (F008 R21); other kinds have it in ItemDetail.metadata.
+	Overview *string `json:"overview,omitempty"`
+	ParentId *string `json:"parentId,omitempty"`
 
 	// Poster An image; fetch it with GET /images/{imageId}?w=.
 	Poster *Artwork `json:"poster,omitempty"`
@@ -1758,8 +1955,14 @@ type ItemSummary struct {
 	Rating *float32 `json:"rating,omitempty"`
 
 	// ReleaseDate Movie release, show first air date, season or episode air date.
-	ReleaseDate  *openapi_types.Date `json:"releaseDate,omitempty"`
-	SeasonNumber *int                `json:"seasonNumber,omitempty"`
+	ReleaseDate *openapi_types.Date `json:"releaseDate,omitempty"`
+
+	// RuntimeMinutes TMDB runtime (F008 R21 episode rows, R7 cards).
+	RuntimeMinutes *int `json:"runtimeMinutes,omitempty"`
+	SeasonNumber   *int `json:"seasonNumber,omitempty"`
+
+	// Show The show of a season or an episode (F008 R30).
+	Show *ShowRef `json:"show,omitempty"`
 
 	// Still An image; fetch it with GET /images/{imageId}?w=.
 	Still *Artwork `json:"still,omitempty"`
@@ -1773,6 +1976,12 @@ type ItemSummary struct {
 	// UserState The active profile's watch state for an item (F006 R36). Absent when no profile is active.
 	UserState *UserState `json:"userState,omitempty"`
 	Year      *int       `json:"year,omitempty"`
+}
+
+// LetterFacet defines model for LetterFacet.
+type LetterFacet struct {
+	Count  int    `json:"count"`
+	Letter string `json:"letter"`
 }
 
 // Library defines model for Library.
@@ -1808,6 +2017,24 @@ type LibraryCounts struct {
 	Movies       int `json:"movies"`
 	Shows        int `json:"shows"`
 	Unrecognized int `json:"unrecognized"`
+}
+
+// LibraryFacets defines model for LibraryFacets.
+type LibraryFacets struct {
+	Decades []DecadeFacet `json:"decades"`
+
+	// Genres By count, most first.
+	Genres []GenreFacet `json:"genres"`
+
+	// Hdr Items with an HDR file.
+	Hdr int `json:"hdr"`
+
+	// Letters In title sort order; digits and symbols are grouped as "#".
+	Letters     []LetterFacet     `json:"letters"`
+	Resolutions []ResolutionFacet `json:"resolutions"`
+
+	// Total Top-level items the profile may see.
+	Total int `json:"total"`
 }
 
 // LibraryFolder defines model for LibraryFolder.
@@ -2054,6 +2281,15 @@ type PersonCredit struct {
 
 // PersonCreditRole defines model for PersonCredit.Role.
 type PersonCreditRole string
+
+// PersonRef defines model for PersonRef.
+type PersonRef struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+
+	// Portrait An image; fetch it with GET /images/{imageId}?w=.
+	Portrait *Artwork `json:"portrait,omitempty"`
+}
 
 // PlaybackAudioTrack defines model for PlaybackAudioTrack.
 type PlaybackAudioTrack struct {
@@ -2309,6 +2545,17 @@ type Resolution struct {
 	Width  int `json:"width"`
 }
 
+// ResolutionFacet defines model for ResolutionFacet.
+type ResolutionFacet struct {
+	Count int `json:"count"`
+
+	// Value sd is anything under 720p.
+	Value ResolutionFilter `json:"value"`
+}
+
+// ResolutionFilter sd is anything under 720p.
+type ResolutionFilter string
+
 // ReviewItem defines model for ReviewItem.
 type ReviewItem struct {
 	Candidates  []MatchCandidate `json:"candidates"`
@@ -2383,6 +2630,24 @@ type SearchResult struct {
 	Candidates []MatchCandidate `json:"candidates"`
 }
 
+// SearchResults defines model for SearchResults.
+type SearchResults struct {
+	// Episodes Each with its `show`.
+	Episodes []ItemSummary `json:"episodes"`
+	Movies   []ItemSummary `json:"movies"`
+	People   []PersonRef   `json:"people"`
+	Shows    []ItemSummary `json:"shows"`
+}
+
+// SeeAll The library grid query that "See all" opens.
+type SeeAll struct {
+	// Genre TMDB genre id.
+	Genre     *int      `json:"genre,omitempty"`
+	LibraryId string    `json:"libraryId"`
+	Order     SortOrder `json:"order"`
+	Sort      ItemSort  `json:"sort"`
+}
+
 // SelectProfileRequest defines model for SelectProfileRequest.
 type SelectProfileRequest struct {
 	Pin       *string `json:"pin,omitempty"`
@@ -2439,6 +2704,18 @@ type SetupState struct {
 	RequiresSetupCode bool `json:"requiresSetupCode"`
 	SetupComplete     bool `json:"setupComplete"`
 }
+
+// ShowRef The show of a season or an episode (F008 R30).
+type ShowRef struct {
+	DisplayTitle string `json:"displayTitle"`
+	Id           string `json:"id"`
+
+	// Logo An image; fetch it with GET /images/{imageId}?w=.
+	Logo *Artwork `json:"logo,omitempty"`
+}
+
+// SortOrder defines model for SortOrder.
+type SortOrder string
 
 // StartPairingRequest defines model for StartPairingRequest.
 type StartPairingRequest struct {
@@ -2509,6 +2786,11 @@ type UnrecognizedPage struct {
 	NextCursor *string            `json:"nextCursor,omitempty"`
 }
 
+// UpNext defines model for UpNext.
+type UpNext struct {
+	Item ItemSummary `json:"item"`
+}
+
 // UpdateLibraryRequest defines model for UpdateLibraryRequest.
 type UpdateLibraryRequest struct {
 	Folders *[]string `json:"folders,omitempty"`
@@ -2572,6 +2854,8 @@ type User struct {
 
 // UserState The active profile's watch state for an item (F006 R36). Absent when no profile is active.
 type UserState struct {
+	// DurationMs Length of the file last played, when known, for the time left (F008 R7).
+	DurationMs   *int64     `json:"durationMs,omitempty"`
 	LastPlayedAt *time.Time `json:"lastPlayedAt,omitempty"`
 	PlayCount    int        `json:"playCount"`
 
@@ -2606,6 +2890,9 @@ type VideoCapability struct {
 
 // VideoCapabilityHdr defines model for VideoCapability.Hdr.
 type VideoCapabilityHdr string
+
+// WatchFilter defines model for WatchFilter.
+type WatchFilter string
 
 // Cursor defines model for Cursor.
 type Cursor = string
@@ -2653,6 +2940,13 @@ type BrowseFoldersParams struct {
 	Path *string `form:"path,omitempty" json:"path,omitempty"`
 }
 
+// GetHomeRowParams defines parameters for GetHomeRow.
+type GetHomeRowParams struct {
+	// Cursor Opaque `nextCursor` of the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // GetImageParams defines parameters for GetImage.
 type GetImageParams struct {
 	// W Wanted width in pixels; defaults to 342.
@@ -2667,6 +2961,32 @@ type ListItemArtworkParams struct {
 
 // ListLibraryItemsParams defines parameters for ListLibraryItems.
 type ListLibraryItemsParams struct {
+	Sort *ItemSort `form:"sort,omitempty" json:"sort,omitempty"`
+
+	// Order Defaults to `asc` for `title`, `desc` otherwise. Ignored for `random`.
+	Order *SortOrder `form:"order,omitempty" json:"order,omitempty"`
+
+	// Seed Seed of the `random` order, so pages of one visit agree.
+	Seed  *int64       `form:"seed,omitempty" json:"seed,omitempty"`
+	Watch *WatchFilter `form:"watch,omitempty" json:"watch,omitempty"`
+
+	// Genre TMDB genre ids; an item matches any of them.
+	Genre    *[]int `form:"genre,omitempty" json:"genre,omitempty"`
+	YearFrom *int   `form:"yearFrom,omitempty" json:"yearFrom,omitempty"`
+	YearTo   *int   `form:"yearTo,omitempty" json:"yearTo,omitempty"`
+
+	// Resolution An item matches any of them, by its largest file.
+	Resolution *[]ResolutionFilter `form:"resolution,omitempty" json:"resolution,omitempty"`
+
+	// Hdr Only items with an HDR file (true) or without one (false).
+	Hdr *bool `form:"hdr,omitempty" json:"hdr,omitempty"`
+
+	// Offset Position of the first item, instead of `cursor`.
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+
+	// Total Adds `total` to the page.
+	Total *bool `form:"total,omitempty" json:"total,omitempty"`
+
 	// Kind Defaults to the top level, `movie` or `show`, when `parentId` is absent.
 	Kind *ItemKind `form:"kind,omitempty" json:"kind,omitempty"`
 
@@ -2714,6 +3034,14 @@ type SearchMetadataParamsKind string
 type PollPairingParams struct {
 	// XPairingSecret The `pollSecret` returned when the pairing started.
 	XPairingSecret string `json:"X-Pairing-Secret"`
+}
+
+// SearchParams defines parameters for Search.
+type SearchParams struct {
+	Q string `form:"q" json:"q"`
+
+	// Limit Per group.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
@@ -2817,6 +3145,12 @@ type ServerInterface interface {
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
+	// GetHome The home of the active profile, ambient item and rows (F008 R31)
+	// (GET /home)
+	GetHome(w http.ResponseWriter, r *http.Request)
+	// GetHomeRow Next page of one home row (F008 R31)
+	// (GET /home/rows/{rowId})
+	GetHomeRow(w http.ResponseWriter, r *http.Request, rowId string, params GetHomeRowParams)
 	// GetImage An artwork image, resized for the client (F005 R19)
 	// (GET /images/{imageId})
 	GetImage(w http.ResponseWriter, r *http.Request, imageId string, params GetImageParams)
@@ -2847,6 +3181,9 @@ type ServerInterface interface {
 	// RefreshItem Refresh an item's metadata now (admin, F005 R31)
 	// (POST /items/{itemId}/refresh)
 	RefreshItem(w http.ResponseWriter, r *http.Request, itemId ItemId)
+	// GetUpNext The episode to play next for a show, a season or after an episode (F008 R32)
+	// (GET /items/{itemId}/up-next)
+	GetUpNext(w http.ResponseWriter, r *http.Request, itemId ItemId)
 	// MarkUnwatched Mark an item unwatched for the active profile; a show or season unmarks every episode (F006 R35)
 	// (DELETE /items/{itemId}/watched)
 	MarkUnwatched(w http.ResponseWriter, r *http.Request, itemId string)
@@ -2868,6 +3205,9 @@ type ServerInterface interface {
 	// UpdateLibrary Rename a library, change its folders or scan interval (admin)
 	// (PATCH /libraries/{libraryId})
 	UpdateLibrary(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
+	// GetLibraryFacets What a library's grid can be filtered by, with counts (F008 R27)
+	// (GET /libraries/{libraryId}/facets)
+	GetLibraryFacets(w http.ResponseWriter, r *http.Request, libraryId LibraryId)
 	// ListLibraryItems Items of a library, by kind and parent
 	// (GET /libraries/{libraryId}/items)
 	ListLibraryItems(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListLibraryItemsParams)
@@ -2970,6 +3310,9 @@ type ServerInterface interface {
 	// ListProblems What needs the admin's attention, last 7 days (admin, F007 R29)
 	// (GET /problems)
 	ListProblems(w http.ResponseWriter, r *http.Request)
+	// Search Movies, shows, episodes and people by word prefix, across the profile's libraries (F008 R28)
+	// (GET /search)
+	Search(w http.ResponseWriter, r *http.Request, params SearchParams)
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(w http.ResponseWriter, r *http.Request)
@@ -3151,6 +3494,75 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetHome operation middleware
+func (siw *ServerInterfaceWrapper) GetHome(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHome(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetHomeRow operation middleware
+func (siw *ServerInterfaceWrapper) GetHomeRow(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "rowId" -------------
+	var rowId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "rowId", r.PathValue("rowId"), &rowId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "rowId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetHomeRowParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHomeRow(w, r, rowId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3491,6 +3903,32 @@ func (siw *ServerInterfaceWrapper) RefreshItem(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
+// GetUpNext operation middleware
+func (siw *ServerInterfaceWrapper) GetUpNext(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUpNext(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // MarkUnwatched operation middleware
 func (siw *ServerInterfaceWrapper) MarkUnwatched(w http.ResponseWriter, r *http.Request) {
 
@@ -3649,6 +4087,32 @@ func (siw *ServerInterfaceWrapper) UpdateLibrary(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// GetLibraryFacets operation middleware
+func (siw *ServerInterfaceWrapper) GetLibraryFacets(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "libraryId" -------------
+	var libraryId LibraryId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "libraryId", r.PathValue("libraryId"), &libraryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLibraryFacets(w, r, libraryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListLibraryItems operation middleware
 func (siw *ServerInterfaceWrapper) ListLibraryItems(w http.ResponseWriter, r *http.Request) {
 
@@ -3666,6 +4130,149 @@ func (siw *ServerInterfaceWrapper) ListLibraryItems(w http.ResponseWriter, r *ht
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ListLibraryItemsParams
+
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "sort", r.URL.Query(), &params.Sort, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "order", r.URL.Query(), &params.Order, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "order"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "order", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "seed" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "seed", r.URL.Query(), &params.Seed, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "seed"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "seed", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "watch" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "watch", r.URL.Query(), &params.Watch, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "watch"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "watch", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "genre" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "genre", r.URL.Query(), &params.Genre, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "genre"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "genre", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "yearFrom" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "yearFrom", r.URL.Query(), &params.YearFrom, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "yearFrom"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "yearFrom", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "yearTo" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "yearTo", r.URL.Query(), &params.YearTo, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "yearTo"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "yearTo", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "resolution" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "resolution", r.URL.Query(), &params.Resolution, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "resolution"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "resolution", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "hdr" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "hdr", r.URL.Query(), &params.Hdr, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "hdr"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "hdr", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "offset", r.URL.Query(), &params.Offset, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "offset"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "total" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "total", r.URL.Query(), &params.Total, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "total"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "total", Err: err})
+		}
+		return
+	}
 
 	// ------------- Optional query parameter "kind" -------------
 
@@ -4572,6 +5179,52 @@ func (siw *ServerInterfaceWrapper) ListProblems(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
+// Search operation middleware
+func (siw *ServerInterfaceWrapper) Search(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SearchParams
+
+	// ------------- Required query parameter "q" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "q", r.URL.Query(), &params.Q, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Search(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetServerInfo operation middleware
 func (siw *ServerInterfaceWrapper) GetServerInfo(w http.ResponseWriter, r *http.Request) {
 
@@ -5007,6 +5660,11 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/libraries/{libraryId}/scan", wrapper.ScanLibrary)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/scan/events", wrapper.GetLibraryScanEvents)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/items", wrapper.ListLibraryItems)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/facets", wrapper.GetLibraryFacets)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/search", wrapper.Search)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/home", wrapper.GetHome)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/home/rows/{rowId}", wrapper.GetHomeRow)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/items/{itemId}/up-next", wrapper.GetUpNext)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/unrecognized", wrapper.ListUnrecognizedFiles)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/review", wrapper.ListLibraryReview)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/libraries/{libraryId}/metadata/refresh", wrapper.RefreshLibraryMetadata)
@@ -5268,6 +5926,84 @@ func (response GetHealth503JSONResponse) VisitGetHealthResponse(w http.ResponseW
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetHomeRequestObject struct {
+}
+
+type GetHomeResponseObject interface {
+	VisitGetHomeResponse(w http.ResponseWriter) error
+}
+
+type GetHome200JSONResponse Home
+
+func (response GetHome200JSONResponse) VisitGetHomeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetHomedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetHomedefaultJSONResponse) VisitGetHomeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetHomeRowRequestObject struct {
+	RowId  string `json:"rowId"`
+	Params GetHomeRowParams
+}
+
+type GetHomeRowResponseObject interface {
+	VisitGetHomeRowResponse(w http.ResponseWriter) error
+}
+
+type GetHomeRow200JSONResponse ItemPage
+
+func (response GetHomeRow200JSONResponse) VisitGetHomeRowResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetHomeRowdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetHomeRowdefaultJSONResponse) VisitGetHomeRowResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -5721,6 +6457,53 @@ func (response RefreshItemdefaultJSONResponse) VisitRefreshItemResponse(w http.R
 	return err
 }
 
+type GetUpNextRequestObject struct {
+	ItemId ItemId `json:"itemId"`
+}
+
+type GetUpNextResponseObject interface {
+	VisitGetUpNextResponse(w http.ResponseWriter) error
+}
+
+type GetUpNext200JSONResponse UpNext
+
+func (response GetUpNext200JSONResponse) VisitGetUpNextResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUpNext204Response struct {
+}
+
+func (response GetUpNext204Response) VisitGetUpNextResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type GetUpNextdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetUpNextdefaultJSONResponse) VisitGetUpNextResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type MarkUnwatchedRequestObject struct {
 	ItemId string `json:"itemId"`
 }
@@ -5965,6 +6748,45 @@ type UpdateLibrarydefaultJSONResponse struct {
 }
 
 func (response UpdateLibrarydefaultJSONResponse) VisitUpdateLibraryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLibraryFacetsRequestObject struct {
+	LibraryId LibraryId `json:"libraryId"`
+}
+
+type GetLibraryFacetsResponseObject interface {
+	VisitGetLibraryFacetsResponse(w http.ResponseWriter) error
+}
+
+type GetLibraryFacets200JSONResponse LibraryFacets
+
+func (response GetLibraryFacets200JSONResponse) VisitGetLibraryFacetsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLibraryFacetsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetLibraryFacetsdefaultJSONResponse) VisitGetLibraryFacetsResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -7312,6 +8134,45 @@ func (response ListProblemsdefaultJSONResponse) VisitListProblemsResponse(w http
 	return err
 }
 
+type SearchRequestObject struct {
+	Params SearchParams
+}
+
+type SearchResponseObject interface {
+	VisitSearchResponse(w http.ResponseWriter) error
+}
+
+type Search200JSONResponse SearchResults
+
+func (response Search200JSONResponse) VisitSearchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SearchdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response SearchdefaultJSONResponse) VisitSearchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetServerInfoRequestObject struct {
 }
 
@@ -7896,6 +8757,12 @@ type StrictServerInterface interface {
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
+	// GetHome The home of the active profile, ambient item and rows (F008 R31)
+	// (GET /home)
+	GetHome(ctx context.Context, request GetHomeRequestObject) (GetHomeResponseObject, error)
+	// GetHomeRow Next page of one home row (F008 R31)
+	// (GET /home/rows/{rowId})
+	GetHomeRow(ctx context.Context, request GetHomeRowRequestObject) (GetHomeRowResponseObject, error)
 	// GetImage An artwork image, resized for the client (F005 R19)
 	// (GET /images/{imageId})
 	GetImage(ctx context.Context, request GetImageRequestObject) (GetImageResponseObject, error)
@@ -7926,6 +8793,9 @@ type StrictServerInterface interface {
 	// RefreshItem Refresh an item's metadata now (admin, F005 R31)
 	// (POST /items/{itemId}/refresh)
 	RefreshItem(ctx context.Context, request RefreshItemRequestObject) (RefreshItemResponseObject, error)
+	// GetUpNext The episode to play next for a show, a season or after an episode (F008 R32)
+	// (GET /items/{itemId}/up-next)
+	GetUpNext(ctx context.Context, request GetUpNextRequestObject) (GetUpNextResponseObject, error)
 	// MarkUnwatched Mark an item unwatched for the active profile; a show or season unmarks every episode (F006 R35)
 	// (DELETE /items/{itemId}/watched)
 	MarkUnwatched(ctx context.Context, request MarkUnwatchedRequestObject) (MarkUnwatchedResponseObject, error)
@@ -7947,6 +8817,9 @@ type StrictServerInterface interface {
 	// UpdateLibrary Rename a library, change its folders or scan interval (admin)
 	// (PATCH /libraries/{libraryId})
 	UpdateLibrary(ctx context.Context, request UpdateLibraryRequestObject) (UpdateLibraryResponseObject, error)
+	// GetLibraryFacets What a library's grid can be filtered by, with counts (F008 R27)
+	// (GET /libraries/{libraryId}/facets)
+	GetLibraryFacets(ctx context.Context, request GetLibraryFacetsRequestObject) (GetLibraryFacetsResponseObject, error)
 	// ListLibraryItems Items of a library, by kind and parent
 	// (GET /libraries/{libraryId}/items)
 	ListLibraryItems(ctx context.Context, request ListLibraryItemsRequestObject) (ListLibraryItemsResponseObject, error)
@@ -8049,6 +8922,9 @@ type StrictServerInterface interface {
 	// ListProblems What needs the admin's attention, last 7 days (admin, F007 R29)
 	// (GET /problems)
 	ListProblems(ctx context.Context, request ListProblemsRequestObject) (ListProblemsResponseObject, error)
+	// Search Movies, shows, episodes and people by word prefix, across the profile's libraries (F008 R28)
+	// (GET /search)
+	Search(ctx context.Context, request SearchRequestObject) (SearchResponseObject, error)
 	// GetServerInfo Identify a PLAID server
 	// (GET /server)
 	GetServerInfo(ctx context.Context, request GetServerInfoRequestObject) (GetServerInfoResponseObject, error)
@@ -8285,6 +9161,57 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
 		if err := validResponse.VisitGetHealthResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetHome operation middleware
+func (sh *strictHandler) GetHome(w http.ResponseWriter, r *http.Request) {
+	var request GetHomeRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHome(ctx, request.(GetHomeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetHome")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetHomeResponseObject); ok {
+		if err := validResponse.VisitGetHomeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetHomeRow operation middleware
+func (sh *strictHandler) GetHomeRow(w http.ResponseWriter, r *http.Request, rowId string, params GetHomeRowParams) {
+	var request GetHomeRowRequestObject
+
+	request.RowId = rowId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHomeRow(ctx, request.(GetHomeRowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetHomeRow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetHomeRowResponseObject); ok {
+		if err := validResponse.VisitGetHomeRowResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -8594,6 +9521,32 @@ func (sh *strictHandler) RefreshItem(w http.ResponseWriter, r *http.Request, ite
 	}
 }
 
+// GetUpNext operation middleware
+func (sh *strictHandler) GetUpNext(w http.ResponseWriter, r *http.Request, itemId ItemId) {
+	var request GetUpNextRequestObject
+
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUpNext(ctx, request.(GetUpNextRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUpNext")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUpNextResponseObject); ok {
+		if err := validResponse.VisitGetUpNextResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // MarkUnwatched operation middleware
 func (sh *strictHandler) MarkUnwatched(w http.ResponseWriter, r *http.Request, itemId string) {
 	var request MarkUnwatchedRequestObject
@@ -8779,6 +9732,32 @@ func (sh *strictHandler) UpdateLibrary(w http.ResponseWriter, r *http.Request, l
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateLibraryResponseObject); ok {
 		if err := validResponse.VisitUpdateLibraryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetLibraryFacets operation middleware
+func (sh *strictHandler) GetLibraryFacets(w http.ResponseWriter, r *http.Request, libraryId LibraryId) {
+	var request GetLibraryFacetsRequestObject
+
+	request.LibraryId = libraryId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLibraryFacets(ctx, request.(GetLibraryFacetsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLibraryFacets")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLibraryFacetsResponseObject); ok {
+		if err := validResponse.VisitGetLibraryFacetsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -9739,6 +10718,32 @@ func (sh *strictHandler) ListProblems(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListProblemsResponseObject); ok {
 		if err := validResponse.VisitListProblemsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Search operation middleware
+func (sh *strictHandler) Search(w http.ResponseWriter, r *http.Request, params SearchParams) {
+	var request SearchRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Search(ctx, request.(SearchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Search")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SearchResponseObject); ok {
+		if err := validResponse.VisitSearchResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

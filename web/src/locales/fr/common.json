@@ -1,12 +1,7 @@
 {
-  "account": {
-    "label": "Compte",
-    "watchingAs": "Profil : {{name}}"
-  },
   "admin": {
     "back": "Retour à la bibliothèque",
     "backTo": "‹ {{serverName}}",
-    "entry": "Gérer {{serverName}}",
     "group": {
       "manage": "Gérer",
       "settings": "Réglages",
@@ -74,6 +69,20 @@
     "signOut": "Se déconnecter",
     "username": "Nom d'utilisateur"
   },
+  "card": {
+    "episode": "S{{season, number}} É{{episode, number}} · {{title}}",
+    "episodeShort": "S{{season, number}} É{{episode, number}}",
+    "goToShow": "Voir la série",
+    "menu": "Plus d’actions pour {{title}}",
+    "moreInfo": "Plus d’infos",
+    "progressLabel": "Vu à {{percent, number}} %",
+    "separator": " · ",
+    "timeLeft": "Encore {{duration}}",
+    "unwatchedBadge_one": "{{count, number}} nouveau",
+    "unwatchedBadge_many": "",
+    "unwatchedBadge_other": "{{count, number}} nouveaux",
+    "watched": "Vu"
+  },
   "common": {
     "back": "Retour",
     "cancel": "Annuler",
@@ -91,6 +100,9 @@
   },
   "errors": {
     "csrf": "Cette requête a été bloquée. Recharge la page et réessaie.",
+    "ffmpeg_missing": "Cette vidéo a besoin de FFmpeg, qui n’est pas installé sur le serveur.",
+    "file_not_analyzed": "Ce fichier est encore en cours d’analyse. Réessaie dans une minute.",
+    "file_unavailable": "Ce fichier est introuvable pour l’instant. Son disque est peut-être débranché. La lecture reprend dès qu’il revient.",
     "folder_not_found": "Ce dossier n’existe plus.",
     "folder_overlap": "Ce dossier fait déjà partie de {{library}}.",
     "folder_unreadable": "PLAID ne peut pas lire ce dossier.",
@@ -100,14 +112,18 @@
     "invalid_pin": "Code PIN incorrect. Réessaie.",
     "last_admin": "Tu es le dernier admin. Nomme d’abord quelqu’un d’autre admin.",
     "last_profile": "Un compte a besoin d'au moins un profil.",
+    "not_playable": "Ce fichier ne peut pas être lu.",
     "pairing_expired": "Ce code a expiré. Affiche-en un nouveau sur la TV.",
     "pairing_not_found": "Aucune TV n'affiche ce code. Vérifie-le et réessaie.",
     "password_change_required": "Choisis d'abord un nouveau mot de passe.",
     "password_mismatch": "Les mots de passe ne correspondent pas.",
-    "profile_locked": "Trop de codes PIN incorrects. Réessaie dans {{minutes, number}} min.",
+    "profile_locked": "Trop d’essais. Réessaie dans {{minutes, number}} min.",
+    "profile_required": "Choisis d’abord un profil.",
     "setup_code_required": "Ce code ne correspond pas. Copie le plus récent depuis le journal.",
     "setup_complete": "Ce serveur est déjà configuré. Connecte-toi.",
     "too_many_attempts": "Trop de tentatives. Réessaie dans {{minutes, number}} min.",
+    "transcode_limit_reached": "Le serveur convertit déjà d’autres vidéos. Réessaie dans un instant, ou choisis une qualité plus basse.",
+    "transcode_storage_full": "Le serveur n’a plus de place pour convertir la vidéo. Demande à l’admin d’en libérer.",
     "unauthorized": "Ta session est terminée. Reconnecte-toi.",
     "username_taken": "Ce nom d'utilisateur est déjà pris.",
     "validation_failed": "Certains champs sont à corriger.",
@@ -142,13 +158,177 @@
       "periodicShort": "Vérifié toutes les {{minutes, number}} min"
     }
   },
+  "grid": {
+    "collections": "Collections",
+    "count": {
+      "movies_one": "{{count, number}} film",
+      "movies_many": "",
+      "movies_other": "{{count, number}} films",
+      "shows_one": "{{count, number}} série",
+      "shows_many": "",
+      "shows_other": "{{count, number}} séries"
+    },
+    "empty": {
+      "action": "Effacer les filtres",
+      "body": "Retire un filtre, ou efface-les tous.",
+      "title": "Rien ne correspond à ces filtres."
+    },
+    "end_one": "C’est le seul titre.",
+    "end_many": "",
+    "end_other": "Voilà les {{count, number}} titres.",
+    "filter": {
+      "clear": "Tout effacer",
+      "decade": "Années {{decade}}",
+      "genre": "Genre",
+      "hdrOnly": "HDR uniquement",
+      "remove": "Retirer le filtre {{name}}",
+      "resolution": {
+        "label": "Résolution",
+        "sd": "720p et moins",
+        "uhd": "4K"
+      },
+      "watch": {
+        "all": "Tout",
+        "in_progress": "En cours",
+        "label": "Visionnage",
+        "unwatched": "Pas vus",
+        "watched": "Vus"
+      },
+      "years": "Années"
+    },
+    "filters": {
+      "apply_one": "Afficher {{count, number}} titre",
+      "apply_many": "",
+      "apply_other": "Afficher {{count, number}} titres",
+      "count_one": "Filtres ({{count, number}})",
+      "count_many": "",
+      "count_other": "Filtres ({{count, number}})",
+      "label": "Filtres"
+    },
+    "letters": "Aller à la lettre",
+    "order": {
+      "asc": "Croissant",
+      "desc": "Décroissant"
+    },
+    "sort": {
+      "added": "Ajouts récents",
+      "label": "Trier",
+      "played": "Vu récemment",
+      "random": "Aléatoire",
+      "rating": "Note",
+      "released": "Date de sortie",
+      "title": "Titre"
+    }
+  },
   "home": {
     "apps": "PLAID se regarde dans ce navigateur. Les apps TV et mobile ne sont pas encore sorties.",
     "empty": {
       "action": "Ajouter une bibliothèque",
       "body": "Ajoute un dossier et PLAID trouvera tes films et séries.",
+      "member": {
+        "body": "Demande à l’admin du serveur d’ajouter une bibliothèque.",
+        "title": "Rien ici pour l’instant."
+      },
+      "scanning": {
+        "body_one": "{{count, number}} trouvé pour l’instant. Il apparaît ici dès qu’il est identifié.",
+        "body_many": "",
+        "body_other": "{{count, number}} trouvés pour l’instant. Ils apparaissent ici au fil des identifications.",
+        "title": "Tes films arrivent."
+      },
       "title": "Rien à regarder pour l’instant."
+    },
+    "row": {
+      "continueWatching": "Reprendre",
+      "genre": "{{genre}}",
+      "recentlyAdded": "Ajouts récents dans {{libraryName}}",
+      "seeAll": "Tout voir"
     }
+  },
+  "item": {
+    "cast": "Distribution",
+    "collection": {
+      "partOf": "Fait partie de {{name}}",
+      "thisMovie": "Ce film"
+    },
+    "createdBy": "Créée par {{names}}",
+    "directedBy": "Réalisé par {{names}}",
+    "edit": {
+      "artwork": {
+        "auto": "PLAID choisit la meilleure",
+        "automatic": "Revenir au choix automatique",
+        "backdrop": "Arrière-plan",
+        "kind": "Type d’image",
+        "label": "Changer l’image",
+        "logo": "Logo",
+        "noLanguage": "Sans texte",
+        "option": "{{language}} · {{width}} × {{height}}",
+        "poster": "Affiche",
+        "title": "Changer l’image · {{title}}"
+      },
+      "fixMatch": "Corriger l’identification",
+      "label": "Modifier",
+      "refresh": "Actualiser les métadonnées",
+      "refreshed": "Actualisation en cours. Ça peut prendre une minute."
+    },
+    "episode": {
+      "inProgress": "Encore {{duration}}"
+    },
+    "episodes_one": "{{count, number}} épisode",
+    "episodes_many": "",
+    "episodes_other": "{{count, number}} épisodes",
+    "episodeTitle": "{{number, number}}. {{title}}",
+    "filesMissing": "Les fichiers de ce titre sont introuvables pour l’instant.",
+    "markSeasonUnwatched": "Marquer la saison comme non vue",
+    "markSeasonWatched": "Marquer la saison comme vue",
+    "markUnwatched": "Marquer comme non vu",
+    "markWatched": "Marquer comme vu",
+    "originalTitle": "Titre original : {{title}}",
+    "play": "Lire",
+    "playEpisode": "Lire S{{season, number}} É{{episode, number}}",
+    "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
+    "rating_many": "",
+    "rating_other": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} votes",
+    "resumeEpisode": "Reprendre S{{season, number}} É{{episode, number}}",
+    "season": "Saison {{number, number}}",
+    "seasonPicker": {
+      "jump": "Tape un numéro pour y aller",
+      "label": "Choisir une saison",
+      "title_one": "{{count, number}} saison et épisodes spéciaux",
+      "title_many": "",
+      "title_other": "{{count, number}} saisons et épisodes spéciaux"
+    },
+    "seasons_one": "{{count, number}} saison",
+    "seasons_many": "",
+    "seasons_other": "{{count, number}} saisons",
+    "specials": "Épisodes spéciaux",
+    "status": {
+      "canceled": "Annulée",
+      "ended": "Terminée",
+      "in_production": "En production",
+      "returning": "Renouvelée"
+    },
+    "tech": {
+      "audio": "Audio : {{languages}}"
+    },
+    "trailer": {
+      "notice": "Lue depuis YouTube quand tu cliques.",
+      "openYouTube": "Ouvrir sur YouTube",
+      "play": "Lire la bande-annonce",
+      "title": "Bande-annonce"
+    },
+    "unavailable": {
+      "back": "Retour à l’accueil",
+      "body": "Il a été retiré de la bibliothèque, ou ce profil ne peut pas le voir.",
+      "title": "Ce titre n’est pas disponible sur ce profil."
+    },
+    "version": "Version",
+    "versions": {
+      "auto": "La meilleure pour cet appareil"
+    },
+    "watchedCount_one": "{{count, number}} vu",
+    "watchedCount_many": "",
+    "watchedCount_other": "{{count, number}} vus",
+    "writtenBy": "Écrit par {{names}}"
   },
   "language": {
     "en": "English",
@@ -233,6 +413,32 @@
     },
     "title": "Métadonnées",
     "useOwn": "Utiliser ma clé"
+  },
+  "nav": {
+    "about": "À propos de PLAID",
+    "admin": "Admin",
+    "appearance": {
+      "dark": "Sombre",
+      "label": "Apparence",
+      "light": "Clair",
+      "system": "Système"
+    },
+    "home": "Accueil",
+    "libraries": "Bibliothèques",
+    "main": "Principal",
+    "more": "Plus",
+    "profileMenu": "Menu du profil {{name}}",
+    "search": "Rechercher",
+    "server": "Serveur",
+    "serverCard": {
+      "idle": "Rien en lecture",
+      "watching_one": "{{count, number}} en lecture",
+      "watching_many": "",
+      "watching_other": "{{count, number}} en lecture"
+    },
+    "serverStrip_one": "{{serverName}} · {{count, number}} en lecture",
+    "serverStrip_many": "",
+    "serverStrip_other": "{{serverName}} · {{count, number}} en lecture"
   },
   "offline": {
     "body": "Vérifie qu’il est allumé et sur le même réseau. Les étapes terminées sont enregistrées sur le serveur.",
@@ -336,6 +542,17 @@
     "thisIsYou": "c’est toi",
     "title": "Personnes"
   },
+  "person": {
+    "role": {
+      "cast": "Interprétation",
+      "creator": "Création",
+      "director": "Réalisation",
+      "writer": "Scénario"
+    },
+    "summary_one": "Sur {{serverName}} · {{count, number}} titre",
+    "summary_many": "",
+    "summary_other": "Sur {{serverName}} · {{count, number}} titres"
+  },
   "picker": {
     "checkAgain": "Vérifier à nouveau",
     "checking": "Vérification",
@@ -361,6 +578,140 @@
       "why": "PLAID tourne sous l’utilisateur plaid, qui ne peut pas ouvrir {{name}}. Lance ceci sur le serveur :"
     },
     "use": "Utiliser ce dossier"
+  },
+  "playback": {
+    "method": {
+      "direct_play": "Lecture directe",
+      "direct_stream": "Flux direct",
+      "transcode": "Conversion"
+    },
+    "resume": "Reprendre à {{position}}",
+    "startOver": "Recommencer"
+  },
+  "player": {
+    "audio": {
+      "label": "Audio",
+      "reloadNote": "Changer l’audio recharge la vidéo au même moment.",
+      "track": "{{language}} · {{channels}}"
+    },
+    "back": "Retour",
+    "back10": "Reculer de 10 secondes",
+    "cantPlay": {
+      "body": "Copie le lien et ouvre-le dans VLC, ou dans une autre app qui lit les flux réseau.",
+      "title": "Cette vidéo ne peut pas être lue dans ce navigateur."
+    },
+    "channels": {
+      "mono": "Mono",
+      "stereo": "Stéréo",
+      "surround": "{{layout}}"
+    },
+    "copied": "Lien copié",
+    "copyVlcLink": "Copier le lien pour VLC",
+    "endOfShow": {
+      "back": "Retour à {{show}}",
+      "title": "C’était le dernier épisode de {{show}} pour l’instant."
+    },
+    "error": {
+      "ffmpegAdmin": "Tu es l’admin : installe-le sur le serveur, puis réessaie.",
+      "ffmpegMember": "Demande à l’admin de ton serveur de l’installer.",
+      "notFound": "Cette vidéo n’est plus là."
+    },
+    "exitFullscreen": "Quitter le plein écran",
+    "forward10": "Avancer de 10 secondes",
+    "fullscreen": "Plein écran",
+    "info": {
+      "audioConverted": "{{track}}, converti en {{codec}}",
+      "browser": "Ce navigateur lit",
+      "conversion": "Conversion",
+      "copied": "{{track}}, copié tel quel",
+      "hardware": "Converti par la carte graphique",
+      "label": "Infos de lecture",
+      "method": "Comment la vidéo te parvient",
+      "quality": "Qualité",
+      "software": "Converti par le processeur",
+      "textSubs": "{{language}}, texte",
+      "why": "Pourquoi"
+    },
+    "key": {
+      "close": "Fermer un menu, puis quitter le plein écran",
+      "fullscreen": "Plein écran",
+      "jump": "Aller de 0 % à 90 %",
+      "mute": "Couper ou rétablir le son",
+      "next": "Épisode suivant",
+      "playPause": "Lire ou mettre en pause",
+      "seek": "Reculer ou avancer de 10 secondes",
+      "startEnd": "Début ou fin",
+      "subtitles": "Activer ou couper les sous-titres",
+      "volume": "Monter ou baisser le volume"
+    },
+    "lowerQuality": "Baisser la qualité",
+    "mute": "Couper le son",
+    "next": {
+      "auto": "Lire l’épisode suivant automatiquement",
+      "cancel": "Annuler",
+      "countdown_one": "Lecture dans {{count, number}} seconde",
+      "countdown_many": "Lecture dans {{count, number}} secondes",
+      "countdown_other": "Lecture dans {{count, number}} secondes",
+      "label": "Épisode suivant",
+      "playNow": "Lire maintenant"
+    },
+    "pause": "Pause",
+    "pip": "Image dans l’image",
+    "play": "Lire",
+    "quality": {
+      "asIs": "lit le fichier tel quel",
+      "converted": "convertie",
+      "current": "{{quality}} · {{bitrate}}",
+      "label": "Qualité",
+      "note": "Les qualités plus basses sont converties par le serveur et démarrent quelques secondes plus tard.",
+      "original": "Originale"
+    },
+    "reload": {
+      "audio": "Passage à {{track}}",
+      "quality": "Passage en {{quality}}",
+      "subtitles": "Ajout des sous-titres {{language}}"
+    },
+    "remaining": "Encore {{duration}}",
+    "resume": {
+      "text": "Tu en étais à {{position}} dans {{title}}.",
+      "title": "Reprendre là où tu en étais ?"
+    },
+    "retryIn": "Réessayer dans {{seconds, number}} s",
+    "shortcuts": {
+      "hint": "Appuie sur ? pour revoir cette liste.",
+      "label": "Raccourcis clavier"
+    },
+    "stillWatching": {
+      "continue": "Continuer",
+      "stop": "Arrêter",
+      "title": "Tu regardes toujours ?"
+    },
+    "stopped": {
+      "body": "Ta position est enregistrée.",
+      "restart": "Reprendre à {{position}}",
+      "title": "Lecture arrêtée."
+    },
+    "subtitles": {
+      "forced": "{{language}} (forcés)",
+      "imageNote": "Sous-titres en image : la vidéo se recharge",
+      "label": "Sous-titres",
+      "off": "Aucun",
+      "sdhName": "{{language}} SME",
+      "sdhNote": "SME : pour les sourds et malentendants"
+    },
+    "timeline": {
+      "label": "Barre de lecture",
+      "valueText": "{{elapsed}} sur {{duration}}"
+    },
+    "track": {
+      "unknown": "Langue inconnue"
+    },
+    "tryAgain": "Réessayer",
+    "unmute": "Rétablir le son",
+    "volume": {
+      "label": "Volume",
+      "valueText": "Volume {{percent, number}} %"
+    }
   },
   "playing": {
     "capacity_one": "{{count, number}} conversion sur {{max, number}} en cours",
@@ -435,9 +786,14 @@
   },
   "profiles": {
     "enterPin": "Saisis le code PIN de {{name}}",
-    "open": "Ouvrir le profil",
+    "pin": {
+      "badge": "Code",
+      "cancel": "Choisir un autre profil",
+      "title": "Saisis le code de {{name}}"
+    },
     "switch": "Changer de profil",
-    "whoIsWatching": "Qui regarde ?"
+    "title": "Qui est sous le plaid ?",
+    "withPin": "{{name}}, code"
   },
   "reason": {
     "audio_channels_too_many": "Cet appareil ne lit pas autant de canaux : le son est réduit.",
@@ -547,6 +903,18 @@
     "voice_many": "",
     "voice_other": "{{latestTitle}} vient d’arriver. {{count, number}} de tes films sont là.",
     "wall": "Identifiés dans {{library}}"
+  },
+  "search": {
+    "empty": "Rien qui s’appelle « {{query}} » ici.",
+    "episodeOf": "{{show}} · S{{season, number}} É{{episode, number}}",
+    "group": {
+      "episodes": "Épisodes",
+      "movies": "Films",
+      "people": "Personnes",
+      "shows": "Séries"
+    },
+    "label": "Rechercher dans {{serverName}}",
+    "placeholder": "Films, séries, personnes"
   },
   "server": {
     "accel": {

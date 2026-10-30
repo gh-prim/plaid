@@ -48,6 +48,8 @@ docker run --rm -v "$PWD/server":/src:ro -v plaid-perf:/work -e GOCACHE=/work/go
 docker run --rm --cpus 0.5 --memory 1g -v "$PWD/server":/src:ro -v plaid-perf:/work -e GOCACHE=/work/gocache -e GOPATH=/work/gopath -e TMPDIR=/work/tmp -e GOFLAGS=-buildvcs=false -w /src golang:1.26 bash -c 'apt-get update -qq && apt-get install -y -qq ffmpeg && go test -count=1 -tags perf -run Perf -v -timeout 30m ./internal/playback/'
 ```
 
+Catalog performance (F008, search over 10,000 items and 30,000 people, the home over 2,000 movies and 200 shows, a filtered grid page and the facets, against the spec's NFRs; not part of `make test`): `go -C server test -tags perf -run Perf -v ./internal/catalog/`. For Pi-like numbers, run it in the throttled container below with `./internal/catalog/`.
+
 Library scan performance (F004, 10,000 sparse files, not part of `make test`): `go -C server test -tags perf -run Perf -v ./internal/library/`. For Pi-like numbers, run it in a throttled container: `docker run --rm --cpus 0.5 --memory 1g -v "$PWD/server":/src:ro -e GOCACHE=/tmp/gocache -e GOPATH=/tmp/gopath -w /src golang:1.26 go test -tags perf -run Perf -v ./internal/library/`.
 A single `make test` target must pass before any PR.
 

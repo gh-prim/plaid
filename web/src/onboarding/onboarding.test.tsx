@@ -330,7 +330,8 @@ describe('libraries', () => {
     await renderApp('/setup/libraries')
     await userEvent.click(await screen.findByRole('button', { name: 'Add libraries later' }))
     expect(localStorage.getItem(laterKey)).toBe('1')
-    expect(await screen.findByRole('heading', { name: 'PLAID' })).toBeInTheDocument()
+    // The home, in its shell (F008-R1).
+    expect(await screen.findAllByRole('button', { name: /^Profile menu for / })).not.toHaveLength(0)
   })
 })
 
@@ -358,7 +359,8 @@ describe('resume', () => {
     }
     fakeApi({ 'GET /server': server(true), 'GET /me': member })
     await renderApp('/setup/libraries')
-    expect(await screen.findByRole('heading', { name: 'PLAID' })).toBeInTheDocument()
+    // The home, in its shell (F008-R1).
+    expect(await screen.findAllByRole('button', { name: /^Profile menu for / })).not.toHaveLength(0)
   })
 })
 

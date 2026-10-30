@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/gh-prim/plaid/server/internal/metadata/artwork"
+	"github.com/gh-prim/plaid/server/internal/metadata/provider"
 )
 
 // Summary is what item lists show from F005 (R36).
@@ -21,6 +22,12 @@ type Summary struct {
 	Poster        *Art
 	Backdrop      *Art
 	Still         *Art
+	// Logo is the selected logo; lists only need it for shows (F008-R30).
+	Logo *Art
+	// Runtime is in minutes, 0 when unknown; Overview goes to lists of
+	// seasons and episodes only (F008-R21).
+	Runtime  int
+	Overview string
 }
 
 // Art is a selected image (R19, R21).
@@ -119,6 +126,7 @@ func (s *Store) Summaries(ctx context.Context, itemIDs []string) (map[string]Sum
 			sm = Summary{State: "pending", Genres: []string{}}
 		}
 		sm.Poster, sm.Backdrop, sm.Still = first(kinds["poster"]), first(kinds["backdrop"]), first(kinds["still"])
+		sm.Logo = first(kinds["logo"])
 		out[id] = sm
 	}
 	return out, nil
@@ -134,7 +142,7 @@ func (p prefixed) Scan(dest ...any) error { return p.rows.Scan(append([]any{p.fi
 
 func (r row) summary() Summary {
 	sm := Summary{State: r.State, Title: r.Title, ReleaseDate: r.ReleaseDate, Rating: r.Rating,
-		Certification: r.Certification, AgeRating: r.AgeRating, Genres: []string{}}
+		Certification: r.Certification, AgeRating: r.AgeRating, Genres: []string{}, Runtime: r.Runtime, Overview: r.Overview}
 	for _, g := range r.Genres {
 		sm.Genres = append(sm.Genres, g.Name)
 	}
@@ -178,6 +186,8 @@ type Detail struct {
 	Logo           *Art
 	Clearart       *Art
 	Backdrops      []Art
+	// GenreRefs are the genres with their TMDB ids (Summary.Genres has the names).
+	GenreRefs []provider.Genre
 }
 
 // Trailer is a stored trailer (R22).
@@ -201,6 +211,7 @@ func (s *Store) Detail(ctx context.Context, itemID string) (d Detail, ok bool, e
 		RatingCount: r.RatingCount, CertRegion: r.CertRegion, Studios: nonNil(r.Studios), CollectionID: r.CollectionID,
 		FieldLanguages: r.FieldLanguages, LockedFields: nonNil(r.LockedFields), LocalFields: nonNil(r.LocalFields),
 		TMDBID: r.TMDBID, IMDbID: r.IMDbID, TVDBID: r.TVDBID, DuplicateOf: r.DuplicateOf, Trailers: []Trailer{},
+		GenreRefs: append([]provider.Genre{}, r.Genres...),
 	}
 	if d.FieldLanguages == nil {
 		d.FieldLanguages = map[string]string{}

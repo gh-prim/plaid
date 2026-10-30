@@ -26,7 +26,9 @@ describe('ChangePassword', () => {
     await userEvent.type(screen.getByLabelText('Confirm password'), 'bob has a long password')
     await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
 
-    expect(await screen.findByText('Watching as Bob')).toBeInTheDocument()
+    expect(await screen.findAllByRole('button', { name: 'Profile menu for Bob' })).not.toHaveLength(
+      0,
+    )
     expect(calls.find((c) => c.path === '/me/password')?.body).toEqual({
       currentPassword: 'temporary password',
       newPassword: 'bob has a long password',

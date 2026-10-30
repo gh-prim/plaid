@@ -303,6 +303,16 @@ func TestDecide(t *testing.T) {
 			method: Transcode, reasons: []string{ReasonForced},
 		},
 		{
+			name:  "asking for 480p transcodes a file that would play directly",
+			media: media(t, "sdr_h264_stereo", "/media/Movie.mp4"), profile: chrome, req: Request{Quality: "480p"},
+			method: Transcode, reasons: []string{ReasonForced},
+			check: func(t *testing.T, d Decision) {
+				if d.Quality != "480p" || d.Height != 480 {
+					t.Errorf("quality %s %dx%d", d.Quality, d.Width, d.Height)
+				}
+			},
+		},
+		{
 			name:  "asking for 480p transcodes a 720p source to 854×480",
 			media: media(t, "sdr_h264_stereo", "/media/Movie.mkv"), profile: chrome, req: Request{Quality: "480p"},
 			method: Transcode, reasons: []string{ReasonContainer},

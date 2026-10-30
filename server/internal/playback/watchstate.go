@@ -24,6 +24,7 @@ const (
 // UserState is a profile's watch state for an item (R36).
 type UserState struct {
 	PositionMs   int64
+	DurationMs   int64 // of the file last played, 0 when unknown
 	Watched      bool
 	PlayCount    int
 	LastPlayedAt *time.Time
@@ -127,7 +128,7 @@ func (w *WatchStore) Mark(ctx context.Context, profileID, itemID string, watched
 
 // Queries of States, around a list of placeholders.
 const (
-	statesQuery = `SELECT item_id, position_ms, watched, play_count, last_played_at FROM watch_state
+	statesQuery = `SELECT item_id, position_ms, COALESCE(duration_ms, 0), watched, play_count, last_played_at FROM watch_state
 		WHERE profile_id = ? AND item_id IN (`
 	countsQuery = `
 		WITH parents AS (SELECT id, kind FROM items WHERE id IN (`
@@ -168,7 +169,7 @@ func (w *WatchStore) States(ctx context.Context, profileID string, ids []string)
 			watched int
 			last    sql.NullString
 		)
-		if err := rows.Scan(&id, &st.PositionMs, &watched, &st.PlayCount, &last); err != nil {
+		if err := rows.Scan(&id, &st.PositionMs, &st.DurationMs, &watched, &st.PlayCount, &last); err != nil {
 			rows.Close()
 			return nil, err
 		}

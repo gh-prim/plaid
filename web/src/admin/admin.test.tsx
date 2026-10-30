@@ -136,7 +136,8 @@ describe('access', () => {
     }
     const calls = fakeApi({ 'GET /server': server(true), 'GET /me': member })
     await renderApp('/admin')
-    expect(await screen.findByRole('heading', { name: 'PLAID' })).toBeInTheDocument()
+    // The home, in its shell (F008-R1).
+    expect(await screen.findAllByRole('button', { name: /^Profile menu for / })).not.toHaveLength(0)
     expect(calls.some((c) => c.path === '/playback')).toBe(false)
   })
 })

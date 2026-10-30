@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { apiError, fakeApi, health, profile, server, user } from '../test/fakeApi'
 import { renderApp } from '../test/renderApp'
@@ -62,7 +63,9 @@ describe('route guards', () => {
       },
     })
     await renderApp('/')
-    expect(await screen.findByRole('heading', { name: "Who's watching?" })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Who’s under the plaid?' }),
+    ).toBeInTheDocument()
   })
 
   it('shows the home page with an active profile', async () => {
@@ -73,8 +76,12 @@ describe('route guards', () => {
       'GET /health': health,
     })
     await renderApp('/login')
-    expect(await screen.findByText('Watching as Ada')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+    expect(await screen.findAllByRole('button', { name: 'Profile menu for Ada' })).not.toHaveLength(
+      0,
+    )
+    // Sign out lives in the profile menu (F008-R1).
+    await userEvent.click(screen.getAllByRole('button', { name: 'Profile menu for Ada' })[0]!)
+    expect(screen.getByRole('menuitem', { name: 'Sign out' })).toBeInTheDocument()
   })
 
   it('offers to retry when the server is unreachable', async () => {

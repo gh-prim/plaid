@@ -1,9 +1,16 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireStep } from './auth/RequireAuth'
+import { CollectionPage } from './browse/CollectionPage'
+import { Collections } from './browse/Collections'
+import { HomePage } from './browse/HomePage'
+import { ItemPage } from './browse/ItemPage'
+import { PersonPage } from './browse/PersonPage'
+import { SearchPage } from './browse/SearchPage'
+import { LibraryGrid } from './browse/LibraryGrid'
+import { Shell } from './browse/Shell'
 import { ChangePassword } from './pages/ChangePassword'
-import { Home } from './pages/Home'
 import { Pair } from './pages/Pair'
 import { ProfilePicker } from './pages/ProfilePicker'
 import { SignIn } from './pages/SignIn'
@@ -14,6 +21,8 @@ import { Start } from './onboarding/Start'
 
 // The admin area is its own chunk (F007 NFR bundle).
 const AdminApp = lazy(() => import('./admin/routes'))
+// The player and hls.js are their own chunk too (F008-R33).
+const Player = lazy(() => import('./player/Player'))
 
 export function AppRoutes() {
   return (
@@ -83,11 +92,31 @@ export function AppRoutes() {
             </RequireStep>
           }
         />
+        {/* The browsing screens share the shell (F008-R1). */}
         <Route
-          path="/"
           element={
             <RequireStep allow={['app']}>
-              <Home />
+              <Shell>
+                <Outlet />
+              </Shell>
+            </RequireStep>
+          }
+        >
+          <Route path="/" element={<HomePage />} />
+          <Route path="/library/:libraryId" element={<LibraryGrid />} />
+          <Route path="/library/:libraryId/collections" element={<Collections />} />
+          <Route path="/collection/:collectionId" element={<CollectionPage />} />
+          <Route path="/item/:itemId" element={<ItemPage />} />
+          <Route path="/person/:personId" element={<PersonPage />} />
+          <Route path="/search" element={<SearchPage />} />
+        </Route>
+        <Route
+          path="/watch/:itemId"
+          element={
+            <RequireStep allow={['app']}>
+              <Suspense>
+                <Player />
+              </Suspense>
             </RequireStep>
           }
         />

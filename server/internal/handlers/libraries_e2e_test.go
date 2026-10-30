@@ -15,6 +15,7 @@ import (
 	"testing/fstest"
 	"time"
 
+	"github.com/gh-prim/plaid/server/internal/catalog"
 	"github.com/gh-prim/plaid/server/internal/handlers"
 	"github.com/gh-prim/plaid/server/internal/httpserver"
 	"github.com/gh-prim/plaid/server/internal/library"
@@ -117,7 +118,7 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	}
 	t.Cleanup(play.Close)
 	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta,
-		Playback: play, Problems: probs, Streams: streams})
+		Playback: play, Problems: probs, Catalog: catalog.New(catalog.Options{DB: e.db, Now: e.clock.now}), Streams: streams})
 	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct, Stream: handlers.StreamHandler(play, meta, engine.Store())})
 	le := &libEnv{env: e, engine: engine, play: play, endStream: end}
 	le.admin = e.setup().Token

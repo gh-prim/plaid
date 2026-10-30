@@ -41,6 +41,40 @@ export function formatClock(ms: number): string {
   return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`
 }
 
+/**
+ * A runtime or a time left in hours and minutes: "1h 44m", "1h 44min",
+ * "10m". Rounded to the minute, at least one minute when ms > 0.
+ * Intl.DurationFormat where the browser has it, else the same units
+ * from Intl.NumberFormat.
+ */
+export function formatDuration(locale: string, ms: number): string {
+  const total = ms > 0 ? Math.max(1, Math.round(ms / 60000)) : 0
+  const hours = Math.floor(total / 60)
+  const minutes = total % 60
+  const parts: { hours?: number; minutes?: number } = {}
+  if (hours) parts.hours = hours
+  if (minutes || !hours) parts.minutes = minutes
+  const DF = (
+    Intl as { DurationFormat?: new (l: string, o: object) => { format(d: object): string } }
+  ).DurationFormat
+  // DurationFormat prints nothing for zero; NumberFormat says "0m".
+  if (DF && total > 0) return new DF(locale, { style: 'narrow' }).format(parts)
+  return durationFallback(locale, parts)
+}
+
+/** formatDuration without Intl.DurationFormat (exported for its test). */
+export function durationFallback(
+  locale: string,
+  parts: { hours?: number; minutes?: number },
+): string {
+  const unit = (u: 'hour' | 'minute', v: number) =>
+    new Intl.NumberFormat(locale, { style: 'unit', unit: u, unitDisplay: 'narrow' }).format(v)
+  const out: string[] = []
+  if (parts.hours !== undefined) out.push(unit('hour', parts.hours))
+  if (parts.minutes !== undefined) out.push(unit('minute', parts.minutes))
+  return out.join(' ')
+}
+
 /** "3 minutes ago", "il y a 3 minutes". */
 export function formatRelative(locale: string, when: Date, now = new Date()): string {
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
@@ -73,4 +107,28 @@ export function regionName(locale: string, code: string): string {
 export function nativeLanguageName(code: string): string {
   const name = new Intl.DisplayNames([code], { type: 'language' }).of(code) ?? code
   return name.charAt(0).toLocaleUpperCase(code) + name.slice(1)
+}
+
+/**
+ * A media position in words, for screen readers: "1 hour, 2 minutes,
+ * 13 seconds" (F008 NFR accessibility, the timeline's aria-valuetext).
+ */
+export function formatSpokenTime(locale: string, ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000))
+  const parts = {
+    hours: Math.floor(s / 3600),
+    minutes: Math.floor((s % 3600) / 60),
+    seconds: s % 60,
+  }
+  const DF = (
+    Intl as { DurationFormat?: new (l: string, o: object) => { format(d: object): string } }
+  ).DurationFormat
+  if (DF && s > 0) return new DF(locale, { style: 'long' }).format(parts)
+  const units = (['hour', 'minute', 'second'] as const)
+    .map((u, i) => [u, [parts.hours, parts.minutes, parts.seconds][i]!] as const)
+    .filter(([u, v]) => v > 0 || (u === 'second' && s === 0))
+    .map(([u, v]) =>
+      new Intl.NumberFormat(locale, { style: 'unit', unit: u, unitDisplay: 'long' }).format(v),
+    )
+  return new Intl.ListFormat(locale, { type: 'unit', style: 'long' }).format(units)
 }

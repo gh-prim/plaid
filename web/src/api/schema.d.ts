@@ -528,9 +528,104 @@ export interface paths {
     }
     /**
      * Items of a library, by kind and parent
-     * @description Ordered by sort title. Hidden items (no file left on disk) are left out.
+     * @description Ordered by sort title unless `sort` says otherwise. Hidden items (no file left on disk) are left out. `sort`, `order`, `seed`, the filters, `offset` and `total` apply to top-level items only (no `parentId`, F008 R26); `offset` replaces `cursor` for random access. Every filter applies the age predicate (F005 R25) before counting.
      */
     get: operations['listLibraryItems']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/libraries/{libraryId}/facets': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    /**
+     * What a library's grid can be filtered by, with counts (F008 R27)
+     * @description Over the top-level items the active profile may see (F005 R25).
+     */
+    get: operations['getLibraryFacets']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/search': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Movies, shows, episodes and people by word prefix, across the profile's libraries (F008 R28) */
+    get: operations['search']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/home': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** The home of the active profile, ambient item and rows (F008 R31) */
+    get: operations['getHome']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/home/rows/{rowId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description A HomeRow id, as returned by GET /home. */
+        rowId: string
+      }
+      cookie?: never
+    }
+    /** Next page of one home row (F008 R31) */
+    get: operations['getHomeRow']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/items/{itemId}/up-next': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    /** The episode to play next for a show, a season or after an episode (F008 R32) */
+    get: operations['getUpNext']
     put?: never
     post?: never
     delete?: never
@@ -1683,6 +1778,8 @@ export interface components {
     ItemSummary: {
       id: string
       kind: components['schemas']['ItemKind']
+      /** @description The library holding the item (F008 R17, R21). */
+      libraryId?: string
       parentId?: string
       /** @description Parsed from names. See displayTitle for what to show. */
       title?: string
@@ -1715,11 +1812,118 @@ export interface components {
       childCount: number
       technical: components['schemas']['TechnicalSummary']
       userState?: components['schemas']['UserState']
+      /**
+       * Format: date-time
+       * @description When the item was added; for a show, when its newest episode was (F008 R26).
+       */
+      addedAt?: string
+      /** @description TMDB runtime (F008 R21 episode rows, R7 cards). */
+      runtimeMinutes?: number
+      /** @description Seasons and episodes only, for episode lists (F008 R21); other kinds have it in ItemDetail.metadata. */
+      overview?: string
+      show?: components['schemas']['ShowRef']
+    }
+    /** @description The show of a season or an episode (F008 R30). */
+    ShowRef: {
+      id: string
+      displayTitle: string
+      logo?: components['schemas']['Artwork']
     }
     ItemPage: {
       items: components['schemas']['ItemSummary'][]
       /** @description Absent on the last page. */
       nextCursor?: string
+      /** @description Every item matching the query, when `total=true` (F008 R26). */
+      total?: number
+    }
+    /** @enum {string} */
+    ItemSort: 'title' | 'added' | 'released' | 'rating' | 'played' | 'random'
+    /** @enum {string} */
+    SortOrder: 'asc' | 'desc'
+    /** @enum {string} */
+    WatchFilter: 'unwatched' | 'in_progress' | 'watched'
+    /**
+     * @description sd is anything under 720p.
+     * @enum {string}
+     */
+    ResolutionFilter: '2160p' | '1080p' | '720p' | 'sd'
+    LibraryFacets: {
+      /** @description Top-level items the profile may see. */
+      total: number
+      /** @description By count, most first. */
+      genres: components['schemas']['GenreFacet'][]
+      decades: components['schemas']['DecadeFacet'][]
+      resolutions: components['schemas']['ResolutionFacet'][]
+      /** @description Items with an HDR file. */
+      hdr: number
+      /** @description In title sort order; digits and symbols are grouped as "#". */
+      letters: components['schemas']['LetterFacet'][]
+    }
+    GenreRef: {
+      /** @description TMDB genre id. */
+      id: number
+      name: string
+    }
+    GenreFacet: {
+      id: number
+      name: string
+      count: number
+    }
+    DecadeFacet: {
+      /** @description First year of the decade, e.g. 1990. */
+      from: number
+      count: number
+    }
+    ResolutionFacet: {
+      value: components['schemas']['ResolutionFilter']
+      count: number
+    }
+    LetterFacet: {
+      letter: string
+      count: number
+    }
+    PersonRef: {
+      id: string
+      name: string
+      portrait?: components['schemas']['Artwork']
+    }
+    SearchResults: {
+      movies: components['schemas']['ItemSummary'][]
+      shows: components['schemas']['ItemSummary'][]
+      /** @description Each with its `show`. */
+      episodes: components['schemas']['ItemSummary'][]
+      people: components['schemas']['PersonRef'][]
+    }
+    Home: {
+      /** @description Whose backdrop tints the top of the home (F008 R6). */
+      ambient?: components['schemas']['ItemSummary']
+      /** @description In display order; rows with no items are left out. */
+      rows: components['schemas']['HomeRow'][]
+    }
+    /** @enum {string} */
+    HomeRowType: 'continue_watching' | 'recently_added' | 'genre'
+    /** @description The client builds the title from `type` and its params, never from text sent here. */
+    HomeRow: {
+      id: string
+      type: components['schemas']['HomeRowType']
+      libraryId?: string
+      libraryName?: string
+      genre?: components['schemas']['GenreRef']
+      items: components['schemas']['ItemSummary'][]
+      /** @description Absent when the row has no more items; page with GET /home/rows/{rowId}. */
+      nextCursor?: string
+      seeAll?: components['schemas']['SeeAll']
+    }
+    /** @description The library grid query that "See all" opens. */
+    SeeAll: {
+      libraryId: string
+      sort: components['schemas']['ItemSort']
+      order: components['schemas']['SortOrder']
+      /** @description TMDB genre id. */
+      genre?: number
+    }
+    UpNext: {
+      item: components['schemas']['ItemSummary']
     }
     MediaStream: {
       /** @description ffprobe stream index; external subtitles use 1000 and up. */
@@ -1930,6 +2134,8 @@ export interface components {
     MatchStatus: 'pending' | 'matched' | 'needs_review' | 'unmatched'
     /** @description What F005 knows about an item, beyond the summary (R7, R8, R22, R23). */
     ItemMetadata: {
+      /** @description With their TMDB ids, for links to the library filtered by genre (F008 R17); 0 for a genre an admin typed. */
+      genres: components['schemas']['GenreRef'][]
       /** @enum {string} */
       matchSource?: 'nfo' | 'hint' | 'auto' | 'manual' | 'parent'
       confidence?: number
@@ -2049,6 +2255,11 @@ export interface components {
        * @description Resume point, 0 when there's none.
        */
       positionMs: number
+      /**
+       * Format: int64
+       * @description Length of the file last played, when known, for the time left (F008 R7).
+       */
+      durationMs?: number
       watched: boolean
       playCount: number
       /** Format: date-time */
@@ -3260,6 +3471,24 @@ export interface operations {
   listLibraryItems: {
     parameters: {
       query?: {
+        sort?: components['schemas']['ItemSort']
+        /** @description Defaults to `asc` for `title`, `desc` otherwise. Ignored for `random`. */
+        order?: components['schemas']['SortOrder']
+        /** @description Seed of the `random` order, so pages of one visit agree. */
+        seed?: number
+        watch?: components['schemas']['WatchFilter']
+        /** @description TMDB genre ids; an item matches any of them. */
+        genre?: number[]
+        yearFrom?: number
+        yearTo?: number
+        /** @description An item matches any of them, by its largest file. */
+        resolution?: components['schemas']['ResolutionFilter'][]
+        /** @description Only items with an HDR file (true) or without one (false). */
+        hdr?: boolean
+        /** @description Position of the first item, instead of `cursor`. */
+        offset?: number
+        /** @description Adds `total` to the page. */
+        total?: boolean
         /** @description Defaults to the top level, `movie` or `show`, when `parentId` is absent. */
         kind?: components['schemas']['ItemKind']
         /** @description Seasons of a show, or episodes of a season. */
@@ -3284,6 +3513,133 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ItemPage']
         }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getLibraryFacets: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        libraryId: components['parameters']['LibraryId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The facets */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LibraryFacets']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  search: {
+    parameters: {
+      query: {
+        q: string
+        /** @description Per group. */
+        limit?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Results grouped by kind, best first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SearchResults']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getHome: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The home */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Home']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getHomeRow: {
+    parameters: {
+      query?: {
+        /** @description Opaque `nextCursor` of the previous page. */
+        cursor?: components['parameters']['Cursor']
+        limit?: components['parameters']['Limit']
+      }
+      header?: never
+      path: {
+        /** @description A HomeRow id, as returned by GET /home. */
+        rowId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description One page of the row */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ItemPage']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getUpNext: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The episode to play */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UpNext']
+        }
+      }
+      /** @description Nothing to play next */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
       default: components['responses']['Error']
     }
