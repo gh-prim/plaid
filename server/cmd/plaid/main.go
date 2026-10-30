@@ -18,6 +18,7 @@ import (
 
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/buildinfo"
+	"github.com/gh-prim/plaid/server/internal/catalog"
 	"github.com/gh-prim/plaid/server/internal/config"
 	"github.com/gh-prim/plaid/server/internal/db"
 	"github.com/gh-prim/plaid/server/internal/handlers"
@@ -104,6 +105,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Metadata:   meta,
 		Playback:   play,
 		Problems:   probs,
+		Catalog:    catalog.New(catalog.Options{DB: database}),
 		Streams:    streams,
 	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,

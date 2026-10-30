@@ -36,6 +36,9 @@ func (h *Handlers) ListLibraryItems(ctx context.Context, req api.ListLibraryItem
 	if err != nil {
 		return nil, err
 	}
+	if catalogQuery(req.Params) {
+		return h.listCatalog(ctx, req, pr, limit)
+	}
 	var p problems
 	q := library.ItemQuery{
 		LibraryID: req.LibraryId, ParentID: deref(req.Params.ParentId),
@@ -325,6 +328,12 @@ func toItemSummary(it library.Item) api.ItemSummary {
 	}
 	for _, f := range it.Technical.HDRFormats {
 		out.Technical.HdrFormats = append(out.Technical.HdrFormats, api.TechnicalSummaryHdrFormats(f))
+	}
+	switch {
+	case !it.NewestChildAddedAt.IsZero():
+		out.AddedAt = &it.NewestChildAddedAt
+	case !it.CreatedAt.IsZero():
+		out.AddedAt = &it.CreatedAt
 	}
 	return out
 }

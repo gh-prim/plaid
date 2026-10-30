@@ -30,7 +30,7 @@ const itemSortKey = `CASE items.kind
 
 const itemColumns = `SELECT items.id, items.kind, COALESCE(items.parent_id, ''), COALESCE(items.title, ''),
 	COALESCE(items.year, 0), items.season_number, items.episode_number, COALESCE(items.air_date, ''),
-	COALESCE(items.hints, ''), m.age_rating
+	COALESCE(items.hints, ''), m.age_rating, items.created_at, COALESCE(items.newest_child_added_at, '')
 	FROM items LEFT JOIN item_metadata m ON m.item_id = items.id WHERE items.id IN (`
 
 // cursor is the keyset position after the last row of a page.
@@ -74,6 +74,10 @@ type Item struct {
 	// AgeRating is the minimum age from F005's certification, nil when
 	// unrated.
 	AgeRating *int
+	// CreatedAt is when the scanner added the item; NewestChildAddedAt,
+	// for a show, when its newest episode was added ("" when none).
+	CreatedAt          time.Time
+	NewestChildAddedAt time.Time
 	// FileCount counts files present on disk, ChildCount visible children.
 	FileCount  int
 	ChildCount int
@@ -180,6 +184,12 @@ func (s *Store) GetItem(ctx context.Context, id string) (Item, error) {
 	return items[0], nil
 }
 
+// Items loads items by id, hidden or not, in the given order; unknown ids
+// are left out.
+func (s *Store) Items(ctx context.Context, ids []string) ([]Item, error) {
+	return s.items(ctx, ids)
+}
+
 // items loads items by id, in the given order, with counts and technical
 // summaries.
 func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
@@ -200,12 +210,12 @@ func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
 	}
 	for rows.Next() {
 		var (
-			it                   Item
-			season, episode, age sql.NullInt64
-			hints                string
+			it                     Item
+			season, episode, age   sql.NullInt64
+			hints, created, newest string
 		)
 		if err := rows.Scan(&it.ID, &it.Kind, &it.ParentID, &it.Title, &it.Year, &season, &episode,
-			&it.AirDate, &hints, &age); err != nil {
+			&it.AirDate, &hints, &age, &created, &newest); err != nil {
 			_ = rows.Close()
 			return nil, err
 		}
@@ -224,6 +234,8 @@ func (s *Store) items(ctx context.Context, ids []string) ([]Item, error) {
 			n := int(age.Int64)
 			it.AgeRating = &n
 		}
+		it.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
+		it.NewestChildAddedAt, _ = time.Parse(time.RFC3339Nano, newest)
 		it.Technical = Technical{HDRFormats: []string{}, AudioLanguages: []string{}}
 		byID[it.ID] = &it
 	}
