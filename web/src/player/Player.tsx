@@ -363,17 +363,26 @@ function Playback({
       else if (resume > 0) setPhase({ k: 'ask', positionMs: resume })
       else void start(data, 0)
       if (data.kind === 'episode') {
-        const up = await api.GET('/items/{itemId}/up-next', { params: { path: { itemId } } })
-        if (alive()) setNext(up.data?.item ?? null)
+        // Without an answer, the episode simply ends on its page.
+        const up = await api
+          .GET('/items/{itemId}/up-next', { params: { path: { itemId } } })
+          .catch(() => undefined)
+        if (alive()) setNext(up?.data?.item ?? null)
       }
     },
   )
 
   useEffect(() => {
     let alive = true
-    void api.GET('/items/{itemId}', { params: { path: { itemId } } }).then(({ data, response }) => {
-      if (alive) void loaded(data, response.status, () => alive)
-    })
+    void api.GET('/items/{itemId}', { params: { path: { itemId } } }).then(
+      ({ data, response }) => {
+        if (alive) void loaded(data, response.status, () => alive)
+      },
+      () => {
+        // Offline or the server is down: the error screen says so.
+        if (alive) void loaded(undefined, 0, () => alive)
+      },
+    )
     const v = video.current
     const saved = loadVolume()
     if (v && saved) {
