@@ -231,7 +231,10 @@ func Decide(m Media, req Request, p Profile, lim Limits) (Decision, error) {
 	if tooFast {
 		reasons = append(reasons, ReasonBitrate)
 	}
-	if req.ForceMethod != "" {
+	// A lower quality than the source is the client's choice too: without
+	// it, a file that plays directly would ignore the quality menu.
+	lowered := req.Quality != "" && req.Quality != QualityOriginal
+	if req.ForceMethod != "" || (lowered && len(reasons) == 0) {
 		reasons = append(reasons, ReasonForced)
 	}
 
