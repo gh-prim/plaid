@@ -978,6 +978,22 @@ func (s *Store) Person(ctx context.Context, id string, limit access.Limit) (Pers
 	return p, rows.Err()
 }
 
+// Portraits returns the selected portrait of each person, by id; people
+// without one are absent.
+func (s *Store) Portraits(ctx context.Context, ids []string) (map[string]Art, error) {
+	art, err := s.selectedArt(ctx, "person", ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]Art, len(art))
+	for id, kinds := range art {
+		if a := first(kinds["portrait"]); a != nil {
+			out[id] = *a
+		}
+	}
+	return out, nil
+}
+
 // --- Live counters (R35) ----------------------------------------------------
 
 // countsEvery throttles metadata events per library.

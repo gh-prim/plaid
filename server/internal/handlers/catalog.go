@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/gh-prim/plaid/server/internal/access"
 	"github.com/gh-prim/plaid/server/internal/api"
@@ -10,6 +12,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/auth"
 	"github.com/gh-prim/plaid/server/internal/catalog"
 	"github.com/gh-prim/plaid/server/internal/library"
+	"github.com/gh-prim/plaid/server/internal/metadata"
 )
 
 // notImplemented answers the F008 catalog routes until their plan step lands.
@@ -69,8 +72,65 @@ func topKind(lib library.Library) string {
 }
 
 // Search finds movies, shows, episodes and people by word prefix (F008-R28).
-func (h *Handlers) Search(_ context.Context, _ api.SearchRequestObject) (api.SearchResponseObject, error) {
-	return nil, notImplemented()
+func (h *Handlers) Search(ctx context.Context, req api.SearchRequestObject) (api.SearchResponseObject, error) {
+	pr, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if h.catalog == nil {
+		return nil, notImplemented()
+	}
+	var p problems
+	if n := utf8.RuneCountInString(strings.TrimSpace(req.Params.Q)); n < 1 || n > 100 {
+		p.add("q", "out_of_range")
+	}
+	limit := value(req.Params.Limit)
+	switch {
+	case req.Params.Limit == nil:
+		limit = 8
+	case limit < 1 || limit > 50:
+		p.add("limit", "out_of_range")
+	}
+	if err := p.err(); err != nil {
+		return nil, err
+	}
+	lim, err := h.accounts.AccessLimit(ctx, pr)
+	if err != nil {
+		return nil, err
+	}
+	r, err := h.catalog.Search(ctx, req.Params.Q, lim, limit)
+	if err != nil {
+		return nil, err
+	}
+	out := api.SearchResults{People: make([]api.PersonRef, 0, len(r.People))}
+	for _, g := range []struct {
+		ids []string
+		out *[]api.ItemSummary
+	}{{r.Movies, &out.Movies}, {r.Shows, &out.Shows}, {r.Episodes, &out.Episodes}} {
+		page, err := h.itemPage(ctx, pr, g.ids)
+		if err != nil {
+			return nil, err
+		}
+		*g.out = page.Items
+	}
+	portraits := map[string]metadata.Art{}
+	if h.metadata != nil && len(r.People) > 0 {
+		ids := make([]string, len(r.People))
+		for i, ph := range r.People {
+			ids[i] = ph.ID
+		}
+		if portraits, err = h.metadata.Store().Portraits(ctx, ids); err != nil {
+			return nil, err
+		}
+	}
+	for _, ph := range r.People {
+		ref := api.PersonRef{Id: ph.ID, Name: ph.Name}
+		if a, ok := portraits[ph.ID]; ok {
+			ref.Portrait = toArtwork(&a)
+		}
+		out.People = append(out.People, ref)
+	}
+	return api.Search200JSONResponse(out), nil
 }
 
 // GetHome returns the active profile's home (F008-R31).

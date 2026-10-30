@@ -2,7 +2,9 @@ package handlers_test
 
 import (
 	"net/http"
+	"net/url"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -212,5 +214,57 @@ func TestItemSummaryShow(t *testing.T) {
 	e.do("GET", "/me/continue-watching", nil, bearer(e.admin)).json(&page)
 	if len(page.Items) != 1 || page.Items[0].Show == nil || page.Items[0].Show.DisplayTitle != title {
 		t.Errorf("continue watching = %+v", page.Items)
+	}
+}
+
+// F008-R28: search answers from the first letter, across libraries.
+func TestSearchThroughTheAPI(t *testing.T) {
+	e := newLibEnv(t, libOpts{})
+	movies, shows := t.TempDir(), t.TempDir()
+	touch(t, movies, "Alien (1979).mkv", "Amélie (2001).mkv")
+	touch(t, shows, "Alias/Season 1/Alias S01E01.mkv")
+	ml, sl := e.create("Movies", "movies", movies), e.create("Shows", "shows", shows)
+	e.waitIdle(ml.ID)
+	e.waitIdle(sl.ID)
+
+	type results struct {
+		Movies, Shows, Episodes []struct {
+			ID    string
+			Title *string
+			Show  *struct{ DisplayTitle string }
+		}
+		People []struct{ ID, Name string }
+	}
+	search := func(q string) results {
+		t.Helper()
+		r := e.do("GET", "/search?q="+url.QueryEscape(q), nil, bearer(e.admin))
+		e.expect(r, http.StatusOK, "")
+		var out results
+		r.json(&out)
+		return out
+	}
+	r := search("ali")
+	if len(r.Movies) != 1 || *r.Movies[0].Title != "Alien" || len(r.Shows) != 1 || *r.Shows[0].Title != "Alias" {
+		t.Errorf("ali: %+v", r)
+	}
+	if r := search("AMELIE"); len(r.Movies) != 1 {
+		t.Errorf("accents and case: %+v", r.Movies)
+	}
+	if r.People == nil || r.Episodes == nil {
+		t.Errorf("empty groups must be [] not null: %+v", r)
+	}
+
+	e.rate(r.Movies[0].ID, 18)
+	rk := e.do("POST", "/me/profiles", map[string]any{"name": "Kids", "maxAge": 12, "allowUnrated": true}, bearer(e.admin))
+	e.expect(rk, http.StatusCreated, "")
+	var kids struct{ ID string }
+	rk.json(&kids)
+	e.expect(e.do("POST", "/session/profile", map[string]any{"profileId": kids.ID}, bearer(e.admin)), http.StatusOK, "")
+	if r := search("alien"); len(r.Movies) != 0 {
+		t.Errorf("kids find an 18 movie: %+v", r.Movies)
+	}
+
+	for _, q := range []string{"/search?q=", "/search?q=%20%20", "/search?q=" + strings.Repeat("a", 101), "/search?q=a&limit=0", "/search?q=a&limit=51"} {
+		e.expect(e.do("GET", q, nil, bearer(e.admin)), http.StatusUnprocessableEntity, "validation_failed")
 	}
 }
