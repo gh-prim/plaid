@@ -135,13 +135,143 @@ func (h *Handlers) Search(ctx context.Context, req api.SearchRequestObject) (api
 }
 
 // GetHome returns the active profile's home (F008-R31).
-func (h *Handlers) GetHome(_ context.Context, _ api.GetHomeRequestObject) (api.GetHomeResponseObject, error) {
-	return nil, notImplemented()
+func (h *Handlers) GetHome(ctx context.Context, _ api.GetHomeRequestObject) (api.GetHomeResponseObject, error) {
+	pr, q, err := h.homeQuery(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ambient, rows, err := h.catalog.Home(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	// Every row's items load together.
+	ids := []string{}
+	if ambient != "" {
+		ids = append(ids, ambient)
+	}
+	for _, r := range rows {
+		ids = append(ids, r.IDs...)
+	}
+	byID, err := h.summariesByID(ctx, pr, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := api.Home{Rows: make([]api.HomeRow, 0, len(rows))}
+	if s, ok := byID[ambient]; ok {
+		out.Ambient = &s
+	}
+	for _, r := range rows {
+		if row := toHomeRow(r, byID); len(row.Items) > 0 {
+			out.Rows = append(out.Rows, row)
+		}
+	}
+	return api.GetHome200JSONResponse(out), nil
 }
 
 // GetHomeRow pages one home row (F008-R31).
-func (h *Handlers) GetHomeRow(_ context.Context, _ api.GetHomeRowRequestObject) (api.GetHomeRowResponseObject, error) {
-	return nil, notImplemented()
+func (h *Handlers) GetHomeRow(ctx context.Context, req api.GetHomeRowRequestObject) (api.GetHomeRowResponseObject, error) {
+	pr, q, err := h.homeQuery(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var p problems
+	limit := checkLimit(req.Params.Limit, &p)
+	if limit == 0 {
+		limit = catalog.HomeRowSize
+	}
+	if err := p.err(); err != nil {
+		return nil, err
+	}
+	r, err := h.catalog.HomeRow(ctx, q, req.RowId, value(req.Params.Cursor), limit)
+	switch {
+	case errors.Is(err, catalog.ErrNotFound):
+		return nil, apierr.NotFound("no such row")
+	case errors.Is(err, catalog.ErrBadCursor):
+		return nil, apierr.ValidationFailed(apierr.Detail{Field: "cursor", Code: "invalid"})
+	case err != nil:
+		return nil, err
+	}
+	byID, err := h.summariesByID(ctx, pr, r.IDs)
+	if err != nil {
+		return nil, err
+	}
+	row := toHomeRow(r, byID)
+	return api.GetHomeRow200JSONResponse(api.ItemPage{Items: row.Items, NextCursor: row.NextCursor}), nil
+}
+
+// homeCWSize bounds the continue-watching list a home reads.
+const homeCWSize = 200
+
+// homeQuery is the active profile's home query, with its continue
+// watching list from F006.
+func (h *Handlers) homeQuery(ctx context.Context) (auth.Principal, catalog.HomeQuery, error) {
+	pr, err := principal(ctx)
+	if err != nil {
+		return pr, catalog.HomeQuery{}, err
+	}
+	if h.catalog == nil {
+		return pr, catalog.HomeQuery{}, notImplemented()
+	}
+	if pr.ProfileID == "" {
+		return pr, catalog.HomeQuery{}, apierr.ProfileRequired()
+	}
+	lim, err := h.accounts.AccessLimit(ctx, pr)
+	if err != nil {
+		return pr, catalog.HomeQuery{}, err
+	}
+	q := catalog.HomeQuery{ProfileID: pr.ProfileID, Access: lim}
+	if h.playback != nil {
+		if q.ContinueWatching, _, err = h.playback.Watch().ContinueWatching(ctx, pr.ProfileID, lim, "", homeCWSize); err != nil {
+			return pr, q, err
+		}
+	}
+	return pr, q, nil
+}
+
+// summariesByID loads items into summaries, keyed by id.
+func (h *Handlers) summariesByID(ctx context.Context, pr auth.Principal, ids []string) (map[string]api.ItemSummary, error) {
+	seen := map[string]bool{}
+	uniq := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if !seen[id] {
+			seen[id] = true
+			uniq = append(uniq, id)
+		}
+	}
+	page, err := h.itemPage(ctx, pr, uniq)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]api.ItemSummary, len(page.Items))
+	for _, s := range page.Items {
+		out[s.Id] = s
+	}
+	return out, nil
+}
+
+func toHomeRow(r catalog.Row, byID map[string]api.ItemSummary) api.HomeRow {
+	out := api.HomeRow{Id: r.ID, Type: api.HomeRowType(r.Type), LibraryId: optional(r.LibraryID),
+		LibraryName: optional(r.LibraryName), NextCursor: optional(r.Next), Items: make([]api.ItemSummary, 0, len(r.IDs))}
+	if r.Genre != nil {
+		out.Genre = &api.GenreRef{Id: r.Genre.ID, Name: r.Genre.Name}
+	}
+	if a := r.SeeAll; a != nil {
+		order := api.Asc
+		if a.Desc {
+			order = api.Desc
+		}
+		out.SeeAll = &api.SeeAll{LibraryId: a.LibraryID, Sort: api.ItemSort(a.Sort), Order: order}
+		if a.Genre != 0 {
+			g := a.Genre
+			out.SeeAll.Genre = &g
+		}
+	}
+	for _, id := range r.IDs {
+		if s, ok := byID[id]; ok {
+			out.Items = append(out.Items, s)
+		}
+	}
+	return out
 }
 
 // GetUpNext returns the episode to play next (F008-R32).

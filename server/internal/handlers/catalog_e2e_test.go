@@ -329,3 +329,75 @@ func TestUpNextThroughTheAPI(t *testing.T) {
 	}
 	e.expect(e.do("GET", "/items/nope/up-next", nil, bearer(e.admin)), http.StatusNotFound, "not_found")
 }
+
+// F008-R31: the home and its rows through the API.
+func TestHomeThroughTheAPI(t *testing.T) {
+	e := newLibEnv(t, libOpts{})
+	movies := t.TempDir()
+	touch(t, movies, "Alien (1979).mkv", "Dune (2021).mkv", "Paddington (2014).mkv")
+	ml := e.create("Movies", "movies", movies)
+	e.waitIdle(ml.ID)
+	ids := map[string]string{}
+	for _, it := range e.catalog(ml.ID, "?sort=title").Items {
+		ids[*it.Title] = it.ID
+	}
+	type homeJSON struct {
+		Ambient *struct{ ID string }
+		Rows    []struct {
+			ID, Type    string
+			LibraryName *string
+			Items       []struct{ ID string }
+			NextCursor  *string
+			SeeAll      *struct{ LibraryID, Sort, Order string }
+		}
+	}
+	home := func() homeJSON {
+		t.Helper()
+		r := e.do("GET", "/home", nil, bearer(e.admin))
+		e.expect(r, http.StatusOK, "")
+		var h homeJSON
+		r.json(&h)
+		return h
+	}
+	h := home()
+	if h.Ambient != nil || len(h.Rows) != 1 || h.Rows[0].Type != "recently_added" || *h.Rows[0].LibraryName != "Movies" ||
+		len(h.Rows[0].Items) != 3 || h.Rows[0].SeeAll == nil || h.Rows[0].SeeAll.Sort != "added" || h.Rows[0].SeeAll.Order != "desc" {
+		t.Fatalf("home = %+v", h)
+	}
+
+	// Dune matched with a backdrop, and in progress.
+	e.rate(ids["Dune"], 13)
+	if _, err := e.db.Exec(`INSERT INTO artwork (id, owner_type, owner_id, kind, source, selected, created_at) VALUES ('bd', 'item', ?, 'backdrop', 'tmdb', 1, '2026-10-30T12:00:00Z')`, ids["Dune"]); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.db.Exec(`INSERT INTO watch_state (profile_id, item_id, position_ms, last_played_at, updated_at)
+		SELECT id, ?, 60000, '2026-10-30T12:00:00Z', '2026-10-30T12:00:00Z' FROM profiles WHERE is_default = 1`, ids["Dune"]); err != nil {
+		t.Fatal(err)
+	}
+	h = home()
+	if h.Ambient == nil || h.Ambient.ID != ids["Dune"] {
+		t.Errorf("ambient = %+v", h.Ambient)
+	}
+	if len(h.Rows) != 2 || h.Rows[0].ID != "continue_watching" || h.Rows[0].Items[0].ID != ids["Dune"] {
+		t.Errorf("rows = %+v", h.Rows)
+	}
+
+	// Paging a row.
+	row := "/home/rows/recently_added." + ml.ID
+	var p catalogPage
+	r := e.do("GET", row+"?limit=2", nil, bearer(e.admin))
+	e.expect(r, http.StatusOK, "")
+	r.json(&p)
+	if len(p.Items) != 2 || p.NextCursor == nil {
+		t.Fatalf("first page = %+v", p)
+	}
+	r = e.do("GET", row+"?limit=2&cursor="+*p.NextCursor, nil, bearer(e.admin))
+	e.expect(r, http.StatusOK, "")
+	p = catalogPage{}
+	r.json(&p)
+	if len(p.Items) != 1 || p.NextCursor != nil {
+		t.Errorf("last page = %+v", p)
+	}
+	e.expect(e.do("GET", "/home/rows/nope", nil, bearer(e.admin)), http.StatusNotFound, "not_found")
+	e.expect(e.do("GET", row+"?cursor=!!", nil, bearer(e.admin)), http.StatusUnprocessableEntity, "validation_failed")
+}
