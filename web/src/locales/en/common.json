@@ -734,6 +734,15 @@
     "wall": "Matched in {{library}}"
   },
   "search": {
+    "empty": "Nothing called “{{query}}” here.",
+    "episodeOf": "{{show}} · S{{season, number}} E{{episode, number}}",
+    "group": {
+      "episodes": "Episodes",
+      "movies": "Movies",
+      "people": "People",
+      "shows": "Shows"
+    },
+    "label": "Search {{serverName}}",
     "placeholder": "Movies, shows, people"
   },
   "server": {

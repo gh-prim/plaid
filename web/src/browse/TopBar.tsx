@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import type { components } from '../api/schema'
-import { Avatar, Icon } from '../ui'
+import { Avatar } from '../ui'
 import { ProfileMenu } from './ProfileMenu'
+import { SearchBox } from './SearchBox'
 import { ServerPill } from './ServerCard'
 import { Wordmark } from './Wordmark'
 
@@ -27,15 +28,14 @@ export function TopBar({
 }) {
   const { t } = useTranslation()
   const [menu, setMenu] = useState(false)
+  // The search page has its own field.
+  const onSearch = useLocation().pathname === '/search'
   return (
     <header className="br-top">
       <Link to="/" className="br-top__brand pl-focusable">
         <Wordmark size={30} />
       </Link>
-      <Link to="/search" className="br-search pl-focusable" aria-label={t('nav.search')}>
-        <Icon name="search" size={18} />
-        <span>{t('search.placeholder')}</span>
-      </Link>
+      {!onSearch && <SearchBox />}
       <span className="br-top__fill" />
       {admin && (
         <span className="br-top__phone">

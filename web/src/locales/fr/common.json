@@ -768,6 +768,15 @@
     "wall": "Identifiés dans {{library}}"
   },
   "search": {
+    "empty": "Rien qui s’appelle « {{query}} » ici.",
+    "episodeOf": "{{show}} · S{{season, number}} É{{episode, number}}",
+    "group": {
+      "episodes": "Épisodes",
+      "movies": "Films",
+      "people": "Personnes",
+      "shows": "Séries"
+    },
+    "label": "Rechercher dans {{serverName}}",
     "placeholder": "Films, séries, personnes"
   },
   "server": {
