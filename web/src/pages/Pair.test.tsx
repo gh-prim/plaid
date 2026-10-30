@@ -1,8 +1,9 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { apiError, fakeApi, profile, server, user } from '../test/fakeApi'
 import { renderApp } from '../test/renderApp'
+import { markProfilePicked } from '../auth/profileSession'
 
 const ada = profile('p1', 'Ada')
 const kids = profile('p2', 'Kids', { hasPin: true })
@@ -16,6 +17,9 @@ function signedIn(claim: Parameters<typeof fakeApi>[0][string]) {
 }
 
 describe('Pair', () => {
+  // This tab already chose its profile (F008-R2).
+  beforeEach(markProfilePicked)
+
   it('claims a code on the chosen profile', async () => {
     const calls = signedIn({
       status: 200,

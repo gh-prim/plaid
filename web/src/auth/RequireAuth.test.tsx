@@ -63,7 +63,9 @@ describe('route guards', () => {
       },
     })
     await renderApp('/')
-    expect(await screen.findByRole('heading', { name: "Who's watching?" })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Who’s under the plaid?' }),
+    ).toBeInTheDocument()
   })
 
   it('shows the home page with an active profile', async () => {

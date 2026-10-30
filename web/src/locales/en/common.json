@@ -94,7 +94,7 @@
     "pairing_not_found": "No TV is showing this code. Check it and try again.",
     "password_change_required": "Choose a new password first.",
     "password_mismatch": "Passwords don't match.",
-    "profile_locked": "Too many wrong PINs. Try again in {{minutes, number}} min.",
+    "profile_locked": "Too many tries. Try again in {{minutes, number}} min.",
     "setup_code_required": "This code doesn’t match. Copy the latest one from the log.",
     "setup_complete": "This server is already set up. Sign in instead.",
     "too_many_attempts": "Too many attempts. Try again in {{minutes, number}} min.",
@@ -446,9 +446,14 @@
   },
   "profiles": {
     "enterPin": "Enter the PIN for {{name}}",
-    "open": "Open profile",
+    "pin": {
+      "badge": "PIN",
+      "cancel": "Choose another profile",
+      "title": "Enter {{name}}’s PIN"
+    },
     "switch": "Switch profile",
-    "whoIsWatching": "Who's watching?"
+    "title": "Who’s under the plaid?",
+    "withPin": "{{name}}, PIN"
   },
   "reason": {
     "audio_channels_too_many": "This device can’t play this many audio channels, so the sound is mixed down.",

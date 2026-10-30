@@ -345,3 +345,181 @@
     white-space: nowrap;
   }
 }
+
+/* Profile picker (F008-R2) */
+.pf {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-text);
+}
+.pf__top {
+  align-self: stretch;
+  height: 88px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+}
+.pf__main {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 96px 40px 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+}
+.pf__main--pin {
+  padding-top: 140px;
+  gap: 20px;
+}
+.pf__title {
+  margin: 0;
+  font: 400 72px/1.05 var(--font-display);
+  text-align: center;
+}
+.pf__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 48px;
+}
+.pf__grid li {
+  width: 160px;
+}
+.pf__tile {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-l);
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.pf__name {
+  max-width: 100%;
+  font-size: 17px;
+  line-height: 1.3;
+  font-weight: 600;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.pf__badge {
+  margin-top: -6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+.pf__fill {
+  flex: 1;
+}
+.pf__link {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font: 600 15px/20px var(--font-text);
+  cursor: pointer;
+}
+.pf__pinTitle {
+  font-size: 28px;
+  line-height: 1.25;
+  font-weight: 600;
+  text-align: center;
+}
+.pf__pin {
+  position: relative;
+  display: flex;
+  gap: 12px;
+}
+.pf__pin input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  font-size: 16px; /* no zoom on iOS */
+}
+.pf__pin.is-locked {
+  opacity: 0.45;
+}
+.pf__box {
+  width: 64px;
+  height: 72px;
+  box-sizing: border-box;
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  display: grid;
+  place-items: center;
+}
+.pf__pin:focus-within .pf__box.is-current {
+  border: 2px solid var(--focus-ring);
+}
+.pf__pin.is-error .pf__box {
+  border: 2px solid var(--status-error);
+}
+.pf__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  background: var(--text-primary);
+}
+.pf__error {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--status-error);
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .pf__top {
+    height: 64px;
+    padding: 0 16px;
+    justify-content: center;
+  }
+  .pf__main {
+    padding: 8px 16px 24px;
+    gap: 24px;
+  }
+  .pf__main--pin {
+    padding-top: 40px;
+    gap: 20px;
+  }
+  .pf__title {
+    font-size: 40px;
+  }
+  .pf__grid {
+    gap: 20px 24px;
+  }
+  .pf__grid li {
+    width: 140px;
+  }
+  .pf__tile .pl-avatar {
+    --pl-s: 96px !important;
+  }
+  .pf__pinTitle {
+    font-size: 22px;
+  }
+  .pf__box {
+    width: 56px;
+    height: 64px;
+  }
+}

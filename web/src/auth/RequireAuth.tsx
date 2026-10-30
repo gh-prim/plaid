@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
 import { useAuth, type AuthState } from './AuthProvider'
+import { profilePicked } from './profileSession'
 
 /** The steps a visitor goes through before reaching the app, in order. */
 export type Step = 'setup' | 'login' | 'change-password' | 'profiles' | 'app'
@@ -40,6 +41,7 @@ export function RequireStep({
 }) {
   const { t } = useTranslation()
   const { state, refresh } = useAuth()
+  const location = useLocation()
 
   if (state.status === 'loading') {
     return (
@@ -60,6 +62,21 @@ export function RequireStep({
   }
   const step = currentStep(state)
   if (!allow.includes(step)) return <Navigate to={stepPath[step]} replace />
+  // Two or more profiles: each new tab asks who is watching first (F008-R2).
+  if (
+    step === 'app' &&
+    location.pathname !== stepPath.profiles &&
+    (state.me?.profiles.length ?? 0) >= 2 &&
+    !profilePicked()
+  ) {
+    return (
+      <Navigate
+        to={stepPath.profiles}
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    )
+  }
   if (admin && state.me?.user.role !== 'admin') return <Navigate to="/" replace />
   return <>{children}</>
 }

@@ -99,7 +99,7 @@
     "pairing_not_found": "Aucune TV n'affiche ce code. Vérifie-le et réessaie.",
     "password_change_required": "Choisis d'abord un nouveau mot de passe.",
     "password_mismatch": "Les mots de passe ne correspondent pas.",
-    "profile_locked": "Trop de codes PIN incorrects. Réessaie dans {{minutes, number}} min.",
+    "profile_locked": "Trop d’essais. Réessaie dans {{minutes, number}} min.",
     "setup_code_required": "Ce code ne correspond pas. Copie le plus récent depuis le journal.",
     "setup_complete": "Ce serveur est déjà configuré. Connecte-toi.",
     "too_many_attempts": "Trop de tentatives. Réessaie dans {{minutes, number}} min.",
@@ -456,9 +456,14 @@
   },
   "profiles": {
     "enterPin": "Saisis le code PIN de {{name}}",
-    "open": "Ouvrir le profil",
+    "pin": {
+      "badge": "Code",
+      "cancel": "Choisir un autre profil",
+      "title": "Saisis le code de {{name}}"
+    },
     "switch": "Changer de profil",
-    "whoIsWatching": "Qui regarde ?"
+    "title": "Qui est sous le plaid ?",
+    "withPin": "{{name}}, code"
   },
   "reason": {
     "audio_channels_too_many": "Cet appareil ne lit pas autant de canaux : le son est réduit.",

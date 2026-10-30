@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type Me, type ServerInfo } from '../api/client'
@@ -31,7 +31,7 @@ async function load(): Promise<AuthState> {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [state, setState] = useState<AuthState>({ status: 'loading' })
 
   const refresh = useCallback(async () => {
@@ -58,6 +58,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await api.POST('/auth/logout').catch(() => undefined)
     await refresh()
   }, [refresh])
+
+  // The active profile's language, when it has one, overrides the UI's
+  // (F008-R3); switching to a profile without one goes back to the
+  // account's.
+  const overridden = useRef(false)
+  const profileLocale = state.status === 'ready' ? state.me?.activeProfile?.locale : undefined
+  const accountLocale = state.status === 'ready' ? state.me?.user.locale : undefined
+  useEffect(() => {
+    if (profileLocale) {
+      overridden.current = true
+      if (i18n.resolvedLanguage !== profileLocale) void i18n.changeLanguage(profileLocale)
+    } else if (overridden.current) {
+      overridden.current = false
+      if (accountLocale) void i18n.changeLanguage(accountLocale)
+    }
+  }, [profileLocale, accountLocale, i18n])
 
   const { browser, os } = detectDevice(navigator.userAgent)
   const deviceName = os ? t('device.webName', { browser, os }) : browser
