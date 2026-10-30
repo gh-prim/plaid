@@ -1094,7 +1094,7 @@
     linear-gradient(
       180deg,
       color-mix(in oklch, var(--bg-base) 25%, transparent) 0%,
-      var(--bg-base) 96%
+      var(--bg-base) 100%
     );
 }
 .br-detail__body {
@@ -1435,10 +1435,10 @@
 }
 @media (max-width: 767px) {
   .br-detail__backdrop {
-    height: 320px;
+    height: 360px;
   }
   .br-detail__body {
-    padding: 160px 16px 0;
+    padding: 180px 16px 0;
   }
   .br-detail__poster {
     display: none;
@@ -1652,4 +1652,116 @@
 }
 .br-search__page {
   margin-top: 12px;
+}
+
+/* Light: dark text over the picture, so the side veil is the page's color. */
+:root[data-theme='light'] .br-detail__scrim {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--bg-base) 80%, transparent) 0%,
+      transparent 75%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--bg-base) 30%, transparent) 0%,
+      var(--bg-base) 100%
+    );
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .br-detail__scrim {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in oklch, var(--bg-base) 80%, transparent) 0%,
+        transparent 75%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in oklch, var(--bg-base) 30%, transparent) 0%,
+        var(--bg-base) 100%
+      );
+  }
+}
+
+/* Wide screens (canvas, 2560 px): bigger shell, cards and type. */
+@media (min-width: 2000px) {
+  .br-side {
+    width: 300px;
+    padding: 32px 20px;
+  }
+  .br-side__item {
+    min-height: 48px;
+    font-size: 17px;
+  }
+  .br-wordmark {
+    font-size: 48px;
+  }
+  .br-top {
+    height: 88px;
+    padding: 0 48px;
+  }
+  .br-search {
+    width: 420px;
+    font-size: 17px;
+  }
+  .br-row {
+    padding: 36px 0 0 48px;
+  }
+  .br-row__title {
+    font-size: 22px;
+  }
+  .br-row__list {
+    gap: 20px;
+  }
+  .br-card--poster {
+    width: 168px;
+  }
+  .br-card--landscape {
+    width: 336px;
+  }
+  .br-card__caption {
+    font-size: 15px;
+  }
+  .br-ambient {
+    height: 640px;
+  }
+  .br-detail__backdrop {
+    height: 820px;
+  }
+  .br-detail__body {
+    padding: 320px 48px 0;
+    gap: 56px;
+  }
+  .br-detail__poster {
+    width: 340px;
+  }
+  .br-detail__info {
+    max-width: 1080px;
+  }
+  .br-detail__title {
+    font-size: 64px;
+  }
+  .br-detail__logo img {
+    max-width: 600px;
+    max-height: 200px;
+  }
+  .br-detail__meta,
+  .br-detail__genres,
+  .br-detail__credits {
+    font-size: 17px;
+  }
+  .br-detail__overview {
+    font-size: 20px;
+    line-height: 30px;
+  }
+  .br-grid-page {
+    padding: 8px 72px 48px 48px;
+  }
+  .br-seasons {
+    padding: 40px 48px 0;
+  }
+  .br-episode__art {
+    width: 320px;
+  }
 }

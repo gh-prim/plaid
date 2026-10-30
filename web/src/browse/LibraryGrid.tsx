@@ -103,13 +103,15 @@ export function LibraryGrid() {
 
   // Back comes back to the same place (R14).
   const scrollKey = `plaid.grid.${location.key}`
+  const isFirstLoad = location.key === 'default'
   const restored = useRef(false)
   useEffect(() => {
-    if (restored.current || !total) return
+    // A first load has the key "default": nothing of its own to restore.
+    if (restored.current || !total || isFirstLoad) return
     restored.current = true
     const y = Number(sessionStorage.getItem(scrollKey))
     if (y > 0) window.scrollTo(0, y)
-  }, [total, scrollKey])
+  }, [total, scrollKey, isFirstLoad])
   useEffect(() => {
     const save = () => sessionStorage.setItem(scrollKey, String(window.scrollY))
     window.addEventListener('scroll', save, { passive: true })
