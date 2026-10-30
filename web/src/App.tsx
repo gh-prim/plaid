@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireStep } from './auth/RequireAuth'
+import { CollectionPage } from './browse/CollectionPage'
+import { Collections } from './browse/Collections'
 import { HomePage } from './browse/HomePage'
 import { LibraryGrid } from './browse/LibraryGrid'
 import { Shell } from './browse/Shell'
@@ -97,6 +99,8 @@ export function AppRoutes() {
         >
           <Route path="/" element={<HomePage />} />
           <Route path="/library/:libraryId" element={<LibraryGrid />} />
+          <Route path="/library/:libraryId/collections" element={<Collections />} />
+          <Route path="/collection/:collectionId" element={<CollectionPage />} />
         </Route>
         <Route
           path="/admin/*"

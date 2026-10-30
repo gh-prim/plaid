@@ -1,7 +1,7 @@
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { Button } from '../ui'
@@ -38,6 +38,7 @@ export function LibraryGrid() {
   const grid = useMemo(() => parseGrid(new URLSearchParams(search)), [search])
   const [library, setLibrary] = useState<Library | null>()
   const [facets, setFacets] = useState<LibraryFacets>()
+  const [hasCollections, setHasCollections] = useState(false)
   const pages = useGridPages(libraryId, grid)
 
   useEffect(() => {
@@ -45,10 +46,12 @@ export function LibraryGrid() {
     void Promise.all([
       api.GET('/libraries/{libraryId}', { params: { path: { libraryId } } }),
       api.GET('/libraries/{libraryId}/facets', { params: { path: { libraryId } } }),
-    ]).then(([l, f]) => {
+      api.GET('/collections', { params: { query: { libraryId } } }),
+    ]).then(([l, f, c]) => {
       if (cancelled) return
       setLibrary(l.data ?? null)
       setFacets(f.data)
+      setHasCollections((c.data?.collections.length ?? 0) > 0)
     })
     return () => {
       cancelled = true
@@ -133,6 +136,11 @@ export function LibraryGrid() {
         <div>
           <h1 className="br-grid__title">{library?.name}</h1>
           {countText && <p className="br-grid__count">{countText}</p>}
+          {hasCollections && (
+            <Link to={`/library/${libraryId}/collections`} className="br-row__all pl-focusable">
+              {t('grid.collections')}
+            </Link>
+          )}
         </div>
         <FilterBar grid={grid} facets={facets} total={pages.total} onChange={change} />
       </header>

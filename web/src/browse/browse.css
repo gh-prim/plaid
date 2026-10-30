@@ -1028,3 +1028,35 @@
   background: var(--text-primary);
   color: var(--bg-base);
 }
+
+/* Collections (F008-R16) */
+.br-tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 24px 16px;
+}
+.br-tiles .br-card--poster {
+  width: 100%;
+}
+.br-collection {
+  padding-top: 120px;
+}
+.br-collection__overview {
+  max-width: 720px;
+  margin: 12px 0 28px;
+  font-size: 17px;
+  line-height: 26px;
+  color: var(--text-secondary);
+}
+@media (max-width: 767px) {
+  .br-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 16px 12px;
+  }
+  .br-collection {
+    padding-top: 64px;
+  }
+}

@@ -62,7 +62,7 @@ export function HomePage() {
   }
   return (
     <div className="br-home">
-      <AmbientTop item={home.ambient} />
+      <AmbientTop art={home.ambient?.backdrop} />
       {home.rows.map((r) => (
         <Row
           key={r.id}

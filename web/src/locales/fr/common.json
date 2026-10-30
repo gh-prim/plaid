@@ -152,6 +152,7 @@
     }
   },
   "grid": {
+    "collections": "Collections",
     "count": {
       "movies_one": "{{count, number}} film",
       "movies_many": "",
