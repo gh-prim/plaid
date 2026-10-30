@@ -184,6 +184,34 @@ func (s *Store) GetItem(ctx context.Context, id string) (Item, error) {
 	return items[0], nil
 }
 
+// Shows maps seasons and episodes, by id, to their show's id; other
+// items are left out.
+func (s *Store) Shows(ctx context.Context, ids []string) (map[string]string, error) {
+	out := map[string]string{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	q := `SELECT i.id, CASE i.kind WHEN 'season' THEN i.parent_id ELSE p.parent_id END
+		FROM items i LEFT JOIN items p ON p.id = i.parent_id
+		WHERE i.kind IN ('season', 'episode') AND i.id IN (` + placeholders(len(ids)) + `)` //nolint:gosec // only placeholders
+	err := s.scanRows(ctx, q, args, func(r *sql.Rows) error {
+		var id string
+		var show sql.NullString
+		if err := r.Scan(&id, &show); err != nil {
+			return err
+		}
+		if show.Valid {
+			out[id] = show.String
+		}
+		return nil
+	})
+	return out, err
+}
+
 // Items loads items by id, hidden or not, in the given order; unknown ids
 // are left out.
 func (s *Store) Items(ctx context.Context, ids []string) ([]Item, error) {

@@ -164,5 +164,8 @@ func (h *Handlers) itemPage(ctx context.Context, pr auth.Principal, ids []string
 		withSummary(&s, sums[it.ID])
 		out.Items = append(out.Items, s)
 	}
+	if err := h.withShows(ctx, out.Items); err != nil {
+		return api.ItemPage{}, err
+	}
 	return out, h.withUserStates(ctx, pr, out.Items)
 }

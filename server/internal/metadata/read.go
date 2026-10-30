@@ -21,6 +21,8 @@ type Summary struct {
 	Poster        *Art
 	Backdrop      *Art
 	Still         *Art
+	// Logo is the selected logo; lists only need it for shows (F008-R30).
+	Logo *Art
 }
 
 // Art is a selected image (R19, R21).
@@ -119,6 +121,7 @@ func (s *Store) Summaries(ctx context.Context, itemIDs []string) (map[string]Sum
 			sm = Summary{State: "pending", Genres: []string{}}
 		}
 		sm.Poster, sm.Backdrop, sm.Still = first(kinds["poster"]), first(kinds["backdrop"]), first(kinds["still"])
+		sm.Logo = first(kinds["logo"])
 		out[id] = sm
 	}
 	return out, nil

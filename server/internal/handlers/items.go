@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -67,6 +68,9 @@ func (h *Handlers) ListLibraryItems(ctx context.Context, req api.ListLibraryItem
 		s := toItemSummary(it)
 		withSummary(&s, sums[it.ID])
 		out.Items = append(out.Items, s)
+	}
+	if err := h.withShows(ctx, out.Items); err != nil {
+		return nil, err
 	}
 	if err := h.withUserStates(ctx, pr, out.Items); err != nil {
 		return nil, err
@@ -169,7 +173,57 @@ func (h *Handlers) summariesOf(ctx context.Context, ids []string, limit access.L
 		withSummary(&s, sums[it.ID])
 		out = append(out, s)
 	}
-	return out, nil
+	return out, h.withShows(ctx, out)
+}
+
+// withShows names the show of each season and episode (F008-R30), with
+// one lookup per page whatever its size.
+func (h *Handlers) withShows(ctx context.Context, items []api.ItemSummary) error {
+	ids := make([]string, 0, len(items))
+	for _, it := range items {
+		if it.Kind == api.ItemKindSeason || it.Kind == api.ItemKindEpisode {
+			ids = append(ids, it.Id)
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	st := h.library.Store()
+	showOf, err := st.Shows(ctx, ids)
+	if err != nil {
+		return err
+	}
+	showIDs := make([]string, 0, len(showOf))
+	for _, id := range showOf {
+		if !slices.Contains(showIDs, id) {
+			showIDs = append(showIDs, id)
+		}
+	}
+	shows, err := st.Items(ctx, showIDs)
+	if err != nil {
+		return err
+	}
+	sums, err := h.summaries(ctx, shows)
+	if err != nil {
+		return err
+	}
+	refs := make(map[string]*api.ShowRef, len(shows))
+	for _, sh := range shows {
+		ref := &api.ShowRef{Id: sh.ID, DisplayTitle: sh.Title}
+		if m := sums[sh.ID]; m.State != "" {
+			if m.Title != "" {
+				ref.DisplayTitle = m.Title
+			}
+			ref.Logo = toArtwork(m.Logo)
+		}
+		refs[sh.ID] = ref
+	}
+	for i := range items {
+		if id, ok := showOf[items[i].Id]; ok {
+			items[i].Show = refs[id]
+		}
+	}
+	return nil
 }
 
 // ListUnrecognizedFiles lists files whose name couldn't be parsed (F004-R11).

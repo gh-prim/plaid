@@ -5,6 +5,8 @@ import (
 	"slices"
 	"testing"
 	"time"
+
+	"github.com/gh-prim/plaid/server/internal/metadata/tmdbtest"
 )
 
 // These tests drive F008-R26: a library's top-level items sorted, filtered
@@ -120,4 +122,61 @@ func TestListLibraryItemsValidation(t *testing.T) {
 		e.expect(e.do("GET", "/libraries/"+ml.ID+"/items"+q, nil, bearer(e.admin)), http.StatusUnprocessableEntity, "validation_failed")
 	}
 	e.expect(e.do("GET", "/libraries/nope/items?sort=title", nil, bearer(e.admin)), http.StatusNotFound, "not_found")
+}
+
+type showRefPage struct {
+	Items []struct {
+		ID   string
+		Kind string
+		Show *struct {
+			ID           string
+			DisplayTitle string
+			Logo         *struct{ ImageID string }
+		}
+	}
+}
+
+// F008-R30: seasons and episodes name their show, with its logo.
+func TestItemSummaryShow(t *testing.T) {
+	e := newLibEnv(t, libOpts{tmdb: tmdbtest.New(t)})
+	shows := t.TempDir()
+	touch(t, shows, "Dark (2017)/Season 1/Dark S01E01.mkv", "Dark (2017)/Season 1/Dark S01E02.mkv")
+	sl := e.create("Shows", "shows", shows)
+	e.waitIdle(sl.ID)
+	eventually(t, "Dark matched", func() bool { return e.firstItem(sl.ID, "?kind=show").MatchStatus == "matched" })
+	var page showRefPage
+	e.do("GET", "/libraries/"+sl.ID+"/items", nil, bearer(e.admin)).json(&page)
+	dark := page.Items[0].ID
+	if page.Items[0].Show != nil {
+		t.Errorf("a show names a show: %+v", page.Items[0].Show)
+	}
+	var title, logo string
+	if err := e.db.QueryRow(`SELECT title FROM item_metadata WHERE item_id = ?`, dark).Scan(&title); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "Dark's logo selected", func() bool {
+		return e.db.QueryRow(`SELECT id FROM artwork WHERE owner_type = 'item' AND owner_id = ? AND kind = 'logo' AND selected = 1`, dark).Scan(&logo) == nil
+	})
+
+	e.do("GET", "/libraries/"+sl.ID+"/items?kind=episode", nil, bearer(e.admin)).json(&page)
+	if len(page.Items) != 2 {
+		t.Fatalf("%d episodes", len(page.Items))
+	}
+	for _, ep := range page.Items {
+		if s := ep.Show; s == nil || s.ID != dark || s.DisplayTitle != title || s.Logo == nil || s.Logo.ImageID != logo {
+			t.Errorf("episode %s show = %+v, want %s %q %s", ep.ID, s, dark, title, logo)
+		}
+	}
+	first := page.Items[0].ID
+	e.do("GET", "/libraries/"+sl.ID+"/items?parentId="+dark, nil, bearer(e.admin)).json(&page)
+	if s := page.Items[0].Show; page.Items[0].Kind != "season" || s == nil || s.ID != dark {
+		t.Errorf("season show = %+v", s)
+	}
+
+	// Continue watching offers the next episode, named with its show.
+	e.expect(e.do("PUT", "/items/"+first+"/watched", nil, bearer(e.admin)), http.StatusNoContent, "")
+	e.do("GET", "/me/continue-watching", nil, bearer(e.admin)).json(&page)
+	if len(page.Items) != 1 || page.Items[0].Show == nil || page.Items[0].Show.DisplayTitle != title {
+		t.Errorf("continue watching = %+v", page.Items)
+	}
 }
