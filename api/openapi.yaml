@@ -645,9 +645,74 @@ paths:
     get:
       operationId: listLibraryItems
       summary: Items of a library, by kind and parent
-      description: Ordered by sort title. Hidden items (no file left on disk) are left out.
+      description: >-
+        Ordered by sort title unless `sort` says otherwise. Hidden items (no file left on disk) are left out. `sort`,
+        `order`, `seed`, the filters, `offset` and `total` apply to top-level items only (no `parentId`, F008 R26);
+        `offset` replaces `cursor` for random access. Every filter applies the age predicate (F005 R25) before
+        counting.
       tags: [libraries]
       parameters:
+        - name: sort
+          in: query
+          schema:
+            $ref: "#/components/schemas/ItemSort"
+        - name: order
+          in: query
+          description: Defaults to `asc` for `title`, `desc` otherwise. Ignored for `random`.
+          schema:
+            $ref: "#/components/schemas/SortOrder"
+        - name: seed
+          in: query
+          description: Seed of the `random` order, so pages of one visit agree.
+          schema:
+            type: integer
+            format: int64
+        - name: watch
+          in: query
+          schema:
+            $ref: "#/components/schemas/WatchFilter"
+        - name: genre
+          in: query
+          description: TMDB genre ids; an item matches any of them.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: yearFrom
+          in: query
+          schema:
+            type: integer
+        - name: yearTo
+          in: query
+          schema:
+            type: integer
+        - name: resolution
+          in: query
+          description: An item matches any of them, by its largest file.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ResolutionFilter"
+        - name: hdr
+          in: query
+          description: Only items with an HDR file (true) or without one (false).
+          schema:
+            type: boolean
+        - name: offset
+          in: query
+          description: Position of the first item, instead of `cursor`.
+          schema:
+            type: integer
+            minimum: 0
+        - name: total
+          in: query
+          description: Adds `total` to the page.
+          schema:
+            type: boolean
         - name: kind
           in: query
           description: Defaults to the top level, `movie` or `show`, when `parentId` is absent.
@@ -667,6 +732,109 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ItemPage"
+        default:
+          $ref: "#/components/responses/Error"
+  /libraries/{libraryId}/facets:
+    parameters:
+      - $ref: "#/components/parameters/LibraryId"
+    get:
+      operationId: getLibraryFacets
+      summary: What a library's grid can be filtered by, with counts (F008 R27)
+      description: Over the top-level items the active profile may see (F005 R25).
+      tags: [catalog]
+      responses:
+        "200":
+          description: The facets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LibraryFacets"
+        default:
+          $ref: "#/components/responses/Error"
+  /search:
+    get:
+      operationId: search
+      summary: Movies, shows, episodes and people by word prefix, across the profile's libraries (F008 R28)
+      tags: [catalog]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+        - name: limit
+          in: query
+          description: Per group.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 8
+      responses:
+        "200":
+          description: Results grouped by kind, best first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResults"
+        default:
+          $ref: "#/components/responses/Error"
+  /home:
+    get:
+      operationId: getHome
+      summary: The home of the active profile, ambient item and rows (F008 R31)
+      tags: [catalog]
+      responses:
+        "200":
+          description: The home
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Home"
+        default:
+          $ref: "#/components/responses/Error"
+  /home/rows/{rowId}:
+    parameters:
+      - name: rowId
+        in: path
+        required: true
+        description: A HomeRow id, as returned by GET /home.
+        schema:
+          type: string
+    get:
+      operationId: getHomeRow
+      summary: Next page of one home row (F008 R31)
+      tags: [catalog]
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: One page of the row
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemPage"
+        default:
+          $ref: "#/components/responses/Error"
+  /items/{itemId}/up-next:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+    get:
+      operationId: getUpNext
+      summary: The episode to play next for a show, a season or after an episode (F008 R32)
+      tags: [catalog]
+      responses:
+        "200":
+          description: The episode to play
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpNext"
+        "204":
+          description: Nothing to play next
         default:
           $ref: "#/components/responses/Error"
   /libraries/{libraryId}/unrecognized:
@@ -2399,6 +2567,23 @@ components:
           $ref: "#/components/schemas/TechnicalSummary"
         userState:
           $ref: "#/components/schemas/UserState"
+        addedAt:
+          type: string
+          format: date-time
+          description: When the item was added; for a show, when its newest episode was (F008 R26).
+        show:
+          $ref: "#/components/schemas/ShowRef"
+    ShowRef:
+      type: object
+      description: The show of a season or an episode (F008 R30).
+      required: [id, displayTitle]
+      properties:
+        id:
+          type: string
+        displayTitle:
+          type: string
+        logo:
+          $ref: "#/components/schemas/Artwork"
     ItemPage:
       type: object
       required: [items]
@@ -2410,6 +2595,184 @@ components:
         nextCursor:
           type: string
           description: Absent on the last page.
+        total:
+          type: integer
+          description: Every item matching the query, when `total=true` (F008 R26).
+    ItemSort:
+      type: string
+      enum: [title, added, released, rating, played, random]
+    SortOrder:
+      type: string
+      enum: [asc, desc]
+    WatchFilter:
+      type: string
+      enum: [unwatched, in_progress, watched]
+    ResolutionFilter:
+      type: string
+      enum: [2160p, 1080p, 720p, sd]
+      description: sd is anything under 720p.
+    LibraryFacets:
+      type: object
+      required: [total, genres, decades, resolutions, hdr, letters]
+      properties:
+        total:
+          type: integer
+          description: Top-level items the profile may see.
+        genres:
+          type: array
+          description: By count, most first.
+          items:
+            $ref: "#/components/schemas/GenreFacet"
+        decades:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecadeFacet"
+        resolutions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResolutionFacet"
+        hdr:
+          type: integer
+          description: Items with an HDR file.
+        letters:
+          type: array
+          description: In title sort order; digits and symbols are grouped as "#".
+          items:
+            $ref: "#/components/schemas/LetterFacet"
+    GenreRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          description: TMDB genre id.
+        name:
+          type: string
+    GenreFacet:
+      type: object
+      required: [id, name, count]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        count:
+          type: integer
+    DecadeFacet:
+      type: object
+      required: [from, count]
+      properties:
+        from:
+          type: integer
+          description: First year of the decade, e.g. 1990.
+        count:
+          type: integer
+    ResolutionFacet:
+      type: object
+      required: [value, count]
+      properties:
+        value:
+          $ref: "#/components/schemas/ResolutionFilter"
+        count:
+          type: integer
+    LetterFacet:
+      type: object
+      required: [letter, count]
+      properties:
+        letter:
+          type: string
+        count:
+          type: integer
+    PersonRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        portrait:
+          $ref: "#/components/schemas/Artwork"
+    SearchResults:
+      type: object
+      required: [movies, shows, episodes, people]
+      properties:
+        movies:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemSummary"
+        shows:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemSummary"
+        episodes:
+          type: array
+          description: Each with its `show`.
+          items:
+            $ref: "#/components/schemas/ItemSummary"
+        people:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersonRef"
+    Home:
+      type: object
+      required: [rows]
+      properties:
+        ambient:
+          $ref: "#/components/schemas/ItemSummary"
+          description: Whose backdrop tints the top of the home (F008 R6).
+        rows:
+          type: array
+          description: In display order; rows with no items are left out.
+          items:
+            $ref: "#/components/schemas/HomeRow"
+    HomeRowType:
+      type: string
+      enum: [continue_watching, recently_added, genre]
+    HomeRow:
+      type: object
+      description: The client builds the title from `type` and its params, never from text sent here.
+      required: [id, type, items]
+      properties:
+        id:
+          type: string
+        type:
+          $ref: "#/components/schemas/HomeRowType"
+        libraryId:
+          type: string
+        libraryName:
+          type: string
+        genre:
+          $ref: "#/components/schemas/GenreRef"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemSummary"
+        nextCursor:
+          type: string
+          description: Absent when the row has no more items; page with GET /home/rows/{rowId}.
+        seeAll:
+          $ref: "#/components/schemas/SeeAll"
+    SeeAll:
+      type: object
+      description: The library grid query that "See all" opens.
+      required: [libraryId, sort, order]
+      properties:
+        libraryId:
+          type: string
+        sort:
+          $ref: "#/components/schemas/ItemSort"
+        order:
+          $ref: "#/components/schemas/SortOrder"
+        genre:
+          type: integer
+          description: TMDB genre id.
+    UpNext:
+      type: object
+      required: [item]
+      properties:
+        item:
+          $ref: "#/components/schemas/ItemSummary"
     MediaStream:
       type: object
       required: [index, type, language, default, forced, sdh, imageBased, external]
