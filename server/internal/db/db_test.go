@@ -3,6 +3,7 @@ package db
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -69,7 +70,7 @@ func TestMigrationsApplyIncrementally(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Roll back to "only 0001 applied".
-	for _, stmt := range []string{
+	for _, stmt := range append(catalogRollback[:len(catalogRollback):len(catalogRollback)],
 		"DROP TABLE problems", "DROP TABLE watch_state", "DROP TABLE media_keyframes",
 		"DROP TABLE settings", "DROP TABLE sidecar_files", "DROP TABLE file_identifications",
 		"DROP TABLE item_credits", "DROP TABLE people", "DROP TABLE match_candidates",
@@ -78,7 +79,7 @@ func TestMigrationsApplyIncrementally(t *testing.T) {
 		"DROP TABLE items", "DROP TABLE library_folders", "DROP TABLE libraries",
 		"DROP TABLE pairing_codes", "DROP TABLE sessions", "DROP TABLE profiles", "DROP TABLE users",
 		"DELETE FROM schema_migrations WHERE name <> 'migrations/0001_init.sql'",
-	} {
+	) {
 		if _, err := d.ExecContext(ctx, stmt); err != nil {
 			t.Fatalf("%s: %v", stmt, err)
 		}
@@ -150,7 +151,8 @@ func TestMetadataMigrationUpgradesLibraries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	stmts := make([]string, 0, len(metadataTables)+3)
+	// 0007's triggers read item_metadata: roll it back too, both are re-applied.
+	stmts := append(make([]string, 0, len(catalogRollback)+len(metadataTables)+5), catalogRollback...)
 	for _, name := range metadataTables {
 		stmts = append(stmts, "DROP TABLE "+name)
 	}
@@ -365,4 +367,207 @@ func TestFTS5Search(t *testing.T) {
 			t.Errorf("MATCH %s = row %d, want %d", match, got, want)
 		}
 	}
+}
+
+// catalogFixture opens a database and returns helpers to write and query it.
+func catalogFixture(t *testing.T, dir string) (*sql.DB, func(string, ...any), func(string, ...any) int) {
+	t.Helper()
+	ctx := context.Background()
+	d, err := Open(ctx, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { d.Close() })
+	exec := func(q string, args ...any) {
+		t.Helper()
+		if _, err := d.ExecContext(ctx, q, args...); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	count := func(q string, args ...any) int {
+		t.Helper()
+		var n int
+		if err := d.QueryRowContext(ctx, q, args...).Scan(&n); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+		return n
+	}
+	return d, exec, count
+}
+
+const catalogNow = "2026-10-30T12:00:00Z"
+
+func seedCatalog(exec func(string, ...any)) {
+	exec(`INSERT INTO libraries (id, name, type, created_at, updated_at) VALUES ('lm', 'Movies', 'movies', ?, ?), ('ls', 'Shows', 'shows', ?, ?)`, catalogNow, catalogNow, catalogNow, catalogNow)
+	exec(`INSERT INTO items (id, library_id, kind, title, created_at, updated_at) VALUES ('m1', 'lm', 'movie', 'Amelie', '2026-10-01T00:00:00Z', ?)`, catalogNow)
+	exec(`INSERT INTO items (id, library_id, kind, title, created_at, updated_at) VALUES ('s1', 'ls', 'show', 'Dark', '2026-09-01T00:00:00Z', ?)`, catalogNow)
+	exec(`INSERT INTO items (id, library_id, kind, parent_id, season_number, created_at, updated_at) VALUES ('s1x1', 'ls', 'season', 's1', 1, '2026-09-01T00:00:00Z', ?)`, catalogNow)
+	exec(`INSERT INTO items (id, library_id, kind, parent_id, season_number, episode_number, title, created_at, updated_at) VALUES ('e1', 'ls', 'episode', 's1x1', 1, 1, 'Secrets', '2026-09-01T00:00:00Z', ?)`, catalogNow)
+}
+
+// search returns the ref_ids matching an FTS5 query, in rowid order.
+func search(t *testing.T, d *sql.DB, match string) []string {
+	t.Helper()
+	rows, err := d.QueryContext(context.Background(), "SELECT ref_id FROM search_index WHERE search_index MATCH ? ORDER BY rowid", match)
+	if err != nil {
+		t.Fatalf("MATCH %s: %v", match, err)
+	}
+	defer rows.Close()
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		ids = append(ids, id)
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	return ids
+}
+
+func TestCatalogTriggers(t *testing.T) {
+	d, exec, count := catalogFixture(t, t.TempDir())
+	seedCatalog(exec)
+
+	// Items: movies, shows and episodes are indexed by their parsed title; seasons aren't.
+	if got := search(t, d, `"amel"*`); len(got) != 1 || got[0] != "m1" {
+		t.Errorf("parsed title: amel* = %v, want [m1]", got)
+	}
+	if got := search(t, d, `"secr"*`); len(got) != 1 || got[0] != "e1" {
+		t.Errorf("episode: secr* = %v, want [e1]", got)
+	}
+	if n := count(`SELECT COUNT(*) FROM search_docs WHERE ref_id = 's1x1'`); n != 0 {
+		t.Error("a season is indexed")
+	}
+	if n := count(`SELECT COUNT(*) FROM search_docs WHERE ref_id = 'e1' AND library_id = 'ls' AND kind = 'episode'`); n != 1 {
+		t.Error("episode doc has the wrong kind or library")
+	}
+
+	// Metadata: the matched title wins, the original title is indexed, genres land in item_genres (id 0 skipped).
+	exec(`INSERT INTO item_metadata (item_id, state, title, original_title, genres, updated_at) VALUES ('m1', 'matched', 'Le Fabuleux Destin d''Amélie Poulain', 'Amélie', '[{"id":35,"name":"Comédie"},{"id":10749,"name":"Romance"},{"id":0,"name":"Edited"}]', ?)`, catalogNow)
+	if got := search(t, d, `"fabul"*`); len(got) != 1 || got[0] != "m1" {
+		t.Errorf("matched title: fabul* = %v, want [m1]", got)
+	}
+	if got := search(t, d, `"AMELIE"`); len(got) != 1 {
+		t.Errorf("original title, accents and case folded: %v", got)
+	}
+	if n := count(`SELECT COUNT(*) FROM search_index`); n != 3 {
+		t.Errorf("%d index rows after a metadata write, want 3 (no duplicate)", n)
+	}
+	if n := count(`SELECT COUNT(*) FROM item_genres WHERE item_id = 'm1'`); n != 2 {
+		t.Errorf("%d genres, want 2 (id 0 skipped)", n)
+	}
+	if n := count(`SELECT COUNT(*) FROM item_genres WHERE item_id = 'm1' AND genre_id = 35 AND name = 'Comédie'`); n != 1 {
+		t.Error("genre id or name not kept")
+	}
+
+	exec(`UPDATE item_metadata SET title = 'Amélie from Montmartre', genres = '[{"id":18,"name":"Drama"}]' WHERE item_id = 'm1'`)
+	if got := search(t, d, `"fabul"*`); len(got) != 0 {
+		t.Errorf("old title still found: %v", got)
+	}
+	if got := search(t, d, `"montm"*`); len(got) != 1 {
+		t.Errorf("new title not found: %v", got)
+	}
+	if n := count(`SELECT COUNT(*) FROM item_genres WHERE item_id = 'm1'`); n != 1 {
+		t.Errorf("%d genres after update, want 1", n)
+	}
+	exec(`UPDATE item_metadata SET genres = 'not json' WHERE item_id = 'm1'`)
+	if n := count(`SELECT COUNT(*) FROM item_genres WHERE item_id = 'm1'`); n != 0 {
+		t.Errorf("invalid genres JSON left %d rows", n)
+	}
+
+	// Removing the metadata falls back to the parsed title.
+	exec(`DELETE FROM item_metadata WHERE item_id = 'm1'`)
+	if got := search(t, d, `"montm"*`); len(got) != 0 {
+		t.Errorf("metadata title still found after delete: %v", got)
+	}
+	if got := search(t, d, `"amel"*`); len(got) != 1 {
+		t.Errorf("parsed title lost after metadata delete: %v", got)
+	}
+
+	// A renamed item (rescan) is reindexed.
+	exec(`UPDATE items SET title = 'Amelie Poulain' WHERE id = 'm1'`)
+	if got := search(t, d, `"poul"*`); len(got) != 1 {
+		t.Errorf("renamed item not found: %v", got)
+	}
+
+	// Shows: newest_child_added_at follows episode inserts, never goes back.
+	if n := count(`SELECT COUNT(*) FROM items WHERE id = 's1' AND newest_child_added_at = '2026-09-01T00:00:00Z'`); n != 1 {
+		t.Error("show's newest_child_added_at not set by its first episode")
+	}
+	exec(`INSERT INTO items (id, library_id, kind, parent_id, season_number, episode_number, title, created_at, updated_at) VALUES ('e2', 'ls', 'episode', 's1x1', 1, 2, 'Lies', '2026-10-20T00:00:00Z', ?)`, catalogNow)
+	exec(`INSERT INTO items (id, library_id, kind, parent_id, season_number, episode_number, title, created_at, updated_at) VALUES ('e0', 'ls', 'episode', 's1x1', 1, 0, 'Old', '2026-08-01T00:00:00Z', ?)`, catalogNow)
+	if n := count(`SELECT COUNT(*) FROM items WHERE id = 's1' AND newest_child_added_at = '2026-10-20T00:00:00Z'`); n != 1 {
+		t.Error("show's newest_child_added_at not the newest episode's")
+	}
+
+	// People.
+	exec(`INSERT INTO people (id, name, updated_at) VALUES ('p1', 'Audrey Tautou', ?)`, catalogNow)
+	if got := search(t, d, `"taut"*`); len(got) != 1 || got[0] != "p1" {
+		t.Errorf("person: %v", got)
+	}
+	exec(`UPDATE people SET name = 'Audrey Justine Tautou' WHERE id = 'p1'`)
+	if got := search(t, d, `"justi"*`); len(got) != 1 {
+		t.Errorf("renamed person: %v", got)
+	}
+	exec(`DELETE FROM people WHERE id = 'p1'`)
+	if n := count(`SELECT COUNT(*) FROM search_docs WHERE kind = 'person'`); n != 0 {
+		t.Error("deleted person still has a doc")
+	}
+
+	// Deleting a show cascades to its episodes' docs; deleting a library to everything.
+	exec(`DELETE FROM items WHERE id = 's1'`)
+	if n := count(`SELECT COUNT(*) FROM search_docs WHERE library_id = 'ls'`); n != 0 {
+		t.Errorf("%d docs left after deleting the show", n)
+	}
+	exec(`DELETE FROM libraries WHERE id = 'lm'`)
+	if n := count(`SELECT COUNT(*) FROM search_docs`); n != 0 {
+		t.Errorf("%d docs left after deleting the library", n)
+	}
+	if n := count(`SELECT COUNT(*) FROM search_index`); n != 0 {
+		t.Errorf("%d index rows left, want 0", n)
+	}
+}
+
+// TestCatalogMigrationBackfills upgrades a database written before 0007.
+func TestCatalogMigrationBackfills(t *testing.T) {
+	dir := t.TempDir()
+	d, exec, _ := catalogFixture(t, dir)
+	for _, stmt := range catalogRollback {
+		exec(stmt)
+	}
+	seedCatalog(exec)
+	exec(`INSERT INTO item_metadata (item_id, state, title, genres, updated_at) VALUES ('m1', 'matched', 'Amélie', '[{"id":35,"name":"Comedy"}]', ?)`, catalogNow)
+	exec(`INSERT INTO people (id, name, updated_at) VALUES ('p1', 'Audrey Tautou', ?)`, catalogNow)
+	d.Close()
+
+	d, _, count := catalogFixture(t, dir)
+	if got := search(t, d, `"amel"*`); len(got) != 1 || got[0] != "m1" {
+		t.Errorf("backfilled movie: %v", got)
+	}
+	if got := search(t, d, `"taut"*`); len(got) != 1 {
+		t.Errorf("backfilled person: %v", got)
+	}
+	if n := count(`SELECT COUNT(*) FROM search_docs`); n != 4 {
+		t.Errorf("%d docs, want 4 (movie, show, episode, person)", n)
+	}
+	if n := count(`SELECT COUNT(*) FROM item_genres WHERE item_id = 'm1' AND genre_id = 35`); n != 1 {
+		t.Error("genres not backfilled")
+	}
+	if n := count(`SELECT COUNT(*) FROM items WHERE id = 's1' AND newest_child_added_at = '2026-09-01T00:00:00Z'`); n != 1 {
+		t.Error("newest_child_added_at not backfilled")
+	}
+}
+
+// catalogRollback undoes 0007 (its triggers go with the tables they're on, except items').
+var catalogRollback = []string{
+	"DROP TRIGGER items_search_insert", "DROP TRIGGER items_search_update", "DROP TRIGGER items_search_delete",
+	"DROP TRIGGER items_newest_child_insert", "DROP TRIGGER items_newest_child_move",
+	"DROP TRIGGER item_metadata_catalog_insert", "DROP TRIGGER item_metadata_catalog_update", "DROP TRIGGER item_metadata_catalog_delete",
+	"DROP TRIGGER people_search_insert", "DROP TRIGGER people_search_update", "DROP TRIGGER people_search_delete",
+	"DROP INDEX items_library_added", "DROP TABLE item_genres", "DROP TABLE search_index", "DROP TABLE search_docs",
+	"ALTER TABLE items DROP COLUMN newest_child_added_at",
+	"DELETE FROM schema_migrations WHERE name = 'migrations/0007_catalog.sql'",
 }
