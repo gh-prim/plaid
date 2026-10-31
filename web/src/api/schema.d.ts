@@ -634,6 +634,28 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/items/{itemId}/segments': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    /**
+     * Intro, recap, credits and preview of a movie or an episode, for skip buttons and the next episode
+     * @description From TheIntroDB's community timestamps, looked up by the title's TMDB id (and season and episode) and the file's length, and kept by the server for days. Nothing known, or another kind of item, is an empty list. Items the profile may not see are a 404.
+     */
+    get: operations['getItemSegments']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/libraries/{libraryId}/unrecognized': {
     parameters: {
       query?: never
@@ -1987,6 +2009,24 @@ export interface components {
       order: components['schemas']['SortOrder']
       /** @description TMDB genre id. */
       genre?: number
+    }
+    ItemSegments: {
+      segments: components['schemas']['Segment'][]
+    }
+    /** @description A part of a movie or an episode a player can skip or act on. */
+    Segment: {
+      /** @enum {string} */
+      kind: 'intro' | 'recap' | 'credits' | 'preview'
+      /**
+       * Format: int64
+       * @description Absent or null from the very start.
+       */
+      startMs?: number | null
+      /**
+       * Format: int64
+       * @description Absent or null up to the very end.
+       */
+      endMs?: number | null
     }
     UpNext: {
       item: components['schemas']['ItemSummary']
@@ -3750,6 +3790,29 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getItemSegments: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The segments, in time order */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ItemSegments']
+        }
       }
       default: components['responses']['Error']
     }

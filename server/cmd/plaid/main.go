@@ -21,12 +21,14 @@ import (
 	"github.com/gh-prim/plaid/server/internal/catalog"
 	"github.com/gh-prim/plaid/server/internal/config"
 	"github.com/gh-prim/plaid/server/internal/db"
+	"github.com/gh-prim/plaid/server/internal/discovery"
 	"github.com/gh-prim/plaid/server/internal/handlers"
 	"github.com/gh-prim/plaid/server/internal/httpserver"
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/playback"
 	"github.com/gh-prim/plaid/server/internal/problems"
+	"github.com/gh-prim/plaid/server/internal/segments"
 	"github.com/gh-prim/plaid/server/internal/settings"
 	"github.com/gh-prim/plaid/server/internal/webui"
 )
@@ -106,6 +108,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Playback:   play,
 		Problems:   probs,
 		Catalog:    catalog.New(catalog.Options{DB: database}),
+		Segments:   segments.New(segments.Options{DB: database, Log: logger, FFmpeg: ffmpegPath(ctx, cfg)}),
 		Streams:    streams,
 	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
@@ -119,7 +122,26 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		return err
 	}
 	logger.Info("listening", "addr", ln.Addr().String())
+	// TV apps find the server on the local network over Bonjour.
+	if getenv("PLAID_BONJOUR") != "off" {
+		if bonjour := discovery.Advertise(discovery.Options{
+			ID: cfg.ServerName, Name: cfg.ServerName, Version: buildinfo.Version,
+			Port: ln.Addr().(*net.TCPAddr).Port, Log: logger,
+		}); bonjour != nil {
+			defer bonjour.Shutdown()
+		}
+	}
 	return serve(ctx, ln, handler, logger, endStreams)
+}
+
+// ffmpegPath is the ffmpeg that finds end credits in episodes; "" when
+// there is none (playback says so in the log).
+func ffmpegPath(ctx context.Context, cfg config.Config) string {
+	f, err := playback.FindFFmpeg(ctx, cfg.FFmpegPath)
+	if err != nil {
+		return ""
+	}
+	return f.Path
 }
 
 // newLibraryEngine finds ffprobe and starts the library engine in the

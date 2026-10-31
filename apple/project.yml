@@ -1,0 +1,86 @@
+# Xcode project for the PLAID Apple apps. Generate with `xcodegen` from apple/.
+name: PLAID
+options:
+  bundleIdPrefix: app.plaid
+  deploymentTarget:
+    tvOS: "18.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Your team: PLAID_TEAM=… xcodegen, or set it in Xcode (Signing & Capabilities).
+    DEVELOPMENT_TEAM: ${PLAID_TEAM}
+    CODE_SIGN_STYLE: Automatic
+targets:
+  PLAID-tvOS:
+    type: application
+    platform: tvOS
+    sources:
+      - path: PLAID
+      - path: Shared
+    dependencies:
+      - target: PLAID-TopShelf
+    entitlements:
+      path: PLAID/PLAID.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.plaid.tv]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.plaid.tv
+        PRODUCT_NAME: PLAID
+        TARGETED_DEVICE_FAMILY: "3"
+        ASSETCATALOG_COMPILER_APPICON_NAME: App Icon & Top Shelf Image
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+    info:
+      path: PLAID/Info.plist
+      properties:
+        CFBundleDisplayName: PLAID
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, fr]
+        UILaunchScreen: {}
+        UIUserInterfaceStyle: Dark
+        NSLocalNetworkUsageDescription: PLAID looks for your media server on the local network.
+        NSBonjourServices: [_plaid._tcp]
+        LSApplicationQueriesSchemes: [youtube]
+        # Top Shelf items open plaid://item/<id> and plaid://play/<id>.
+        CFBundleURLTypes:
+          - CFBundleURLName: app.plaid.tv
+            CFBundleURLSchemes: [plaid]
+        UIAppFonts: [InstrumentSans-Variable-latin.ttf, InstrumentSerif-Regular-latin.ttf]
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+          NSAllowsLocalNetworking: true
+  # "Continue watching" on the Apple TV's Top Shelf, from what the app
+  # last saw in the shared app group.
+  PLAID-TopShelf:
+    type: app-extension
+    platform: tvOS
+    sources:
+      - path: TopShelf
+      - path: Shared
+    entitlements:
+      path: TopShelf/TopShelf.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.plaid.tv]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.plaid.tv.topshelf
+        PRODUCT_NAME: PLAIDTopShelf
+        TARGETED_DEVICE_FAMILY: "3"
+        SWIFT_DEFAULT_ACTOR_ISOLATION: nonisolated
+    info:
+      path: TopShelf/Info.plist
+      properties:
+        CFBundleDisplayName: PLAID
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.tv-top-shelf
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ContentProvider

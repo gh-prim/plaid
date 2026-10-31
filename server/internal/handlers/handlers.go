@@ -11,6 +11,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/playback"
 	problemfeed "github.com/gh-prim/plaid/server/internal/problems"
+	"github.com/gh-prim/plaid/server/internal/segments"
 )
 
 // Pinger is the part of *sql.DB the handlers need to check database health.
@@ -33,6 +34,8 @@ type Deps struct {
 	Problems *problemfeed.Recorder
 	// Catalog is F008's browsing queries; nil makes them answer 501.
 	Catalog *catalog.Catalog
+	// Segments are intros and credits from TheIntroDB; nil lists none.
+	Segments *segments.Service
 	// Streams is cancelled when the server shuts down, which ends
 	// long-lived responses such as server-sent events. Nil never ends them.
 	Streams context.Context
@@ -48,6 +51,7 @@ type Handlers struct {
 	playback   *playback.Service
 	problems   *problemfeed.Recorder
 	catalog    *catalog.Catalog
+	segments   *segments.Service
 	streams    context.Context
 }
 
@@ -55,5 +59,5 @@ var _ api.StrictServerInterface = (*Handlers)(nil)
 
 // New returns the API handlers.
 func New(d Deps) *Handlers {
-	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, problems: d.Problems, catalog: d.Catalog, streams: d.Streams}
+	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, problems: d.Problems, catalog: d.Catalog, segments: d.Segments, streams: d.Streams}
 }

@@ -1,0 +1,13 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "shelf.continueWatching" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue watching" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Reprendre" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
