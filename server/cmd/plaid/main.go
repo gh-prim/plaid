@@ -111,6 +111,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		TrustedProxies: cfg.TrustedProxies,
 		Sessions:       accts,
 		Stream:         handlers.StreamHandler(play, meta, engine.Store()),
+		Preview:        handlers.PreviewHandler(play),
 	})
 
 	ln, err := (&net.ListenConfig{}).Listen(ctx, "tcp", cfg.Addr())
@@ -153,7 +154,8 @@ func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store
 	svc := playback.New(playback.Options{
 		DB: database, Library: store, Accounts: accts,
 		Settings: settings.New(database), FFmpeg: ffmpeg, Log: logger, ProbeHardware: true, Problems: probs,
-		TranscodeDir: cfg.TranscodeDir, CacheDir: filepath.Join(cfg.DataDir, "cache", "playback"),
+		PreviewsAhead: true,
+		TranscodeDir:  cfg.TranscodeDir, CacheDir: filepath.Join(cfg.DataDir, "cache", "playback"),
 	})
 	svc.Start(ctx)
 	return svc

@@ -69,33 +69,35 @@ describe('library grid', () => {
     expect(offsets.length).toBeLessThanOrEqual(2)
   })
 
-  it('keeps sort and filters in the URL, shows them as chips, and says when nothing matches', async () => {
+  it('keeps sort and genre in the URL, and says when nothing matches', async () => {
     const calls = setup(30)
     await renderApp('/library/lm?sort=added&genre=878')
     expect(
       await screen.findByRole('heading', { name: 'Nothing matches these filters.' }),
     ).toBeInTheDocument()
-    const req = calls.find((c) => c.path === '/libraries/lm/items')!
-    expect(req).toBeDefined()
-    expect(screen.getByRole('combobox', { name: 'Sort' })).toHaveValue('added')
-    const chip = screen.getByRole('button', { name: 'Remove filter Science Fiction' })
-    await userEvent.click(chip)
+    expect(calls.find((c) => c.path === '/libraries/lm/items')).toBeDefined()
+    expect(screen.getByRole('button', { name: 'Sort: Recently added' })).toBeInTheDocument()
+    // One genre at a time, applied as soon as it's picked.
+    await userEvent.click(screen.getByRole('button', { name: 'Genre: Science Fiction' }))
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'All genres' }))
     expect(await screen.findByText('30 movies')).toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Remove filter Science Fiction' }),
-    ).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Genre: All genres' })).toBeInTheDocument()
   })
 
-  it('filters from the panel', async () => {
+  it('filters with the segmented control and sorts from the menu', async () => {
     setup(30)
     await renderApp('/library/lm')
     await screen.findByText('30 movies')
-    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
-    const panel = screen.getByRole('dialog', { name: 'Filters' })
-    await userEvent.click(within(panel).getByRole('button', { name: '1990s' }))
-    expect(await screen.findByRole('button', { name: 'Remove filter 1990s' })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Clear all' }))
-    expect(screen.queryByRole('button', { name: 'Remove filter 1990s' })).not.toBeInTheDocument()
+    const watch = screen.getByRole('radiogroup', { name: 'Viewing' })
+    await userEvent.click(within(watch).getByRole('radio', { name: 'Not watched' }))
+    expect(within(watch).getByRole('radio', { name: 'Not watched' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Sort: Title' }))
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'Release date' }))
+    expect(await screen.findByRole('button', { name: 'Sort: Release date' })).toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('says a library that doesn’t exist for this profile is unavailable', async () => {

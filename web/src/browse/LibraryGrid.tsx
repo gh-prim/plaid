@@ -7,6 +7,7 @@ import type { components } from '../api/schema'
 import { Button } from '../ui'
 import { PosterCard } from './cards/PosterCard'
 import { FilterBar } from './FilterBar'
+import { PageLight } from './PageLight'
 import { activeFilters, clearFilters, gridSearch, parseGrid, type GridState } from './gridQuery'
 import { LetterIndex } from './LetterIndex'
 import { Unavailable } from './Unavailable'
@@ -14,12 +15,14 @@ import { useGridPages } from './useGridPages'
 
 type Library = components['schemas']['Library']
 type LibraryFacets = components['schemas']['LibraryFacets']
+type ItemSummary = components['schemas']['ItemSummary']
 
-/** Posters are 120–200 px wide (F008-R10); the column count follows the width. */
-const minCard = 120
-const maxCard = 200
-const gap = 16
-const caption = 44
+/** Posters are 150–220 px wide (F008-R10, V2); the column count follows the width. */
+const minCard = 150
+const maxCard = 220
+const gap = 24
+/** Between rows: no captions in V2, the poster is the title. */
+const rowGap = 36
 
 export function columnsFor(width: number): number {
   return Math.max(2, Math.floor((width + gap) / (minCard + gap)))
@@ -40,6 +43,16 @@ export function LibraryGrid() {
   const [facets, setFacets] = useState<LibraryFacets>()
   const [hasCollections, setHasCollections] = useState(false)
   const pages = useGridPages(libraryId, grid)
+  // The page is lit by the title in focus or under the pointer, else the
+  // first (V2, R51). It settles only when focus stays 300 ms, so moving
+  // fast across the grid doesn't strobe.
+  const [lit, setLit] = useState<ItemSummary>()
+  const settle = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const light = (it: ItemSummary) => {
+    clearTimeout(settle.current)
+    settle.current = setTimeout(() => setLit(it), 300)
+  }
+  useEffect(() => () => clearTimeout(settle.current), [])
 
   useEffect(() => {
     let cancelled = false
@@ -78,7 +91,7 @@ export function LibraryGrid() {
   }, [library])
   const cols = columnsFor(width)
   const cardWidth = Math.min(maxCard, (width - gap * (cols - 1)) / cols)
-  const rowHeight = Math.round(cardWidth * 1.5 + caption + gap)
+  const rowHeight = Math.round(cardWidth * 1.5 + rowGap)
 
   const total = pages.total ?? 0
   const rows = Math.ceil(total / cols)
@@ -132,19 +145,21 @@ export function LibraryGrid() {
         ? t('grid.count.shows', { count: pages.total })
         : t('grid.count.movies', { count: pages.total })
 
+  const lightArt = (lit ?? (total ? pages.item(0) : undefined))?.backdrop
   return (
     <div className="br-grid-page">
+      <PageLight art={lightArt} />
       <header ref={head} className="br-grid__head">
-        <div>
+        <div className="br-grid__titles">
           <h1 className="br-grid__title">{library?.name}</h1>
           {countText && <p className="br-grid__count">{countText}</p>}
           {hasCollections && (
-            <Link to={`/library/${libraryId}/collections`} className="br-row__all pl-focusable">
+            <Link to={`/library/${libraryId}/collections`} className="br-link pl-focusable">
               {t('grid.collections')}
             </Link>
           )}
         </div>
-        <FilterBar grid={grid} facets={facets} total={pages.total} onChange={change} />
+        <FilterBar grid={grid} facets={facets} shows={shows} onChange={change} />
       </header>
       {pages.error && (
         <div className="br-error" role="alert">
@@ -188,9 +203,15 @@ export function LibraryGrid() {
               if (index >= total) return null
               const it = pages.item(index)
               return (
-                <div key={c} role="gridcell" className="br-grid__cell">
+                <div
+                  key={c}
+                  role="gridcell"
+                  className="br-grid__cell"
+                  onPointerEnter={it ? () => light(it) : undefined}
+                  onFocus={it ? () => light(it) : undefined}
+                >
                   {it ? (
-                    <PosterCard item={it} sizes={`${Math.round(cardWidth)}px`} />
+                    <PosterCard item={it} caption={false} sizes={`${Math.round(cardWidth)}px`} />
                   ) : (
                     <span className="br-card br-card--poster br-card--skeleton" aria-hidden="true">
                       <span className="br-card__art" />

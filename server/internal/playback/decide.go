@@ -223,7 +223,8 @@ func Decide(m Media, req Request, p Profile, lim Limits) (Decision, error) {
 	}
 	reasons = append(reasons, videoReasons...)
 	reasons = append(reasons, audioReasons...)
-	burn := d.Subtitle != nil && (req.BurnSubtitles || (d.Subtitle.Image && !p.rendersSubtitle(d.Subtitle.Format(), true)))
+	burn := d.Subtitle != nil && (req.BurnSubtitles || (d.Subtitle.Image &&
+		!p.rendersSubtitle(d.Subtitle.Format(), true) && !p.drawsSeparately(d.Subtitle.Format())))
 	if burn {
 		reasons = append(reasons, ReasonSubtitleBurnIn)
 	}
@@ -253,7 +254,7 @@ func Decide(m Media, req Request, p Profile, lim Limits) (Decision, error) {
 	}
 	// HLS segments can't carry image subtitles: over HLS they're always
 	// burned in, even for a client that renders them in a file (R17).
-	if d.Subtitle != nil && d.Subtitle.Image && !burn {
+	if d.Subtitle != nil && d.Subtitle.Image && !burn && !p.drawsSeparately(d.Subtitle.Format()) {
 		burn = true
 		d.Reasons = append(d.Reasons, ReasonSubtitleBurnIn)
 	}
@@ -424,6 +425,11 @@ func (d *Decision) setAudioOut(copyOK bool, p Profile) {
 func subtitleDelivery(s *Subtitle, p Profile, direct bool) string {
 	if s == nil {
 		return ""
+	}
+	// A web player can't read image tracks from the file: it draws them
+	// from a stream of their own.
+	if s.Image && p.drawsSeparately(s.Format()) {
+		return DeliveryExternal
 	}
 	if direct && s.ExternalPath == "" && p.rendersSubtitle(s.Format(), s.Image) {
 		return DeliveryEmbedded

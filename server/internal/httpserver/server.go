@@ -22,6 +22,9 @@ type Options struct {
 	// Stream serves /api/v1/stream/ (F006), which authenticates by the
 	// token in its path. Nil leaves it a 404.
 	Stream http.Handler
+	// Preview serves GET /api/v1/items/{itemId}/preview (V2 hero), which
+	// needs Range. Nil leaves it a 404.
+	Preview http.Handler
 }
 
 // New returns the root handler: /api/v1/* is the generated API, any other
@@ -45,6 +48,9 @@ func New(h api.StrictServerInterface, web fs.FS, logger *slog.Logger, opts Optio
 
 	if opts.Stream != nil {
 		mux.Handle("/api/v1/stream/", opts.Stream)
+	}
+	if opts.Preview != nil {
+		mux.Handle("GET /api/v1/items/{itemId}/preview", opts.Preview)
 	}
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "not_found", "no API route for "+r.Method+" "+r.URL.Path)

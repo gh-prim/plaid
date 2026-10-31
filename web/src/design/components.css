@@ -283,7 +283,7 @@
 .pl-vol.is-muted .pl-vol__fill{background:rgba(244,236,220,.4)}
 .pl-vol__thumb{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--text-primary);box-shadow:none}
 .pl-vol.is-focus .pl-vol__thumb{box-shadow:var(--shadow-focus)}
-.pl-vol-hud{display:inline-flex;align-items:center;gap:var(--space-3);height:44px;padding:0 var(--space-5) 0 var(--space-4);border-radius:var(--radius-m);background:rgba(14,12,9,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--text-primary);box-shadow:var(--shadow-raised);font:600 14px/1 var(--font-text);font-variant-numeric:tabular-nums}
+.pl-vol-hud{display:inline-flex;align-items:center;gap:var(--space-3);height:44px;padding:0 var(--space-5) 0 var(--space-4);border-radius:var(--radius-m);background:rgba(14,12,9,.86);backdrop-filter:blur(12px);color:var(--text-primary);box-shadow:var(--shadow-raised);font:600 14px/1 var(--font-text);font-variant-numeric:tabular-nums}
 .pl-vol-hud .pl-vol__track{width:140px}
 .pl-vol-hud--tv{height:80px;padding:0 var(--space-8) 0 var(--space-6);font-size:26px;gap:var(--space-5)}
 .pl-vol-hud--tv .pl-vol__track{width:280px;height:8px}

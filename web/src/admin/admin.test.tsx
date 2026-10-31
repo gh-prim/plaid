@@ -143,13 +143,17 @@ describe('access', () => {
 })
 
 describe('home', () => {
-  it('says all is well on a quiet evening', async () => {
+  it('says all is well on a quiet evening, and Settings lists the sections', async () => {
     fakeApi(routes())
     await renderApp('/admin')
     expect(await screen.findByText('All good. Nothing is playing.')).toBeInTheDocument()
-    expect(screen.queryByText('Needs you')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Libraries' })).toBeInTheDocument()
-    expect(screen.getByText(/1,240 movies · 0 shows · last scan/)).toBeInTheDocument()
+    expect(screen.getByText('Nobody is watching right now')).toBeInTheDocument()
+    expect(screen.getByText('Nothing needs you.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('link', { name: 'Settings' }))
+    expect(await screen.findByRole('link', { name: /Libraries/ })).toHaveAttribute(
+      'href',
+      '/admin/libraries',
+    )
   })
 
   it('lists an unavailable NAS folder under "needs you"', async () => {
@@ -293,6 +297,82 @@ describe('libraries', () => {
     expect(await screen.findByText('Dune is matched and locked.')).toBeInTheDocument()
   })
 
+  it('opens on the item a "Fix match" came from, even outside the queue', async () => {
+    let office = 0
+    const calls = fakeApi(
+      routes({
+        'GET /libraries/lib1/review': {
+          status: 200,
+          body: {
+            items: [
+              {
+                item: { id: 'b1', kind: 'show', title: 'Band of Brothers' },
+                reason: 'needs_review',
+                candidates: [{ tmdbId: 4613, title: 'Band of Brothers', year: 2001 }],
+              },
+            ],
+          },
+        },
+        // The review reads it once; the item page it returns to, after.
+        'GET /items/s1': () =>
+          office++
+            ? { status: 404 }
+            : {
+                status: 200,
+                body: { id: 's1', kind: 'show', title: 'The Office (US)', libraryId: 'lib1' },
+              },
+        'GET /metadata/search': {
+          status: 200,
+          body: {
+            candidates: [{ tmdbId: 2316, title: 'The Office', year: 2005, confidence: 0.9 }],
+          },
+        },
+        'POST /items/s1/match': { status: 200, body: {} },
+      }),
+    )
+    await renderApp('/admin/libraries/lib1/review?item=s1')
+    expect(await screen.findByRole('radio', { name: /The Office.*2005/ })).toBeInTheDocument()
+    expect(screen.queryByText('Band of Brothers')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('radio', { name: /The Office.*2005/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use The Office (2005)' }))
+    await waitFor(() =>
+      expect(calls.find((c) => c.path === '/items/s1/match')?.body).toEqual({ tmdbId: 2316 }),
+    )
+    await waitFor(() => expect(office).toBe(2))
+  })
+
+  it('shows the match is on its way and sends it once', async () => {
+    let release = () => {}
+    const calls = fakeApi(
+      routes({
+        'GET /libraries/lib1/review': {
+          status: 200,
+          body: {
+            items: [
+              {
+                item: { id: 'it1', kind: 'show', title: 'The Office' },
+                reason: 'needs_review',
+                candidates: [{ tmdbId: 2316, title: 'The Office', year: 2005 }],
+              },
+            ],
+          },
+        },
+        'POST /items/it1/match': () =>
+          new Promise((r) => (release = () => r({ status: 200, body: {} }))),
+      }),
+    )
+    await renderApp('/admin/libraries/lib1/review')
+    await userEvent.click(await screen.findByRole('radio', { name: /The Office/ }))
+    const use = screen.getByRole('button', { name: /Use The Office/ })
+    await userEvent.click(use)
+    expect(use).toHaveAttribute('aria-busy', 'true')
+    expect(use).toBeDisabled()
+    await userEvent.click(use)
+    expect(calls.filter((c) => c.path === '/items/it1/match')).toHaveLength(1)
+    release()
+    expect(await screen.findByText('The Office is matched and locked.')).toBeInTheDocument()
+  })
+
   it('identifies an unrecognized file through a TMDB search', async () => {
     const calls = fakeApi(
       routes({
@@ -318,12 +398,19 @@ describe('libraries', () => {
     )
     await renderApp('/admin/libraries/lib1/unrecognized')
     await userEvent.click(await screen.findByRole('button', { name: 'Identify' }))
+    const sheet = screen.getByRole('dialog', { name: 'Match this file' })
+    expect(within(sheet).getByText('movie.final.FINAL.v2.mkv')).toBeInTheDocument()
     await userEvent.type(
-      screen.getByRole('searchbox', { name: 'Search TMDB' }),
-      'Metropolis 1927{Enter}',
+      within(sheet).getByRole('searchbox', { name: 'Search TMDB' }),
+      'Metropolis 1927',
     )
-    await userEvent.click(await screen.findByRole('radio', { name: /Metropolis/ }))
-    await userEvent.click(screen.getByRole('button', { name: 'This one' }))
+    await userEvent.click(
+      await within(sheet).findByRole(
+        'button',
+        { name: 'Use Metropolis (1927)' },
+        { timeout: 2000 },
+      ),
+    )
     expect(await screen.findByText('Identified')).toBeInTheDocument()
     const search = calls.find((c) => c.path === '/metadata/search')
     expect(search).toBeDefined()

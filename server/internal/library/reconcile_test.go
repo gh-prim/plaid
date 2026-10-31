@@ -608,6 +608,42 @@ func TestUnrecognizedFilesAreStored(t *testing.T) {
 	}
 }
 
+// An episode filed among movies is unrecognized there, not a movie; one
+// linked as a movie by an older scan is unlinked, and its movie goes.
+func TestEpisodeInMoviesIsUnrecognized(t *testing.T) {
+	e := newScanEnv(t, TypeMovies)
+	ep := e.write("Cape.Fear.S01E03.MULTi.1080p.WEBRip.mkv", "x")
+	e.write("Dune (2021)/Dune (2021).mkv", "y")
+	if rep := e.run(ScanOptions{}); rep.Unrecognized != 1 {
+		t.Errorf("report = %+v", rep)
+	}
+	if len(e.itemsOf(ep)) != 0 {
+		t.Error("episode linked to a movie")
+	}
+
+	// As an older scan left it: linked to a "Cape Fear" movie.
+	now := ts(time.Now())
+	id := newID()
+	fileID := e.fileCol(ep, "id").String
+	for _, q := range []string{
+		`INSERT INTO items (id, library_id, kind, title, created_at, updated_at) VALUES ('` + id + `', (SELECT library_id FROM media_files WHERE id = '` + fileID + `'), 'movie', 'Cape Fear', '` + now + `', '` + now + `')`,
+		`INSERT INTO item_files (item_id, file_id) VALUES ('` + id + `', '` + fileID + `')`,
+		`UPDATE media_files SET parse_status = 'ok' WHERE id = '` + fileID + `'`,
+	} {
+		if _, err := e.db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	e.run(ScanOptions{})
+	if s := e.fileCol(ep, "parse_status").String; s != ParseUnrecognized {
+		t.Errorf("parse_status = %q", s)
+	}
+	var n int
+	if err := e.db.QueryRow(`SELECT COUNT(*) FROM items WHERE kind = 'movie'`).Scan(&n); err != nil || n != 1 {
+		t.Errorf("movies = %d (%v), want Dune only", n, err)
+	}
+}
+
 func TestFFprobeMissingMarksSkipped(t *testing.T) {
 	e := newScanEnv(t, TypeMovies)
 	e.scan.Prober = nil

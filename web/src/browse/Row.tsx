@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import type { components } from '../api/schema'
 import { LandscapeCard } from './cards/LandscapeCard'
 import { PosterCard } from './cards/PosterCard'
+import { Icon } from '../ui'
 
 type ItemSummary = components['schemas']['ItemSummary']
 type Page = { items: ItemSummary[]; nextCursor?: string }
@@ -29,7 +30,6 @@ export function Row({
   onChange?: () => void
 }) {
   const { t } = useTranslation()
-  const id = useId()
   const [items, setItems] = useState(page.items)
   const [cursor, setCursor] = useState(page.nextCursor)
   const [loading, setLoading] = useState(false)
@@ -69,21 +69,36 @@ export function Row({
   }, [cursor, more, loading])
 
   return (
-    <section className="br-row" aria-labelledby={id}>
+    <section className="br-row" aria-label={title}>
       <div className="br-row__head">
-        <h2 id={id} className="br-row__title">
-          {title}
+        {/* One row title, nothing else (V2): the title itself opens the whole list. */}
+        <h2 className="br-row__title">
+          {seeAll ? (
+            <Link
+              to={seeAll}
+              className="br-row__all pl-focusable"
+              aria-label={`${title}, ${t('home.row.seeAll')}`}
+            >
+              {title}
+              <Icon name="chevronRight" size={18} />
+            </Link>
+          ) : (
+            title
+          )}
         </h2>
-        {seeAll && (
-          <Link to={seeAll} className="br-row__all pl-focusable">
-            {t('home.row.seeAll')}
-          </Link>
-        )}
       </div>
       <ul ref={scroller} className={`br-row__list${landscape ? ' br-row__list--landscape' : ''}`}>
         {items.map((it) => (
           <li key={it.id}>
-            {landscape ? <LandscapeCard item={it} onChange={onChange} /> : <PosterCard item={it} />}
+            {landscape ? (
+              <LandscapeCard
+                item={it}
+                onChange={onChange}
+                sizes="(max-width: 767px) 260px, 316px"
+              />
+            ) : (
+              <PosterCard item={it} caption={false} sizes="(max-width: 767px) 120px, 204px" />
+            )}
           </li>
         ))}
         {cursor && <li ref={end} className="br-row__end" aria-hidden="true" />}

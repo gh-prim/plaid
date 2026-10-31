@@ -100,6 +100,12 @@ type fileCache struct {
 	pending map[string]*sync.Mutex
 }
 
+// Has reports a file already built (it may be pruned right after).
+func (c *fileCache) Has(name string) bool {
+	_, err := os.Stat(filepath.Join(c.Dir, name))
+	return err == nil
+}
+
 // Get returns the path of the cached file name, building it with build
 // (which writes to the path it's given) when it's missing.
 func (c *fileCache) Get(ctx context.Context, name string, build func(ctx context.Context, dst string) error) (string, error) {
@@ -135,6 +141,20 @@ func (c *fileCache) Get(ctx context.Context, name string, build func(ctx context
 	}
 	c.prune(path)
 	return path, nil
+}
+
+// size sums the cached files.
+func (c *fileCache) size() int64 {
+	var total int64
+	_ = filepath.WalkDir(c.Dir, func(_ string, d fs.DirEntry, err error) error {
+		if err == nil && !d.IsDir() {
+			if info, err := d.Info(); err == nil {
+				total += info.Size()
+			}
+		}
+		return nil
+	})
+	return total
 }
 
 // prune deletes the least recently used files over the cap, never keep.

@@ -20,6 +20,8 @@ type Candidate struct {
 	Overview      string
 	PosterPath    string
 	Popularity    float64
+	// Countries are the show's origin countries (ISO 3166-1), when known.
+	Countries []string
 }
 
 // Genre is a provider genre, named in the requested language.

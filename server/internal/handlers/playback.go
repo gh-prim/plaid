@@ -493,6 +493,9 @@ func toCapabilityProfile(c api.CapabilityProfile) playback.Profile {
 		for _, f := range derefSlice(s.Image) {
 			p.ImageSubtitles = append(p.ImageSubtitles, string(f))
 		}
+		for _, f := range derefSlice(s.Separate) {
+			p.SeparateSubtitles = append(p.SeparateSubtitles, string(f))
+		}
 	}
 	if c.CanSwitchAudioTrack != nil {
 		p.CanSwitchAudioTrack = *c.CanSwitchAudioTrack

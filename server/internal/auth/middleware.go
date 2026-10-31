@@ -54,6 +54,7 @@ var publicRoutes = []string{
 	"GET /stream/{token}/subtitles/{index}.m3u8",
 	"GET /stream/{token}/subtitles/{index}.vtt",
 	"GET /stream/{token}/subtitles/{index}.ass",
+	"GET /stream/{token}/subtitles/{index}.sup",
 	"GET /stream/{token}/artwork/{kind}",
 }
 

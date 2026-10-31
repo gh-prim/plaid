@@ -1,17 +1,55 @@
 {
+  "activity": {
+    "analyze": "Analyzing files in {{library}}",
+    "empty": "Nothing running right now.",
+    "found_one": "{{count, number}} file found",
+    "found_other": "{{count, number}} files found",
+    "label_one": "Activity: {{count, number}} task running",
+    "label_other": "Activity: {{count, number}} tasks running",
+    "loading": "Loading activity",
+    "match": "Matching {{library}}",
+    "ofTotal": "{{done}} of {{total}}",
+    "queued": "Queued",
+    "refresh": "Refreshing details in {{library}}",
+    "scan": "Scanning {{library}}",
+    "title": "Activity",
+    "titlesLeft_one": "{{count, number}} title to go",
+    "titlesLeft_other": "{{count, number}} titles to go",
+    "watching": "{{name}} is watching {{title}}"
+  },
   "admin": {
     "back": "Back to the library",
-    "backTo": "‹ {{serverName}}",
-    "group": {
-      "manage": "Manage",
-      "settings": "Settings",
-      "status": "Status"
+    "backToWatching": "Back to watching",
+    "dash": {
+      "added": "Added this week",
+      "addedNone": "Nothing new this week.",
+      "busy": "Busy",
+      "conversions": "Conversions",
+      "cpu": "Processor",
+      "fine": "Fine",
+      "free": "{{size}} free",
+      "gpu": "Graphics card, {{accel}}",
+      "health": "Server health",
+      "hot": "Running hot",
+      "idle": "Idle",
+      "nobody": "Nobody is watching right now",
+      "normal": "Normal",
+      "notAnswering": "Not answering",
+      "ofMax": "{{n, number}} of {{max, number}}",
+      "software": "Software",
+      "stop": "Stop {{name}}’s stream",
+      "stopShort": "Stop",
+      "storage": "Storage",
+      "streams_one": "{{count, number}} stream",
+      "streams_other": "{{count, number}} streams",
+      "temperature": "Temperature",
+      "unknown": "Not available here",
+      "up": "up {{duration}}",
+      "upload": "Upload",
+      "used": "{{used}} used of {{total}}"
     },
     "home": {
-      "fromLibrary": "From your library",
-      "library": "{{movies, number}} movies · {{shows, number}} shows · last scan {{time}}",
       "nothingNeedsYou": "Nothing needs you.",
-      "openLibrary": "Open the library",
       "status": {
         "playing_one": "{{count, number}} person is watching. All streams keep up.",
         "playing_other": "{{count, number}} people are watching. All streams keep up.",
@@ -23,7 +61,6 @@
       }
     },
     "nav": {
-      "home": "Overview",
       "libraries": "Libraries",
       "metadata": "Metadata",
       "people": "People",
@@ -44,10 +81,19 @@
       "showAdvanced": "Show advanced"
     },
     "sections": "Admin sections",
+    "settings": {
+      "libraries_one": "{{count, number}} library",
+      "libraries_other": "{{count, number}} libraries",
+      "none": "None",
+      "unrecognized": "Not recognized"
+    },
     "summary": {
-      "hardwareOff": "Hardware turned off",
       "playing_one": "{{count, number}} stream",
       "playing_other": "{{count, number}} streams"
+    },
+    "tab": {
+      "dashboard": "Dashboard",
+      "settings": "Settings"
     }
   },
   "auth": {
@@ -70,6 +116,7 @@
     "goToShow": "Go to show",
     "menu": "More actions for {{title}}",
     "moreInfo": "More info",
+    "pending": "Finding details…",
     "progressLabel": "{{percent, number}} % watched",
     "separator": " · ",
     "timeLeft": "{{duration}} left",
@@ -133,6 +180,33 @@
     "too_long": "Too long.",
     "too_short": "Too short."
   },
+  "fixMatch": {
+    "allYears": "Search all years",
+    "anyYear": "Any",
+    "byLink": "Paste a TMDB link",
+    "clear": "Clear the search",
+    "clearYear": "Clear the year",
+    "count_one": "{{count, number}} result",
+    "count_other": "{{count, number}} results",
+    "current": "Current match",
+    "done": "Matched to {{title}} ({{year}})",
+    "doneNoYear": "Matched to {{title}}",
+    "keeps": "Results from TMDB. Watch history and your own artwork stay.",
+    "kind": {
+      "movie": "Movie",
+      "show": "Show"
+    },
+    "link": "TMDB {{id}}",
+    "none": "Nothing for “{{query}}”",
+    "noneHint": "Try without the year, or with the original title.",
+    "noneYear": "Nothing for “{{query}}” in {{year}}",
+    "placeholder": "A title, or a TMDB link",
+    "results": "Results",
+    "searching": "Searching…",
+    "undo": "Undo",
+    "use": "Use this",
+    "year": "Year"
+  },
   "folder": {
     "fs": {
       "local": "Local disk",
@@ -168,31 +242,16 @@
     "end_one": "That’s the only title.",
     "end_other": "That’s all {{count, number}} titles.",
     "filter": {
+      "allGenres": "All genres",
       "clear": "Clear all",
-      "decade": "{{decade}}s",
       "genre": "Genre",
-      "hdrOnly": "HDR only",
-      "remove": "Remove filter {{name}}",
-      "resolution": {
-        "label": "Resolution",
-        "sd": "720p and lower",
-        "uhd": "4K"
-      },
       "watch": {
         "all": "All",
         "in_progress": "In progress",
         "label": "Viewing",
-        "unwatched": "Not watched",
-        "watched": "Watched"
-      },
-      "years": "Years"
-    },
-    "filters": {
-      "apply_one": "Show {{count, number}} title",
-      "apply_other": "Show {{count, number}} titles",
-      "count_one": "Filters ({{count, number}})",
-      "count_other": "Filters ({{count, number}})",
-      "label": "Filters"
+        "newEpisodes": "New episodes",
+        "unwatched": "Not watched"
+      }
     },
     "letters": "Jump to letter",
     "order": {
@@ -201,6 +260,7 @@
     },
     "sort": {
       "added": "Recently added",
+      "by": "Sort by",
       "label": "Sort",
       "played": "Recently watched",
       "random": "Random",
@@ -225,6 +285,11 @@
       },
       "title": "Nothing to watch yet."
     },
+    "hero": {
+      "newIn": "New in {{library}}",
+      "resume": "Resume",
+      "with": "With {{names}}"
+    },
     "row": {
       "continueWatching": "Continue watching",
       "genre": "{{genre}}",
@@ -233,25 +298,51 @@
     }
   },
   "item": {
-    "cast": "Cast",
+    "about": {
+      "accessibility": "Accessibility",
+      "added": "Added",
+      "audio": "Audio",
+      "file": "File",
+      "firstAired": "First aired",
+      "information": "Information",
+      "languages": "Languages",
+      "rated": "Rated",
+      "released": "Released",
+      "runtime": "Runtime",
+      "sdh": "Subtitles for deaf and hard of hearing viewers: dialogue plus speaker names and important sounds.",
+      "seasons": "Seasons",
+      "status": "Status",
+      "studios": "Studios",
+      "subtitles": "Subtitles",
+      "title": "About"
+    },
+    "castAndCrew": "Cast and crew",
     "collection": {
-      "partOf": "Part of {{name}}",
       "thisMovie": "This movie"
     },
     "createdBy": "Created by {{names}}",
+    "crew": {
+      "creator": "Creator",
+      "director": "Director",
+      "writer": "Writer"
+    },
     "directedBy": "Directed by {{names}}",
     "edit": {
       "artwork": {
-        "auto": "PLAID picks the best one",
         "automatic": "Back to automatic",
         "backdrop": "Backdrop",
+        "byHand": "Chosen by hand. New artwork from TMDB won’t replace it.",
         "kind": "Kind of artwork",
         "label": "Change artwork",
         "logo": "Logo",
         "noLanguage": "No text",
-        "option": "{{language}} · {{width}} × {{height}}",
+        "none": "No artwork of this kind yet.",
+        "picked": "Picked automatically. Your choice applies right away, for every profile.",
         "poster": "Poster",
-        "title": "Change artwork · {{title}}"
+        "sheet": "Artwork",
+        "source": {
+          "local": "Next to the file"
+        }
       },
       "fixMatch": "Fix match",
       "label": "Edit",
@@ -261,6 +352,7 @@
     "episode": {
       "inProgress": "{{duration}} left"
     },
+    "episodeNumber": "Episode {{number, number}}",
     "episodes_one": "{{count, number}} episode",
     "episodes_other": "{{count, number}} episodes",
     "episodeTitle": "{{number, number}}. {{title}}",
@@ -272,11 +364,20 @@
     "originalTitle": "Original title: {{title}}",
     "play": "Play",
     "playEpisode": "Play S{{season, number}} E{{episode, number}}",
+    "preview": {
+      "autoplay": "Play previews automatically",
+      "pause": "Pause the preview",
+      "play": "Play the preview"
+    },
     "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
     "rating_other": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} votes",
     "resumeEpisode": "Resume S{{season, number}} E{{episode, number}}",
     "season": "Season {{number, number}}",
     "seasonPicker": {
+      "all_one": "All {{count, number}} seasons",
+      "all_other": "All {{count, number}} seasons",
+      "allWithSpecials_one": "All {{count, number}} seasons and Specials",
+      "allWithSpecials_other": "All {{count, number}} seasons and Specials",
       "jump": "Type a number to jump",
       "label": "Choose a season",
       "title_one": "{{count, number}} season and Specials",
@@ -290,9 +391,6 @@
       "ended": "Ended",
       "in_production": "In production",
       "returning": "Returning"
-    },
-    "tech": {
-      "audio": "Audio: {{languages}}"
     },
     "trailer": {
       "notice": "Plays from YouTube when you click.",
@@ -374,6 +472,16 @@
       "shows": "Shows"
     }
   },
+  "matchFile": {
+    "empty": {
+      "body": "Type what you think it is. Results come from TMDB.",
+      "title": "The name didn’t say enough"
+    },
+    "file": "The file",
+    "in": "In {{folder}}",
+    "note": "Once matched, the file joins the library with its artwork.",
+    "title": "Match this file"
+  },
   "metadata": {
     "attributions": "Sources",
     "key": {
@@ -406,12 +514,10 @@
       "system": "System"
     },
     "home": "Home",
-    "libraries": "Libraries",
     "main": "Main",
     "more": "More",
     "profileMenu": "Profile menu for {{name}}",
     "search": "Search",
-    "server": "Server",
     "serverCard": {
       "idle": "Nothing playing",
       "watching_one": "{{count, number}} watching",
@@ -674,6 +780,7 @@
       "imageNote": "Image subtitles: the video reloads",
       "label": "Subtitles",
       "off": "Off",
+      "preparing": "Preparing the subtitles…",
       "sdhName": "{{language}} SDH",
       "sdhNote": "SDH: for deaf and hard of hearing viewers"
     },
@@ -709,12 +816,6 @@
     },
     "position": "{{position}} of {{duration}}",
     "row": "{{user}} · {{profile}} on {{device}}",
-    "short": {
-      "asIs": "Plays as is",
-      "ok": "Keeps up",
-      "repackaged": "Repackaged",
-      "slow": "Can’t keep up"
-    },
     "slow": {
       "advice": {
         "software": "This server can’t convert this file in real time. Ask {{user}} to pick a lower quality, or to watch on a device that plays the file as it is."
@@ -762,12 +863,13 @@
   },
   "profiles": {
     "enterPin": "Enter the PIN for {{name}}",
+    "manage": "Manage",
     "pin": {
-      "badge": "PIN",
-      "cancel": "Choose another profile",
+      "cancel": "Back to profiles",
+      "hint": "Type the 4 digits on your keyboard.",
       "title": "Enter {{name}}’s PIN"
     },
-    "switch": "Switch profile",
+    "switchTo": "Switch to {{name}}",
     "title": "Who’s under the plaid?",
     "withPin": "{{name}}, PIN"
   },
@@ -796,6 +898,7 @@
     "empty": "Nothing to review. Every file found its movie.",
     "identified": "Identified",
     "identify": "Identify",
+    "loading": "Finding the candidates…",
     "match": "{{score, number(style: percent)}} match",
     "matched": "{{title}} is matched and locked.",
     "needs": {
@@ -871,7 +974,9 @@
   },
   "search": {
     "empty": "Nothing called “{{query}}” here.",
+    "emptyHint": "PLAID searched titles, original titles, people and episodes on {{serverName}}. Check the spelling, or ask an admin to add it.",
     "episodeOf": "{{show}} · S{{season, number}} E{{episode, number}}",
+    "genres": "Browse by genre",
     "group": {
       "episodes": "Episodes",
       "movies": "Movies",
@@ -879,7 +984,13 @@
       "shows": "Shows"
     },
     "label": "Search {{serverName}}",
-    "placeholder": "Movies, shows, people"
+    "placeholder": "Movies, shows, people",
+    "recent": "Recent searches",
+    "scope": {
+      "all": "All",
+      "label": "Show"
+    },
+    "top": "Top results"
   },
   "server": {
     "accel": {

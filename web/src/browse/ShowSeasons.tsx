@@ -7,6 +7,7 @@ import { formatDuration } from '../lib/format'
 import { Icon } from '../ui'
 import { Thread } from './cards/Thread'
 import { imageSrc, imageSrcSet, progress } from './media'
+import { Img } from './Img'
 
 type ItemSummary = components['schemas']['ItemSummary']
 type ItemDetail = components['schemas']['ItemDetail']
@@ -22,6 +23,7 @@ export function useUpNext(showId: string, state?: UserState): ItemSummary | unde
       .then(({ data }) => {
         if (!cancelled) setEp(data?.item)
       })
+      .catch(() => {})
     return () => {
       cancelled = true
     }
@@ -41,12 +43,14 @@ function aired(e: ItemSummary): Date | undefined {
   return d ? new Date(`${d}T12:00:00`) : undefined
 }
 
-/** More seasons than this turn the picker into a number grid (canvas rule). */
-const gridAbove = 12
+/** More seasons than this: the pills stop and "All seasons" opens the number grid (V2). */
+const pillsUpTo = 8
 
 /**
- * A show's seasons and episodes (F008-R21): a season picker (in `?season=`),
- * the season's facts and "Mark season as watched", then its episodes.
+ * A show's seasons and episodes (F008-R21, V2): seasons as pills (in
+ * `?season=`; past eight, the last pill opens the number grid), the
+ * season's facts and "Mark season as watched", then its episodes as 16:9
+ * cards that play.
  */
 export function ShowSeasons({
   show,
@@ -64,6 +68,8 @@ export function ShowSeasons({
   const [picking, setPicking] = useState(false)
   const [version, setVersion] = useState(0)
   const libraryId = show.libraryId ?? ''
+  // The season shown before this one, for the direction of travel.
+  const [shown, setShown] = useState<{ id?: string; at?: number; dir?: 'left' | 'right' }>({})
 
   useEffect(() => {
     let cancelled = false
@@ -72,6 +78,7 @@ export function ShowSeasons({
         params: { path: { libraryId }, query: { parentId: show.id, limit: 200 } },
       })
       .then(({ data }) => !cancelled && setSeasons([...(data?.items ?? [])].sort(bySeason)))
+      .catch(() => !cancelled && setSeasons([]))
     return () => {
       cancelled = true
     }
@@ -94,17 +101,43 @@ export function ShowSeasons({
       .then(
         ({ data }) => !cancelled && setEpisodes({ season: season.id, items: data?.items ?? [] }),
       )
+      .catch(() => !cancelled && setEpisodes({ season: season.id, items: [] }))
     return () => {
       cancelled = true
     }
   }, [libraryId, season, version])
 
-  if (!seasons || seasons.length === 0 || !season) return null
+  if (!seasons) {
+    // Seasons on their way: quiet pills and cards hold their place.
+    return (
+      <section className="br-seasons" aria-busy="true" aria-label={t('common.loading')}>
+        <div className="br-pills">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="br-skeleton br-pill-skeleton" />
+          ))}
+        </div>
+      </section>
+    )
+  }
+  if (seasons.length === 0 || !season) return null
   const seasonName = (s: ItemSummary) =>
     s.seasonNumber ? t('item.season', { number: s.seasonNumber }) : t('item.specials')
   const st = season.userState
   const watched = st?.watchedEpisodes ?? 0
   const total = st?.totalEpisodes ?? season.childCount
+  const many = seasons.length > pillsUpTo
+  // Past eight, the pills show the first ones, and the current one when it is further.
+  let pills = many ? seasons.slice(0, pillsUpTo - 1) : seasons
+  if (many && !pills.includes(season)) pills = [...pills.slice(0, -1), season]
+  const numbered = seasons.filter((s) => s.seasonNumber).length
+  const hasSpecials = seasons.length > numbered
+
+  const pick = (s: ItemSummary) => {
+    setPicking(false)
+    const q = new URLSearchParams(params)
+    q.set('season', String(s.seasonNumber ?? 0))
+    setParams(q, { replace: true })
+  }
 
   async function markSeason() {
     const params = { params: { path: { itemId: season!.id } } }
@@ -114,35 +147,60 @@ export function ShowSeasons({
     await onChange()
   }
 
+  const loaded = episodes?.season === season.id ? episodes.items : undefined
+  // Going to a later season slides the episodes in from the right (V2).
+  const at = seasons.indexOf(season)
+  if (shown.id !== season.id) {
+    setShown({
+      id: season.id,
+      at,
+      dir: shown.at === undefined ? undefined : at > shown.at ? 'right' : 'left',
+    })
+  }
+  const dir = shown.dir
   return (
-    <section className="br-seasons" aria-labelledby="season">
-      <div className="br-seasons__head">
-        <div className="br-filters__anchor">
+    <section className="br-seasons" aria-label={t('item.seasonPicker.label')}>
+      <div className="br-pills" role="tablist" aria-label={t('item.seasonPicker.label')}>
+        {pills.map((s) => (
           <button
-            id="season"
+            key={s.id}
             type="button"
-            className="br-seasons__pick pl-focusable"
-            aria-haspopup="dialog"
-            aria-expanded={picking}
-            onClick={() => setPicking((p) => !p)}
+            role="tab"
+            aria-selected={s.id === season.id}
+            className="br-pill pl-focusable"
+            onClick={() => pick(s)}
           >
-            {seasonName(season)} <span className="br-caret" aria-hidden="true" />
+            {seasonName(s)}
+            {s.userState?.watched && <Icon name="check" size={14} />}
           </button>
-          {picking && (
-            <SeasonPicker
-              seasons={seasons}
-              current={season}
-              name={seasonName}
-              onPick={(s) => {
-                setPicking(false)
-                const q = new URLSearchParams(params)
-                q.set('season', String(s.seasonNumber ?? 0))
-                setParams(q, { replace: true })
-              }}
-              onClose={() => setPicking(false)}
-            />
-          )}
-        </div>
+        ))}
+        {many && (
+          <span className="br-filters__anchor">
+            <button
+              type="button"
+              className="br-pill pl-focusable"
+              aria-haspopup="dialog"
+              aria-expanded={picking}
+              onClick={() => setPicking((p) => !p)}
+            >
+              {hasSpecials
+                ? t('item.seasonPicker.allWithSpecials', { count: numbered })
+                : t('item.seasonPicker.all', { count: numbered })}
+              <Icon name="chevronDown" size={16} />
+            </button>
+            {picking && (
+              <SeasonPicker
+                seasons={seasons}
+                current={season}
+                name={seasonName}
+                onPick={pick}
+                onClose={() => setPicking(false)}
+              />
+            )}
+          </span>
+        )}
+      </div>
+      <div className="br-seasons__head">
         <span className="br-seasons__info">
           {[
             season.year ? String(season.year) : '',
@@ -156,25 +214,36 @@ export function ShowSeasons({
           {st?.watched ? t('item.markSeasonUnwatched') : t('item.markSeasonWatched')}
         </button>
       </div>
-      <ol className="br-episodes">
-        {(episodes?.season === season.id ? episodes.items : []).map((e) => {
+      <ol key={season.id} className="br-row__list br-episodes" data-dir={dir} aria-busy={!loaded}>
+        {!loaded &&
+          [0, 1, 2, 3].map((i) => (
+            <li key={i} className="br-episode" aria-hidden="true">
+              <span className="br-episode__art br-skeleton" />
+              <span className="br-skeleton br-skeleton--title" />
+            </li>
+          ))}
+        {loaded?.map((e) => {
           const p = progress(e)
           const title = e.displayTitle || e.title || ''
-          const meta = [
-            aired(e)
-              ? new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(aired(e))
-              : '',
-            e.runtimeMinutes ? formatDuration(i18n.language, e.runtimeMinutes * 60000) : '',
-          ].filter(Boolean)
+          const when = aired(e)
+          const label =
+            e.episodeNumber !== undefined
+              ? t('item.episodeTitle', { number: e.episodeNumber, title })
+              : title
+          const state = e.userState?.watched
+            ? t('card.watched')
+            : p?.leftMs !== undefined
+              ? t('item.episode.inProgress', { duration: formatDuration(i18n.language, p.leftMs) })
+              : ''
           return (
             <li key={e.id}>
-              <Link to={`/watch/${e.id}`} className="br-episode pl-focusable">
+              <Link to={`/watch/${e.id}`} className="br-episode pl-focusable" aria-label={label}>
                 <span className="br-episode__art">
                   {e.still ? (
-                    <img
-                      src={imageSrc(e.still.imageId, 342)}
-                      srcSet={imageSrcSet(e.still.imageId, [185, 342, 500])}
-                      sizes="(max-width: 767px) 120px, 240px"
+                    <Img
+                      src={imageSrc(e.still.imageId, 500)}
+                      srcSet={imageSrcSet(e.still.imageId, [342, 500, 780])}
+                      sizes="(max-width: 767px) 260px, 316px"
                       alt=""
                       loading="lazy"
                     />
@@ -186,27 +255,32 @@ export function ShowSeasons({
                       })}
                     </span>
                   )}
+                  {e.runtimeMinutes && (
+                    <span className="br-episode__runtime">
+                      {formatDuration(i18n.language, e.runtimeMinutes * 60000)}
+                    </span>
+                  )}
                   {p && <Thread fraction={p.fraction} />}
                   <span className="br-episode__play" aria-hidden="true">
                     <Icon name="play" size={22} />
                   </span>
                 </span>
                 <span className="br-episode__text">
-                  <strong>
-                    {e.episodeNumber !== undefined
-                      ? t('item.episodeTitle', { number: e.episodeNumber, title })
-                      : title}
-                  </strong>
-                  {meta.length > 0 && <span>{meta.join(t('card.separator'))}</span>}
+                  <span className="br-episode__kicker">
+                    {[
+                      e.episodeNumber !== undefined
+                        ? t('item.episodeNumber', { number: e.episodeNumber })
+                        : '',
+                      state,
+                    ]
+                      .filter(Boolean)
+                      .join(t('card.separator'))}
+                  </span>
+                  <strong>{title}</strong>
                   {e.overview && <span className="br-episode__overview">{e.overview}</span>}
-                  {e.userState?.watched && (
-                    <span className="br-episode__state">{t('card.watched')}</span>
-                  )}
-                  {p?.leftMs !== undefined && (
-                    <span className="br-episode__state">
-                      {t('item.episode.inProgress', {
-                        duration: formatDuration(i18n.language, p.leftMs),
-                      })}
+                  {when && (
+                    <span className="br-episode__date">
+                      {new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(when)}
                     </span>
                   )}
                 </span>
@@ -234,7 +308,7 @@ function SeasonPicker({
 }) {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
-  const grid = seasons.length > gridAbove
+  const grid = seasons.length > pillsUpTo
   useEffect(() => {
     let typed = ''
     let timer: ReturnType<typeof setTimeout> | undefined

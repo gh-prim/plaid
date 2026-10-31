@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"slices"
 	"strconv"
 	"strings"
@@ -175,17 +176,32 @@ func (s *Service) processMovie(ctx context.Context, p parsed) error {
 	return nil
 }
 
-// artworkAfter runs an artwork sync and records portraits, logging errors.
+// artworkRetry is how soon an item whose artwork or portraits couldn't be
+// written (a busy database, a full disk) is refreshed again, instead of
+// waiting weeks for its scheduled refresh with no stills or portraits.
+const artworkRetry = 10 * time.Minute
+
+// retryArtwork brings the item's refresh forward to artworkRetry from now.
+func (s *Service) retryArtwork(ctx context.Context, id string) {
+	if err := s.store.refreshBy(ctx, id, s.o.Now().Add(artworkRetry)); err != nil {
+		s.log.Error("artwork retry not scheduled", "item", id, "err", err)
+	}
+}
+
+// artworkAfter runs an artwork sync and records portraits, logging errors
+// and trying again soon after one.
 func (s *Service) artworkAfter(ctx context.Context, p parsed, sync func() error, people ...[]provider.Person) {
 	if s.art == nil {
 		return
 	}
 	if err := sync(); err != nil {
 		s.log.Error("artwork not updated", "item", p.ID, "err", err)
+		s.retryArtwork(ctx, p.ID)
 	}
 	for _, list := range people {
 		if err := s.store.portraits(ctx, list); err != nil {
 			s.log.Error("portraits not recorded", "item", p.ID, "err", err)
+			s.retryArtwork(ctx, p.ID)
 		}
 	}
 }
@@ -239,17 +255,24 @@ func (s *Service) processShow(ctx context.Context, p parsed) error {
 	if err != nil {
 		return err
 	}
-	// Everything fetched: write the show and its seasons and episodes in
-	// one transaction, so a failure half-way changes nothing (R33).
+	// Everything fetched: write the seasons and their episodes one season
+	// per transaction (a long show in one would hold the write lock for
+	// seconds, and every other writer would time out), then the show. Its
+	// row goes last, so a failure half-way leaves it due: the next attempt
+	// writes everything again (R33).
+	r := build(p, cur, d, doc, res, certs.TV)
+	for _, group := range bySeasonGroup(children) {
+		if err := s.store.inTx(ctx, func(tx *sql.Tx) error {
+			return s.store.writeChildren(ctx, tx, r, group, seasons)
+		}); err != nil {
+			return err
+		}
+	}
 	if err := s.store.inTx(ctx, func(tx *sql.Tx) error {
-		r := build(p, cur, d, doc, res, certs.TV)
 		if err := s.store.writeRow(ctx, tx, p.ID, r, refreshAt(s.o.Now(), d)); err != nil {
 			return err
 		}
 		if err := s.store.writeCredits(ctx, tx, p.ID, d.Cast, d.Crew); err != nil {
-			return err
-		}
-		if err := s.store.writeChildren(ctx, tx, r, children, seasons); err != nil {
 			return err
 		}
 		return s.store.markDuplicates(ctx, tx, p, r.TMDBID)
@@ -258,6 +281,35 @@ func (s *Service) processShow(ctx context.Context, p parsed) error {
 	}
 	s.artworkAfter(ctx, p, func() error { return s.showArtwork(ctx, p, d, children, seasons) }, d.Cast, d.Crew)
 	return nil
+}
+
+// bySeasonGroup splits a show's children into a season and its episodes
+// each, in order; episodes whose season isn't listed go in a group of
+// their own.
+func bySeasonGroup(children []child) [][]child {
+	idx := map[string]int{}
+	var groups [][]child
+	for _, c := range children {
+		if c.Kind == "season" {
+			idx[c.ID] = len(groups)
+			groups = append(groups, []child{c})
+		}
+	}
+	var orphans []child
+	for _, c := range children {
+		if c.Kind == "season" {
+			continue
+		}
+		if i, ok := idx[c.ParentID]; ok {
+			groups[i] = append(groups[i], c)
+		} else {
+			orphans = append(orphans, c)
+		}
+	}
+	if len(orphans) > 0 {
+		groups = append(groups, orphans)
+	}
+	return groups
 }
 
 // child is a season or an episode of a show.
@@ -804,6 +856,12 @@ func (s *Store) inTx(ctx context.Context, f func(*sql.Tx) error) error {
 		return err
 	}
 	defer tx.Rollback()
+	start := time.Now()
+	defer func() {
+		if held := time.Since(start); held > time.Second {
+			slog.Warn("metadata held the database write lock", "held_ms", held.Milliseconds())
+		}
+	}()
 	if err := f(tx); err != nil {
 		return err
 	}

@@ -1,14 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { components } from '../api/schema'
-import { Button, Chip, Icon, SegmentedControl } from '../ui'
-import {
-  activeFilters,
-  clearFilters,
-  defaultDesc,
-  type GridState,
-  type ResolutionChoice,
-} from './gridQuery'
+import { Icon, cx } from '../ui'
+import { activeFilters, clearFilters, defaultDesc, type GridState } from './gridQuery'
 
 type LibraryFacets = components['schemas']['LibraryFacets']
 type ItemSort = components['schemas']['ItemSort']
@@ -17,55 +11,25 @@ type WatchFilter = components['schemas']['WatchFilter']
 const sorts: ItemSort[] = ['title', 'added', 'released', 'rating', 'played', 'random']
 
 /**
- * Sort, order, the filter panel and the active filters as removable chips
- * (F008-R12, R13). Every change goes to `onChange`, which writes the URL.
+ * The grid's controls (F008-R12, R13; V2): one segmented control (All,
+ * Unwatched or New episodes, In progress) and two quiet menus, Genre and
+ * Sort by. Picking applies at once, like a system menu: no panel, no
+ * confirm. Filters only a link can set (decade, resolution, several
+ * genres) get a "Clear all".
  */
 export function FilterBar({
   grid,
   facets,
-  total,
+  shows,
   onChange,
 }: {
   grid: GridState
   facets?: LibraryFacets
-  total?: number
+  /** A shows library: "Unwatched" reads "New episodes". */
+  shows?: boolean
   onChange: (g: GridState) => void
 }) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const panel = useRef<HTMLDivElement>(null)
-  const count = activeFilters(grid)
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    const onDown = (e: MouseEvent) => {
-      if (panel.current && !panel.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onDown)
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onDown)
-    }
-  }, [open])
-
-  const genreName = (id: number) => facets?.genres.find((g) => g.id === id)?.name ?? String(id)
-  const toggle = <T,>(list: T[], v: T) =>
-    list.includes(v) ? list.filter((x) => x !== v) : [...list, v]
-  const resolutionLabel = (r: ResolutionChoice) =>
-    r === 'sd'
-      ? t('grid.filter.resolution.sd')
-      : r === '2160p'
-        ? t('grid.filter.resolution.uhd')
-        : r
-  const decadeLabel = (from: number) => t('grid.filter.decade', { decade: from })
-  const watchLabels: Record<WatchFilter, string> = {
-    unwatched: t('grid.filter.watch.unwatched'),
-    in_progress: t('grid.filter.watch.in_progress'),
-    watched: t('grid.filter.watch.watched'),
-  }
-  const watchLabel = (w: WatchFilter) => watchLabels[w]
   const sortLabels: Record<ItemSort, string> = {
     title: t('grid.sort.title'),
     added: t('grid.sort.added'),
@@ -74,193 +38,210 @@ export function FilterBar({
     played: t('grid.sort.played'),
     random: t('grid.sort.random'),
   }
-
-  // The active filters, each removable (R13).
-  const chips: { key: string; label: string; remove: () => GridState }[] = []
-  if (grid.watch)
-    chips.push({
-      key: 'w',
-      label: watchLabel(grid.watch),
-      remove: () => ({ ...grid, watch: undefined }),
-    })
-  for (const g of grid.genres)
-    chips.push({
-      key: `g${g}`,
-      label: genreName(g),
-      remove: () => ({ ...grid, genres: grid.genres.filter((x) => x !== g) }),
-    })
-  if (grid.decade !== undefined)
-    chips.push({
-      key: 'd',
-      label: decadeLabel(grid.decade),
-      remove: () => ({ ...grid, decade: undefined }),
-    })
-  for (const r of grid.resolutions)
-    chips.push({
-      key: `r${r}`,
-      label: resolutionLabel(r),
-      remove: () => ({ ...grid, resolutions: grid.resolutions.filter((x) => x !== r) }),
-    })
-  if (grid.hdr !== undefined)
-    chips.push({
-      key: 'h',
-      label: t('grid.filter.hdrOnly'),
-      remove: () => ({ ...grid, hdr: undefined }),
-    })
+  const watch: (WatchFilter | 'all')[] = ['all', 'unwatched', 'in_progress']
+  const watchLabel = (w: WatchFilter | 'all') =>
+    w === 'all'
+      ? t('grid.filter.watch.all')
+      : w === 'unwatched'
+        ? shows
+          ? t('grid.filter.watch.newEpisodes')
+          : t('grid.filter.watch.unwatched')
+        : t('grid.filter.watch.in_progress')
+  const genre = grid.genres.length === 1 ? grid.genres[0] : undefined
+  const genreName =
+    genre !== undefined
+      ? (facets?.genres.find((g) => g.id === genre)?.name ?? String(genre))
+      : t('grid.filter.allGenres')
+  // Set by a link only (a decade chip, a resolution, several genres).
+  const hidden =
+    activeFilters(grid) - (grid.watch && grid.watch !== 'watched' ? 1 : 0) - (genre ? 1 : 0)
 
   return (
     <div className="br-filters">
-      <div className="br-filters__bar">
-        <label className="br-select">
-          <span className="br-visually-hidden">{t('grid.sort.label')}</span>
-          <select
-            value={grid.sort}
-            onChange={(e) => {
-              const sort = e.target.value as ItemSort
-              onChange({
-                ...grid,
-                sort,
-                desc: defaultDesc(sort),
-                seed: sort === 'random' ? Math.floor(Math.random() * 1e9) : undefined,
-              })
-            }}
-          >
-            {sorts.map((s) => (
-              <option key={s} value={s}>
-                {sortLabels[s]}
-              </option>
-            ))}
-          </select>
-        </label>
-        {grid.sort !== 'random' && (
-          <button
-            type="button"
-            className="br-iconbtn pl-focusable"
-            aria-label={grid.desc ? t('grid.order.desc') : t('grid.order.asc')}
-            title={grid.desc ? t('grid.order.desc') : t('grid.order.asc')}
-            onClick={() => onChange({ ...grid, desc: !grid.desc })}
-          >
-            <span aria-hidden="true">{grid.desc ? '↓' : '↑'}</span>
-          </button>
-        )}
-        <div className="br-filters__anchor" ref={panel}>
-          <Button
-            variant="secondary"
-            size="sm"
-            aria-expanded={open}
-            aria-haspopup="dialog"
-            onClick={() => setOpen((o) => !o)}
-          >
-            {count > 0 ? t('grid.filters.count', { count }) : t('grid.filters.label')}
-          </Button>
-          {open && (
-            <div className="pl pl-menu br-panel" role="dialog" aria-label={t('grid.filters.label')}>
-              <fieldset className="br-panel__group">
-                <legend>{t('grid.filter.watch.label')}</legend>
-                <SegmentedControl<WatchFilter | 'all'>
-                  label={t('grid.filter.watch.label')}
-                  value={grid.watch ?? 'all'}
-                  onChange={(v) => onChange({ ...grid, watch: v === 'all' ? undefined : v })}
-                  options={[
-                    { value: 'all', label: t('grid.filter.watch.all') },
-                    ...(['unwatched', 'in_progress', 'watched'] as const).map((w) => ({
-                      value: w,
-                      label: watchLabel(w),
-                    })),
-                  ]}
-                />
-              </fieldset>
-              {facets && facets.genres.length > 0 && (
-                <fieldset className="br-panel__group">
-                  <legend>{t('grid.filter.genre')}</legend>
-                  <div className="br-panel__chips">
-                    {facets.genres.map((g) => (
-                      <Chip
-                        key={g.id}
-                        selected={grid.genres.includes(g.id)}
-                        onClick={() => onChange({ ...grid, genres: toggle(grid.genres, g.id) })}
-                      >
-                        {g.name}
-                      </Chip>
-                    ))}
-                  </div>
-                </fieldset>
-              )}
-              {facets && facets.decades.length > 0 && (
-                <fieldset className="br-panel__group">
-                  <legend>{t('grid.filter.years')}</legend>
-                  <div className="br-panel__chips">
-                    {facets.decades.map((d) => (
-                      <Chip
-                        key={d.from}
-                        selected={grid.decade === d.from}
-                        onClick={() =>
-                          onChange({ ...grid, decade: grid.decade === d.from ? undefined : d.from })
-                        }
-                      >
-                        {decadeLabel(d.from)}
-                      </Chip>
-                    ))}
-                  </div>
-                </fieldset>
-              )}
-              <fieldset className="br-panel__group">
-                <legend>{t('grid.filter.resolution.label')}</legend>
-                <div className="br-panel__chips">
-                  {(['2160p', '1080p', 'sd'] as const).map((r) => (
-                    <Chip
-                      key={r}
-                      selected={grid.resolutions.includes(r)}
-                      onClick={() =>
-                        onChange({ ...grid, resolutions: toggle(grid.resolutions, r) })
-                      }
-                    >
-                      {resolutionLabel(r)}
-                    </Chip>
-                  ))}
-                  <Chip
-                    selected={grid.hdr === true}
-                    onClick={() => onChange({ ...grid, hdr: grid.hdr ? undefined : true })}
-                  >
-                    {t('grid.filter.hdrOnly')}
-                  </Chip>
-                </div>
-              </fieldset>
-              <Button size="sm" onClick={() => setOpen(false)}>
-                {total === undefined
-                  ? t('common.close')
-                  : t('grid.filters.apply', { count: total })}
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-      {chips.length > 0 && (
-        <ul className="br-filters__chips">
-          {chips.map((c) => (
-            <li key={c.key}>
-              <button
-                type="button"
-                className="pl-chip is-selected pl-focusable"
-                aria-label={t('grid.filter.remove', { name: c.label })}
-                onClick={() => onChange(c.remove())}
-              >
-                {c.label}
-                <Icon name="x" size={14} />
-              </button>
-            </li>
-          ))}
-          <li>
+      <div
+        className="br-segmented br-glass"
+        role="radiogroup"
+        aria-label={t('grid.filter.watch.label')}
+      >
+        {watch.map((w) => {
+          const on = (grid.watch ?? 'all') === w
+          return (
             <button
+              key={w}
               type="button"
-              className="br-link pl-focusable"
-              onClick={() => onChange(clearFilters(grid))}
+              role="radio"
+              aria-checked={on}
+              className={cx('br-segmented__item pl-focusable', on && 'is-on')}
+              onClick={() => onChange({ ...grid, watch: w === 'all' ? undefined : w })}
             >
-              {t('grid.filter.clear')}
+              {watchLabel(w)}
             </button>
-          </li>
-        </ul>
+          )
+        })}
+      </div>
+      <span className="br-filters__fill" />
+      {hidden > 0 && (
+        <button
+          type="button"
+          className="br-link pl-focusable"
+          onClick={() => onChange(clearFilters(grid))}
+        >
+          {t('grid.filter.clear')}
+        </button>
       )}
+      {facets && facets.genres.length > 0 && (
+        <MenuButton label={t('grid.filter.genre')} value={genreName} active={genre !== undefined}>
+          {(close) => (
+            <>
+              <MenuItem
+                checked={grid.genres.length === 0}
+                onPick={() => {
+                  close()
+                  onChange({ ...grid, genres: [] })
+                }}
+              >
+                {t('grid.filter.allGenres')}
+              </MenuItem>
+              <div className="br-gmenu__sep" aria-hidden="true" />
+              {facets.genres.map((g) => (
+                <MenuItem
+                  key={g.id}
+                  checked={genre === g.id}
+                  onPick={() => {
+                    close()
+                    onChange({ ...grid, genres: [g.id] })
+                  }}
+                >
+                  {g.name}
+                </MenuItem>
+              ))}
+            </>
+          )}
+        </MenuButton>
+      )}
+      <MenuButton
+        label={t('grid.sort.label')}
+        prefix={t('grid.sort.by')}
+        value={sortLabels[grid.sort]}
+      >
+        {(close) => (
+          <>
+            {sorts.map((s) => (
+              <MenuItem
+                key={s}
+                checked={grid.sort === s}
+                onPick={() => {
+                  close()
+                  if (s === grid.sort) return
+                  onChange({
+                    ...grid,
+                    sort: s,
+                    desc: defaultDesc(s),
+                    seed: s === 'random' ? Math.floor(Math.random() * 1e9) : undefined,
+                  })
+                }}
+              >
+                {sortLabels[s]}
+              </MenuItem>
+            ))}
+            {grid.sort !== 'random' && (
+              <>
+                <div className="br-gmenu__sep" aria-hidden="true" />
+                {[false, true].map((desc) => (
+                  <MenuItem
+                    key={String(desc)}
+                    checked={grid.desc === desc}
+                    onPick={() => {
+                      close()
+                      onChange({ ...grid, desc })
+                    }}
+                  >
+                    {desc ? t('grid.order.desc') : t('grid.order.asc')}
+                  </MenuItem>
+                ))}
+              </>
+            )}
+          </>
+        )}
+      </MenuButton>
     </div>
+  )
+}
+
+/** A quiet button that opens a glass menu, closed by a pick, Esc or a click outside. */
+function MenuButton({
+  label,
+  prefix,
+  value,
+  active,
+  children,
+}: {
+  label: string
+  prefix?: string
+  value: string
+  active?: boolean
+  children: (close: () => void) => ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onDown)
+    ref.current?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus()
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('mousedown', onDown)
+    }
+  }, [open])
+  return (
+    <span ref={ref} className="br-filters__anchor">
+      <button
+        type="button"
+        className={cx('br-quiet pl-focusable', (open || active) && 'is-on')}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`${label}: ${value}`}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {prefix && <span className="br-quiet__prefix">{prefix}</span>}
+        {value}
+        <Icon name="chevronDown" size={14} />
+      </button>
+      {open && (
+        <div className="br-gmenu" role="menu" aria-label={label}>
+          {children(() => setOpen(false))}
+        </div>
+      )}
+    </span>
+  )
+}
+
+function MenuItem({
+  checked,
+  onPick,
+  children,
+}: {
+  checked: boolean
+  onPick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitemradio"
+      aria-checked={checked}
+      className="br-gmenu__item pl-focusable"
+      onClick={onPick}
+    >
+      <span className="br-gmenu__check" aria-hidden="true">
+        {checked && <Icon name="check" size={14} />}
+      </span>
+      {children}
+    </button>
   )
 }

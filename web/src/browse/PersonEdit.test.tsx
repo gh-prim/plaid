@@ -82,7 +82,8 @@ describe('edit menu', () => {
     expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
   })
 
-  it('lets an admin change the poster, go back to automatic, fix the match and refresh', async () => {
+  it('lets an admin change the poster, go back to automatic, and refresh', async () => {
+    let locked = false
     const calls = fakeApi({
       ...routes('admin'),
       'GET /items/m1/artwork': (req: Request) => ({
@@ -108,30 +109,33 @@ describe('edit menu', () => {
                     language: 'fr',
                     width: 1000,
                     height: 1500,
-                    selected: false,
-                    locked: false,
+                    selected: locked,
+                    locked,
                   },
                 ]
               : [],
         },
       }),
-      'PUT /items/m1/artwork/poster': { status: 204 },
-      'DELETE /items/m1/artwork/poster': { status: 204 },
+      'PUT /items/m1/artwork/poster': () => {
+        locked = true
+        return { status: 204 }
+      },
+      'DELETE /items/m1/artwork/poster': () => {
+        locked = false
+        return { status: 204 }
+      },
       'POST /items/m1/refresh': { status: 202 },
     })
     await renderApp('/item/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Edit' }))
-    expect(screen.getByRole('menuitem', { name: 'Fix match' })).toHaveAttribute(
-      'href',
-      '/admin/libraries/lm/review',
-    )
     await userEvent.click(screen.getByRole('menuitem', { name: 'Change artwork' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Change artwork · Dune: Part Two' })
+    const dialog = await screen.findByRole('dialog', { name: 'Artwork' })
+    // Applied at once, no Save.
     await userEvent.click(
-      await within(dialog).findByRole('button', { name: 'French · 1000 × 1500' }),
+      await within(dialog).findByRole('button', { name: 'TMDB, French, 1000 × 1500' }),
     )
     expect(calls.find((c) => c.method === 'PUT')?.body).toEqual({ candidateId: 'a2' })
-    await userEvent.click(within(dialog).getByRole('button', { name: /Back to automatic/ }))
+    await userEvent.click(await within(dialog).findByRole('button', { name: /Back to automatic/ }))
     expect(calls.some((c) => c.method === 'DELETE' && c.path === '/items/m1/artwork/poster')).toBe(
       true,
     )
@@ -140,5 +144,35 @@ describe('edit menu', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: 'Refresh metadata' }))
     expect(await screen.findByText('Refreshing. It can take a minute.')).toBeInTheDocument()
     expect(calls.find((c) => c.path === '/items/m1/refresh')?.body).toEqual({ images: false })
+  })
+
+  it('fixes the match from a sheet over the page, with Undo', async () => {
+    const calls = fakeApi({
+      ...routes('admin'),
+      'GET /metadata/search': {
+        status: 200,
+        body: {
+          candidates: [
+            { tmdbId: 693134, title: 'Dune: Part Two', year: 2024 },
+            { tmdbId: 841, title: 'Dune', year: 1984 },
+          ],
+        },
+      },
+      'POST /items/m1/match': { status: 200, body: {} },
+    })
+    await renderApp('/item/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Fix match' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Fix match' })
+    // Prefilled with the current title; results while typing.
+    expect(within(sheet).getByRole('searchbox', { name: 'Search TMDB' })).toHaveValue(
+      'Dune: Part Two',
+    )
+    await userEvent.click(
+      await within(sheet).findByRole('button', { name: 'Use Dune (1984)' }, { timeout: 2000 }),
+    )
+    expect(calls.find((c) => c.path === '/items/m1/match')?.body).toEqual({ tmdbId: 841 })
+    expect(await screen.findByRole('status')).toHaveTextContent('Matched to Dune (1984)')
+    expect(screen.queryByRole('dialog', { name: 'Fix match' })).not.toBeInTheDocument()
   })
 })

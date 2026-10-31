@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router'
-import { AdminHome, AdminLayout } from './AdminLayout'
+import { AdminLayout } from './AdminLayout'
+import { AdminSettings } from './AdminSettings'
+import { Dashboard } from './Dashboard'
 import { Libraries, LibraryPage } from './Libraries'
 import { People, Person } from './People'
 import { Playing } from './Playing'
@@ -14,7 +16,8 @@ export default function AdminApp() {
   return (
     <Routes>
       <Route element={<AdminLayout />}>
-        <Route index element={<AdminHome />} />
+        <Route index element={<Dashboard />} />
+        <Route path="settings" element={<AdminSettings />} />
         <Route path="playing" element={<Playing />} />
         <Route path="libraries" element={<Libraries />} />
         <Route path="libraries/:id" element={<LibraryPage />} />

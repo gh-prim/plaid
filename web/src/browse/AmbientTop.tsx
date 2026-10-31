@@ -1,5 +1,6 @@
 import type { components } from '../api/schema'
 import { imageSrc } from './media'
+import { Img } from './Img'
 
 type Artwork = components['schemas']['Artwork']
 
@@ -12,7 +13,7 @@ export function AmbientTop({ art }: { art?: Artwork }) {
   if (!art) return null
   return (
     <div className="br-ambient" aria-hidden="true">
-      <img src={imageSrc(art.imageId, 1280)} alt="" decoding="async" />
+      <Img src={imageSrc(art.imageId, 1280)} alt="" decoding="async" />
       <div className="br-ambient__fade" />
     </div>
   )

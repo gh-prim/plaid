@@ -488,7 +488,7 @@ func (h *Handlers) GetMetadataStatus(ctx context.Context, _ api.GetMetadataStatu
 			return nil, err
 		}
 		out.Libraries = append(out.Libraries, api.LibraryMetadataCounts{LibraryId: l.ID, Pending: c.Pending, Matched: c.Matched,
-			NeedsReview: c.NeedsReview, Unmatched: c.Unmatched})
+			NeedsReview: c.NeedsReview, Unmatched: c.Unmatched, Refreshing: &c.Refreshing})
 	}
 	return api.GetMetadataStatus200JSONResponse(out), nil
 }

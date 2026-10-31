@@ -359,11 +359,16 @@ func (s *Service) storeImage(ctx context.Context, id string) (storedImage, error
 			}
 		}
 	}
+	im.Original, im.Colors = o, colors
 	if _, err := s.store.db.ExecContext(ctx, `UPDATE artwork SET sha256 = ?, ext = ?, width = ?, height = ?, colors = ?, fetched_at = ?
 		WHERE id = ?`, o.SHA256, o.Ext, o.Width, o.Height, nullString(colors), ts(s.o.Now()), id); err != nil {
-		return im, err
+		// The image is on disk: serve it all the same. Not recording it
+		// (a busy database) only means the next request records it.
+		if ctx.Err() != nil {
+			return im, err
+		}
+		s.log.Warn("image served, not recorded", "artwork", id, "err", err)
 	}
-	im.Original, im.Colors = o, colors
 	return im, nil
 }
 
@@ -442,6 +447,7 @@ func (s *Service) showArtwork(ctx context.Context, p parsed, d *provider.Details
 	s.fetchSelected(ctx, o, eager)
 
 	seasonOf := map[string]int{}
+	var failed error
 	for _, c := range children {
 		if c.Kind != "season" {
 			continue
@@ -458,7 +464,9 @@ func (s *Service) showArtwork(ctx context.Context, p parsed, d *provider.Details
 		cands = append(cands, rankRemote("poster", lang, fanartCandidates(fan, fanart.Poster, c.Season))...)
 		so := owner{"item", c.ID}
 		if err := s.store.syncArtwork(ctx, so, "poster", cands); err != nil {
-			return err
+			// Like the stills below: the other seasons still get theirs.
+			failed = errors.Join(failed, err)
+			continue
 		}
 		s.fetchSelected(ctx, so, map[string]bool{"poster": true})
 	}
@@ -479,11 +487,17 @@ func (s *Service) showArtwork(ctx context.Context, p parsed, d *provider.Details
 				}
 			}
 		}
+		// One episode the database couldn't take (busy) doesn't cost the
+		// others their still: carry on, and report it so the show is tried
+		// again soon (retryArtwork).
 		if err := s.store.syncArtwork(ctx, owner{"item", c.ID}, "still", cands); err != nil {
-			return err
+			failed = errors.Join(failed, err)
+			if ctx.Err() != nil {
+				return failed
+			}
 		}
 	}
-	return nil
+	return failed
 }
 
 // childDirs returns the folders of a season's episodes.

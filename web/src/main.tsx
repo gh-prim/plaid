@@ -8,6 +8,7 @@ import './design/fonts.css'
 import './design/tokens.css'
 import './design/components.css'
 import './design/base.css'
+import './design/motion.css'
 import './styles.css'
 
 applyTheme(storedTheme())

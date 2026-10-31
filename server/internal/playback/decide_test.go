@@ -75,6 +75,13 @@ var chrome = Profile{
 	TextSubtitles: []string{"vtt"},
 }
 
+// pgsChrome is chrome drawing PGS itself from a stream of its own (V2).
+var pgsChrome = func() Profile {
+	p := chrome
+	p.SeparateSubtitles = []string{"pgs"}
+	return p
+}()
+
 // appleTV plays HEVC 10-bit with HDR10 but not Dolby Vision, and switches
 // audio tracks itself.
 var appleTV = Profile{
@@ -195,6 +202,16 @@ func TestDecide(t *testing.T) {
 			method: Transcode, reasons: []string{ReasonContainer, ReasonSubtitleBurnIn},
 			check: func(t *testing.T, d Decision) {
 				if d.SubtitleDelivery != DeliveryBurnIn {
+					t.Errorf("delivery = %s", d.SubtitleDelivery)
+				}
+			},
+		},
+		{
+			name:  "a web player that draws PGS gets it on its own stream: no burn-in, no transcode",
+			media: media(t, "pgs_subtitles", "/media/Film.mkv"), profile: pgsChrome, req: Request{SubtitleIndex: intp(2)},
+			method: DirectStream, reasons: []string{ReasonContainer},
+			check: func(t *testing.T, d Decision) {
+				if d.SubtitleDelivery != DeliveryExternal {
 					t.Errorf("delivery = %s", d.SubtitleDelivery)
 				}
 			},

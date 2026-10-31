@@ -1111,16 +1111,31 @@ func (e SortOrder) Valid() bool {
 
 // Defines values for SubtitleCapabilityImage.
 const (
-	Pgs    SubtitleCapabilityImage = "pgs"
-	Vobsub SubtitleCapabilityImage = "vobsub"
+	SubtitleCapabilityImagePgs    SubtitleCapabilityImage = "pgs"
+	SubtitleCapabilityImageVobsub SubtitleCapabilityImage = "vobsub"
 )
 
 // Valid indicates whether the value is a known member of the SubtitleCapabilityImage enum.
 func (e SubtitleCapabilityImage) Valid() bool {
 	switch e {
-	case Pgs:
+	case SubtitleCapabilityImagePgs:
 		return true
-	case Vobsub:
+	case SubtitleCapabilityImageVobsub:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SubtitleCapabilitySeparate.
+const (
+	SubtitleCapabilitySeparatePgs SubtitleCapabilitySeparate = "pgs"
+)
+
+// Valid indicates whether the value is a known member of the SubtitleCapabilitySeparate enum.
+func (e SubtitleCapabilitySeparate) Valid() bool {
+	switch e {
+	case SubtitleCapabilitySeparatePgs:
 		return true
 	default:
 		return false
@@ -1626,6 +1641,20 @@ type DolbyVision struct {
 	Profile int `json:"profile"`
 }
 
+// DriveStats defines model for DriveStats.
+type DriveStats struct {
+	// Available False when the folder can't be reached (a NAS not answering).
+	Available bool   `json:"available"`
+	FreeBytes *int64 `json:"freeBytes,omitempty"`
+
+	// Libraries Names of the libraries with folders on it.
+	Libraries []string `json:"libraries"`
+
+	// Path The first library folder on this drive.
+	Path       string `json:"path"`
+	TotalBytes *int64 `json:"totalBytes,omitempty"`
+}
+
 // EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium). On 4 cores or fewer (counting a container's CPU quota), fast uses superfast to keep up with real time.
 type EncoderPreset string
 
@@ -2062,7 +2091,10 @@ type LibraryMetadataCounts struct {
 	Matched     int    `json:"matched"`
 	NeedsReview int    `json:"needsReview"`
 	Pending     int    `json:"pending"`
-	Unmatched   int    `json:"unmatched"`
+
+	// Refreshing Titles already looked up whose scheduled refresh is due, being fetched again (artwork, credits).
+	Refreshing *int `json:"refreshing,omitempty"`
+	Unmatched  int  `json:"unmatched"`
 }
 
 // LibraryType defines model for LibraryType.
@@ -2430,7 +2462,7 @@ type PlaybackStop struct {
 type PlaybackSubtitle struct {
 	Codec string `json:"codec"`
 
-	// Delivery How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
+	// Delivery How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url`, as WebVTT for a text track or as is (.sup) for a PGS track the client draws (`separate` capability); burn_in = drawn into the video.
 	Delivery PlaybackSubtitleDelivery `json:"delivery"`
 	Forced   bool                     `json:"forced"`
 	Index    int                      `json:"index"`
@@ -2440,7 +2472,7 @@ type PlaybackSubtitle struct {
 	Url      *string                  `json:"url,omitempty"`
 }
 
-// PlaybackSubtitleDelivery How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
+// PlaybackSubtitleDelivery How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url`, as WebVTT for a text track or as is (.sup) for a PGS track the client draws (`separate` capability); burn_in = drawn into the video.
 type PlaybackSubtitleDelivery string
 
 // PlaybackUpdate defines model for PlaybackUpdate.
@@ -2485,6 +2517,9 @@ type ProblemList struct {
 // Profile defines model for Profile.
 type Profile struct {
 	AllowUnrated bool `json:"allowUnrated"`
+
+	// Ambient The backdrop of what the profile watched last, which lights the profile picker (V2). Never for a profile with a PIN, so it doesn't show what it watches.
+	Ambient *Artwork `json:"ambient,omitempty"`
 
 	// AvatarColor Index of the `party-*` design token.
 	AvatarColor int    `json:"avatarColor"`
@@ -2665,6 +2700,31 @@ type ServerInfo struct {
 	Version       string `json:"version"`
 }
 
+// ServerStats defines model for ServerStats.
+type ServerStats struct {
+	// CpuPercent Processor load since the previous reading, 0–100.
+	CpuPercent *float32 `json:"cpuPercent,omitempty"`
+
+	// Drives The drives holding library folders, one per device.
+	Drives        []DriveStats `json:"drives"`
+	MaxTranscodes int          `json:"maxTranscodes"`
+
+	// Model The machine (a Raspberry Pi's board, a PC's product), when known.
+	Model *string `json:"model,omitempty"`
+
+	// TemperatureC The hottest thermal zone.
+	TemperatureC *float32 `json:"temperatureC,omitempty"`
+
+	// Transcodes Conversions running now.
+	Transcodes int `json:"transcodes"`
+
+	// UploadBps What the streams are sent at right now, in bits per second (not measured).
+	UploadBps int64 `json:"uploadBps"`
+
+	// UptimeSeconds How long PLAID has been running.
+	UptimeSeconds int64 `json:"uptimeSeconds"`
+}
+
 // SessionInfo defines model for SessionInfo.
 type SessionInfo struct {
 	DeviceName string     `json:"deviceName"`
@@ -2724,8 +2784,11 @@ type StartPairingRequest struct {
 
 // SubtitleCapability defines model for SubtitleCapability.
 type SubtitleCapability struct {
-	// Image Image formats the client renders itself.
+	// Image Image formats the client renders itself, from the file it plays.
 	Image *[]SubtitleCapabilityImage `json:"image,omitempty"`
+
+	// Separate Image formats the client draws itself from a stream of their own (a web player's canvas): fetched from the subtitle's `url` as is (.sup), never burned in.
+	Separate *[]SubtitleCapabilitySeparate `json:"separate,omitempty"`
 
 	// Text Text formats the client renders itself.
 	Text *[]SubtitleCapabilityText `json:"text,omitempty"`
@@ -2733,6 +2796,9 @@ type SubtitleCapability struct {
 
 // SubtitleCapabilityImage defines model for SubtitleCapability.Image.
 type SubtitleCapabilityImage string
+
+// SubtitleCapabilitySeparate defines model for SubtitleCapability.Separate.
+type SubtitleCapabilitySeparate string
 
 // SubtitleCapabilityText defines model for SubtitleCapability.Text.
 type SubtitleCapabilityText string
@@ -2923,6 +2989,9 @@ type SessionId = string
 
 // StreamToken defines model for StreamToken.
 type StreamToken = string
+
+// SubtitleFrom defines model for SubtitleFrom.
+type SubtitleFrom = int64
 
 // SubtitleIndex defines model for SubtitleIndex.
 type SubtitleIndex = int
@@ -3322,6 +3391,9 @@ type ServerInterface interface {
 	// TestServerHardware Run the hardware acceleration test again (admin, F007 R28)
 	// (POST /server/capabilities/hardware-test)
 	TestServerHardware(w http.ResponseWriter, r *http.Request)
+	// GetServerStats What the machine is doing, for the admin dashboard (V2)
+	// (GET /server/stats)
+	GetServerStats(w http.ResponseWriter, r *http.Request)
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(w http.ResponseWriter, r *http.Request)
@@ -5267,6 +5339,20 @@ func (siw *ServerInterfaceWrapper) TestServerHardware(w http.ResponseWriter, r *
 	handler.ServeHTTP(w, r)
 }
 
+// GetServerStats operation middleware
+func (siw *ServerInterfaceWrapper) GetServerStats(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetServerStats(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // SelectProfile operation middleware
 func (siw *ServerInterfaceWrapper) SelectProfile(w http.ResponseWriter, r *http.Request) {
 
@@ -5698,6 +5784,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/settings/playback", wrapper.GetPlaybackSettings)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/playback", wrapper.UpdatePlaybackSettings)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/stats", wrapper.GetServerStats)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/server/capabilities/hardware-test", wrapper.TestServerHardware)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/problems", wrapper.ListProblems)
@@ -8287,6 +8374,44 @@ func (response TestServerHardwaredefaultJSONResponse) VisitTestServerHardwareRes
 	return err
 }
 
+type GetServerStatsRequestObject struct {
+}
+
+type GetServerStatsResponseObject interface {
+	VisitGetServerStatsResponse(w http.ResponseWriter) error
+}
+
+type GetServerStats200JSONResponse ServerStats
+
+func (response GetServerStats200JSONResponse) VisitGetServerStatsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServerStatsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetServerStatsdefaultJSONResponse) VisitGetServerStatsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type SelectProfileRequestObject struct {
 	Body *SelectProfileJSONRequestBody
 }
@@ -8934,6 +9059,9 @@ type StrictServerInterface interface {
 	// TestServerHardware Run the hardware acceleration test again (admin, F007 R28)
 	// (POST /server/capabilities/hardware-test)
 	TestServerHardware(ctx context.Context, request TestServerHardwareRequestObject) (TestServerHardwareResponseObject, error)
+	// GetServerStats What the machine is doing, for the admin dashboard (V2)
+	// (GET /server/stats)
+	GetServerStats(ctx context.Context, request GetServerStatsRequestObject) (GetServerStatsResponseObject, error)
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(ctx context.Context, request SelectProfileRequestObject) (SelectProfileResponseObject, error)
@@ -10816,6 +10944,30 @@ func (sh *strictHandler) TestServerHardware(w http.ResponseWriter, r *http.Reque
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(TestServerHardwareResponseObject); ok {
 		if err := validResponse.VisitTestServerHardwareResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetServerStats operation middleware
+func (sh *strictHandler) GetServerStats(w http.ResponseWriter, r *http.Request) {
+	var request GetServerStatsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetServerStats(ctx, request.(GetServerStatsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetServerStats")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetServerStatsResponseObject); ok {
+		if err := validResponse.VisitGetServerStatsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

@@ -76,22 +76,24 @@ func (c *Client) get(ctx context.Context, path string, q url.Values, out any) er
 // --- Search --------------------------------------------------------------
 
 type searchResult struct {
-	ID            int     `json:"id"`
-	Title         string  `json:"title"`
-	Name          string  `json:"name"`
-	OriginalTitle string  `json:"original_title"`
-	OriginalName  string  `json:"original_name"`
-	ReleaseDate   string  `json:"release_date"`
-	FirstAirDate  string  `json:"first_air_date"`
-	Popularity    float64 `json:"popularity"`
-	PosterPath    string  `json:"poster_path"`
-	Overview      string  `json:"overview"`
+	ID            int      `json:"id"`
+	Title         string   `json:"title"`
+	Name          string   `json:"name"`
+	OriginalTitle string   `json:"original_title"`
+	OriginalName  string   `json:"original_name"`
+	ReleaseDate   string   `json:"release_date"`
+	FirstAirDate  string   `json:"first_air_date"`
+	Popularity    float64  `json:"popularity"`
+	PosterPath    string   `json:"poster_path"`
+	Overview      string   `json:"overview"`
+	OriginCountry []string `json:"origin_country"`
 }
 
 func (r searchResult) candidate() provider.Candidate {
 	c := provider.Candidate{
 		TMDBID: r.ID, Title: first(r.Title, r.Name), OriginalTitle: first(r.OriginalTitle, r.OriginalName),
 		Overview: r.Overview, PosterPath: r.PosterPath, Popularity: r.Popularity,
+		Countries: r.OriginCountry,
 	}
 	c.Year = year(first(r.ReleaseDate, r.FirstAirDate))
 	return c

@@ -129,3 +129,38 @@ func TestMatchedEventsOnTheScanStream(t *testing.T) {
 	}
 	t.Fatalf("no matched event: %v", sc.Err())
 }
+
+// TestServerStats: the dashboard's numbers, for admins only; library
+// folders on one drive share a row (V2).
+func TestServerStats(t *testing.T) {
+	e := newLibEnv(t, libOpts{})
+	member := e.member(e.admin, "carol").Token
+	e.expect(e.do("GET", "/server/stats", nil, bearer(member)), http.StatusForbidden, "forbidden")
+
+	root := t.TempDir()
+	a, b := filepath.Join(root, "a"), filepath.Join(root, "b")
+	for _, d := range []string{a, b} {
+		if err := os.MkdirAll(d, 0o750); err != nil {
+			t.Fatal(err)
+		}
+	}
+	e.create("Movies", "movies", a)
+	e.create("Shows", "shows", b)
+
+	r := e.do("GET", "/server/stats", nil, bearer(e.admin))
+	e.expect(r, http.StatusOK, "")
+	var st struct {
+		UptimeSeconds int64
+		MaxTranscodes int
+		Drives        []struct {
+			Libraries  []string
+			Available  bool
+			TotalBytes int64
+		}
+	}
+	r.json(&st)
+	if st.MaxTranscodes < 1 || len(st.Drives) != 1 || !st.Drives[0].Available || st.Drives[0].TotalBytes <= 0 ||
+		len(st.Drives[0].Libraries) != 2 {
+		t.Errorf("stats = %s", r.Body.String())
+	}
+}

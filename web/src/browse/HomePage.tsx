@@ -6,7 +6,8 @@ import type { components } from '../api/schema'
 import { useAuth } from '../auth/AuthProvider'
 import { adminStep } from '../onboarding/step'
 import { Button } from '../ui'
-import { AmbientTop } from './AmbientTop'
+import { HomeHero } from './HomeHero'
+import { PageLight } from './PageLight'
 import { Row } from './Row'
 
 type Home = components['schemas']['Home']
@@ -57,12 +58,25 @@ export function HomePage() {
   }
   if (!home || !libraries) return <HomeSkeleton />
 
+  const hero = home.ambient
+  const continuing = home.rows.find((r) => r.type === 'continue_watching')?.items ?? []
+  // The Continue watching item the hero stands for: itself, or an episode of it.
+  const resume = hero
+    ? continuing.find((i) => i.id === hero.id || i.show?.id === hero.id)
+    : undefined
+  const heroLibrary = libraries.find((l) => l.id === hero?.libraryId)?.name
+
   if (home.rows.length === 0) {
     return <EmptyHome libraries={libraries} admin={isAdmin} />
   }
   return (
     <div className="br-home">
-      <AmbientTop art={home.ambient?.backdrop} />
+      {hero && (
+        <>
+          <PageLight art={hero.backdrop} />
+          <HomeHero item={hero} resume={resume} libraryName={heroLibrary} />
+        </>
+      )}
       {home.rows.map((r) => (
         <Row
           key={r.id}

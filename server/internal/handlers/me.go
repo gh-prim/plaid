@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/api"
@@ -17,7 +18,37 @@ func (h *Handlers) GetMe(ctx context.Context, _ api.GetMeRequestObject) (api.Get
 	if err != nil {
 		return nil, err
 	}
-	return api.GetMe200JSONResponse(toMe(me)), nil
+	out := toMe(me)
+	h.lightProfiles(ctx, out.Profiles)
+	return api.GetMe200JSONResponse(out), nil
+}
+
+// lightProfiles sets each profile's ambient backdrop (what it watched
+// last), except for profiles with a PIN. Best effort: a profile picker
+// without light is still a profile picker.
+func (h *Handlers) lightProfiles(ctx context.Context, profiles []api.Profile) {
+	if h.metadata == nil {
+		return
+	}
+	var ids []string
+	for _, p := range profiles {
+		if !p.HasPin {
+			ids = append(ids, p.Id)
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	lit, err := h.metadata.Store().LastWatchedBackdrops(ctx, ids)
+	if err != nil {
+		slog.Warn("profile light not read", "err", err)
+		return
+	}
+	for i := range profiles {
+		if a, ok := lit[profiles[i].Id]; ok {
+			profiles[i].Ambient = toArtwork(&a)
+		}
+	}
 }
 
 // UpdateMe changes the caller's display name or locale.
@@ -63,7 +94,9 @@ func (h *Handlers) ListMyProfiles(ctx context.Context, _ api.ListMyProfilesReque
 	if err != nil {
 		return nil, err
 	}
-	return api.ListMyProfiles200JSONResponse(toProfiles(profiles)), nil
+	out := toProfiles(profiles)
+	h.lightProfiles(ctx, out)
+	return api.ListMyProfiles200JSONResponse(out), nil
 }
 
 // CreateMyProfile adds a profile.

@@ -1248,6 +1248,48 @@ paths:
                 $ref: "#/components/schemas/ItemDetail"
         default:
           $ref: "#/components/responses/Error"
+  /items/{itemId}/preview:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+    get:
+      operationId: getItemPreview
+      summary: A short silent loop of scenes from the title, for the hero (V2)
+      description: >-
+        Four scenes of six seconds from the movie's first third, or from a show's first episode, cut by FFmpeg and
+        cached: H.264 MP4, 1280 wide, no audio. Every title is cut ahead of time, newest first, while nobody transcodes;
+        a title not cut yet goes to the front of the queue and answers 202 with `Retry-After`; ask again until 200. A 404 means there's no preview (no FFmpeg, no file, too short, or the cut
+        failed in the last hour) or the profile may not see the item. Supports `Range`. Served by a plain handler, not
+        the generated server.
+      tags: [preview]
+      parameters:
+        - $ref: "#/components/parameters/Range"
+      responses:
+        "200":
+          description: The preview
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+        "202":
+          description: Being cut; ask again after `Retry-After` seconds
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+        "206":
+          description: The requested range
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/Error"
   /images/{imageId}:
     parameters:
       - name: imageId
@@ -1654,13 +1696,42 @@ paths:
       summary: A text subtitle track as WebVTT, converted once and cached (F006 R16)
       tags: [stream]
       security: []
+      parameters:
+        - $ref: "#/components/parameters/SubtitleFrom"
       responses:
         "200":
           description: OK
+          headers:
+            X-Subtitle-Until:
+              $ref: "#/components/headers/SubtitleUntil"
           content:
             text/vtt:
               schema:
                 type: string
+        default:
+          $ref: "#/components/responses/Error"
+  /stream/{token}/subtitles/{index}.sup:
+    parameters:
+      - $ref: "#/components/parameters/StreamToken"
+      - $ref: "#/components/parameters/SubtitleIndex"
+    get:
+      operationId: streamSubtitleSup
+      summary: A PGS track as is, for clients that draw it themselves (`separate` capability, V2)
+      tags: [stream]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/SubtitleFrom"
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Subtitle-Until:
+              $ref: "#/components/headers/SubtitleUntil"
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
         default:
           $ref: "#/components/responses/Error"
   /stream/{token}/subtitles/{index}.ass:
@@ -1744,6 +1815,22 @@ paths:
                 $ref: "#/components/schemas/BrowseResult"
         default:
           $ref: "#/components/responses/Error"
+  /server/stats:
+    get:
+      operationId: getServerStats
+      summary: What the machine is doing, for the admin dashboard (V2)
+      description: >-
+        Best effort: what the system doesn't expose (another OS, a container) is left out. Admins only.
+      tags: [server]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerStats"
+        default:
+          $ref: "#/components/responses/Error"
   /server/capabilities:
     get:
       operationId: getServerCapabilities
@@ -1791,7 +1878,25 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 components:
+  headers:
+    SubtitleUntil:
+      description: >-
+        Present when the answer is only the part of the track around `from` (milliseconds): where that part ends.
+        The whole track is being extracted meanwhile; ask again to get it.
+      schema:
+        type: integer
+        format: int64
   parameters:
+    SubtitleFrom:
+      name: from
+      in: query
+      description: >-
+        The playback position in milliseconds. When the whole track isn't extracted yet, the answer is the part around
+        it (seconds instead of reading the whole file), with `X-Subtitle-Until`.
+      schema:
+        type: integer
+        format: int64
+        minimum: 0
     LibraryId:
       name: libraryId
       in: path
@@ -2087,6 +2192,9 @@ components:
           description: Overrides the account locale; null uses the account's.
         isDefault:
           type: boolean
+        ambient:
+          $ref: "#/components/schemas/Artwork"
+          description: The backdrop of what the profile watched last, which lights the profile picker (V2). Never for a profile with a PIN, so it doesn't show what it watches.
     Me:
       type: object
       required: [user, profiles]
@@ -3105,6 +3213,9 @@ components:
           type: integer
         unmatched:
           type: integer
+        refreshing:
+          type: integer
+          description: Titles already looked up whose scheduled refresh is due, being fetched again (artwork, credits).
     MetadataSettings:
       type: object
       required: [tmdb, fanart]
@@ -3490,10 +3601,18 @@ components:
             enum: [vtt, srt, ass]
         image:
           type: array
-          description: Image formats the client renders itself.
+          description: Image formats the client renders itself, from the file it plays.
           items:
             type: string
             enum: [pgs, vobsub]
+        separate:
+          type: array
+          description: >-
+            Image formats the client draws itself from a stream of their own (a web player's canvas): fetched from the
+            subtitle's `url` as is (.sup), never burned in.
+          items:
+            type: string
+            enum: [pgs]
     CapabilityProfile:
       type: object
       description: >-
@@ -3612,7 +3731,8 @@ components:
           enum: [embedded, external, burn_in]
           description: >-
             How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct
-            Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
+            Play only); external = fetched separately from `url`, as WebVTT for a text track or as is (.sup) for a PGS
+            track the client draws (`separate` capability); burn_in = drawn into the video.
         url:
           type: string
     PlaybackSession:
@@ -3873,6 +3993,58 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ActivePlayback"
+    ServerStats:
+      type: object
+      required: [uptimeSeconds, transcodes, maxTranscodes, uploadBps, drives]
+      properties:
+        uptimeSeconds:
+          type: integer
+          format: int64
+          description: How long PLAID has been running.
+        model:
+          type: string
+          description: The machine (a Raspberry Pi's board, a PC's product), when known.
+        cpuPercent:
+          type: number
+          description: Processor load since the previous reading, 0–100.
+        temperatureC:
+          type: number
+          description: The hottest thermal zone.
+        transcodes:
+          type: integer
+          description: Conversions running now.
+        maxTranscodes:
+          type: integer
+        uploadBps:
+          type: integer
+          format: int64
+          description: What the streams are sent at right now, in bits per second (not measured).
+        drives:
+          type: array
+          description: The drives holding library folders, one per device.
+          items:
+            $ref: "#/components/schemas/DriveStats"
+    DriveStats:
+      type: object
+      required: [path, libraries, available]
+      properties:
+        path:
+          type: string
+          description: The first library folder on this drive.
+        libraries:
+          type: array
+          items:
+            type: string
+          description: Names of the libraries with folders on it.
+        available:
+          type: boolean
+          description: False when the folder can't be reached (a NAS not answering).
+        totalBytes:
+          type: integer
+          format: int64
+        freeBytes:
+          type: integer
+          format: int64
     Capabilities:
       type: object
       required: [ffprobe, ffmpeg, hwAccel, inotifyLimit, inotifyUsed, watchLimitReached]

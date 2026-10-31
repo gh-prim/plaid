@@ -12,7 +12,11 @@ export const searchDebounceMs = 150
  * request of the previous one so an old answer never replaces a new one.
  * `results` is for `query` (undefined while the first answer comes).
  */
-export function useSearch(q: string): { query: string; results?: SearchResults } {
+export function useSearch(q: string): {
+  query: string
+  results?: SearchResults
+  stale?: boolean
+} {
   const query = q.trim()
   const [state, setState] = useState<{ query: string; results?: SearchResults }>({ query: '' })
 
@@ -33,5 +37,9 @@ export function useSearch(q: string): { query: string; results?: SearchResults }
     }
   }, [query])
 
-  return query && state.query === query ? state : { query }
+  // While a newer query is on its way, the last results stay (marked
+  // stale) so the page crossfades in place instead of blanking (V2).
+  if (!query) return { query }
+  if (state.query === query) return state
+  return state.results ? { query, results: state.results, stale: true } : { query }
 }

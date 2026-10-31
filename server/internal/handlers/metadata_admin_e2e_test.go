@@ -139,9 +139,18 @@ func TestFixMatchLockUnmatchAndReview(t *testing.T) {
 
 	r := e.do("POST", "/items/"+show.ID+"/match", map[string]any{"tmdbId": 2316}, tok)
 	e.expect(r, http.StatusOK, "")
+	// A show answers at once; the queue fetches it (seasons, episodes,
+	// images take tens of seconds on a real one).
 	var matched metaItem
 	r.json(&matched)
-	if matched.MatchStatus != "matched" || matched.Metadata == nil || matched.Metadata.MatchSource != "manual" || matched.Metadata.ProviderIDs.Tmdb != 2316 {
+	if matched.MatchStatus != "pending" {
+		t.Fatalf("right after fix match = %+v", matched)
+	}
+	eventually(t, "the show fetched", func() bool {
+		matched = e.itemDetail(show.ID)
+		return matched.MatchStatus == "matched"
+	})
+	if matched.Metadata == nil || matched.Metadata.MatchSource != "manual" || matched.Metadata.ProviderIDs.Tmdb != 2316 {
 		t.Fatalf("after fix match = %+v", matched)
 	}
 	var episodes struct{ Items []metaItem }

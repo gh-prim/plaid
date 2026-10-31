@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { fakeApi, profile, server, user } from '../test/fakeApi'
@@ -91,8 +91,9 @@ describe('movie page', () => {
     )
     expect(screen.getByText('4K')).toBeInTheDocument()
     expect(screen.getByText('Dolby Vision')).toBeInTheDocument()
-    expect(screen.getByText('Audio: English and French')).toBeInTheDocument()
-    expect(screen.getByText('Directed by Denis Villeneuve')).toBeInTheDocument()
+    const about = screen.getByRole('region', { name: 'About' })
+    expect(within(about).getByText('English and French')).toBeInTheDocument()
+    expect(screen.getByText(/Directed by Denis Villeneuve/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Resume from 1:02:13' })).toHaveAttribute(
       'href',
       '/watch/m1?t=3733',
@@ -101,10 +102,38 @@ describe('movie page', () => {
       'href',
       '/watch/m1?t=0',
     )
-    const cast = screen.getByRole('region', { name: 'Cast' })
+    const cast = screen.getByRole('region', { name: 'Cast and crew' })
     expect(within(cast).getByRole('link', { name: /Timothée Chalamet/ })).toHaveAttribute(
       'href',
       '/person/p-tc',
+    )
+  })
+
+  it('looks again until details still on their way arrive', async () => {
+    let gets = 0
+    const movie = {
+      ...base,
+      id: 'm1',
+      displayTitle: 'Dune: Part Two',
+      files: [file('f1')],
+      metadata: metadata(),
+    }
+    setup(undefined, {
+      'GET /items/m1': () => ({
+        status: 200,
+        body: gets++ ? movie : { ...movie, matchStatus: 'pending', displayTitle: 'Dune Part Two' },
+      }),
+    })
+    await renderApp('/item/m1')
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Dune Part Two' }),
+    ).toBeInTheDocument()
+    await waitFor(
+      () =>
+        expect(
+          screen.getByRole('heading', { level: 1, name: 'Dune: Part Two' }),
+        ).toBeInTheDocument(),
+      { timeout: 5000 },
     )
   })
 
@@ -181,6 +210,39 @@ describe('movie page', () => {
   })
 })
 
+describe('episode page', () => {
+  it('is the episode’s own hero, with its show and season above the title', async () => {
+    setup({
+      ...base,
+      id: 'm1',
+      kind: 'episode',
+      displayTitle: 'Who Is Alive?',
+      seasonNumber: 2,
+      episodeNumber: 3,
+      files: [file('f1')],
+      userState: { positionMs: 60000, watched: false, playCount: 0 },
+      show: { id: 'sh', displayTitle: 'Severance' },
+      metadata: metadata({ trailers: [] }),
+    })
+    await renderApp('/item/m1')
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Who Is Alive?' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Severance · Season 2' })).toHaveAttribute(
+      'href',
+      '/item/sh?season=2',
+    )
+    expect(screen.getByRole('link', { name: 'Resume from 1:00' })).toHaveAttribute(
+      'href',
+      '/watch/m1?t=60',
+    )
+    expect(screen.getByRole('link', { name: 'Start over' })).toHaveAttribute(
+      'href',
+      '/watch/m1?t=0',
+    )
+  })
+})
+
 describe('show page', () => {
   const season = (n: number, id: string) => ({
     ...base,
@@ -253,32 +315,70 @@ describe('show page', () => {
       'href',
       '/watch/s2e1?t=60',
     )
-    // The up-next episode's season opens first.
-    const pick = await screen.findByRole('button', { name: /Season 2/ })
+    // The up-next episode's season opens first; seasons are pills, specials last.
+    const tabs = await screen.findByRole('tablist', { name: 'Choose a season' })
+    expect(within(tabs).getByRole('tab', { name: 'Season 2' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(
+      within(tabs)
+        .getAllByRole('tab')
+        .map((b) => b.textContent),
+    ).toEqual(['Season 1', 'Season 2', 'Specials'])
     expect(await screen.findByRole('link', { name: /1\. Episode 1/ })).toHaveAttribute(
       'href',
       '/watch/s2e1',
     )
     expect(screen.getByText('What happens in 1.')).toBeInTheDocument()
-    await userEvent.click(pick)
-    const picker = screen.getByRole('dialog', { name: 'Choose a season' })
-    // Specials last.
-    expect(
-      within(picker)
-        .getAllByRole('button')
-        .map((b) => b.getAttribute('aria-label')),
-    ).toEqual(['Season 1', 'Season 2', 'Specials'])
-    await userEvent.click(within(picker).getByRole('button', { name: 'Season 1' }))
+    await userEvent.click(within(tabs).getByRole('tab', { name: 'Season 1' }))
     expect(await screen.findByRole('link', { name: /2\. Episode 2/ })).toHaveAttribute(
       'href',
       '/watch/s1e2',
     )
     expect(screen.getByText('2 episodes · 2 watched')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /Season 1/ }))
-    await userEvent.click(
-      within(screen.getByRole('dialog')).getByRole('button', { name: 'Season 2' }),
-    )
+    await userEvent.click(within(tabs).getByRole('tab', { name: 'Season 2' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Mark season as watched' }))
     expect(calls.some((c) => c.method === 'PUT' && c.path === '/items/s2/watched')).toBe(true)
+  })
+
+  it('stops the pills after eight seasons; the last one opens them all', async () => {
+    setup(
+      {
+        ...base,
+        id: 'm1',
+        kind: 'show',
+        displayTitle: 'The Simpsons',
+        childCount: 12,
+        files: [],
+        metadata: metadata({ trailers: [] }),
+      },
+      {
+        'GET /items/m1/up-next': { status: 200, body: {} },
+        'GET /libraries/lm/items': (req: Request) => {
+          const parent = new URL(req.url).searchParams.get('parentId')
+          if (parent === 'm1')
+            return {
+              status: 200,
+              body: {
+                items: [0, ...Array.from({ length: 12 }, (_, i) => i + 1)].map((n) =>
+                  season(n, `s${n}`),
+                ),
+              },
+            }
+          return { status: 200, body: { items: [] } }
+        },
+      },
+    )
+    await renderApp('/item/m1')
+    const tabs = await screen.findByRole('tablist', { name: 'Choose a season' })
+    expect(within(tabs).getAllByRole('tab')).toHaveLength(7)
+    await userEvent.click(within(tabs).getByRole('button', { name: 'All 12 seasons and Specials' }))
+    const picker = screen.getByRole('dialog', { name: 'Choose a season' })
+    await userEvent.click(within(picker).getByRole('button', { name: 'Season 11' }))
+    expect(within(tabs).getByRole('tab', { name: 'Season 11' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
   })
 })

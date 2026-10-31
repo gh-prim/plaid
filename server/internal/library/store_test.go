@@ -117,6 +117,7 @@ func TestBatchCommitsEvery500Rows(t *testing.T) {
 	}
 	commits := 0
 	s.afterCommit = func() error { commits++; return nil }
+	s.batchHold = time.Hour // rows only; -race is slow enough to hit 250 ms
 	b := s.NewBatch(ctx)
 	now := ts(time.Now())
 	for i := range 1200 {
