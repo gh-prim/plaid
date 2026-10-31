@@ -278,6 +278,9 @@ func normalizeLanguage(s string) (code string, ok bool) {
 	return code, ok
 }
 
+// NormalizeLanguage is normalizeLanguage for other packages.
+func NormalizeLanguage(s string) (string, bool) { return normalizeLanguage(s) }
+
 // streamLanguage normalizes a probe language tag, 'und' when unknown.
 func streamLanguage(s string) string {
 	if code, ok := normalizeLanguage(s); ok {

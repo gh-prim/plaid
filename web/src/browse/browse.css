@@ -4110,11 +4110,17 @@
   translate: 0 var(--parallax-y, 0);
   animation: pl-appear 1200ms var(--ease-standard) backwards;
 }
-.br-detail__pause {
+/* The preview's sound and pause buttons, top right of the frame. */
+.br-detail__controls {
   position: absolute;
   z-index: 2;
   top: 20px;
   right: 20px;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+.br-detail__pause {
   width: 36px;
   height: 36px;
   padding: 0;

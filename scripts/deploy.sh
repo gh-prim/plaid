@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Builds PLAID from this working tree and replaces the binary of a server
-# installed from the .deb, then restarts it. sudo asks for the password on
+# Builds PLAID from this working tree and replaces the binary and the
+# systemd unit of a server installed from the .deb, then enables and
+# restarts it. sudo asks for the password on
 # the server, in your terminal, unless SUDO_PASSWORD is set: then it goes to
 # sudo through stdin, never on a command line.
 #
@@ -31,10 +32,11 @@ CGO_ENABLED=0 GOOS=linux GOARCH="$arch" go -C "$root/server" build -trimpath \
 
 echo "▸ copying to $target"
 scp -q "$bin" "$target:/tmp/plaid"
+scp -q "$root/packaging/systemd/plaid.service" "$target:/tmp/plaid.service"
 
 echo "▸ installing and restarting (sudo on the server)"
-install='install -m 0755 /tmp/plaid /usr/bin/plaid && systemctl restart plaid'
-after='rm /tmp/plaid && sleep 2 && curl -s localhost:32500/api/v1/health && echo'
+install='install -m 0755 /tmp/plaid /usr/bin/plaid && install -m 0644 /tmp/plaid.service /usr/lib/systemd/system/plaid.service && systemctl daemon-reload && systemctl enable plaid && systemctl restart plaid'
+after='rm /tmp/plaid /tmp/plaid.service && sleep 2 && curl -s localhost:32500/api/v1/health && echo'
 if [ -n "${SUDO_PASSWORD:-}" ]; then
   # The remote shell reads the password from stdin and hands it to sudo -S
   # with a builtin printf: it never shows in ps or in a log.

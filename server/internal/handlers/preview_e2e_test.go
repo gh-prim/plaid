@@ -37,8 +37,16 @@ func TestItemPreview(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s := string(out); strings.Contains(s, "audio") || !strings.Contains(s, "codec_type=video") {
+	if s := string(out); !strings.Contains(s, "codec_type=audio") || !strings.Contains(s, "codec_type=video") {
 		t.Errorf("preview streams: %s", s)
+	}
+
+	if cc := r.Header().Get("Cache-Control"); cc != "private, no-cache" {
+		t.Errorf("Cache-Control %q: a recut must reach the browser", cc)
+	}
+	// A language the file lacks falls back to the same track: same file.
+	if r2 := e.do("GET", long+"?audio=jpn", nil, bearer(e.admin)); r2.Code != http.StatusOK || r2.Body.Len() != r.Body.Len() {
+		t.Errorf("?audio=jpn: %d, %d bytes, want the same 200", r2.Code, r2.Body.Len())
 	}
 
 	r = e.do("GET", long, nil, bearer(e.admin), header("Range", "bytes=0-99"))
@@ -50,10 +58,11 @@ func TestItemPreview(t *testing.T) {
 	e.expect(e.do("GET", long, nil), http.StatusUnauthorized, "")
 }
 
-// With previews cut ahead of time, a title's preview is ready before
-// anyone asks: the first request is already a 200.
+// With previews cut ahead of time, a title's encoded preview is ready
+// before anyone asks: the first request is already a 200. (The clip is
+// light H.264, so copies are off to make it an encoded one.)
 func TestItemPreviewAhead(t *testing.T) {
-	e := newHLSEnv(t, func(o *libOpts) { o.previewsAhead = true })
+	e := newHLSEnv(t, func(o *libOpts) { o.previewsAhead = true; o.hls.PreviewCopyMaxBitrate = -1 })
 	long := "/items/" + e.items["Long"] + "/preview"
 	deadline := time.Now().Add(2 * time.Minute)
 	for time.Now().Before(deadline) {
@@ -71,6 +80,6 @@ func TestItemPreviewAhead(t *testing.T) {
 // without asking for one (which would cut it urgently).
 func previewCached(t *testing.T, e *hlsEnv) bool {
 	t.Helper()
-	m, _ := filepath.Glob(filepath.Join(e.play.CacheDir(), "previews", "*.mp4"))
+	m, _ := filepath.Glob(filepath.Join(e.play.CacheDir(), "previews", "*", "encoded", "*.mp4"))
 	return len(m) > 0
 }

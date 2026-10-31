@@ -13,6 +13,11 @@ ExecStart=/usr/bin/plaid
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=15
+# FFmpeg runs inside this cgroup: past MemoryHigh the kernel reclaims from
+# it first, past MemoryMax it kills one of its processes (an FFmpeg, most
+# likely) instead of the whole machine swapping to a halt.
+MemoryHigh=70%
+MemoryMax=80%
 
 # Hardening: PLAID only writes to its data dir. Media is read-only by design.
 NoNewPrivileges=true

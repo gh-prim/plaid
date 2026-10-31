@@ -36,6 +36,9 @@ type Timings struct {
 	// PreviewRescan is how often the library is looked at again for
 	// titles to cut previews of ahead of time (0: previewRescan).
 	PreviewRescan time.Duration
+	// PreviewCopyMaxBitrate is the highest bitrate whose H.264 video a
+	// preview copies (0: previewCopyMaxBitrate; negative: never copies).
+	PreviewCopyMaxBitrate int64
 }
 
 // DefaultTimings are the spec's values.

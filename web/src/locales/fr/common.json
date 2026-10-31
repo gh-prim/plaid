@@ -487,8 +487,10 @@
     "playEpisode": "Lire S{{season, number}} É{{episode, number}}",
     "preview": {
       "autoplay": "Lire les aperçus automatiquement",
+      "mute": "Couper le son de l’aperçu",
       "pause": "Mettre l’aperçu en pause",
-      "play": "Lire l’aperçu"
+      "play": "Lire l’aperçu",
+      "unmute": "Activer le son de l’aperçu"
     },
     "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
     "rating_many": "",
