@@ -837,6 +837,26 @@ paths:
           description: Nothing to play next
         default:
           $ref: "#/components/responses/Error"
+  /items/{itemId}/segments:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+    get:
+      operationId: getItemSegments
+      summary: Intro, recap, credits and preview of a movie or an episode, for skip buttons and the next episode
+      description: >-
+        From TheIntroDB's community timestamps, looked up by the title's TMDB id (and season and episode) and the
+        file's length, and kept by the server for days. Nothing known, or another kind of item, is an empty list.
+        Items the profile may not see are a 404.
+      tags: [playback]
+      responses:
+        "200":
+          description: The segments, in time order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemSegments"
+        default:
+          $ref: "#/components/responses/Error"
   /libraries/{libraryId}/unrecognized:
     parameters:
       - $ref: "#/components/parameters/LibraryId"
@@ -2894,6 +2914,30 @@ components:
         genre:
           type: integer
           description: TMDB genre id.
+    ItemSegments:
+      type: object
+      required: [segments]
+      properties:
+        segments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Segment"
+    Segment:
+      type: object
+      description: A part of a movie or an episode a player can skip or act on.
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [intro, recap, credits, preview]
+        startMs:
+          type: [integer, "null"]
+          format: int64
+          description: Absent or null from the very start.
+        endMs:
+          type: [integer, "null"]
+          format: int64
+          description: Absent or null up to the very end.
     UpNext:
       type: object
       required: [item]

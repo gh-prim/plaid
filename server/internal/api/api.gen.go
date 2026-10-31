@@ -1091,6 +1091,30 @@ func (e ScanState) Valid() bool {
 	}
 }
 
+// Defines values for SegmentKind.
+const (
+	Credits SegmentKind = "credits"
+	Intro   SegmentKind = "intro"
+	Preview SegmentKind = "preview"
+	Recap   SegmentKind = "recap"
+)
+
+// Valid indicates whether the value is a known member of the SegmentKind enum.
+func (e SegmentKind) Valid() bool {
+	switch e {
+	case Credits:
+		return true
+	case Intro:
+		return true
+	case Preview:
+		return true
+	case Recap:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SortOrder.
 const (
 	Asc  SortOrder = "asc"
@@ -1935,6 +1959,11 @@ type ItemPage struct {
 	Total *int `json:"total,omitempty"`
 }
 
+// ItemSegments defines model for ItemSegments.
+type ItemSegments struct {
+	Segments []Segment `json:"segments"`
+}
+
 // ItemSort defines model for ItemSort.
 type ItemSort string
 
@@ -2683,6 +2712,19 @@ type SeeAll struct {
 	Sort      ItemSort  `json:"sort"`
 }
 
+// Segment A part of a movie or an episode a player can skip or act on.
+type Segment struct {
+	// EndMs Absent or null up to the very end.
+	EndMs nullable.Nullable[int64] `json:"endMs,omitempty"`
+	Kind  SegmentKind              `json:"kind"`
+
+	// StartMs Absent or null from the very start.
+	StartMs nullable.Nullable[int64] `json:"startMs,omitempty"`
+}
+
+// SegmentKind defines model for Segment.Kind.
+type SegmentKind string
+
 // SelectProfileRequest defines model for SelectProfileRequest.
 type SelectProfileRequest struct {
 	Pin       *string `json:"pin,omitempty"`
@@ -3250,6 +3292,9 @@ type ServerInterface interface {
 	// RefreshItem Refresh an item's metadata now (admin, F005 R31)
 	// (POST /items/{itemId}/refresh)
 	RefreshItem(w http.ResponseWriter, r *http.Request, itemId ItemId)
+	// GetItemSegments Intro, recap, credits and preview of a movie or an episode, for skip buttons and the next episode
+	// (GET /items/{itemId}/segments)
+	GetItemSegments(w http.ResponseWriter, r *http.Request, itemId ItemId)
 	// GetUpNext The episode to play next for a show, a season or after an episode (F008 R32)
 	// (GET /items/{itemId}/up-next)
 	GetUpNext(w http.ResponseWriter, r *http.Request, itemId ItemId)
@@ -3966,6 +4011,32 @@ func (siw *ServerInterfaceWrapper) RefreshItem(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.RefreshItem(w, r, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetItemSegments operation middleware
+func (siw *ServerInterfaceWrapper) GetItemSegments(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId ItemId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetItemSegments(w, r, itemId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5751,6 +5822,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/home", wrapper.GetHome)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/home/rows/{rowId}", wrapper.GetHomeRow)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/items/{itemId}/up-next", wrapper.GetUpNext)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/items/{itemId}/segments", wrapper.GetItemSegments)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/unrecognized", wrapper.ListUnrecognizedFiles)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/libraries/{libraryId}/review", wrapper.ListLibraryReview)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/libraries/{libraryId}/metadata/refresh", wrapper.RefreshLibraryMetadata)
@@ -6533,6 +6605,45 @@ type RefreshItemdefaultJSONResponse struct {
 }
 
 func (response RefreshItemdefaultJSONResponse) VisitRefreshItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetItemSegmentsRequestObject struct {
+	ItemId ItemId `json:"itemId"`
+}
+
+type GetItemSegmentsResponseObject interface {
+	VisitGetItemSegmentsResponse(w http.ResponseWriter) error
+}
+
+type GetItemSegments200JSONResponse ItemSegments
+
+func (response GetItemSegments200JSONResponse) VisitGetItemSegmentsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetItemSegmentsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetItemSegmentsdefaultJSONResponse) VisitGetItemSegmentsResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -8918,6 +9029,9 @@ type StrictServerInterface interface {
 	// RefreshItem Refresh an item's metadata now (admin, F005 R31)
 	// (POST /items/{itemId}/refresh)
 	RefreshItem(ctx context.Context, request RefreshItemRequestObject) (RefreshItemResponseObject, error)
+	// GetItemSegments Intro, recap, credits and preview of a movie or an episode, for skip buttons and the next episode
+	// (GET /items/{itemId}/segments)
+	GetItemSegments(ctx context.Context, request GetItemSegmentsRequestObject) (GetItemSegmentsResponseObject, error)
 	// GetUpNext The episode to play next for a show, a season or after an episode (F008 R32)
 	// (GET /items/{itemId}/up-next)
 	GetUpNext(ctx context.Context, request GetUpNextRequestObject) (GetUpNextResponseObject, error)
@@ -9642,6 +9756,32 @@ func (sh *strictHandler) RefreshItem(w http.ResponseWriter, r *http.Request, ite
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(RefreshItemResponseObject); ok {
 		if err := validResponse.VisitRefreshItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetItemSegments operation middleware
+func (sh *strictHandler) GetItemSegments(w http.ResponseWriter, r *http.Request, itemId ItemId) {
+	var request GetItemSegmentsRequestObject
+
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetItemSegments(ctx, request.(GetItemSegmentsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetItemSegments")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetItemSegmentsResponseObject); ok {
+		if err := validResponse.VisitGetItemSegmentsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
