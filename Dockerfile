@@ -48,7 +48,7 @@ COPY --from=server /out/plaid /usr/bin/plaid
 
 ENV PLAID_DATA_DIR=/data \
     PLAID_LOG_FORMAT=json
-EXPOSE 32500
+EXPOSE 32500 32501
 VOLUME ["/data"]
 USER plaid
 ENTRYPOINT ["/usr/bin/plaid"]

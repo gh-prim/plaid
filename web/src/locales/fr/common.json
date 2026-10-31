@@ -125,6 +125,7 @@
       "people": "Personnes",
       "playing": "En lecture",
       "problems": "Problèmes",
+      "remoteAccess": "Accès à distance",
       "transcoding": "Transcodage"
     },
     "needs": {
@@ -1037,6 +1038,69 @@
     "subtitle_burn_in": "Ces sous-titres sont des images, ils sont donc incrustés dans la vidéo.",
     "video_codec_not_supported": "Cet appareil ne lit pas ce format vidéo : il est converti.",
     "video_profile_not_supported": "Cet appareil ne lit pas cette variante de vidéo : elle est convertie."
+  },
+  "remoteAccess": {
+    "address": "Adresse",
+    "addressHelp": "Partage ce lien : il mène toujours à ton serveur, même quand l’IP de ta box change.",
+    "cert": {
+      "label": "Certificat",
+      "until": "Valide jusqu’au {{when}}"
+    },
+    "enable": "Accès à distance",
+    "enableHelp": "Tes amis et tes appareils hors de la maison ouvrent PLAID à une adresse getplaid.direct, avec un vrai certificat.",
+    "error": {
+      "acme_failed": "Let’s Encrypt n’a pas encore délivré le certificat. PLAID réessaie dans une heure.",
+      "direct_unreachable": "getplaid.direct ne répond pas pour l’instant. PLAID réessaie dans quelques minutes.",
+      "mapping_refused": "Ta box a refusé d’ouvrir le port. Redirige-en un à la main.",
+      "no_gateway": "Aucune box n’a répondu en UPnP ou NAT-PMP. Active l’un des deux sur ta box, ou redirige un port à la main.",
+      "not_plaid": "Autre chose répond sur ce port.",
+      "rate_limited": "Trop d’essais pour le moment. PLAID réessaiera plus tard.",
+      "refused": "Le port est fermé vu de l’extérieur. Vérifie la redirection de port.",
+      "timeout": "Rien ne répond de l’extérieur. Vérifie la redirection de port, ou si ton fournisseur utilise le CGNAT.",
+      "tls": "Le serveur a répondu, mais pas en HTTPS. Vérifie que le port mène au {{port}}.",
+      "unknown": "Un problème est survenu. PLAID réessaie dans quelques minutes."
+    },
+    "fullUrl": "Adresse complète",
+    "ip": "IP publique",
+    "pane": "PLAID partout, même hors de chez toi",
+    "paneSub": "Grâce à getplaid.direct",
+    "port": {
+      "auto": "Automatique (UPnP ou NAT-PMP)",
+      "autoHelp": "PLAID demande à ta box d’ouvrir un port.",
+      "external": "Port externe",
+      "help": "En mode manuel, redirige un port TCP de ta box vers le port {{port}} de cette machine.",
+      "label": "Port de la box",
+      "manual": "Manuel",
+      "manualHelp": "Tu as redirigé un port sur ta box toi-même.",
+      "method": {
+        "manual": "Redirigé à la main, port {{port}}",
+        "natpmp": "Ouvert par NAT-PMP, port {{port}}",
+        "upnp": "Ouvert par UPnP, port {{port}}"
+      },
+      "title": "Port de la box",
+      "use": "Utiliser ce port"
+    },
+    "privacy": "Tes vidéos ne passent jamais par getplaid.direct : il fait seulement pointer l’adresse vers chez toi. Il garde ton IP publique, le port et le nom du serveur jusqu’à ce que tu désactives l’accès.",
+    "reach": {
+      "checked": "Vérifié {{when}}",
+      "label": "Joignable de l’extérieur"
+    },
+    "state": {
+      "degraded": "À vérifier",
+      "off": "Désactivé",
+      "ok": "Joignable de l’extérieur",
+      "starting": "Démarrage…"
+    },
+    "step": {
+      "failed": "Échec",
+      "off": "Désactivé",
+      "ok": "Fonctionne",
+      "pending": "En cours…"
+    },
+    "steps": "État",
+    "test": "Vérifier à nouveau",
+    "testing": "Vérification…",
+    "title": "Accès à distance"
   },
   "review": {
     "choose": "Celui-ci",

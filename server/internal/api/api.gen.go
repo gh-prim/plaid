@@ -403,25 +403,25 @@ func (e ItemKind) Valid() bool {
 
 // Defines values for ItemMetadataMatchSource.
 const (
-	Auto   ItemMetadataMatchSource = "auto"
-	Hint   ItemMetadataMatchSource = "hint"
-	Manual ItemMetadataMatchSource = "manual"
-	Nfo    ItemMetadataMatchSource = "nfo"
-	Parent ItemMetadataMatchSource = "parent"
+	ItemMetadataMatchSourceAuto   ItemMetadataMatchSource = "auto"
+	ItemMetadataMatchSourceHint   ItemMetadataMatchSource = "hint"
+	ItemMetadataMatchSourceManual ItemMetadataMatchSource = "manual"
+	ItemMetadataMatchSourceNfo    ItemMetadataMatchSource = "nfo"
+	ItemMetadataMatchSourceParent ItemMetadataMatchSource = "parent"
 )
 
 // Valid indicates whether the value is a known member of the ItemMetadataMatchSource enum.
 func (e ItemMetadataMatchSource) Valid() bool {
 	switch e {
-	case Auto:
+	case ItemMetadataMatchSourceAuto:
 		return true
-	case Hint:
+	case ItemMetadataMatchSourceHint:
 		return true
-	case Manual:
+	case ItemMetadataMatchSourceManual:
 		return true
-	case Nfo:
+	case ItemMetadataMatchSourceNfo:
 		return true
-	case Parent:
+	case ItemMetadataMatchSourceParent:
 		return true
 	default:
 		return false
@@ -971,6 +971,72 @@ func (e Quality) Valid() bool {
 	case QualityN720p:
 		return true
 	case QualityOriginal:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RemoteAccessState.
+const (
+	RemoteAccessStateDegraded RemoteAccessState = "degraded"
+	RemoteAccessStateOff      RemoteAccessState = "off"
+	RemoteAccessStateOk       RemoteAccessState = "ok"
+	RemoteAccessStateStarting RemoteAccessState = "starting"
+)
+
+// Valid indicates whether the value is a known member of the RemoteAccessState enum.
+func (e RemoteAccessState) Valid() bool {
+	switch e {
+	case RemoteAccessStateDegraded:
+		return true
+	case RemoteAccessStateOff:
+		return true
+	case RemoteAccessStateOk:
+		return true
+	case RemoteAccessStateStarting:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RemotePortMode.
+const (
+	RemotePortModeAuto   RemotePortMode = "auto"
+	RemotePortModeManual RemotePortMode = "manual"
+)
+
+// Valid indicates whether the value is a known member of the RemotePortMode enum.
+func (e RemotePortMode) Valid() bool {
+	switch e {
+	case RemotePortModeAuto:
+		return true
+	case RemotePortModeManual:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RemoteStepState.
+const (
+	RemoteStepStateFailed  RemoteStepState = "failed"
+	RemoteStepStateOff     RemoteStepState = "off"
+	RemoteStepStateOk      RemoteStepState = "ok"
+	RemoteStepStatePending RemoteStepState = "pending"
+)
+
+// Valid indicates whether the value is a known member of the RemoteStepState enum.
+func (e RemoteStepState) Valid() bool {
+	switch e {
+	case RemoteStepStateFailed:
+		return true
+	case RemoteStepStateOff:
+		return true
+	case RemoteStepStateOk:
+		return true
+	case RemoteStepStatePending:
 		return true
 	default:
 		return false
@@ -2598,6 +2664,72 @@ type RefreshRequest struct {
 	Images *bool `json:"images,omitempty"`
 }
 
+// RemoteAccess defines model for RemoteAccess.
+type RemoteAccess struct {
+	Certificate RemoteStep `json:"certificate"`
+	Enabled     bool       `json:"enabled"`
+
+	// ExternalPort The port people connect to from outside, once known.
+	ExternalPort *int `json:"externalPort,omitempty"`
+
+	// Hostname Examples: living-room-k3x7qa.getplaid.direct
+	Hostname *string `json:"hostname,omitempty"`
+
+	// InternalPort The HTTPS port the server listens on (PLAID_TLS_PORT); the router forwards to it.
+	InternalPort int `json:"internalPort"`
+
+	// ManualPort The external port the admin forwarded by hand, when `portMode` is `manual`.
+	ManualPort  *int           `json:"manualPort,omitempty"`
+	PortMapping RemoteStep     `json:"portMapping"`
+	PortMode    RemotePortMode `json:"portMode"`
+
+	// PublicIp The public address getplaid.direct last saw.
+	PublicIp     *string    `json:"publicIp,omitempty"`
+	Reachability RemoteStep `json:"reachability"`
+
+	// ShortUrl A getplaid.direct link that redirects to `url`.
+	//
+	// Examples: https://getplaid.direct/living-room-k3x7qa
+	ShortUrl *string `json:"shortUrl,omitempty"`
+
+	// State `degraded`: on, but one of the steps below failed.
+	State RemoteAccessState `json:"state"`
+
+	// Url The address to open from outside, with its port.
+	//
+	// Examples: https://living-room-k3x7qa.getplaid.direct:32501
+	Url *string `json:"url,omitempty"`
+}
+
+// RemoteAccessState `degraded`: on, but one of the steps below failed.
+type RemoteAccessState string
+
+// RemoteAccessUpdate defines model for RemoteAccessUpdate.
+type RemoteAccessUpdate struct {
+	Enabled    *bool           `json:"enabled,omitempty"`
+	ManualPort *int            `json:"manualPort,omitempty"`
+	PortMode   *RemotePortMode `json:"portMode,omitempty"`
+}
+
+// RemotePortMode defines model for RemotePortMode.
+type RemotePortMode string
+
+// RemoteStep defines model for RemoteStep.
+type RemoteStep struct {
+	// At When the certificate expires (`certificate`), when the check ran (`reachability`).
+	At *time.Time `json:"at,omitempty"`
+
+	// Error A stable code clients translate (remoteAccess.error.<code>): no_gateway, mapping_refused, direct_unreachable, rate_limited, acme_failed, timeout, refused, not_plaid, tls.
+	Error *string `json:"error,omitempty"`
+
+	// Method How the step succeeded: `upnp`, `natpmp` or `manual` for the port, `letsencrypt` for the certificate.
+	Method *string         `json:"method,omitempty"`
+	State  RemoteStepState `json:"state"`
+}
+
+// RemoteStepState defines model for RemoteStep.State.
+type RemoteStepState string
+
 // ResetPasswordRequest defines model for ResetPasswordRequest.
 type ResetPasswordRequest struct {
 	TemporaryPassword string `json:"temporaryPassword"`
@@ -2737,9 +2869,12 @@ type ServerInfo struct {
 	Attributions *[]Attribution `json:"attributions,omitempty"`
 
 	// Name Examples: living-room-nas
-	Name          string `json:"name"`
-	SetupComplete bool   `json:"setupComplete"`
-	Version       string `json:"version"`
+	Name string `json:"name"`
+
+	// RemoteUrl The getplaid.direct address of this server when remote access is on (F012), for apps to remember.
+	RemoteUrl     *string `json:"remoteUrl,omitempty"`
+	SetupComplete bool    `json:"setupComplete"`
+	Version       string  `json:"version"`
 }
 
 // ServerStats defines model for ServerStats.
@@ -3218,6 +3353,9 @@ type UpdatePlaybackJSONRequestBody = PlaybackUpdate
 // ReportPlaybackProgressJSONRequestBody defines body for ReportPlaybackProgress for application/json ContentType.
 type ReportPlaybackProgressJSONRequestBody = PlaybackProgress
 
+// UpdateRemoteAccessJSONRequestBody defines body for UpdateRemoteAccess for application/json ContentType.
+type UpdateRemoteAccessJSONRequestBody = RemoteAccessUpdate
+
 // SelectProfileJSONRequestBody defines body for SelectProfile for application/json ContentType.
 type SelectProfileJSONRequestBody = SelectProfileRequest
 
@@ -3424,6 +3562,15 @@ type ServerInterface interface {
 	// ListProblems What needs the admin's attention, last 7 days (admin, F007 R29)
 	// (GET /problems)
 	ListProblems(w http.ResponseWriter, r *http.Request)
+	// GetRemoteAccess Remote access through getplaid.direct (admin, F012)
+	// (GET /remote-access)
+	GetRemoteAccess(w http.ResponseWriter, r *http.Request)
+	// UpdateRemoteAccess Turn remote access on or off, choose how the port is opened (admin, F012)
+	// (PATCH /remote-access)
+	UpdateRemoteAccess(w http.ResponseWriter, r *http.Request)
+	// TestRemoteAccess Ask getplaid.direct to reach the server from outside (admin, F012)
+	// (POST /remote-access/test)
+	TestRemoteAccess(w http.ResponseWriter, r *http.Request)
 	// Search Movies, shows, episodes and people by word prefix, across the profile's libraries (F008 R28)
 	// (GET /search)
 	Search(w http.ResponseWriter, r *http.Request, params SearchParams)
@@ -5322,6 +5469,48 @@ func (siw *ServerInterfaceWrapper) ListProblems(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
+// GetRemoteAccess operation middleware
+func (siw *ServerInterfaceWrapper) GetRemoteAccess(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetRemoteAccess(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateRemoteAccess operation middleware
+func (siw *ServerInterfaceWrapper) UpdateRemoteAccess(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateRemoteAccess(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// TestRemoteAccess operation middleware
+func (siw *ServerInterfaceWrapper) TestRemoteAccess(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TestRemoteAccess(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // Search operation middleware
 func (siw *ServerInterfaceWrapper) Search(w http.ResponseWriter, r *http.Request) {
 
@@ -5859,6 +6048,9 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/stats", wrapper.GetServerStats)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/server/capabilities/hardware-test", wrapper.TestServerHardware)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/remote-access", wrapper.GetRemoteAccess)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/remote-access", wrapper.UpdateRemoteAccess)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/remote-access/test", wrapper.TestRemoteAccess)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/problems", wrapper.ListProblems)
 
 	return m
@@ -8332,6 +8524,121 @@ func (response ListProblemsdefaultJSONResponse) VisitListProblemsResponse(w http
 	return err
 }
 
+type GetRemoteAccessRequestObject struct {
+}
+
+type GetRemoteAccessResponseObject interface {
+	VisitGetRemoteAccessResponse(w http.ResponseWriter) error
+}
+
+type GetRemoteAccess200JSONResponse RemoteAccess
+
+func (response GetRemoteAccess200JSONResponse) VisitGetRemoteAccessResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetRemoteAccessdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetRemoteAccessdefaultJSONResponse) VisitGetRemoteAccessResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateRemoteAccessRequestObject struct {
+	Body *UpdateRemoteAccessJSONRequestBody
+}
+
+type UpdateRemoteAccessResponseObject interface {
+	VisitUpdateRemoteAccessResponse(w http.ResponseWriter) error
+}
+
+type UpdateRemoteAccess200JSONResponse RemoteAccess
+
+func (response UpdateRemoteAccess200JSONResponse) VisitUpdateRemoteAccessResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateRemoteAccessdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdateRemoteAccessdefaultJSONResponse) VisitUpdateRemoteAccessResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestRemoteAccessRequestObject struct {
+}
+
+type TestRemoteAccessResponseObject interface {
+	VisitTestRemoteAccessResponse(w http.ResponseWriter) error
+}
+
+type TestRemoteAccess200JSONResponse RemoteAccess
+
+func (response TestRemoteAccess200JSONResponse) VisitTestRemoteAccessResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestRemoteAccessdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response TestRemoteAccessdefaultJSONResponse) VisitTestRemoteAccessResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type SearchRequestObject struct {
 	Params SearchParams
 }
@@ -9161,6 +9468,15 @@ type StrictServerInterface interface {
 	// ListProblems What needs the admin's attention, last 7 days (admin, F007 R29)
 	// (GET /problems)
 	ListProblems(ctx context.Context, request ListProblemsRequestObject) (ListProblemsResponseObject, error)
+	// GetRemoteAccess Remote access through getplaid.direct (admin, F012)
+	// (GET /remote-access)
+	GetRemoteAccess(ctx context.Context, request GetRemoteAccessRequestObject) (GetRemoteAccessResponseObject, error)
+	// UpdateRemoteAccess Turn remote access on or off, choose how the port is opened (admin, F012)
+	// (PATCH /remote-access)
+	UpdateRemoteAccess(ctx context.Context, request UpdateRemoteAccessRequestObject) (UpdateRemoteAccessResponseObject, error)
+	// TestRemoteAccess Ask getplaid.direct to reach the server from outside (admin, F012)
+	// (POST /remote-access/test)
+	TestRemoteAccess(ctx context.Context, request TestRemoteAccessRequestObject) (TestRemoteAccessResponseObject, error)
 	// Search Movies, shows, episodes and people by word prefix, across the profile's libraries (F008 R28)
 	// (GET /search)
 	Search(ctx context.Context, request SearchRequestObject) (SearchResponseObject, error)
@@ -10986,6 +11302,85 @@ func (sh *strictHandler) ListProblems(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListProblemsResponseObject); ok {
 		if err := validResponse.VisitListProblemsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetRemoteAccess operation middleware
+func (sh *strictHandler) GetRemoteAccess(w http.ResponseWriter, r *http.Request) {
+	var request GetRemoteAccessRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetRemoteAccess(ctx, request.(GetRemoteAccessRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetRemoteAccess")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetRemoteAccessResponseObject); ok {
+		if err := validResponse.VisitGetRemoteAccessResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateRemoteAccess operation middleware
+func (sh *strictHandler) UpdateRemoteAccess(w http.ResponseWriter, r *http.Request) {
+	var request UpdateRemoteAccessRequestObject
+
+	var body UpdateRemoteAccessJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateRemoteAccess(ctx, request.(UpdateRemoteAccessRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateRemoteAccess")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateRemoteAccessResponseObject); ok {
+		if err := validResponse.VisitUpdateRemoteAccessResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// TestRemoteAccess operation middleware
+func (sh *strictHandler) TestRemoteAccess(w http.ResponseWriter, r *http.Request) {
+	var request TestRemoteAccessRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TestRemoteAccess(ctx, request.(TestRemoteAccessRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TestRemoteAccess")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TestRemoteAccessResponseObject); ok {
+		if err := validResponse.VisitTestRemoteAccessResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

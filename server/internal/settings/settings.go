@@ -18,6 +18,21 @@ const (
 	FanartPersonalKey = "metadata.fanart.personal_key"
 )
 
+// Remote access through getplaid.direct (F012).
+//
+//nolint:gosec // G101 matches the "token" in the names
+const (
+	RemoteEnabled      = "remote.enabled"
+	RemotePortMode     = "remote.port_mode"
+	RemoteManualPort   = "remote.manual_port"
+	RemoteExternalPort = "remote.external_port"
+	RemoteDirectID     = "remote.direct.id"
+	RemoteDirectToken  = "remote.direct.token"
+	RemoteHostname     = "remote.direct.hostname"
+	RemoteURL          = "remote.direct.url"
+	RemoteShortURL     = "remote.direct.short_url"
+)
+
 // Store reads and writes settings.
 type Store struct {
 	db *sql.DB

@@ -1892,6 +1892,59 @@ paths:
                 $ref: "#/components/schemas/HardwareStatus"
         default:
           $ref: "#/components/responses/Error"
+  /remote-access:
+    get:
+      operationId: getRemoteAccess
+      summary: Remote access through getplaid.direct (admin, F012)
+      tags: [system]
+      responses:
+        "200":
+          description: Settings and live status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteAccess"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updateRemoteAccess
+      summary: Turn remote access on or off, choose how the port is opened (admin, F012)
+      description: >-
+        Absent fields keep their value. Turning it on opens the port (UPnP or NAT-PMP when `portMode` is `auto`),
+        registers the server with getplaid.direct and gets a certificate, in the background: poll `GET` for progress.
+        Turning it off closes the port and unregisters the hostname. `manualPort` is required when `portMode` is
+        `manual` (422 `validation_failed` otherwise).
+      tags: [system]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteAccessUpdate"
+      responses:
+        "200":
+          description: Settings and status after the change
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteAccess"
+        default:
+          $ref: "#/components/responses/Error"
+  /remote-access/test:
+    post:
+      operationId: testRemoteAccess
+      summary: Ask getplaid.direct to reach the server from outside (admin, F012)
+      description: 409 `remote_access_off` when remote access is off or not registered yet.
+      tags: [system]
+      responses:
+        "200":
+          description: Status with the new reachability result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteAccess"
+        default:
+          $ref: "#/components/responses/Error"
   /problems:
     get:
       operationId: listProblems
@@ -2055,11 +2108,90 @@ components:
           type: string
         setupComplete:
           type: boolean
+        remoteUrl:
+          type: string
+          description: The getplaid.direct address of this server when remote access is on (F012), for apps to remember.
         attributions:
           type: array
           description: Notices of the metadata providers in use, to show on an About page (F005 R37).
           items:
             $ref: "#/components/schemas/Attribution"
+    RemoteAccess:
+      type: object
+      required: [enabled, portMode, internalPort, state, portMapping, certificate, reachability]
+      properties:
+        enabled:
+          type: boolean
+        portMode:
+          $ref: "#/components/schemas/RemotePortMode"
+        manualPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          description: The external port the admin forwarded by hand, when `portMode` is `manual`.
+        internalPort:
+          type: integer
+          description: The HTTPS port the server listens on (PLAID_TLS_PORT); the router forwards to it.
+        externalPort:
+          type: integer
+          description: The port people connect to from outside, once known.
+        publicIp:
+          type: string
+          description: The public address getplaid.direct last saw.
+        state:
+          type: string
+          enum: [off, starting, ok, degraded]
+          description: "`degraded`: on, but one of the steps below failed."
+        portMapping:
+          $ref: "#/components/schemas/RemoteStep"
+        hostname:
+          type: string
+          examples: ["living-room-k3x7qa.getplaid.direct"]
+        url:
+          type: string
+          description: The address to open from outside, with its port.
+          examples: ["https://living-room-k3x7qa.getplaid.direct:32501"]
+        shortUrl:
+          type: string
+          description: A getplaid.direct link that redirects to `url`.
+          examples: ["https://getplaid.direct/living-room-k3x7qa"]
+        certificate:
+          $ref: "#/components/schemas/RemoteStep"
+        reachability:
+          $ref: "#/components/schemas/RemoteStep"
+    RemoteStep:
+      type: object
+      required: [state]
+      properties:
+        state:
+          type: string
+          enum: [off, pending, ok, failed]
+        at:
+          type: string
+          format: date-time
+          description: When the certificate expires (`certificate`), when the check ran (`reachability`).
+        method:
+          type: string
+          description: "How the step succeeded: `upnp`, `natpmp` or `manual` for the port, `letsencrypt` for the certificate."
+        error:
+          type: string
+          description: >-
+            A stable code clients translate (remoteAccess.error.<code>): no_gateway, mapping_refused, direct_unreachable,
+            rate_limited, acme_failed, timeout, refused, not_plaid, tls.
+    RemotePortMode:
+      type: string
+      enum: [auto, manual]
+    RemoteAccessUpdate:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        portMode:
+          $ref: "#/components/schemas/RemotePortMode"
+        manualPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
     Attribution:
       type: object
       required: [provider, name, url, notice]

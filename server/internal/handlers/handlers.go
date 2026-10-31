@@ -11,6 +11,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/playback"
 	problemfeed "github.com/gh-prim/plaid/server/internal/problems"
+	"github.com/gh-prim/plaid/server/internal/remoteaccess"
 	"github.com/gh-prim/plaid/server/internal/segments"
 )
 
@@ -36,6 +37,8 @@ type Deps struct {
 	Catalog *catalog.Catalog
 	// Segments are intros and credits from TheIntroDB; nil lists none.
 	Segments *segments.Service
+	// Remote is F012's remote access; nil makes its routes answer 409.
+	Remote *remoteaccess.Service
 	// Streams is cancelled when the server shuts down, which ends
 	// long-lived responses such as server-sent events. Nil never ends them.
 	Streams context.Context
@@ -52,6 +55,7 @@ type Handlers struct {
 	problems   *problemfeed.Recorder
 	catalog    *catalog.Catalog
 	segments   *segments.Service
+	remote     *remoteaccess.Service
 	streams    context.Context
 }
 
@@ -59,5 +63,5 @@ var _ api.StrictServerInterface = (*Handlers)(nil)
 
 // New returns the API handlers.
 func New(d Deps) *Handlers {
-	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, problems: d.Problems, catalog: d.Catalog, segments: d.Segments, streams: d.Streams}
+	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, problems: d.Problems, catalog: d.Catalog, segments: d.Segments, remote: d.Remote, streams: d.Streams}
 }

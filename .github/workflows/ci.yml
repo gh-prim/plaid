@@ -27,6 +27,7 @@ jobs:
       codegen: ${{ steps.areas.outputs.codegen }}
       packages: ${{ steps.areas.outputs.packages }}
       image: ${{ steps.areas.outputs.image }}
+      services: ${{ steps.areas.outputs.services }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -56,6 +57,7 @@ jobs:
           area server   '^(server/|api/|\.github/workflows/server\.yml$)'
           area web      '^(web/|api/|\.nvmrc$|\.github/workflows/web\.yml$)'
           area codegen  '^(api/|server/internal/api/|web/src/api/|scripts/check-codegen\.sh$|\.github/workflows/codegen\.yml$)'
+          area services '^(services/|\.github/workflows/services\.yml$)'
           area packages '^(packaging/|\.goreleaser\.yaml$|server/|scripts/|\.claude/hooks/|\.github/workflows/package-test\.yml$)'
           if [ "$EVENT" = push ]; then
             echo "image=true" >> "$GITHUB_OUTPUT"; echo "→ image (push to main)"
@@ -88,9 +90,14 @@ jobs:
     if: needs.changes.outputs.image == 'true'
     uses: ./.github/workflows/docker.yml
 
+  services:
+    needs: changes
+    if: needs.changes.outputs.services == 'true'
+    uses: ./.github/workflows/services.yml
+
   ci-ok:
     name: CI OK
-    needs: [changes, server, web, codegen, packages, image]
+    needs: [changes, server, web, codegen, packages, image, services]
     if: always()
     runs-on: ubuntu-24.04
     steps:

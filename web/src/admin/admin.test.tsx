@@ -883,3 +883,76 @@ describe('helpers', () => {
     expect(temporaryPassword()).toMatch(/^[a-z]{4}(-[a-z]{4}){3}$/)
   })
 })
+
+describe('remote access', () => {
+  const off = {
+    enabled: false,
+    portMode: 'auto',
+    internalPort: 32501,
+    state: 'off',
+    portMapping: { state: 'off' },
+    certificate: { state: 'off' },
+    reachability: { state: 'off' },
+  }
+  const ready = {
+    ...off,
+    enabled: true,
+    state: 'ok',
+    externalPort: 32501,
+    publicIp: '203.0.113.7',
+    hostname: 'living-room-k3x7qa.getplaid.direct',
+    url: 'https://living-room-k3x7qa.getplaid.direct:32501',
+    shortUrl: 'https://getplaid.direct/living-room-k3x7qa',
+    portMapping: { state: 'ok', method: 'upnp' },
+    certificate: { state: 'ok', method: 'letsencrypt', at: '2027-01-29T00:00:00Z' },
+    reachability: { state: 'ok', at: '2026-10-31T20:00:00Z' },
+  }
+
+  it('turns on with one switch and shows the link to share', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /remote-access': { status: 200, body: off },
+        'PATCH /remote-access': { status: 200, body: ready },
+      }),
+    )
+    await renderApp('/admin/remote-access')
+    await userEvent.click(await screen.findByRole('switch', { name: 'Remote access' }))
+    expect(
+      await screen.findByText('https://getplaid.direct/living-room-k3x7qa'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Open with UPnP, port 32501')).toBeInTheDocument()
+    expect(screen.getAllByText('Reachable from outside').length).toBeGreaterThan(0)
+    expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ enabled: true })
+  })
+
+  it('explains a router without UPnP and takes a manual port', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /remote-access': {
+          status: 200,
+          body: {
+            ...off,
+            enabled: true,
+            state: 'degraded',
+            portMapping: { state: 'failed', error: 'no_gateway' },
+            certificate: { state: 'pending' },
+            reachability: { state: 'pending' },
+          },
+        },
+        'PATCH /remote-access': (_r: Request, body: unknown) => ({
+          status: 200,
+          body: { ...ready, ...(body as object), portMapping: { state: 'ok', method: 'manual' } },
+        }),
+      }),
+    )
+    await renderApp('/admin/remote-access')
+    expect(await screen.findByText(/No router answered UPnP or NAT-PMP/)).toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('External port'), '443')
+    await userEvent.click(screen.getByRole('button', { name: 'Use this port' }))
+    expect(await screen.findByText('Forwarded by hand, port 32501')).toBeInTheDocument()
+    expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({
+      portMode: 'manual',
+      manualPort: 443,
+    })
+  })
+})

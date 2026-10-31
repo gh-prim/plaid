@@ -1490,6 +1490,47 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/remote-access': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Remote access through getplaid.direct (admin, F012) */
+    get: operations['getRemoteAccess']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    /**
+     * Turn remote access on or off, choose how the port is opened (admin, F012)
+     * @description Absent fields keep their value. Turning it on opens the port (UPnP or NAT-PMP when `portMode` is `auto`), registers the server with getplaid.direct and gets a certificate, in the background: poll `GET` for progress. Turning it off closes the port and unregisters the hostname. `manualPort` is required when `portMode` is `manual` (422 `validation_failed` otherwise).
+     */
+    patch: operations['updateRemoteAccess']
+    trace?: never
+  }
+  '/remote-access/test': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Ask getplaid.direct to reach the server from outside (admin, F012)
+     * @description 409 `remote_access_off` when remote access is off or not registered yet.
+     */
+    post: operations['testRemoteAccess']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/problems': {
     parameters: {
       query?: never
@@ -1531,8 +1572,62 @@ export interface components {
       name: string
       version: string
       setupComplete: boolean
+      /** @description The getplaid.direct address of this server when remote access is on (F012), for apps to remember. */
+      remoteUrl?: string
       /** @description Notices of the metadata providers in use, to show on an About page (F005 R37). */
       attributions?: components['schemas']['Attribution'][]
+    }
+    RemoteAccess: {
+      enabled: boolean
+      portMode: components['schemas']['RemotePortMode']
+      /** @description The external port the admin forwarded by hand, when `portMode` is `manual`. */
+      manualPort?: number
+      /** @description The HTTPS port the server listens on (PLAID_TLS_PORT); the router forwards to it. */
+      internalPort: number
+      /** @description The port people connect to from outside, once known. */
+      externalPort?: number
+      /** @description The public address getplaid.direct last saw. */
+      publicIp?: string
+      /**
+       * @description `degraded`: on, but one of the steps below failed.
+       * @enum {string}
+       */
+      state: 'off' | 'starting' | 'ok' | 'degraded'
+      portMapping: components['schemas']['RemoteStep']
+      /** @example living-room-k3x7qa.getplaid.direct */
+      hostname?: string
+      /**
+       * @description The address to open from outside, with its port.
+       * @example https://living-room-k3x7qa.getplaid.direct:32501
+       */
+      url?: string
+      /**
+       * @description A getplaid.direct link that redirects to `url`.
+       * @example https://getplaid.direct/living-room-k3x7qa
+       */
+      shortUrl?: string
+      certificate: components['schemas']['RemoteStep']
+      reachability: components['schemas']['RemoteStep']
+    }
+    RemoteStep: {
+      /** @enum {string} */
+      state: 'off' | 'pending' | 'ok' | 'failed'
+      /**
+       * Format: date-time
+       * @description When the certificate expires (`certificate`), when the check ran (`reachability`).
+       */
+      at?: string
+      /** @description How the step succeeded: `upnp`, `natpmp` or `manual` for the port, `letsencrypt` for the certificate. */
+      method?: string
+      /** @description A stable code clients translate (remoteAccess.error.<code>): no_gateway, mapping_refused, direct_unreachable, rate_limited, acme_failed, timeout, refused, not_plaid, tls. */
+      error?: string
+    }
+    /** @enum {string} */
+    RemotePortMode: 'auto' | 'manual'
+    RemoteAccessUpdate: {
+      enabled?: boolean
+      portMode?: components['schemas']['RemotePortMode']
+      manualPort?: number
     }
     Attribution: {
       /** @enum {string} */
@@ -5041,6 +5136,73 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['HardwareStatus']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getRemoteAccess: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Settings and live status */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['RemoteAccess']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateRemoteAccess: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RemoteAccessUpdate']
+      }
+    }
+    responses: {
+      /** @description Settings and status after the change */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['RemoteAccess']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  testRemoteAccess: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Status with the new reachability result */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['RemoteAccess']
         }
       }
       default: components['responses']['Error']

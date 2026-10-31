@@ -31,6 +31,8 @@ const glyphs = {
   problems: 'M12 3.5L21 19.5H3zM12 10v4.5M12 17v.1',
   playing: 'M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z',
   review: 'M11 4a7 7 0 1 0 0 14a7 7 0 0 0 0-14zM20 20l-4-4M8.5 11l1.8 1.8 3.2-3.4',
+  remote:
+    'M12 3.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 0 0 0-17zM3.5 12h17M12 3.5c2.3 2.3 3.4 5.2 3.4 8.5s-1.1 6.2-3.4 8.5M12 3.5C9.7 5.8 8.6 8.7 8.6 12s1.1 6.2 3.4 8.5',
 } as const
 
 export type GlyphName = keyof typeof glyphs
@@ -48,6 +50,7 @@ const tints: Record<GlyphName, string> = {
   problems: 'oklch(0.32 0.05 25)',
   playing: 'oklch(0.3 0.03 200)',
   review: 'oklch(0.33 0.04 85)',
+  remote: 'oklch(0.3 0.04 190)',
 }
 
 export function Glyph({ name, size = 150 }: { name: GlyphName; size?: number }) {

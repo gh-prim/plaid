@@ -110,6 +110,7 @@
       "people": "People",
       "playing": "Playing now",
       "problems": "Problems",
+      "remoteAccess": "Remote access",
       "transcoding": "Transcoding"
     },
     "needs": {
@@ -993,6 +994,69 @@
     "subtitle_burn_in": "These subtitles are images, so they’re drawn into the video.",
     "video_codec_not_supported": "This device can’t play this video format, so it’s converted.",
     "video_profile_not_supported": "This device can’t play this kind of video, so it’s converted."
+  },
+  "remoteAccess": {
+    "address": "Address",
+    "addressHelp": "Share this link: it always leads to your server, even when your home IP changes.",
+    "cert": {
+      "label": "Certificate",
+      "until": "Valid until {{when}}"
+    },
+    "enable": "Remote access",
+    "enableHelp": "Friends and your devices outside home open PLAID at a getplaid.direct address, with a real certificate.",
+    "error": {
+      "acme_failed": "Let’s Encrypt didn’t issue the certificate yet. PLAID tries again in an hour.",
+      "direct_unreachable": "getplaid.direct can’t be reached right now. PLAID tries again in a few minutes.",
+      "mapping_refused": "Your router refused to open the port. Forward one by hand.",
+      "no_gateway": "No router answered UPnP or NAT-PMP. Turn one of them on in your router, or forward a port by hand.",
+      "not_plaid": "Something else answers on this port.",
+      "rate_limited": "Too many tries for now. PLAID tries again later.",
+      "refused": "The port is closed from outside. Check the port forwarding.",
+      "timeout": "Nothing answered from outside. Check the port forwarding, or whether your provider uses CGNAT.",
+      "tls": "The server answered, but not over HTTPS. Check that the port leads to {{port}}.",
+      "unknown": "Something went wrong. PLAID tries again in a few minutes."
+    },
+    "fullUrl": "Full address",
+    "ip": "Public IP",
+    "pane": "Reach PLAID from anywhere",
+    "paneSub": "Through getplaid.direct",
+    "port": {
+      "auto": "Automatic (UPnP or NAT-PMP)",
+      "autoHelp": "PLAID asks your router to open a port.",
+      "external": "External port",
+      "help": "In manual mode, forward a TCP port of your router to port {{port}} of this machine.",
+      "label": "Router port",
+      "manual": "Manual",
+      "manualHelp": "You forwarded a port on your router yourself.",
+      "method": {
+        "manual": "Forwarded by hand, port {{port}}",
+        "natpmp": "Open with NAT-PMP, port {{port}}",
+        "upnp": "Open with UPnP, port {{port}}"
+      },
+      "title": "Router port",
+      "use": "Use this port"
+    },
+    "privacy": "Your videos never go through getplaid.direct: it only points the address at your home. It keeps your public IP, the port and the server’s name until you turn this off.",
+    "reach": {
+      "checked": "Checked {{when}}",
+      "label": "Reachable from outside"
+    },
+    "state": {
+      "degraded": "Needs attention",
+      "off": "Off",
+      "ok": "Reachable from outside",
+      "starting": "Starting…"
+    },
+    "step": {
+      "failed": "Failed",
+      "off": "Off",
+      "ok": "Working",
+      "pending": "In progress…"
+    },
+    "steps": "Status",
+    "test": "Check again",
+    "testing": "Checking…",
+    "title": "Remote access"
   },
   "review": {
     "choose": "This one",

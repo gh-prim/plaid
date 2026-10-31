@@ -70,6 +70,7 @@ All settings are environment variables (in `/etc/plaid/plaid.env` for the native
 | Variable | Default | |
 |----------|---------|---|
 | `PLAID_PORT` | `32500` | HTTP port |
+| `PLAID_TLS_PORT` | `32501` | HTTPS port for [remote access](#remote-access); `0` turns it off |
 | `PLAID_HOST` | `0.0.0.0` | Listen address (`127.0.0.1` = this machine only) |
 | `PLAID_DATA_DIR` | `/var/lib/plaid` (package), `/data` (Docker) | Database and caches |
 | `PLAID_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
@@ -286,3 +287,21 @@ ReadWritePaths=/mnt/plaid-transcodes
 
 then set `PLAID_TRANSCODE_DIR=/mnt/plaid-transcodes` in `/etc/plaid/plaid.env` and `sudo systemctl restart plaid`. In Docker, the `tmpfs:` example in `docker-compose.yml` does the same.
 
+
+## Remote access
+
+Friends and your own devices outside home reach PLAID at an address like `https://living-room-k3x7qa.getplaid.direct:32501`, with a real certificate, without you typing an IP. Turn it on in **Settings → Remote access** (admin):
+
+1. PLAID opens a port on your router with UPnP or NAT-PMP. If your router has neither, or you prefer, choose **Manual** and forward a TCP port of your router to port `32501` (`PLAID_TLS_PORT`) of the PLAID machine, then type that external port.
+2. PLAID registers with `getplaid.direct`, which points the hostname at your public IP and follows it when it changes (a heartbeat every 15 minutes).
+3. PLAID gets a Let's Encrypt certificate for that hostname. The challenge goes through getplaid.direct's DNS, so no port 80 is needed and the private key never leaves your server.
+4. getplaid.direct checks from outside that the server answers. The page also gives a short link, `https://getplaid.direct/living-room-k3x7qa`, that redirects to your server.
+
+Your videos never go through getplaid.direct: it only answers DNS. It stores your server's id, a name derived from the server name, your public IP, the port and the PLAID version, and deletes them when you turn remote access off, or after 30 days without news.
+
+**Docker:** UPnP and NAT-PMP need to see your router, which a container on Docker's default bridge network can't. Use `network_mode: host`, or choose **Manual** and publish the port (`32501:32501`). **Behind CGNAT** (some fibre and mobile providers), no port can be opened from home: use a VPN such as Tailscale instead.
+
+| Variable | Default | |
+|----------|---------|---|
+| `PLAID_DIRECT_URL` | `https://getplaid.direct/api/v1` | The getplaid.direct service, for a self-hosted one |
+| `PLAID_ACME_DIRECTORY` | Let's Encrypt | ACME directory, e.g. Let's Encrypt staging while testing |

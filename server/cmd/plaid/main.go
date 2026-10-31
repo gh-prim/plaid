@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -28,6 +29,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/metadata"
 	"github.com/gh-prim/plaid/server/internal/playback"
 	"github.com/gh-prim/plaid/server/internal/problems"
+	"github.com/gh-prim/plaid/server/internal/remoteaccess"
 	"github.com/gh-prim/plaid/server/internal/segments"
 	"github.com/gh-prim/plaid/server/internal/settings"
 	"github.com/gh-prim/plaid/server/internal/webui"
@@ -96,6 +98,24 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	play := newPlayback(ctx, cfg, database, engine.Store(), accts, logger, probs)
 	defer play.Close()
 
+	// Remote access (F012) opens a port and keeps a getplaid.direct
+	// hostname pointed at this server, only once the admin turns it on.
+	remote, err := remoteaccess.New(ctx, remoteaccess.Options{
+		Settings: settings.New(database), Directory: remoteaccess.NewDirectClient(cfg.DirectURL),
+		Issuer: &remoteaccess.ACMEIssuer{
+			DirectoryURL: cfg.ACMEDirectory, KeyPath: filepath.Join(cfg.DataDir, "remote", "acme-account.pem"),
+			Propagation: 5 * time.Second,
+		},
+		ServerName: cfg.ServerName, Version: buildinfo.Version, TLSPort: cfg.TLSPort,
+		CertDir: filepath.Join(cfg.DataDir, "remote"), Log: logger,
+	})
+	if err != nil {
+		return err
+	}
+	if cfg.TLSPort != 0 {
+		go remote.Run(ctx)
+	}
+
 	// Cancelled by srv.Shutdown so open event streams don't hold it up.
 	streams, endStreams := context.WithCancel(context.Background())
 	defer endStreams()
@@ -109,6 +129,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Problems:   probs,
 		Catalog:    catalog.New(catalog.Options{DB: database}),
 		Segments:   segments.New(segments.Options{DB: database, Log: logger, FFmpeg: ffmpegPath(ctx, cfg)}),
+		Remote:     remote,
 		Streams:    streams,
 	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
@@ -130,6 +151,19 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		}); bonjour != nil {
 			defer bonjour.Shutdown()
 		}
+	}
+	if cfg.TLSPort != 0 {
+		tln, err := (&net.ListenConfig{}).Listen(ctx, "tcp", cfg.TLSAddr())
+		if err != nil {
+			return fmt.Errorf("PLAID_TLS_PORT: %w", err)
+		}
+		logger.Info("listening for HTTPS", "addr", tln.Addr().String())
+		tln = tls.NewListener(tln, &tls.Config{GetCertificate: remote.GetCertificate, MinVersion: tls.VersionTLS12})
+		go func() {
+			if err := serve(ctx, tln, handler, logger, nil); err != nil {
+				logger.Error("HTTPS server stopped", "err", err)
+			}
+		}()
 	}
 	return serve(ctx, ln, handler, logger, endStreams)
 }
