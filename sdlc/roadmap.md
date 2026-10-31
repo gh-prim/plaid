@@ -16,6 +16,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [0005](decisions/0005-no-jellyfin-api-compatibility.md) | No Jellyfin API compatibility, own apps | ✅ accepted |
 | [0006](decisions/0006-ffmpeg-distribution.md) | FFmpeg: distro package now, own build if F006 needs it | ✅ accepted |
 | [0007](decisions/0007-metadata-provider-keys.md) | Metadata provider keys: injected at release build, admin override | ✅ accepted |
+| [0008](decisions/0008-intro-credits-segments.md) | Intro and credits: TheIntroDB, end credits detected locally | ✅ accepted |
 
 ## Features
 
@@ -31,12 +32,13 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [F008](features/F008-web-browsing-player/intent.md) | Web: browsing and player | 2 | server, web | gh-prim | ✅ | [✅](features/F008-web-browsing-player/spec.md) | [🚧](features/F008-web-browsing-player/plan.md) |
 | [F009](features/F009-library-sharing/intent.md) | Library sharing | 3 | server, web | ? | 📝 | — | — |
 | [F010](features/F010-plaid-party/intent.md) | Plaid Party (watch together) | 3 | server, web | ? | 📝 | — | — |
+| [F011](features/F011-tvos-app/intent.md) | Apple TV app | 4 | server, apple | gh-prim | ✅ | [✅](features/F011-tvos-app/spec.md) | [🚧](features/F011-tvos-app/plan.md) |
 
 ### Later (intents to write)
-- Apple app (iOS, iPadOS, tvOS): phase 4
+- Apple app (iOS, iPadOS): phase 4 (tvOS is F011)
 - Android + Android TV app: phase 5
 - Offline downloads, Plaid Hub, music, photos, Live TV: phase 6
-- Intro and credits detection, trickplay
+- Intro detection without TheIntroDB (F011 detects end credits only), trickplay
 
 ## Possible parallel work for two
 Once F001 is done:
