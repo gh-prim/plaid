@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
+import { loadChoice } from '../player/trackMemory'
 import { Icon } from '../ui'
 import { setPreviewSoundOn, usePreviewSoundOn, usePreviewsOn } from './previewPref'
 
@@ -23,13 +24,18 @@ function canPreview(): boolean {
 
 /**
  * Asks the server for the item's preview until it's cut: the URL once
- * it's ready, undefined while waiting or when there's none.
+ * it's ready, undefined while waiting or when there's none. The sound is
+ * in the language the profile last picked in the player, when the file
+ * has it; otherwise the server picks the library's language.
  */
-function usePreviewUrl(itemId: string, on: boolean): string | undefined {
+function usePreviewUrl(itemId: string, profileId: string, on: boolean): string | undefined {
   const [ready, setReady] = useState<{ id: string; url: string }>()
   useEffect(() => {
     if (!on) return
-    const url = `${window.location.origin}/api/v1/items/${encodeURIComponent(itemId)}/preview`
+    const audio = loadChoice(profileId).audio
+    const url =
+      `${window.location.origin}/api/v1/items/${encodeURIComponent(itemId)}/preview` +
+      (audio ? `?audio=${encodeURIComponent(audio)}` : '')
     let stop = false
     let timer = 0
     let tries = 0
@@ -52,7 +58,7 @@ function usePreviewUrl(itemId: string, on: boolean): string | undefined {
       stop = true
       window.clearTimeout(timer)
     }
-  }, [itemId, on])
+  }, [itemId, profileId, on])
   return on && ready?.id === itemId ? ready.url : undefined
 }
 
@@ -73,7 +79,7 @@ export function HeroPreview({ itemId }: { itemId: string }) {
   const [blocked, setBlocked] = useState(false)
   const muted = !soundOn || blocked
   const [supported] = useState(canPreview)
-  const url = usePreviewUrl(itemId, allowed && supported)
+  const url = usePreviewUrl(itemId, profileId, allowed && supported)
   const [waited, setWaited] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)

@@ -68,22 +68,33 @@ func TestPreviewArgs(t *testing.T) {
 	}
 }
 
-// The default sound track, else the first; none for a silent file.
+// The track in the first language the file has (a commentary only when
+// nothing else is), else the default, else the first; none for a silent
+// file.
 func TestPreviewAudio(t *testing.T) {
 	v := library.MediaStream{Index: 0, Type: "video"}
-	en := library.MediaStream{Index: 1, Type: "audio", Language: "eng"}
-	fr := library.MediaStream{Index: 2, Type: "audio", Language: "fre", Default: true}
-	sub := library.MediaStream{Index: 3, Type: "subtitle", Default: true}
+	por := library.MediaStream{Index: 1, Type: "audio", Language: "por", Default: true}
+	frc := library.MediaStream{Index: 2, Type: "audio", Language: "fre", Title: "Commentaire du réalisateur"}
+	fr := library.MediaStream{Index: 3, Type: "audio", Language: "fre"}
+	en := library.MediaStream{Index: 4, Type: "audio", Language: "eng"}
+	sub := library.MediaStream{Index: 5, Type: "subtitle", Language: "fre", Default: true}
+	all := []library.MediaStream{v, por, frc, fr, en, sub}
 	for _, c := range []struct {
+		name    string
 		streams []library.MediaStream
+		langs   []string
 		want    int
 	}{
-		{[]library.MediaStream{v, en, fr, sub}, 2},
-		{[]library.MediaStream{v, en, sub}, 1},
-		{[]library.MediaStream{v, sub}, -1},
+		{"the profile's language first", all, []string{"eng", "fr"}, 4},
+		{"then the library's, 639-1 as well", all, []string{"", "fr"}, 3},
+		{"an unknown language is skipped", all, []string{"xx", "fr"}, 3},
+		{"a commentary only when it's all there is", []library.MediaStream{v, por, frc}, []string{"fre"}, 2},
+		{"no match: the default", all, []string{"jpn", "de"}, 1},
+		{"no default: the first", []library.MediaStream{v, fr, en, sub}, nil, 3},
+		{"silent", []library.MediaStream{v, sub}, []string{"fre"}, -1},
 	} {
-		if got := previewAudio(c.streams); got != c.want {
-			t.Errorf("previewAudio(%v) = %d, want %d", c.streams, got, c.want)
+		if got := previewAudio(c.streams, c.langs...); got != c.want {
+			t.Errorf("%s: previewAudio = %d, want %d", c.name, got, c.want)
 		}
 	}
 }

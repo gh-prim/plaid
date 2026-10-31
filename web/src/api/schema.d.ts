@@ -988,8 +988,8 @@ export interface paths {
       cookie?: never
     }
     /**
-     * A short silent loop of scenes from the title, for the hero (V2)
-     * @description Four scenes of six seconds from the movie's first third, or from a show's first episode, cut by FFmpeg and cached: H.264 MP4, 1280 wide, no audio. Every title is cut ahead of time, newest first, while nobody transcodes; a title not cut yet goes to the front of the queue and answers 202 with `Retry-After`; ask again until 200. A 404 means there's no preview (no FFmpeg, no file, too short, or the cut failed in the last hour) or the profile may not see the item. Supports `Range`. Served by a plain handler, not the generated server.
+     * A short loop of scenes from the title, with their sound, for the hero (V2)
+     * @description Four scenes of six seconds from the movie's first third, or from a show's first episode, cut by FFmpeg and cached: H.264 MP4, 1280 wide, stereo AAC. The sound track is the one in `audio` when the file has it, else the one in the library's metadata language, else the file's default; one preview is cut per track. Every title is cut ahead of time (in the library's language), newest first, while nobody transcodes; a title not cut yet goes to the front of the queue and answers 202 with `Retry-After`; ask again until 200. A 404 means there's no preview (no FFmpeg, no file, too short, or the cut failed in the last hour) or the profile may not see the item. Supports `Range`. Served by a plain handler, not the generated server.
      */
     get: operations['getItemPreview']
     put?: never
@@ -4246,7 +4246,10 @@ export interface operations {
   }
   getItemPreview: {
     parameters: {
-      query?: never
+      query?: {
+        /** @description The language to hear, as the profile last picked it in the player (ISO 639-1 or 639-2); ignored when the file has no track in it. */
+        audio?: string
+      }
       header?: {
         Range?: components['parameters']['Range']
       }

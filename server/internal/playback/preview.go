@@ -96,8 +96,9 @@ type previewSource struct {
 }
 
 // Preview returns the item's preview when it's ready, and otherwise
-// starts cutting it. An item the profile may not see is ErrItemNotFound.
-func (s *Service) Preview(ctx context.Context, p auth.Principal, itemID string) (string, PreviewState, error) {
+// starts cutting it. audio is the language the viewer wants to hear, if
+// known. An item the profile may not see is ErrItemNotFound.
+func (s *Service) Preview(ctx context.Context, p auth.Principal, itemID, audio string) (string, PreviewState, error) {
 	item, err := s.visibleItem(ctx, p, itemID)
 	if err != nil {
 		return "", PreviewUnavailable, err
@@ -105,7 +106,7 @@ func (s *Service) Preview(ctx context.Context, p auth.Principal, itemID string) 
 	if s.o.FFmpeg == nil || s.previews == nil {
 		return "", PreviewUnavailable, nil
 	}
-	src, ok, err := s.previewSource(ctx, item)
+	src, ok, err := s.previewSource(ctx, item, audio)
 	if err != nil || !ok {
 		return "", PreviewUnavailable, err
 	}
@@ -143,8 +144,9 @@ func (s *Service) now() time.Time {
 }
 
 // previewSource picks the file: the movie's or episode's own, a show's
-// first episode's.
-func (s *Service) previewSource(ctx context.Context, item library.Item) (previewSource, bool, error) {
+// first episode's; and its sound track: in audio when it has one, else in
+// the library's metadata language, else the default.
+func (s *Service) previewSource(ctx context.Context, item library.Item, audio string) (previewSource, bool, error) {
 	id := item.ID
 	switch item.Kind {
 	case "movie", "episode":
@@ -164,16 +166,21 @@ func (s *Service) previewSource(ctx context.Context, item library.Item) (preview
 	if err != nil {
 		return previewSource{}, false, err
 	}
+	langs := []string{audio}
+	if lib, err := s.o.Library.GetLibrary(ctx, item.LibraryID); err == nil {
+		langs = append(langs, lib.MetadataLanguage)
+	}
 	for _, f := range files {
 		d := time.Duration(f.DurationMs) * time.Millisecond
 		if f.MissingSince != nil || d < previewMinRuntime || f.Width == 0 {
 			continue
 		}
+		track := previewAudio(f.Streams, langs...)
 		h := sha256.New()
-		_, _ = fmt.Fprintf(h, "%s\x00%s\x00%d\x00%s", f.ID, f.Path, f.ModTime.UnixNano(), previewVersion)
+		_, _ = fmt.Fprintf(h, "%s\x00%s\x00%d\x00%s\x00%d", f.ID, f.Path, f.ModTime.UnixNano(), previewVersion, track)
 		return previewSource{
 			fileID: f.ID, path: f.Path, duration: d, hdr: f.HDRFormat != "",
-			audio: previewAudio(f.Streams), key: hex.EncodeToString(h.Sum(nil))[:32],
+			audio: track, key: hex.EncodeToString(h.Sum(nil))[:32],
 		}, true, nil
 	}
 	return previewSource{}, false, nil
@@ -267,7 +274,7 @@ func (s *Service) nextAhead(ctx context.Context) (previewSource, bool) {
 		if err != nil {
 			continue
 		}
-		src, ok, err := s.previewSource(ctx, item)
+		src, ok, err := s.previewSource(ctx, item, "")
 		if err != nil || !ok || fileExists(filepath.Join(pv.cache.Dir, src.key+".mp4")) {
 			continue
 		}
@@ -340,9 +347,31 @@ func previewScenesAt(d time.Duration) []time.Duration {
 	return out
 }
 
-// previewAudio picks the default sound track, else the first one; -1
+// previewAudio picks the first sound track in the first of langs the file
+// has (commentaries last), else the default track, else the first one; -1
 // when the file has none.
-func previewAudio(streams []library.MediaStream) int {
+func previewAudio(streams []library.MediaStream, langs ...string) int {
+	for _, l := range langs {
+		code, ok := library.NormalizeLanguage(l)
+		if !ok {
+			continue
+		}
+		found := -1
+		for _, st := range streams {
+			if st.Type != "audio" || st.External || st.Language != code {
+				continue
+			}
+			if !strings.Contains(strings.ToLower(st.Title), "comment") {
+				return st.Index
+			}
+			if found < 0 {
+				found = st.Index
+			}
+		}
+		if found >= 0 {
+			return found
+		}
+	}
 	first := -1
 	for _, st := range streams {
 		if st.Type != "audio" || st.External {

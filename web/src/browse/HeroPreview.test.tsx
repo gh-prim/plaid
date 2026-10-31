@@ -48,6 +48,17 @@ describe('hero preview', () => {
     expect(localStorage.getItem('plaid.previewSound.p1')).toBe('0')
   })
 
+  it('asks for the sound in the language the profile last picked', async () => {
+    localStorage.setItem('plaid.tracks.p1', JSON.stringify({ audio: 'fre' }))
+    await renderUi(<HeroPreview itemId="m1" />)
+    await screen.findByRole('button', { name: 'Mute the preview' }, shown)
+    expect(fetch).toHaveBeenCalledWith(
+      `${window.location.origin}/api/v1/items/m1/preview?audio=fre`,
+      expect.objectContaining({ method: 'HEAD' }),
+    )
+    expect(el().getAttribute('src')).toContain('?audio=fre')
+  })
+
   it('plays muted when the browser refuses sound, until the sound button', async () => {
     // Refuses sound until a click; plays muted.
     let clicked = false

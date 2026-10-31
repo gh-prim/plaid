@@ -41,6 +41,14 @@ func TestItemPreview(t *testing.T) {
 		t.Errorf("preview streams: %s", s)
 	}
 
+	if cc := r.Header().Get("Cache-Control"); cc != "private, no-cache" {
+		t.Errorf("Cache-Control %q: a recut must reach the browser", cc)
+	}
+	// A language the file lacks falls back to the same track: same file.
+	if r2 := e.do("GET", long+"?audio=jpn", nil, bearer(e.admin)); r2.Code != http.StatusOK || r2.Body.Len() != r.Body.Len() {
+		t.Errorf("?audio=jpn: %d, %d bytes, want the same 200", r2.Code, r2.Body.Len())
+	}
+
 	r = e.do("GET", long, nil, bearer(e.admin), header("Range", "bytes=0-99"))
 	if r.Code != http.StatusPartialContent || r.Body.Len() != 100 {
 		t.Errorf("range: %d, %d bytes", r.Code, r.Body.Len())

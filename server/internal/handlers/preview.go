@@ -30,7 +30,7 @@ func PreviewHandler(svc *playback.Service) http.Handler {
 			apierr.Write(w, apierr.NotFound("no preview"))
 			return
 		}
-		path, state, err := svc.Preview(r.Context(), p, id)
+		path, state, err := svc.Preview(r.Context(), p, id, r.URL.Query().Get("audio"))
 		switch {
 		case errors.Is(err, playback.ErrItemNotFound):
 			apierr.Write(w, apierr.NotFound("no such item"))
@@ -63,7 +63,9 @@ func PreviewHandler(svc *playback.Service) http.Handler {
 				return
 			}
 			w.Header().Set("Content-Type", "video/mp4")
-			w.Header().Set("Cache-Control", "private, max-age=86400")
+			// Revalidated: the same URL gets a new file when the recipe
+			// changes or the file is cut again.
+			w.Header().Set("Cache-Control", "private, no-cache")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 			http.ServeContent(w, r, "", st.ModTime(), f)
 		default:
