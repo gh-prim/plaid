@@ -1603,7 +1603,7 @@ export interface components {
       url?: string
       /**
        * @description A getplaid.direct link that redirects to `url`.
-       * @example https://getplaid.direct/living-room-k3x7qa
+       * @example https://getplaid.direct/k3x7qa
        */
       shortUrl?: string
       certificate: components['schemas']['RemoteStep']

@@ -125,7 +125,7 @@ func (h *handler) view(s store.Server, ip netip.Addr) serverView {
 		ID:       s.ID,
 		Hostname: host,
 		URL:      httpsURL(host, s.Port),
-		ShortURL: "https://" + h.cfg.Zone + "/" + s.Label(),
+		ShortURL: "https://" + h.cfg.Zone + "/" + s.ID,
 		PublicIP: ip.String(),
 		Port:     s.Port,
 	}
@@ -332,11 +332,16 @@ func (h *handler) home(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, h.cfg.SiteURL, http.StatusFound)
 }
 
-// shortLink redirects getplaid.direct/<label> to the server. The id alone
-// identifies the server, so links with an old slug still work after a rename
-// and land on the current hostname.
+// shortLink redirects getplaid.direct/<id> (the link PLAID shows) or
+// getplaid.direct/<label> to the server. The id alone identifies the server,
+// so links with an old slug still work after a rename and land on the
+// current hostname.
 func (h *handler) shortLink(w http.ResponseWriter, r *http.Request) {
-	_, id, ok := slug.Parse(strings.ToLower(r.PathValue("label")))
+	path := strings.ToLower(r.PathValue("label"))
+	id, ok := path, slug.ValidID(path)
+	if !ok {
+		_, id, ok = slug.Parse(path)
+	}
 	if !ok {
 		h.notFound(w)
 		return

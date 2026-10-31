@@ -107,7 +107,7 @@ func TestRegisterUpdateDelete(t *testing.T) {
 	}
 	if v.Hostname != "living-room-"+v.ID+".getplaid.direct" ||
 		v.URL != "https://living-room-"+v.ID+".getplaid.direct:32501" ||
-		v.ShortURL != "https://getplaid.direct/living-room-"+v.ID {
+		v.ShortURL != "https://getplaid.direct/"+v.ID {
 		t.Fatalf("register names: %+v", v)
 	}
 	srv, err := e.store.Get(context.Background(), v.ID)
@@ -250,16 +250,19 @@ func TestShortLink(t *testing.T) {
 	e := newEnv(t)
 	v := e.register("Living room", 32501)
 
-	rec := e.do(call{method: "GET", path: "/living-room-" + v.ID})
-	if rec.Code != http.StatusFound || rec.Header().Get("Location") != "https://living-room-"+v.ID+".getplaid.direct:32501/" {
-		t.Fatalf("short link: %d %q", rec.Code, rec.Header().Get("Location"))
+	// The link PLAID shows: the id alone. The full label works too.
+	for _, p := range []string{"/" + v.ID, "/" + strings.ToUpper(v.ID), "/living-room-" + v.ID} {
+		rec := e.do(call{method: "GET", path: p})
+		if rec.Code != http.StatusFound || rec.Header().Get("Location") != "https://living-room-"+v.ID+".getplaid.direct:32501/" {
+			t.Fatalf("short link %s: %d %q", p, rec.Code, rec.Header().Get("Location"))
+		}
 	}
 	// An old slug still finds the server by id and lands on the current name.
-	rec = e.do(call{method: "GET", path: "/old-name-" + v.ID})
+	rec := e.do(call{method: "GET", path: "/old-name-" + v.ID})
 	if rec.Code != http.StatusFound || rec.Header().Get("Location") != "https://living-room-"+v.ID+".getplaid.direct:32501/" {
 		t.Fatalf("old slug: %d %q", rec.Code, rec.Header().Get("Location"))
 	}
-	for _, p := range []string{"/living-room-zzzzzz", "/nope", "/favicon.ico"} {
+	for _, p := range []string{"/living-room-zzzzzz", "/zzzzzz", "/nope", "/favicon.ico"} {
 		rec = e.do(call{method: "GET", path: p})
 		if rec.Code != http.StatusNotFound || !strings.Contains(rec.Body.String(), `href="https://getplaid.tv"`) {
 			t.Fatalf("%s: %d %s", p, rec.Code, rec.Body)

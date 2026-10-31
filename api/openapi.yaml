@@ -2154,7 +2154,7 @@ components:
         shortUrl:
           type: string
           description: A getplaid.direct link that redirects to `url`.
-          examples: ["https://getplaid.direct/living-room-k3x7qa"]
+          examples: ["https://getplaid.direct/k3x7qa"]
         certificate:
           $ref: "#/components/schemas/RemoteStep"
         reachability:

@@ -2689,7 +2689,7 @@ type RemoteAccess struct {
 
 	// ShortUrl A getplaid.direct link that redirects to `url`.
 	//
-	// Examples: https://getplaid.direct/living-room-k3x7qa
+	// Examples: https://getplaid.direct/k3x7qa
 	ShortUrl *string `json:"shortUrl,omitempty"`
 
 	// State `degraded`: on, but one of the steps below failed.

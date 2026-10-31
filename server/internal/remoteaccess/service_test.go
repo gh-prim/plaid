@@ -58,7 +58,7 @@ type fakeDirectory struct {
 func (f *fakeDirectory) reg(id string, port int) Registration {
 	host := "living-room-" + id + ".getplaid.direct"
 	return Registration{ID: id, Hostname: host, URL: "https://" + host + ":" + itoa(port),
-		ShortURL: "https://getplaid.direct/living-room-" + id, PublicIP: "203.0.113.7", Port: port}
+		ShortURL: "https://getplaid.direct/" + id, PublicIP: "203.0.113.7", Port: port}
 }
 
 func itoa(n int) string { b, _ := json.Marshal(n); return string(b) }
@@ -388,7 +388,7 @@ func TestDirectClient(t *testing.T) {
 				t.Errorf("register body %+v", body)
 			}
 			w.WriteHeader(http.StatusCreated)
-			_, _ = w.Write([]byte(`{"id":"k3x7qa","token":"secret","hostname":"living-room-k3x7qa.getplaid.direct","url":"https://living-room-k3x7qa.getplaid.direct:32501","shortUrl":"https://getplaid.direct/living-room-k3x7qa","publicIp":"203.0.113.7","port":32501}`))
+			_, _ = w.Write([]byte(`{"id":"k3x7qa","token":"secret","hostname":"living-room-k3x7qa.getplaid.direct","url":"https://living-room-k3x7qa.getplaid.direct:32501","shortUrl":"https://getplaid.direct/k3x7qa","publicIp":"203.0.113.7","port":32501}`))
 		case r.URL.Path == "/api/v1/servers/k3x7qa" && r.Header.Get("Authorization") != "Bearer secret":
 			w.WriteHeader(http.StatusUnauthorized)
 		case r.URL.Path == "/api/v1/servers/k3x7qa/reachability":
@@ -403,7 +403,7 @@ func TestDirectClient(t *testing.T) {
 	c := NewDirectClient(srv.URL + "/api/v1/")
 	ctx := context.Background()
 	reg, err := c.Register(ctx, "Living room", 32501, "0.3.0")
-	if err != nil || reg.Token != "secret" || reg.ShortURL != "https://getplaid.direct/living-room-k3x7qa" {
+	if err != nil || reg.Token != "secret" || reg.ShortURL != "https://getplaid.direct/k3x7qa" {
 		t.Fatalf("Register: %+v, %v", reg, err)
 	}
 	if _, err := c.Update(ctx, "k3x7qa", "wrong", "x", 1, "v"); !errors.Is(err, errUnauthorized) {

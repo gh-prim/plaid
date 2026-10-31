@@ -2,7 +2,7 @@
 
 The service behind `getplaid.direct`: it gives every PLAID server that opts in
 a stable hostname (`living-room-k3x7qa.getplaid.direct`), a short link
-(`https://getplaid.direct/living-room-k3x7qa`) and the DNS-01 records it needs
+(`https://getplaid.direct/k3x7qa`) and the DNS-01 records it needs
 to get its own Let's Encrypt certificate. Media never goes through it: DNS
 points straight at the home server.
 

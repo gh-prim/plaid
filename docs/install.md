@@ -295,7 +295,7 @@ Friends and your own devices outside home reach PLAID at an address like `https:
 1. PLAID opens a port on your router with UPnP or NAT-PMP. If your router has neither, or you prefer, choose **Manual** and forward a TCP port of your router to port `32501` (`PLAID_TLS_PORT`) of the PLAID machine, then type that external port.
 2. PLAID registers with `getplaid.direct`, which points the hostname at your public IP and follows it when it changes (a heartbeat every 15 minutes).
 3. PLAID gets a Let's Encrypt certificate for that hostname. The challenge goes through getplaid.direct's DNS, so no port 80 is needed and the private key never leaves your server.
-4. getplaid.direct checks from outside that the server answers. The page also gives a short link, `https://getplaid.direct/living-room-k3x7qa`, that redirects to your server.
+4. getplaid.direct checks from outside that the server answers. The page also gives a short link, `https://getplaid.direct/k3x7qa`, that redirects to your server: the video then goes straight from your server to the device.
 
 Your videos never go through getplaid.direct: it only answers DNS. It stores your server's id, a name derived from the server name, your public IP, the port and the PLAID version, and deletes them when you turn remote access off, or after 30 days without news.
 

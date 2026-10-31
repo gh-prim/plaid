@@ -902,7 +902,7 @@ describe('remote access', () => {
     publicIp: '203.0.113.7',
     hostname: 'living-room-k3x7qa.getplaid.direct',
     url: 'https://living-room-k3x7qa.getplaid.direct:32501',
-    shortUrl: 'https://getplaid.direct/living-room-k3x7qa',
+    shortUrl: 'https://getplaid.direct/k3x7qa',
     portMapping: { state: 'ok', method: 'upnp' },
     certificate: { state: 'ok', method: 'letsencrypt', at: '2027-01-29T00:00:00Z' },
     reachability: { state: 'ok', at: '2026-10-31T20:00:00Z' },
@@ -918,7 +918,7 @@ describe('remote access', () => {
     await renderApp('/admin/remote-access')
     await userEvent.click(await screen.findByRole('switch', { name: 'Remote access' }))
     expect(
-      await screen.findByText('https://getplaid.direct/living-room-k3x7qa'),
+      await screen.findByText('https://getplaid.direct/k3x7qa'),
     ).toBeInTheDocument()
     expect(screen.getByText('Open with UPnP, port 32501')).toBeInTheDocument()
     expect(screen.getAllByText('Reachable from outside').length).toBeGreaterThan(0)

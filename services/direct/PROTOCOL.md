@@ -41,7 +41,7 @@ Body: `{"name": "Living room", "port": 32501, "version": "0.3.0"}`
   "token": "<43-char random secret, shown only once>",
   "hostname": "living-room-k3x7qa.getplaid.direct",
   "url": "https://living-room-k3x7qa.getplaid.direct:32501",
-  "shortUrl": "https://getplaid.direct/living-room-k3x7qa",
+  "shortUrl": "https://getplaid.direct/k3x7qa",
   "publicIp": "203.0.113.7",
   "port": 32501
 }
@@ -83,10 +83,12 @@ address.
 
 ## Short links
 
+`GET https://getplaid.direct/<id>` (the link PLAID shows, `shortUrl`) or
 `GET https://getplaid.direct/<label>` answers `302` to
 `https://<label>.getplaid.direct:<port>/`, so a person only ever has to
-remember or click one link. Unknown label: `404` page that links to
-getplaid.tv.
+remember or click one link. The redirect is all the service does: the video
+then goes straight from the home server to the device. Unknown id: `404`
+page that links to getplaid.tv.
 
 ## DNS
 
