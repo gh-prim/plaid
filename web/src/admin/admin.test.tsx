@@ -694,7 +694,8 @@ describe('section pages (V2)', () => {
       'href',
       '/admin/libraries',
     )
-    expect(screen.getByRole('heading', { level: 1, name: 'Movies' })).toBeInTheDocument()
+    // The back link shows before the library has loaded.
+    expect(await screen.findByRole('heading', { level: 1, name: 'Movies' })).toBeInTheDocument()
     expect(screen.getByText('/srv/media/movies')).toBeInTheDocument()
     expect(screen.getByText('Reachable')).toBeInTheDocument()
   })
