@@ -141,7 +141,7 @@ describe('Row', () => {
     )
     const row = screen.getByRole('region', { name: 'Recently added in Movies' })
     expect(within(row).getAllByRole('listitem')).toHaveLength(2)
-    expect(within(row).getByRole('link', { name: 'See all' })).toHaveAttribute(
+    expect(within(row).getByRole('link', { name: /See all/ })).toHaveAttribute(
       'href',
       '/library/lm?sort=added',
     )

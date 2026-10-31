@@ -2,29 +2,45 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import type { components } from '../api/schema'
 import { imageSrc } from './media'
+import { Img } from './Img'
 
 type Credit = components['schemas']['Credit']
 
-/** The cast (F008-R19): up to 20, round portraits or initials, each to their page. */
+const crewRoles = ['creator', 'director', 'writer'] as const
+
+/**
+ * Cast and crew (F008-R19, V2): up to 20 actors then the creators,
+ * directors and writers, in big circles (portraits, or initials until
+ * there are some), each to their page.
+ */
 export function CastRow({ credits }: { credits: Credit[] }) {
   const { t } = useTranslation()
-  const cast = credits.filter((c) => c.role === 'cast').slice(0, 20)
+  const cast = [
+    ...credits.filter((c) => c.role === 'cast').slice(0, 20),
+    ...crewRoles.flatMap((r) => credits.filter((c) => c.role === r)),
+  ]
   if (cast.length === 0) return null
+  const role = (c: Credit) =>
+    c.role === 'cast'
+      ? c.character
+      : c.role === 'creator'
+        ? t('item.crew.creator')
+        : c.role === 'director'
+          ? t('item.crew.director')
+          : t('item.crew.writer')
   return (
-    <section className="br-row" aria-labelledby="cast">
+    <section className="br-row" aria-label={t('item.castAndCrew')}>
       <div className="br-row__head">
-        <h2 id="cast" className="br-row__title">
-          {t('item.cast')}
-        </h2>
+        <h2 className="br-row__title">{t('item.castAndCrew')}</h2>
       </div>
       <ul className="br-row__list br-cast">
         {cast.map((c) => (
-          <li key={`${c.personId}-${c.character ?? ''}`}>
+          <li key={`${c.personId}-${c.role}-${c.character ?? ''}`}>
             <Link to={`/person/${c.personId}`} className="br-person pl-focusable">
               {c.portrait ? (
-                <img
+                <Img
                   className="br-person__img"
-                  src={imageSrc(c.portrait.imageId, 185)}
+                  src={imageSrc(c.portrait.imageId, 342)}
                   alt=""
                   loading="lazy"
                 />
@@ -34,7 +50,7 @@ export function CastRow({ credits }: { credits: Credit[] }) {
                 </span>
               )}
               <strong>{c.name}</strong>
-              {c.character && <span>{c.character}</span>}
+              {role(c) && <span>{role(c)}</span>}
             </Link>
           </li>
         ))}

@@ -27,9 +27,12 @@ const PATHS = {
   tv: 'M4.5 5.5h15a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16V7a1.5 1.5 0 0 1 1.5-1.5zM9 20.5h6',
   more: 'M6 12h.01M12 12h.01M18 12h.01',
   arrowLeft: 'M19 12H5M11 6l-6 6 6 6',
+  signOut: 'M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10',
+  playNext: 'M5 5l9 7-9 7zM18 5v14',
   restart: 'M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5V8H8',
   // Player (F008 canvas, direction A).
   pause: 'M8 5v14M16 5v14',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
   back10: 'M5 12a7 7 0 1 0 2.1-5M5 4.5V8h3.5',
   forward10: 'M19 12a7 7 0 1 1-2.1-5M19 4.5V8h-3.5',
   volume: 'M4 9.5h3.5L12 5.5v13l-4.5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11',

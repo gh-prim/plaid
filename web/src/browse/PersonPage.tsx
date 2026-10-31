@@ -8,6 +8,8 @@ import { PosterCard } from './cards/PosterCard'
 import { initials } from './CastRow'
 import { imageSrc } from './media'
 import { Unavailable } from './Unavailable'
+import { Img } from './Img'
+import { PageLight } from './PageLight'
 
 type Person = components['schemas']['Person']
 type Role = components['schemas']['PersonCredit']['role']
@@ -41,11 +43,19 @@ export function PersonPage() {
     creator: t('person.role.creator'),
   }
   const titles = new Set(p.credits.map((c) => c.item.id)).size
+  // What they're known for here: the role with the most titles.
+  const main = [...roles].sort(
+    (a, b) =>
+      p.credits.filter((c) => c.role === b).length - p.credits.filter((c) => c.role === a).length,
+  )[0]
+  // Lit by their best-known title on the server (V2).
+  const light = p.credits.find((c) => c.item.backdrop)?.item.backdrop
   return (
     <div className="br-grid-page br-personpage">
+      <PageLight art={light} />
       <header className="br-personpage__head">
         {p.portrait ? (
-          <img
+          <Img
             className="br-person__img br-personpage__img"
             src={imageSrc(p.portrait.imageId, 342)}
             alt=""
@@ -58,8 +68,9 @@ export function PersonPage() {
             {initials(p.name)}
           </span>
         )}
-        <div>
-          <h1 className="br-grid__title">{p.name}</h1>
+        <div className="br-personpage__titles">
+          {main && p.credits.length > 0 && <p className="br-personpage__known">{roleName[main]}</p>}
+          <h1 className="br-personpage__name">{p.name}</h1>
           <p className="br-grid__count">{t('person.summary', { serverName, count: titles })}</p>
         </div>
       </header>
@@ -74,7 +85,7 @@ export function PersonPage() {
             <ul className="br-tiles">
               {credits.map((c) => (
                 <li key={c.item.id}>
-                  <PosterCard item={c.item} sizes="(max-width: 767px) 104px, 160px" />
+                  <PosterCard item={c.item} sizes="(max-width: 767px) 120px, 204px" />
                   {c.character && <span className="br-current">{c.character}</span>}
                 </li>
               ))}

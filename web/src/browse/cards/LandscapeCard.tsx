@@ -5,6 +5,8 @@ import { formatDuration } from '../../lib/format'
 import { imageSrc, imageSrcSet, progress, watchLink } from '../media'
 import { CardMenu } from './CardMenu'
 import { Thread } from './Thread'
+import { Img } from '../Img'
+import { CardPlate } from './CardPlate'
 
 type ItemSummary = components['schemas']['ItemSummary']
 
@@ -43,23 +45,23 @@ export function LandscapeCard({
   if (p?.leftMs !== undefined) {
     parts.push(t('card.timeLeft', { duration: formatDuration(i18n.language, p.leftMs) }))
   }
+  const plate = <CardPlate title={title} pending={item.matchStatus === 'pending'} />
   return (
     <div className="br-card br-card--landscape">
       <Link to={watchLink(item)} className="br-card__link pl-focusable">
         <span className="br-card__art">
           {art ? (
-            <img
+            <Img
               src={imageSrc(art.imageId, 500)}
               srcSet={imageSrcSet(art.imageId, [342, 500, 780])}
               sizes={sizes}
               alt=""
               loading="lazy"
               decoding="async"
+              fallback={plate}
             />
           ) : (
-            <span className="br-card__plate" aria-hidden="true">
-              {title}
-            </span>
+            plate
           )}
           {p && <Thread fraction={p.fraction} />}
         </span>

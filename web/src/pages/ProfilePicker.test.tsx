@@ -79,8 +79,20 @@ describe('ProfilePicker', () => {
     await userEvent.type(await screen.findByLabelText('Enter Ada’s PIN'), '1234')
     expect(await screen.findByText('Too many tries. Try again in 5 min.')).toBeInTheDocument()
     expect(screen.getByLabelText('Enter Ada’s PIN')).toBeDisabled()
-    await userEvent.click(screen.getByRole('button', { name: 'Choose another profile' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Back to profiles' }))
     expect(screen.getByRole('heading', { name: 'Who’s under the plaid?' })).toBeInTheDocument()
+  })
+
+  it('is lit by what the profile in focus watched last', async () => {
+    const sam = profile('p4', 'Sam', { ambient: { imageId: 'bd-dune' } })
+    setup(ok, { profiles: [sam, ada] })
+    await renderApp('/profiles')
+    await screen.findByRole('heading', { name: 'Who’s under the plaid?' })
+    expect(document.querySelector('.br-light')).toBeNull()
+    await userEvent.tab()
+    expect(document.querySelector('.br-light img')?.getAttribute('src')).toContain(
+      '/images/bd-dune',
+    )
   })
 
   it('asks once per tab when the account has several profiles, then goes where it was headed', async () => {

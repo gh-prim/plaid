@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { imageSrc, imageSrcSet } from './media'
+import { Img } from './Img'
 
 type CollectionSummary = components['schemas']['CollectionSummary']
 
@@ -45,7 +46,7 @@ export function Collections() {
             <Link to={`/collection/${c.id}`} className="br-card br-card--poster pl-focusable">
               <span className="br-card__art">
                 {c.poster ? (
-                  <img
+                  <Img
                     src={imageSrc(c.poster.imageId, 342)}
                     srcSet={imageSrcSet(c.poster.imageId, [185, 342, 500])}
                     sizes="(max-width: 767px) 104px, 160px"

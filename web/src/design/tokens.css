@@ -76,12 +76,15 @@
   --duration-hover: 160ms;
   --duration-focus: 200ms;
   --duration-panel: 320ms;
+  --duration-page: 450ms;
   --duration-controls: 400ms;
   --duration-backdrop: 600ms;
   --delay-backdrop: 250ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-glide: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
   --ease-linear: linear;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --scale-focus-card: 1.1;
   --scale-focus-control: 1.04;
   --scale-pressed: 0.97;

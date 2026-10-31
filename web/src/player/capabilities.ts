@@ -104,7 +104,8 @@ export function buildProfile(p: Probe): CapabilityProfile {
     containers,
     video,
     audio,
-    subtitles: { text: ['vtt'] },
+    // PGS: drawn by the player from a stream of its own, never burned in (V2).
+    subtitles: { text: ['vtt'], separate: ['pgs'] },
     canSwitchAudioTrack: false,
   }
 }

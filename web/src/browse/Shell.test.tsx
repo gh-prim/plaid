@@ -57,21 +57,24 @@ afterEach(() => {
 })
 
 describe('shell', () => {
-  it('lists the libraries with the profile’s counts, and the admin’s server card', async () => {
+  it('puts the libraries in the glass tabs, and tells the admin who is watching', async () => {
     const calls = fakeApi(routes('admin'))
     await renderApp('/')
-    const nav = await screen.findByRole('navigation', { name: 'Libraries' })
-    expect(await within(nav).findByText('214')).toBeInTheDocument()
-    expect(within(nav).getByRole('link', { name: /Shows/ })).toHaveAttribute('href', '/library/ls')
-    expect(await screen.findByText('2 watching')).toBeInTheDocument()
-    expect(screen.getByText('Past Lives')).toBeInTheDocument()
+    const nav = (await screen.findAllByRole('navigation', { name: 'Main' }))[0]!
+    expect(await within(nav).findByRole('link', { name: 'Shows' })).toHaveAttribute(
+      'href',
+      '/library/ls',
+    )
+    expect(within(nav).getByRole('link', { name: 'Search' })).toHaveAttribute('href', '/search')
+    await userEvent.click(await screen.findByRole('button', { name: /Activity/ }))
+    expect(await screen.findByText(/Past Lives/)).toBeInTheDocument()
     expect(calls.some((c) => c.path === '/playback')).toBe(true)
   })
 
   it('never asks a member’s browser who is watching', async () => {
     const calls = fakeApi(routes('member'))
     await renderApp('/')
-    await screen.findByRole('navigation', { name: 'Libraries' })
+    await screen.findAllByRole('navigation', { name: 'Main' })
     expect(screen.queryByText('Server')).not.toBeInTheDocument()
     expect(calls.some((c) => c.path === '/playback')).toBe(false)
   })

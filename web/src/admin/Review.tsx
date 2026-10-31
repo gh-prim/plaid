@@ -1,52 +1,47 @@
-import { Fragment, useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
-import { Button, CandidateCard, EmptyState, FileRow, TextField } from '../ui'
+import { Button, CandidateCard, EmptyState, FileRow, Spinner, TextField } from '../ui'
+import { candidatePoster, parseQuery } from '../browse/matchQuery'
 import { Section, useAdmin } from './AdminLayout'
+import { MatchSheet } from '../browse/FixMatchSheet'
+import { formatBytes } from '../lib/format'
+import '../browse/browse.css'
 
 type Candidate = components['schemas']['MatchCandidate']
 type ReviewItem = components['schemas']['ReviewItem']
 type UnrecognizedFile = components['schemas']['UnrecognizedFile']
 
-export function candidatePoster(c: Candidate): string | undefined {
-  return c.posterPath
-    ? `/api/v1/metadata/candidate-images/${encodeURIComponent(c.posterPath.replace(/^\//, ''))}`
-    : undefined
-}
-
-/** "Metropolis 1927" → title and year; a TMDB link → its id (F007 R22). */
-export function parseQuery(q: string): { query: string; year?: number; tmdbId?: number } {
-  const link = /themoviedb\.org\/(?:movie|tv)\/(\d+)/.exec(q)
-  if (link) return { query: q, tmdbId: Number(link[1]) }
-  const year = /\b(18|19|20)\d{2}\b/.exec(q)
-  return {
-    query: year ? q.replace(year[0], '').trim() : q.trim(),
-    year: year ? Number(year[0]) : undefined,
-  }
-}
+export { candidatePoster, parseQuery } from '../browse/matchQuery'
 
 /** A TMDB search; picking a result calls onPick with its id. */
 function TmdbSearch({
   kind,
+  busy,
   onPick,
 }: {
   kind: 'movie' | 'show'
+  /** The pick is being applied. */
+  busy?: boolean
   onPick: (tmdbId: number) => void
 }) {
   const { t } = useTranslation()
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Candidate[]>()
   const [chosen, setChosen] = useState<number>()
+  const [loading, setLoading] = useState(false)
 
   async function search(e: FormEvent) {
     e.preventDefault()
     const p = parseQuery(q)
     if (p.tmdbId) return onPick(p.tmdbId)
-    const { data } = await api.GET('/metadata/search', {
-      params: { query: { kind, query: p.query, year: p.year } },
-    })
+    setLoading(true)
+    const { data } = await api
+      .GET('/metadata/search', { params: { query: { kind, query: p.query, year: p.year } } })
+      .catch(() => ({ data: undefined }))
+      .finally(() => setLoading(false))
     setResults(data?.candidates ?? [])
   }
 
@@ -61,7 +56,8 @@ function TmdbSearch({
           onValue={setQ}
         />
       </form>
-      {results && (
+      {loading && <Spinner size={28} />}
+      {results && !loading && (
         <div className="adm__list" role="radiogroup">
           {results.map((c) => (
             <CandidateCard
@@ -76,7 +72,7 @@ function TmdbSearch({
           ))}
           {chosen != null && (
             <div>
-              <Button size="sm" onClick={() => onPick(chosen)}>
+              <Button size="sm" disabled={busy} loading={busy} onClick={() => onPick(chosen)}>
                 {t('review.choose')}
               </Button>
             </div>
@@ -89,7 +85,7 @@ function TmdbSearch({
 
 /** Files whose name couldn't be understood (board AP07, F007 R21). */
 export function Unrecognized() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { id = '' } = useParams()
   const { data: admin, refresh } = useAdmin()
   const lib = admin?.libraries.find((l) => l.id === id)
@@ -105,18 +101,18 @@ export function Unrecognized() {
   }, [id])
 
   async function identify(fileId: string, tmdbId: number) {
-    const { error } = await api.POST('/media-files/{fileId}/identify', {
-      params: { path: { fileId } },
-      body: { tmdbId },
-    })
-    if (!error) {
-      setDone((d) => new Set(d).add(fileId))
-      setOpen(undefined)
-      void refresh()
-    }
+    const { error } = await api
+      .POST('/media-files/{fileId}/identify', { params: { path: { fileId } }, body: { tmdbId } })
+      .catch((err: unknown) => ({ error: err }))
+    if (error) return false
+    setDone((d) => new Set(d).add(fileId))
+    void refresh()
+    return true
   }
 
   const remaining = (files ?? []).filter((f) => !done.has(f.id))
+  const sheet = files?.find((f) => f.id === open)
+  const slash = sheet ? sheet.path.lastIndexOf('/') : -1
   return (
     <Section>
       <div>
@@ -124,50 +120,101 @@ export function Unrecognized() {
         <h2 className="adm__h2">{t('review.unrecognized.title', { count: remaining.length })}</h2>
         <p className="adm__lead">{t('review.unrecognized.body')}</p>
       </div>
+      {!files && (
+        <div className="adm__empty" role="status" aria-busy="true">
+          <Spinner size={28} />
+        </div>
+      )}
       {files && !files.length && <EmptyState title={t('review.empty')} />}
       <ul className="adm__rows">
         {(files ?? []).map((f) => {
-          const slash = f.path.lastIndexOf('/')
+          const cut = f.path.lastIndexOf('/')
           return (
-            <Fragment key={f.id}>
-              <FileRow
-                name={f.path.slice(slash + 1)}
-                folder={f.path.slice(0, slash)}
-                identified={done.has(f.id)}
-                onIdentify={() => setOpen(open === f.id ? undefined : f.id)}
-              />
-              {open === f.id && (
-                <li>
-                  <TmdbSearch
-                    kind={lib?.type === 'shows' ? 'show' : 'movie'}
-                    onPick={(tmdbId) => void identify(f.id, tmdbId)}
-                  />
-                </li>
-              )}
-            </Fragment>
+            <FileRow
+              key={f.id}
+              name={f.path.slice(cut + 1)}
+              folder={f.path.slice(0, cut)}
+              identified={done.has(f.id)}
+              onIdentify={() => setOpen(f.id)}
+            />
           )
         })}
       </ul>
+      {sheet && (
+        <MatchSheet
+          title={t('matchFile.title')}
+          kind={lib?.type === 'shows' ? 'show' : 'movie'}
+          note={t('matchFile.note')}
+          intro={
+            <section className="br-file" aria-label={t('matchFile.file')}>
+              <p className="br-file__name">{sheet.path.slice(slash + 1)}</p>
+              <p className="br-file__facts">
+                {[
+                  formatBytes(i18n.language, sheet.size),
+                  t('matchFile.in', { folder: sheet.path.slice(0, slash) }),
+                ].join(t('card.separator'))}
+              </p>
+            </section>
+          }
+          empty={
+            <>
+              <strong>{t('matchFile.empty.title')}</strong>
+              <span>{t('matchFile.empty.body')}</span>
+            </>
+          }
+          onClose={() => setOpen(undefined)}
+          onUse={async (c) => {
+            const ok = await identify(sheet.id, c.tmdbId)
+            if (ok) setOpen(undefined)
+            return ok
+          }}
+        />
+      )}
     </Section>
   )
+}
+
+/**
+ * The item an Edit menu's "Fix the match" points at (?item=), first: its
+ * queue entry when it has one, else the item with fresh TMDB candidates.
+ */
+async function target(itemId: string, queue: ReviewItem[]): Promise<ReviewItem[]> {
+  const own = queue.find((r) => r.item.id === itemId)
+  if (own) return [own, ...queue.filter((r) => r !== own)]
+  const { data: item } = await api.GET('/items/{itemId}', { params: { path: { itemId } } })
+  if (!item) return queue
+  const { data } = await api.GET('/metadata/search', {
+    params: {
+      query: { kind: item.kind === 'show' ? 'show' : 'movie', query: item.title ?? '', itemId },
+    },
+  })
+  return [{ item, reason: 'needs_review', candidates: data?.candidates ?? [] }, ...queue]
 }
 
 /** Items that need a second look, with their TMDB candidates (board AP08, F007 R22). */
 export function Review() {
   const { t } = useTranslation()
   const { id = '' } = useParams()
+  const [params] = useSearchParams()
+  const itemId = params.get('item')
+  const navigate = useNavigate()
   const { data: admin, toast, refresh } = useAdmin()
   const lib = admin?.libraries.find((l) => l.id === id)
   const [items, setItems] = useState<ReviewItem[]>()
   const [chosen, setChosen] = useState<number>()
   const [searching, setSearching] = useState(false)
+  // Matching a show fetches all its seasons first: seconds, not a blink.
+  const [matching, setMatching] = useState(false)
 
   useEffect(() => {
     api
       .GET('/libraries/{libraryId}/review', { params: { path: { libraryId: id } } })
-      .then(({ data }) => setItems(data?.items ?? []))
+      .then(async ({ data }) => {
+        const queue = data?.items ?? []
+        setItems(itemId ? await target(itemId, queue) : queue)
+      })
       .catch(() => setItems([]))
-  }, [id])
+  }, [id, itemId])
 
   // One item at a time, like the board: the next one comes after a choice.
   const next = () => {
@@ -177,14 +224,21 @@ export function Review() {
   }
 
   async function match(item: ReviewItem, tmdbId: number) {
-    const { error } = await api.POST('/items/{itemId}/match', {
-      params: { path: { itemId: item.item.id } },
-      body: { tmdbId },
-    })
+    if (matching) return
+    setMatching(true)
+    const { error } = await api
+      .POST('/items/{itemId}/match', {
+        params: { path: { itemId: item.item.id } },
+        body: { tmdbId },
+      })
+      .catch((err: unknown) => ({ error: err }))
+      .finally(() => setMatching(false))
     if (error) return
     toast(t('review.matched', { title: item.item.displayTitle ?? item.item.title }))
-    next()
     void refresh()
+    // Back to the page the fix started from.
+    if (item.item.id === itemId) return void navigate(`/item/${itemId}`)
+    next()
   }
 
   const reason = (r: string) =>
@@ -212,6 +266,12 @@ export function Review() {
           </p>
         )}
       </div>
+      {!items && (
+        <div className="adm__empty" role="status" aria-busy="true">
+          <Spinner size={28} />
+          <p>{t('review.loading')}</p>
+        </div>
+      )}
       {items && !it && (
         <div className="adm__empty">
           <p className="title">{t('review.empty')}</p>
@@ -234,21 +294,30 @@ export function Review() {
             ))}
           </div>
           <div className="adm__actions">
-            <Button disabled={!pick} onClick={() => pick && void match(it, pick.tmdbId)}>
+            <Button
+              disabled={!pick || matching}
+              loading={matching}
+              onClick={() => pick && void match(it, pick.tmdbId)}
+            >
               {pick
                 ? t('review.use', { title: pick.title, year: pick.year ?? '' })
                 : t('review.choose')}
             </Button>
-            <Button variant="secondary" onClick={() => setSearching(!searching)}>
+            <Button
+              variant="secondary"
+              disabled={matching}
+              onClick={() => setSearching(!searching)}
+            >
               {t('review.search.label')}
             </Button>
-            <Button variant="ghost" onClick={next}>
+            <Button variant="ghost" disabled={matching} onClick={next}>
               {t('review.none')}
             </Button>
           </div>
           {searching && (
             <TmdbSearch
               kind={it.item.kind === 'show' ? 'show' : 'movie'}
+              busy={matching}
               onPick={(tmdbId) => void match(it, tmdbId)}
             />
           )}

@@ -9,6 +9,8 @@ export interface MediaState {
   waiting: boolean
   volume: number
   muted: boolean
+  /** A frame is there to show (readyState ≥ HAVE_CURRENT_DATA). */
+  ready: boolean
 }
 
 const initial: MediaState = {
@@ -20,12 +22,15 @@ const initial: MediaState = {
   waiting: false,
   volume: 1,
   muted: false,
+  ready: false,
 }
 
 const events = [
   'timeupdate',
   'durationchange',
   'loadedmetadata',
+  'loadeddata',
+  'canplay',
   'progress',
   'play',
   'playing',
@@ -60,6 +65,7 @@ export function useMedia(ref: RefObject<HTMLVideoElement | null>): MediaState {
         waiting,
         volume: v.volume,
         muted: v.muted,
+        ready: v.readyState >= 2,
       })
     }
     events.forEach((e) => v.addEventListener(e, read))

@@ -90,15 +90,15 @@ describe('home', () => {
       '/watch/m1?t=3734',
     )
     expect(within(rows[0]!).getByText('1h 44m left')).toBeInTheDocument()
-    expect(within(rows[1]!).getByRole('link', { name: 'See all' })).toHaveAttribute(
+    expect(within(rows[1]!).getByRole('link', { name: /See all/ })).toHaveAttribute(
       'href',
       '/library/lm?sort=added&order=desc',
     )
-    expect(within(rows[2]!).getByRole('link', { name: 'See all' })).toHaveAttribute(
+    expect(within(rows[2]!).getByRole('link', { name: /See all/ })).toHaveAttribute(
       'href',
       '/library/lm?sort=title&order=asc&genre=878',
     )
-    expect(document.querySelector('.br-ambient img')?.getAttribute('src')).toContain('/images/bd1')
+    expect(document.querySelector('.br-light img')?.getAttribute('src')).toContain('/images/bd1')
   })
 
   it('tells a member with no library to ask the admin', async () => {

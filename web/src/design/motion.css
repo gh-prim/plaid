@@ -1,0 +1,546 @@
+/* Motion (V2, canvas "Motion"): nothing pops in. Pages and what arrives in
+   them fade in and rise a little, rows and cards one after another, menus
+   scale up from 0.97, selections glide. Durations and the one curve are the
+   tokens (press 100, hover 160, focus 200, panel 320, controls 400,
+   backdrop 600; ease-standard). Entries use `translate` and opacity, so a
+   card's hover `transform` stays its own, and fill backwards only: once
+   arrived, nothing is held. Reduced motion: every change is a 160 ms fade. */
+
+@keyframes pl-rise {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+@keyframes pl-rise-far {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+@keyframes pl-appear {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pl-pop {
+  from {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+/* A new page: the whole content rises in. */
+.pl-page-enter {
+  animation: pl-rise var(--duration-panel) var(--ease-standard) backwards;
+}
+
+/* Sections and rows, one after another (40 ms apart, the first ten). */
+.br-hero,
+.br-detail,
+.br-row,
+.br-seasons,
+.br-about,
+.br-searchpage section,
+.br-personpage__head,
+.br-personpage__role,
+.br-grid__head,
+.adm__main > * > * {
+  animation: pl-rise var(--duration-panel) var(--ease-standard) backwards;
+}
+.br-home > :nth-child(2),
+.br-item > :nth-child(2),
+.br-searchpage__results > :nth-child(1),
+.br-searchpage__start > :nth-child(1),
+.adm__main > * > :nth-child(1) {
+  animation-delay: 0ms;
+}
+.br-home > :nth-child(3),
+.br-item > :nth-child(3),
+.br-searchpage__results > :nth-child(2),
+.br-searchpage__start > :nth-child(2),
+.adm__main > * > :nth-child(2) {
+  animation-delay: 40ms;
+}
+.br-home > :nth-child(4),
+.br-item > :nth-child(4),
+.br-searchpage__results > :nth-child(3),
+.adm__main > * > :nth-child(3) {
+  animation-delay: 80ms;
+}
+.br-home > :nth-child(5),
+.br-item > :nth-child(5),
+.br-searchpage__results > :nth-child(4),
+.adm__main > * > :nth-child(4) {
+  animation-delay: 120ms;
+}
+.br-home > :nth-child(6),
+.br-item > :nth-child(6),
+.adm__main > * > :nth-child(5) {
+  animation-delay: 160ms;
+}
+.br-home > :nth-child(n + 7),
+.br-item > :nth-child(n + 7),
+.adm__main > * > :nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+
+/* Cards in a row or a list: a quick cascade, the first eight. */
+.br-row__list > li,
+.br-searchpage__posters > li,
+.br-searchpage__genres > li,
+.br-searchpage__episodes > li,
+.br-searchpage__people > li,
+.br-searchpage__chips > *,
+.br-tiles > li,
+.br-pills > *,
+.pf__grid > li,
+.br-art > li,
+.br-results > li,
+.br-activity__list > li {
+  animation: pl-rise var(--duration-panel) var(--ease-standard) backwards;
+}
+:is(
+    .br-row__list,
+    .br-searchpage__posters,
+    .br-searchpage__genres,
+    .br-searchpage__episodes,
+    .br-searchpage__people,
+    .br-searchpage__chips,
+    .br-tiles,
+    .br-pills,
+    .pf__grid,
+    .br-art,
+    .br-results,
+    .br-activity__list
+  )
+  > :nth-child(2) {
+  animation-delay: 30ms;
+}
+:is(
+    .br-row__list,
+    .br-searchpage__posters,
+    .br-searchpage__genres,
+    .br-searchpage__episodes,
+    .br-searchpage__people,
+    .br-searchpage__chips,
+    .br-tiles,
+    .br-pills,
+    .pf__grid,
+    .br-art,
+    .br-results,
+    .br-activity__list
+  )
+  > :nth-child(3) {
+  animation-delay: 60ms;
+}
+:is(
+    .br-row__list,
+    .br-searchpage__posters,
+    .br-searchpage__genres,
+    .br-searchpage__episodes,
+    .br-searchpage__people,
+    .br-searchpage__chips,
+    .br-tiles,
+    .br-pills,
+    .pf__grid,
+    .br-art,
+    .br-results,
+    .br-activity__list
+  )
+  > :nth-child(4) {
+  animation-delay: 90ms;
+}
+:is(
+    .br-row__list,
+    .br-searchpage__posters,
+    .br-searchpage__genres,
+    .br-searchpage__episodes,
+    .br-searchpage__people,
+    .br-tiles,
+    .br-pills,
+    .pf__grid,
+    .br-art,
+    .br-results
+  )
+  > :nth-child(5) {
+  animation-delay: 120ms;
+}
+:is(
+    .br-row__list,
+    .br-searchpage__posters,
+    .br-searchpage__genres,
+    .br-searchpage__episodes,
+    .br-tiles,
+    .br-pills,
+    .br-art,
+    .br-results
+  )
+  > :nth-child(6) {
+  animation-delay: 150ms;
+}
+:is(.br-row__list, .br-searchpage__posters, .br-searchpage__genres, .br-tiles, .br-pills, .br-art)
+  > :nth-child(7) {
+  animation-delay: 180ms;
+}
+:is(.br-row__list, .br-searchpage__posters, .br-searchpage__genres, .br-tiles, .br-pills, .br-art)
+  > :nth-child(n + 8) {
+  animation-delay: 210ms;
+}
+
+/* The grid scrolls through thousands: cells only fade, no movement. */
+.br-grid__cell {
+  animation: pl-appear var(--duration-focus) var(--ease-standard) backwards;
+}
+
+/* The hero: the picture fades in, the words rise 120 ms after. */
+.br-hero__body,
+.br-detail__body {
+  animation: pl-rise-far var(--duration-panel) var(--ease-standard) 120ms backwards;
+}
+.br-hero__credits {
+  animation: pl-appear var(--duration-backdrop) var(--ease-standard) 200ms backwards;
+}
+.br-hero__art,
+.br-detail__art {
+  animation: pl-appear var(--duration-backdrop) var(--ease-standard) backwards;
+}
+
+/* Menus and popovers: a light scale-up from where they hang. */
+.br-menu,
+.pl-menu,
+.br-seasonpicker,
+.pv-player .pv-panel {
+  animation: pl-pop var(--duration-focus) var(--ease-standard) backwards;
+  transform-origin: top right;
+}
+.br-menu--up,
+.pv-player .pv-panel {
+  transform-origin: bottom center;
+}
+
+/* Selections glide instead of jumping. */
+.br-segmented__item,
+.br-pill,
+.br-nav__tab,
+.br-quiet,
+.br-gmenu__item,
+.pl-menu__item,
+.br-searchpage__chip {
+  transition:
+    background-color var(--duration-focus) var(--ease-standard),
+    color var(--duration-focus) var(--ease-standard),
+    box-shadow var(--duration-focus) var(--ease-standard),
+    transform var(--duration-focus) var(--ease-standard);
+}
+.br-nav__search {
+  animation: pl-pop var(--duration-focus) var(--ease-standard) backwards;
+  transform-origin: right center;
+}
+
+/* Words that change in place (a count, a result count, a status). */
+.br-grid__count,
+.br-results__count,
+.br-seasons__info,
+.br-hero__progress,
+.pv-subwait,
+.pf__error:not(:empty) {
+  animation: pl-appear var(--duration-focus) var(--ease-standard) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-name: pl-appear !important;
+    animation-duration: 160ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 160ms !important;
+  }
+  /* What only exists as motion (spinners, shimmer) keeps going. */
+  .pl-spinner,
+  .pl-spinner *,
+  .br-skeleton,
+  .pl-progress--indeterminate * {
+    animation-name: revert !important;
+    animation-duration: revert !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* Tabs: the page travels 40 px in the direction you went (V2 motion). */
+@keyframes pl-from-right {
+  from {
+    opacity: 0;
+    translate: 40px 0;
+  }
+}
+@keyframes pl-from-left {
+  from {
+    opacity: 0;
+    translate: -40px 0;
+  }
+}
+.pl-page-enter[data-dir='right'] {
+  animation: pl-from-right var(--duration-panel) var(--ease-glide) backwards;
+}
+.pl-page-enter[data-dir='left'] {
+  animation: pl-from-left var(--duration-panel) var(--ease-glide) backwards;
+}
+
+/* The header gains its glass once the page moves under it. */
+.br-top {
+  transition:
+    background-color var(--duration-focus) var(--ease-standard),
+    box-shadow var(--duration-focus) var(--ease-standard),
+    backdrop-filter var(--duration-focus) var(--ease-standard);
+}
+.br-top.is-scrolled {
+  background: rgba(14, 12, 9, 0.62);
+  backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.7);
+}
+:root[data-theme='light'] .br-top.is-scrolled {
+  background: rgba(250, 247, 240, 0.72);
+}
+
+/* Buttons answer the press: down to 0.96 at once, back with a small settle. */
+:is(
+  .br-hero__btn,
+  .br-pill,
+  .br-sheet__pill,
+  .pv-round,
+  .pf__glassbtn,
+  .br-quiet,
+  .pl-btn,
+  .br-searchpage__chip
+) {
+  transition:
+    scale var(--duration-press) var(--ease-standard),
+    background-color var(--duration-focus) var(--ease-standard),
+    color var(--duration-focus) var(--ease-standard),
+    box-shadow var(--duration-focus) var(--ease-standard),
+    transform var(--duration-focus) var(--ease-standard);
+}
+:is(
+  .br-hero__btn,
+  .br-pill,
+  .br-sheet__pill,
+  .pv-round,
+  .pf__glassbtn,
+  .br-quiet,
+  .pl-btn,
+  .br-searchpage__chip
+):not(:active) {
+  transition-property: scale, background-color, color, box-shadow, transform;
+  transition-duration:
+    240ms, var(--duration-focus), var(--duration-focus), var(--duration-focus),
+    var(--duration-focus);
+  transition-timing-function:
+    var(--ease-spring), var(--ease-standard), var(--ease-standard), var(--ease-standard),
+    var(--ease-standard);
+}
+:is(
+    .br-hero__btn,
+    .br-pill,
+    .br-sheet__pill,
+    .pv-round,
+    .pf__glassbtn,
+    .br-quiet,
+    .pl-btn,
+    .br-searchpage__chip
+  ):active:not(:disabled) {
+  scale: 0.96;
+}
+
+/* Progress threads grow and retract instead of jumping. */
+.pl-progress__fill,
+.br-hero__track > span {
+  transition: width 400ms var(--ease-standard);
+}
+
+/* Menus grow from the corner of their button, rows 15 ms apart. */
+@keyframes pl-grow {
+  from {
+    opacity: 0;
+    scale: 0.92;
+  }
+}
+.br-gmenu {
+  animation: pl-grow var(--duration-focus) var(--ease-standard) backwards;
+  transform-origin: top right;
+}
+.br-gmenu > * {
+  animation: pl-appear var(--duration-focus) var(--ease-standard) backwards;
+}
+.br-gmenu > :nth-child(2) {
+  animation-delay: 15ms;
+}
+.br-gmenu > :nth-child(3) {
+  animation-delay: 30ms;
+}
+.br-gmenu > :nth-child(4) {
+  animation-delay: 45ms;
+}
+.br-gmenu > :nth-child(5) {
+  animation-delay: 60ms;
+}
+.br-gmenu > :nth-child(6) {
+  animation-delay: 75ms;
+}
+.br-gmenu > :nth-child(7) {
+  animation-delay: 90ms;
+}
+.br-gmenu > :nth-child(n + 8) {
+  animation-delay: 105ms;
+}
+
+/* The search field widens out of the magnifier. */
+@keyframes pl-widen {
+  from {
+    width: 38px;
+    opacity: 0.6;
+  }
+}
+.br-nav__search {
+  animation: pl-widen var(--duration-panel) var(--ease-glide) backwards;
+}
+
+/* PIN dots pop as each digit lands. */
+@keyframes pl-dot {
+  0% {
+    scale: 0;
+  }
+  60% {
+    scale: 1.15;
+  }
+}
+.pf__dot.is-on {
+  animation: pl-dot 160ms var(--ease-standard);
+}
+
+/* Sheets: the page behind blurs in while the sheet glides up from 0.96. */
+@keyframes pl-scrim-in {
+  from {
+    background-color: rgba(10, 8, 6, 0);
+    backdrop-filter: blur(0) saturate(1);
+  }
+}
+@keyframes pl-sheet-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+.br-sheet-scrim {
+  animation: pl-scrim-in var(--duration-panel) var(--ease-glide) backwards;
+}
+.br-sheet {
+  animation: pl-sheet-in var(--duration-panel) var(--ease-glide) backwards;
+}
+/* Closing is quicker. */
+.br-sheet-scrim.is-closing {
+  animation: pl-scrim-in 200ms var(--ease-exit) reverse forwards;
+}
+.br-sheet-scrim.is-closing .br-sheet {
+  animation: pl-sheet-in 200ms var(--ease-exit) reverse forwards;
+}
+
+/* Toasts rise 16 px, and sink away. */
+@keyframes pl-toast-in {
+  from {
+    opacity: 0;
+    translate: -50% 16px;
+  }
+  to {
+    translate: -50% 0;
+  }
+}
+.br-toast {
+  transform: none;
+  translate: -50% 0;
+  animation: pl-toast-in var(--duration-panel) var(--ease-glide) backwards;
+}
+.br-toast.is-leaving {
+  animation: pl-toast-in 240ms var(--ease-exit) reverse forwards;
+}
+
+/* Player: controls rise 8 px as they come, fade slower as they go. */
+.pv-player .pv-stage.is-shown .pv-bottom,
+.pv-player .pv-stage.is-shown .pv-top {
+  translate: 0 0;
+  transition: translate var(--duration-focus) var(--ease-standard);
+}
+.pv-player .pv-stage.is-hidden .pv-bottom {
+  translate: 0 8px;
+  transition: translate var(--duration-controls) var(--ease-exit);
+}
+.pv-player .pv-stage .pv-subs,
+.pv-player .pv-stage .pv-pgs {
+  transition-duration: var(--duration-controls);
+}
+.pv-player .pv-panel {
+  animation: pl-grow var(--duration-focus) var(--ease-glide) backwards;
+  transform-origin: bottom right;
+}
+.pv-player .pv-bottom .pl-tl {
+  --tlh: 6px;
+}
+.pv-player .pv-bottom .pl-tl.is-hover,
+.pv-player .pv-bottom .pl-tl.is-scrubbing {
+  --tlh: 10px;
+}
+/* Up next: the picture shrinks left over 450 ms; the next slides in. */
+.pv-player .pv-video {
+  transition:
+    inset var(--duration-page) var(--ease-glide),
+    width var(--duration-page) var(--ease-glide),
+    border-radius var(--duration-page) var(--ease-glide);
+}
+@keyframes pl-next-in {
+  from {
+    opacity: 0;
+    translate: 40px 0;
+  }
+}
+.pv-player .pv-stage.has-next .pv-next {
+  animation: pl-next-in var(--duration-page) var(--ease-glide) backwards;
+}
+
+/* Hero parallax: the picture moves at 0.6× and fades to 40% as it leaves. */
+.br-hero > .br-hero__art.is-loaded,
+.br-detail__frame > .br-detail__art.is-loaded {
+  translate: 0 var(--parallax-y, 0);
+  opacity: var(--parallax-o, 1);
+}
+
+/* Search: newer keystrokes crossfade the results in place. */
+.br-searchpage__results {
+  transition: opacity var(--duration-hover) var(--ease-standard);
+}
+.br-searchpage__results.is-stale {
+  opacity: 0.6;
+}
+
+/* Seasons: episodes slide 24 px toward the direction of travel. */
+@keyframes pl-ep-right {
+  from {
+    opacity: 0;
+    translate: 24px 0;
+  }
+}
+@keyframes pl-ep-left {
+  from {
+    opacity: 0;
+    translate: -24px 0;
+  }
+}
+.br-episodes[data-dir='right'] > li {
+  animation-name: pl-ep-right;
+  animation-timing-function: var(--ease-glide);
+}
+.br-episodes[data-dir='left'] > li {
+  animation-name: pl-ep-left;
+  animation-timing-function: var(--ease-glide);
+}

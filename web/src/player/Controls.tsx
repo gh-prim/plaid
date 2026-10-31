@@ -15,9 +15,11 @@ interface Pill {
 }
 
 /**
- * The controls, direction A of the canvas (F008-R36): words on the scrim,
- * the title on top, the timeline with both times, then the buttons and
- * the pills that name what plays.
+ * The controls (F008-R36, V2): a few glass pieces on a soft bottom shade.
+ * Top: a round back button and picture in picture with full screen. Bottom:
+ * the kicker and the title, the thin woven timeline with both times, then
+ * volume in a capsule, back 10 / play-pause / forward 10 in the middle, and
+ * the tracks and info on the right.
  */
 export function Controls({
   title,
@@ -74,66 +76,55 @@ export function Controls({
 
   return (
     <>
-      <div className="pl-player__top pv-top">
+      <div className="pv-top">
         <button
           type="button"
-          className="pl-pbtn pl-focusable"
+          className="pv-round pv-glass pl-focusable"
           aria-label={t('player.back')}
           onClick={onBack}
         >
           <Icon name="arrowLeft" />
         </button>
-        <div className="pl-player__titles">
-          <div className="pl-player__title">{title}</div>
-          {line && <div className="pl-player__sub">{line}</div>}
+        <span className="pl-player__spacer" />
+        <div className="pv-capsule pv-glass">
+          {canPip && (
+            <button
+              type="button"
+              className="pl-pbtn pl-focusable"
+              aria-label={t('player.pip')}
+              onClick={onPip}
+            >
+              <Icon name="pip" />
+            </button>
+          )}
+          <button
+            type="button"
+            className="pl-pbtn pl-focusable"
+            aria-label={fullscreen ? t('player.exitFullscreen') : t('player.fullscreen')}
+            onClick={onFullscreen}
+          >
+            <Icon name={fullscreen ? 'fullscreenExit' : 'fullscreen'} />
+          </button>
         </div>
       </div>
 
-      <div className="pl-player__bottom pv-bottom">
-        <div className="pl-player__tlrow">
-          <span className="pl-player__time">{formatClock(media.timeMs)}</span>
-          <Timeline
-            timeMs={media.timeMs}
-            durationMs={media.durationMs}
-            bufferedMs={media.bufferedMs}
-            onSeek={onSeek}
-          />
-          <span className="pl-player__time pv-left">
+      <div className="pv-bottom">
+        {line && <p className="pv-kicker">{line}</p>}
+        <h1 className="pv-heading">{title}</h1>
+        <Timeline
+          timeMs={media.timeMs}
+          durationMs={media.durationMs}
+          bufferedMs={media.bufferedMs}
+          onSeek={onSeek}
+        />
+        <div className="pv-times">
+          <span>{formatClock(media.timeMs)}</span>
+          <span className="pv-left">
             {t('player.remaining', { duration: formatDuration(lng, left) })}
           </span>
         </div>
-        <div className="pl-player__row pv-row">
-          <button
-            type="button"
-            className="pl-pbtn pl-focusable pv-main"
-            aria-label={media.paused ? t('player.play') : t('player.pause')}
-            onClick={onToggle}
-          >
-            <Icon name={media.paused ? 'play' : 'pause'} />
-          </button>
-          <button
-            type="button"
-            className="pl-pbtn pl-focusable pv-skip"
-            aria-label={t('player.back10')}
-            onClick={() => onSkip(-10)}
-          >
-            <Icon name="back10" />
-            <span className="pv-skip__n" aria-hidden="true">
-              {ten}
-            </span>
-          </button>
-          <button
-            type="button"
-            className="pl-pbtn pl-focusable pv-skip"
-            aria-label={t('player.forward10')}
-            onClick={() => onSkip(10)}
-          >
-            <Icon name="forward10" />
-            <span className="pv-skip__n" aria-hidden="true">
-              {ten}
-            </span>
-          </button>
-          <div className={cx('pl-vol pv-vol', muted && 'is-muted')}>
+        <div className="pv-row">
+          <div className={cx('pv-capsule pv-glass pv-vol', muted && 'is-muted')}>
             <button
               type="button"
               className="pl-pbtn pl-focusable"
@@ -157,59 +148,71 @@ export function Controls({
               onChange={(e) => onVolume(Number(e.target.value))}
             />
           </div>
-          <span className="pl-player__spacer" />
-          {pills.map((p) => (
-            <div key={p.menu} className="pv-menuwrap">
+          <div className="pv-transport">
+            <button
+              type="button"
+              className="pl-pbtn pl-focusable pv-skip"
+              aria-label={t('player.back10')}
+              onClick={() => onSkip(-10)}
+            >
+              <Icon name="back10" />
+              <span className="pv-skip__n" aria-hidden="true">
+                {ten}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="pv-round pv-round--main pv-glass pl-focusable pv-main"
+              aria-label={media.paused ? t('player.play') : t('player.pause')}
+              onClick={onToggle}
+            >
+              <Icon name={media.paused ? 'play' : 'pause'} size={30} />
+            </button>
+            <button
+              type="button"
+              className="pl-pbtn pl-focusable pv-skip"
+              aria-label={t('player.forward10')}
+              onClick={() => onSkip(10)}
+            >
+              <Icon name="forward10" />
+              <span className="pv-skip__n" aria-hidden="true">
+                {ten}
+              </span>
+            </button>
+          </div>
+          <div className="pv-capsule pv-glass pv-tracks">
+            {pills.map((p) => (
+              <div key={p.menu} className="pv-menuwrap">
+                <button
+                  type="button"
+                  data-menu-pill={p.menu}
+                  className={cx('pl-pbtn pl-focusable', menu === p.menu && 'is-open')}
+                  aria-label={`${p.label}: ${p.value}`}
+                  title={`${p.label}: ${p.value}`}
+                  aria-haspopup="menu"
+                  aria-expanded={menu === p.menu}
+                  onClick={() => toggle(p.menu)}
+                >
+                  <Icon name={p.icon} size={22} />
+                </button>
+                {menu === p.menu && panel}
+              </div>
+            ))}
+            <div className="pv-menuwrap">
               <button
                 type="button"
-                data-menu-pill={p.menu}
-                className={cx(
-                  'pl-pbtn pl-pbtn--pill pl-focusable pv-pill',
-                  menu === p.menu && 'is-open',
-                )}
-                aria-label={`${p.label}: ${p.value}`}
-                aria-haspopup="menu"
-                aria-expanded={menu === p.menu}
-                onClick={() => toggle(p.menu)}
+                data-menu-pill="info"
+                className={cx('pl-pbtn pl-focusable', menu === 'info' && 'is-open')}
+                aria-label={t('player.info.label')}
+                aria-haspopup="dialog"
+                aria-expanded={menu === 'info'}
+                onClick={() => toggle('info')}
               >
-                <Icon name={p.icon} size={20} />
-                <span className="pv-pill__value">{p.value}</span>
+                <Icon name="info" />
               </button>
-              {menu === p.menu && panel}
+              {menu === 'info' && panel}
             </div>
-          ))}
-          <div className="pv-menuwrap">
-            <button
-              type="button"
-              data-menu-pill="info"
-              className={cx('pl-pbtn pl-focusable', menu === 'info' && 'is-open')}
-              aria-label={t('player.info.label')}
-              aria-haspopup="dialog"
-              aria-expanded={menu === 'info'}
-              onClick={() => toggle('info')}
-            >
-              <Icon name="info" />
-            </button>
-            {menu === 'info' && panel}
           </div>
-          {canPip && (
-            <button
-              type="button"
-              className="pl-pbtn pl-focusable"
-              aria-label={t('player.pip')}
-              onClick={onPip}
-            >
-              <Icon name="pip" />
-            </button>
-          )}
-          <button
-            type="button"
-            className="pl-pbtn pl-focusable"
-            aria-label={fullscreen ? t('player.exitFullscreen') : t('player.fullscreen')}
-            onClick={onFullscreen}
-          >
-            <Icon name={fullscreen ? 'fullscreenExit' : 'fullscreen'} />
-          </button>
         </div>
       </div>
     </>

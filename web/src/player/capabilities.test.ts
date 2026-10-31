@@ -73,7 +73,7 @@ describe('capabilities', () => {
     })
     expect(p.containers).toEqual(['mp4', 'webm'])
     expect(p.video?.[0]).toMatchObject({ maxLevel: 52, maxBitDepth: 8 })
-    expect(p.subtitles).toEqual({ text: ['vtt'] })
+    expect(p.subtitles).toEqual({ text: ['vtt'], separate: ['pgs'] })
     expect(p.protocols).toEqual(['http', 'hls'])
     expect(p.canSwitchAudioTrack).toBe(false)
     expect(p.video?.some((v) => v.hdr)).toBe(false)

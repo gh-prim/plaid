@@ -5,9 +5,28 @@ import { api, type Profile } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { errorMessage, failure, type Failure } from '../auth/errors'
 import { markProfilePicked } from '../auth/profileSession'
+import { PageLight } from '../browse/PageLight'
 import { Wordmark } from '../browse/Wordmark'
-import { Avatar } from '../ui'
+import { Icon } from '../ui'
 import '../browse/browse.css'
+
+/** A profile's circle: its party color with a soft top light, its initial. */
+function Face({ profile, size }: { profile: Profile; size: number }) {
+  return (
+    <span
+      className="pf__face"
+      style={
+        {
+          '--pf-s': `${size}px`,
+          '--pc': `var(--party-${profile.avatarColor + 1})`,
+        } as React.CSSProperties
+      }
+      aria-hidden="true"
+    >
+      {profile.name.trim().charAt(0).toLocaleUpperCase()}
+    </span>
+  )
+}
 
 /** "Who's under the plaid?": picks the active profile of this tab (F003-R17, F008-R2). */
 export function ProfilePicker() {
@@ -20,6 +39,8 @@ export function ProfilePicker() {
   const [fail, setFail] = useState<Failure>()
   // Each failed try remounts the PIN field: empty, focused.
   const [attempt, setAttempt] = useState(0)
+  // The page is lit by what the profile in focus watched last (V2, R51).
+  const [lit, setLit] = useState<Profile>()
 
   const profiles = state.status === 'ready' ? (state.me?.profiles ?? []) : []
   const from = (location.state as { from?: string } | null)?.from ?? '/'
@@ -50,6 +71,7 @@ export function ProfilePicker() {
 
   return (
     <div className="pl pf">
+      {asking ? null : <PageLight art={lit?.ambient} />}
       <div className="pf__top">
         <Wordmark />
       </div>
@@ -82,17 +104,28 @@ export function ProfilePicker() {
                   className="pf__tile pl-focusable"
                   disabled={busy}
                   onClick={() => pick(p)}
+                  onPointerEnter={() => setLit(p)}
+                  onFocus={() => setLit(p)}
                   aria-label={p.hasPin ? t('profiles.withPin', { name: p.name }) : p.name}
                 >
-                  <Avatar name={p.name} color={p.avatarColor + 1} size={144} />
+                  <span className="pf__circle">
+                    <Face profile={p} size={176} />
+                    {p.hasPin && (
+                      <span className="pf__lock">
+                        <Icon name="lock" size={14} />
+                      </span>
+                    )}
+                  </span>
                   <span className="pf__name">{p.name}</span>
-                  {p.hasPin && <span className="pf__badge">{t('profiles.pin.badge')}</span>}
                 </button>
               </li>
             ))}
           </ul>
-          <span className="pf__fill" />
-          <button type="button" className="pf__link pl-focusable" onClick={() => void signOut()}>
+          <button
+            type="button"
+            className="pf__glassbtn br-glass pl-focusable"
+            onClick={() => void signOut()}
+          >
             {t('auth.signOut')}
           </button>
         </main>
@@ -132,7 +165,7 @@ function PinEntry({
 
   return (
     <main className="pf__main pf__main--pin">
-      <Avatar name={profile.name} color={profile.avatarColor + 1} size={96} />
+      <Face profile={profile} size={120} />
       <label htmlFor={id} className="pf__pinTitle">
         {t('profiles.pin.title', { name: profile.name })}
       </label>
@@ -151,21 +184,14 @@ function PinEntry({
           onChange={(e) => change(e.target.value)}
         />
         {[0, 1, 2, 3].map((i) => (
-          <span
-            key={i}
-            aria-hidden="true"
-            className={`pf__box${i === pin.length ? ' is-current' : ''}`}
-          >
-            {i < pin.length && <span className="pf__dot" />}
-          </span>
+          <span key={i} aria-hidden="true" className={`pf__dot${i < pin.length ? ' is-on' : ''}`} />
         ))}
       </div>
-      {error && (
-        <p id={`${id}-error`} role="alert" className="pf__error">
-          {error}
-        </p>
-      )}
-      <button type="button" className="pf__link pl-focusable" onClick={onCancel}>
+      <p id={`${id}-error`} role="alert" className="pf__error">
+        {error}
+      </p>
+      {!locked && <p className="pf__hint">{t('profiles.pin.hint')}</p>}
+      <button type="button" className="pf__glassbtn br-glass pl-focusable" onClick={onCancel}>
         {t('profiles.pin.cancel')}
       </button>
     </main>

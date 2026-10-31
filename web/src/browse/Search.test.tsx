@@ -1,4 +1,4 @@
-import { act, renderHook, screen } from '@testing-library/react'
+import { act, renderHook, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fakeApi, profile, server, user } from '../test/fakeApi'
@@ -56,9 +56,10 @@ describe('useSearch', () => {
     await act(() => vi.advanceTimersByTimeAsync(20))
     expect(calls.map((c) => new URL(`http://x${c.path}`).pathname)).toEqual(['/search'])
     expect(result.current.results?.movies).toHaveLength(2)
-    // A new query hides the old results until its own answer.
+    // A new query keeps the old results, marked stale, until its own answer (V2).
     rerender({ q: 'dune pa' })
-    expect(result.current.results).toBeUndefined()
+    expect(result.current.stale).toBe(true)
+    expect(result.current.results?.movies).toHaveLength(2)
   })
 })
 
@@ -80,37 +81,42 @@ describe('search box', () => {
     })
   }
 
-  it('finds while typing, grouped, and walks the results with the keyboard', async () => {
+  it('opens search in the tab bar with "/", filters by kind, and Enter opens the first result', async () => {
     setup()
     await renderApp('/')
     await screen.findByRole('heading', { name: 'Nothing here yet.' })
     await userEvent.keyboard('/')
-    const field = screen.getByRole('combobox', { name: 'Search nas' })
+    const field = (await screen.findAllByRole('searchbox', { name: 'Search nas' }))[0]!
     expect(field).toHaveFocus()
     await userEvent.keyboard('dun')
-    const list = await screen.findByRole('listbox')
-    expect(screen.getByRole('group', { name: 'Movies' })).toBeInTheDocument()
-    expect(screen.getByRole('group', { name: 'People' })).toBeInTheDocument()
+    const top = await screen.findByRole('region', { name: 'Top results' })
+    expect(within(top).getByRole('link', { name: 'Dune' })).toHaveAttribute('href', '/item/m1')
+    expect(within(top).getByText('Movie · 2024')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'People' })).toHaveTextContent('Denis Villeneuve')
     expect(screen.getByText('The Bear · S2 E3')).toBeInTheDocument()
-    expect(list).toBeInTheDocument()
-    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
-    const active = field.getAttribute('aria-activedescendant')!
-    expect(document.getElementById(active)).toHaveTextContent('Dune: Part Two')
+    // Filters, with their counts; only kinds with hits.
+    const tabs = screen.getByRole('tablist', { name: 'Show' })
+    expect(
+      within(tabs)
+        .getAllByRole('tab')
+        .map((t) => t.textContent),
+    ).toEqual(['All4', 'Movies2', 'Episodes1', 'People1'])
+    await userEvent.click(within(tabs).getByRole('tab', { name: /People/ }))
+    expect(screen.queryByRole('region', { name: 'Top results' })).not.toBeInTheDocument()
+    field.focus()
     await userEvent.keyboard('{Enter}')
     expect(
       await screen.findByRole('heading', { name: 'This title isn’t available on this profile.' }),
     ).toBeInTheDocument()
   })
 
-  it('says when nothing matches, and Esc closes then clears', async () => {
+  it('says when nothing matches, and Esc clears', async () => {
     setup()
-    await renderApp('/')
-    const field = await screen.findByRole('combobox', { name: 'Search nas' })
+    await renderApp('/search')
+    const field = (await screen.findAllByRole('searchbox', { name: 'Search nas' }))[0]!
     await userEvent.type(field, 'zzz')
     expect(await screen.findByText('Nothing called “zzz” here.')).toBeInTheDocument()
-    await userEvent.keyboard('{Escape}')
-    expect(screen.queryByText('Nothing called “zzz” here.')).not.toBeInTheDocument()
-    await userEvent.keyboard('{Escape}')
+    await userEvent.keyboard('{Escape}{Escape}')
     expect(field).toHaveValue('')
   })
 })

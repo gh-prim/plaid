@@ -13,8 +13,9 @@ import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { useAuth } from '../auth/AuthProvider'
 import { presentFiles } from '../browse/itemFacts'
+import { imageSrc } from '../browse/media'
 import { formatDuration } from '../lib/format'
-import { cx, Toast } from '../ui'
+import { cx, Icon, Spinner, Toast } from '../ui'
 import { capabilityProfile, nativeHls } from './capabilities'
 import { Controls, type Menu } from './Controls'
 import { attach, showSubtitle, type Engine, type EngineFailure } from './engine'
@@ -22,6 +23,8 @@ import { InfoPanel } from './InfoPanel'
 import { audioLabel, languageLabel, qualityLabel, subtitleLabel } from './labels'
 import { setMediaSession } from './mediaSession'
 import { EndOfShow, NextEpisode, StillWatching } from './NextEpisode'
+import { PgsLayer } from './PgsLayer'
+import { useQuickSubtitle, vttObjectUrl } from './quickSubtitles'
 import { PlayerError, type PlayerProblem } from './PlayerError'
 import { ResumePrompt } from './ResumePrompt'
 import {
@@ -510,9 +513,47 @@ function Playback({
       )?.webkitEnterFullscreen?.()
   }
 
+  // PGS tracks come as their own .sup stream and are drawn by PgsLayer;
+  // the others are WebVTT <track>s.
+  const isPgs = (s: { url?: string }) => !!s.url?.endsWith('.sup')
   const textSubs = (session?.subtitles ?? [])
-    .filter((s) => s.url && s.delivery !== 'burn_in')
+    .filter((s) => s.url && s.delivery !== 'burn_in' && !isPgs(s))
     .map((s) => ({ ...s, sdh: sdh.has(s.index) }))
+  const pgsTrack = session?.subtitles.find((s) => s.index === sub && isPgs(s))
+  const [pgsLoading, setPgsLoading] = useState(false)
+  // The chosen text track, fetched the quick way: the part around the
+  // position first, then the whole track (V2).
+  const chosenText = textSubs.find((s) => s.index === sub)
+  const quick = useQuickSubtitle(chosenText?.url, video, vttObjectUrl)
+  useEffect(() => {
+    const src = quick.data
+    return () => {
+      if (src) URL.revokeObjectURL(src)
+    }
+  }, [quick.data])
+
+  // The chosen track can take a while the first time (the server reads the
+  // whole file): say so instead of showing nothing.
+  const [, trackLoaded] = useState(0)
+  useEffect(() => {
+    if (sub === null) return
+    const el = document.getElementById(`sub-${sub}`)
+    if (!el) return
+    const done = () => trackLoaded((n) => n + 1)
+    el.addEventListener('load', done)
+    el.addEventListener('error', done)
+    return () => {
+      el.removeEventListener('load', done)
+      el.removeEventListener('error', done)
+    }
+  }, [sub, session])
+  const subEl =
+    sub === null ? null : (document.getElementById(`sub-${sub}`) as HTMLTrackElement | null)
+  // 1 is LOADING (0 is a track not asked for yet, 2 LOADED, 3 ERROR).
+  const subLoading =
+    (!!chosenText && (quick.loading || !quick.data)) ||
+    (!!subEl && subEl.readyState === 1) ||
+    (!!pgsTrack && pgsLoading)
 
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     setChain(0)
@@ -590,6 +631,8 @@ function Playback({
 
   // ---- Render ----
 
+  // Until the first frame: the item's backdrop, faded, under a spinner.
+  const posterArt = item ? (item.backdrop ?? item.still ?? item.poster) : undefined
   const blocking = end === 'countdown' || end === 'stillWatching' || end === 'endOfShow'
   const visible =
     playing && !blocking && (shown || media.paused || menu !== null || hovering || focusIn)
@@ -601,6 +644,14 @@ function Playback({
       : [item?.year, item?.runtimeMinutes ? formatDuration(lng, item.runtimeMinutes * 60_000) : '']
           .filter(Boolean)
           .join(' · ')
+  // V2: an episode reads "Show · S2 E3" above its own title, a movie its facts above its title.
+  const short =
+    item?.kind === 'episode' && item.seasonNumber !== undefined && item.episodeNumber !== undefined
+      ? t('card.episodeShort', { season: item.seasonNumber, episode: item.episodeNumber })
+      : ''
+  const kicker =
+    item?.kind === 'episode' ? [title, short].filter(Boolean).join(t('card.separator')) : line
+  const heading = item?.kind === 'episode' ? item.displayTitle || short : (title ?? '')
   const selectedAudio = session?.audioTracks.find((a) => a.selected)
   const subValue =
     sub !== null
@@ -684,6 +735,7 @@ function Playback({
         visible ? 'is-shown' : 'is-hidden',
         menu && 'has-menu',
         end === 'card' && 'has-next',
+        playing && media.ready && media.paused && 'is-paused',
       )}
       onPointerMove={(e) => e.pointerType === 'mouse' && poke()}
       onPointerDown={() => setChain(0)}
@@ -695,15 +747,61 @@ function Playback({
       >
         {textSubs.map((s) => (
           <track
-            key={`${s.index}-${s.url}`}
+            key={`${s.index}-${s.index === sub ? (quick.data ?? 'wait') : s.url}`}
             id={`sub-${s.index}`}
             kind="subtitles"
-            src={s.url}
+            src={s.index === sub ? quick.data : s.url}
             label={subtitleLabel(t, lng, s, s.sdh)}
           />
         ))}
       </video>
+      {pgsTrack?.url && (
+        <PgsLayer
+          key={pgsTrack.url}
+          url={pgsTrack.url}
+          video={video}
+          raised={visible}
+          onLoading={setPgsLoading}
+        />
+      )}
+      {!media.ready && (
+        // Never a black screen (V2): the backdrop, the title where it will
+        // sit, and a glass ring where play will be.
+        <div className="pv-poster" aria-hidden="true">
+          {posterArt && <img src={imageSrc(posterArt.imageId, 1280)} alt="" />}
+          {item && !playing && phase.k !== 'ask' && phase.k !== 'problem' && (
+            <div className="pv-poster__titles">
+              {kicker && <p className="pv-kicker">{kicker}</p>}
+              <p className="pv-heading">{heading}</p>
+            </div>
+          )}
+          {!playing && phase.k !== 'ask' && phase.k !== 'problem' && !reload && (
+            <span className="pv-poster__ring pv-glass">
+              <Spinner size={30} mono />
+            </span>
+          )}
+        </div>
+      )}
+      {playing && !reload && !media.paused && (media.waiting || !media.ready) && (
+        // Mid-play buffering: one glass ring in the middle, never on top of
+        // the play button.
+        <span className="pv-buffering pv-glass" role="status" aria-label={t('common.loading')}>
+          <Spinner size={34} mono />
+        </span>
+      )}
       {playing && <div className="pv-surface" onPointerUp={onSurface} />}
+      {playing && media.ready && media.paused && !menu && end !== 'card' && (
+        // Paused: the picture dims and one big glass play button waits.
+        <button
+          type="button"
+          className="pv-bigplay pv-glass pl-focusable"
+          aria-label={t('player.play')}
+          tabIndex={-1}
+          onClick={toggle}
+        >
+          <Icon name="play" size={44} />
+        </button>
+      )}
       {visible && <div className="pl-player__scrim" />}
 
       {cues.length > 0 && (
@@ -726,8 +824,8 @@ function Playback({
           inert={!visible}
         >
           <Controls
-            title={title ?? ''}
-            line={line || undefined}
+            title={heading}
+            line={kicker || undefined}
             media={media}
             pills={pills}
             menu={menu === 'shortcuts' ? null : menu}
@@ -754,6 +852,12 @@ function Playback({
         </div>
       )}
 
+      {subLoading && playing && !reload && (
+        <div className="pv-subwait pv-glass" role="status">
+          <Spinner size={14} mono />
+          {t('player.subtitles.preparing')}
+        </div>
+      )}
       {reload && (
         <div className="pv-reload" role="status">
           <span>{reload}</span>

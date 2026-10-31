@@ -529,3 +529,386 @@
   padding: var(--space-2) var(--space-3);
   font-size: 14px;
 }
+
+/* Before the first frame: the item's backdrop, faded, and a spinner. */
+.pv-poster {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.pv-poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+  filter: blur(2px) saturate(0.85);
+  animation: pv-fade-in var(--duration-backdrop) var(--ease-standard) both;
+}
+.pv-poster .pl-spinner {
+  position: relative;
+}
+@keyframes pv-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-poster img {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   V2: the picture owns the screen; a few glass pieces on a soft bottom
+   shade, no bar across it. The woven thread is the one amber.
+   --------------------------------------------------------------------- */
+.pv-glass {
+  background: rgba(255, 250, 240, 0.1);
+  backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  color: oklch(0.955 0.01 81);
+}
+.pv-stage .pl-player__scrim {
+  background:
+    linear-gradient(0deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 18%, rgba(0, 0, 0, 0) 38%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 16%);
+}
+.pv-top {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.pv-round {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform var(--duration-focus) var(--ease-standard);
+}
+.pv-round:hover {
+  transform: scale(1.06);
+}
+.pv-round--main {
+  width: 68px;
+  height: 68px;
+}
+.pv-capsule {
+  height: 48px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.pv-capsule .pl-pbtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+}
+.pv-capsule .pl-pbtn.is-open {
+  background: oklch(0.955 0.01 81);
+  color: #0e0c09;
+}
+.pv-bottom {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: 36px;
+  padding: 0;
+}
+.pv-kicker {
+  margin: 0;
+  font: 600 15px/20px var(--font-text);
+  color: oklch(0.875 0.009 80);
+}
+.pv-heading {
+  margin: 4px 0 0;
+  font: 700 34px/40px var(--font-text);
+  letter-spacing: -0.025em;
+  color: oklch(0.955 0.01 81);
+}
+.pv-bottom .pl-tl {
+  margin-top: 14px;
+  --tlh: 4px;
+}
+.pv-bottom .pl-tl.is-hover,
+.pv-bottom .pl-tl.is-scrubbing,
+.pv-bottom .pl-tl:focus-visible {
+  --tlh: 8px;
+}
+.pv-bottom .pl-tl__seg {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.26);
+}
+.pv-bottom .pl-tl__buf {
+  background: rgba(255, 255, 255, 0.22);
+}
+.pv-times {
+  display: flex;
+  justify-content: space-between;
+  font: 600 14px/18px var(--font-text);
+  font-variant-numeric: tabular-nums;
+  color: oklch(0.875 0.009 80);
+}
+.pv-left {
+  color: inherit;
+}
+.pv-row {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+.pv-vol {
+  justify-self: start;
+  padding: 0 16px 0 4px;
+}
+.pv-transport {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.pv-transport .pv-skip {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+}
+.pv-tracks {
+  justify-self: end;
+}
+.pv-tip {
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.14);
+  backdrop-filter: blur(20px);
+}
+
+/* Menus: one glass panel above the button */
+.pv-panel {
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 240, 0.08) 0%, rgba(255, 250, 240, 0.02) 50%),
+    rgba(26, 22, 18, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 40px 120px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Paused: the picture dims, one big glass play button */
+.pv-stage.is-paused .pv-video {
+  filter: brightness(0.75);
+  transition: filter var(--duration-panel) var(--ease-standard);
+}
+.pv-bigplay {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 104px;
+  height: 104px;
+  margin: -52px 0 0 -52px;
+  padding: 0 0 0 6px;
+  border: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  animation: pv-fade-in var(--duration-hover) var(--ease-standard);
+}
+
+/* Subtitles move up while the controls show, and drop back */
+.pv-stage.is-shown .pv-subs {
+  bottom: 230px;
+}
+
+/* Launch: the backdrop, the title where it will sit, the ring where play will be */
+.pv-poster img {
+  opacity: 1;
+  filter: brightness(0.6);
+}
+.pv-poster::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 340px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.72) 100%);
+}
+.pv-poster__titles {
+  position: absolute;
+  z-index: 1;
+  left: 48px;
+  bottom: 156px;
+}
+.pv-poster__ring {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 52px;
+  width: 68px;
+  height: 68px;
+  margin-left: -34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+/* Resume, still watching, end of show, shortcuts, errors: glass cards */
+.pv-dim {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+}
+.pv-resume,
+.pv-keys,
+.pv-center .pl-pmsg,
+.pv-center .pl-resume {
+  border-radius: 26px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 250, 240, 0.1) 0%,
+      rgba(255, 250, 240, 0.03) 40%,
+      rgba(255, 250, 240, 0.05) 100%
+    ),
+    rgba(30, 26, 22, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 40px 120px -20px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+.pv-center .pl-btn {
+  border-radius: 999px;
+}
+
+/* Up next: the credits keep playing small on the left */
+.pv-video {
+  transition:
+    inset var(--duration-panel) var(--ease-standard),
+    border-radius var(--duration-panel) var(--ease-standard);
+}
+@media (min-width: 900px) {
+  .pv-stage.has-next .pv-video {
+    inset: 120px auto auto 64px;
+    width: min(52vw, 760px);
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 40px 100px -30px rgba(0, 0, 0, 0.8);
+  }
+  .pv-stage.has-next .pv-next {
+    left: calc(64px + min(52vw, 760px) + 48px);
+    right: 64px;
+    top: 120px;
+    bottom: auto;
+  }
+  .pv-stage.has-next .pv-bottom,
+  .pv-stage.has-next .pl-player__scrim {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .pv-top {
+    left: 16px;
+    right: 16px;
+    top: 16px;
+  }
+  .pv-bottom {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+  .pv-heading {
+    font-size: 24px;
+    line-height: 30px;
+  }
+  .pv-row {
+    grid-template-columns: auto 1fr auto;
+  }
+  .pv-transport {
+    justify-content: center;
+    gap: 8px;
+  }
+  .pv-vol__range {
+    display: none;
+  }
+  .pv-vol {
+    padding: 0 4px;
+  }
+  .pv-poster__titles {
+    left: 16px;
+    bottom: 120px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-video,
+  .pv-round,
+  .pv-bigplay {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* The chosen subtitles on their way: a small glass note where they'll show */
+.pv-subwait {
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  z-index: 1;
+  transform: translateX(-50%);
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 13px/1 var(--font-text);
+  pointer-events: none;
+}
+.pv-stage.is-shown .pv-subwait {
+  bottom: 230px;
+}
+
+/* PGS subtitles drawn over the picture, raised while the controls show */
+.pv-pgs {
+  position: absolute;
+  pointer-events: none;
+  transition: transform var(--duration-controls) var(--ease-exit);
+}
+.pv-pgs.is-raised {
+  transform: translateY(-12%);
+  transition-duration: var(--duration-hover);
+}
+
+/* Buffering mid-play: a glass ring in the middle of the picture */
+.pv-buffering {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 76px;
+  height: 76px;
+  margin: -38px 0 0 -38px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: pv-fade-in var(--duration-panel) var(--ease-standard) both;
+}

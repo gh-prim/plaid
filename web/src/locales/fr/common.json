@@ -1,17 +1,59 @@
 {
+  "activity": {
+    "analyze": "Analyse des fichiers de {{library}}",
+    "empty": "Rien en cours pour l’instant.",
+    "found_one": "{{count, number}} fichier trouvé",
+    "found_many": "{{count, number}} fichiers trouvés",
+    "found_other": "{{count, number}} fichiers trouvés",
+    "label_one": "Activité : {{count, number}} tâche en cours",
+    "label_many": "Activité : {{count, number}} tâches en cours",
+    "label_other": "Activité : {{count, number}} tâches en cours",
+    "loading": "Chargement de l’activité",
+    "match": "Identification de {{library}}",
+    "ofTotal": "{{done}} sur {{total}}",
+    "queued": "En attente",
+    "refresh": "Mise à jour des infos dans {{library}}",
+    "scan": "Scan de {{library}}",
+    "title": "Activité",
+    "titlesLeft_one": "Encore {{count, number}} titre",
+    "titlesLeft_many": "Encore {{count, number}} titres",
+    "titlesLeft_other": "Encore {{count, number}} titres",
+    "watching": "{{name}} regarde {{title}}"
+  },
   "admin": {
     "back": "Retour à la bibliothèque",
-    "backTo": "‹ {{serverName}}",
-    "group": {
-      "manage": "Gérer",
-      "settings": "Réglages",
-      "status": "État"
+    "backToWatching": "Retour au visionnage",
+    "dash": {
+      "added": "Ajouté cette semaine",
+      "addedNone": "Rien de nouveau cette semaine.",
+      "busy": "Occupé",
+      "conversions": "Conversions",
+      "cpu": "Processeur",
+      "fine": "Tout va bien",
+      "free": "{{size}} libres",
+      "gpu": "Carte graphique, {{accel}}",
+      "health": "Santé du serveur",
+      "hot": "Chauffe",
+      "idle": "Au repos",
+      "nobody": "Personne ne regarde en ce moment",
+      "normal": "Normal",
+      "notAnswering": "Ne répond pas",
+      "ofMax": "{{n, number}} sur {{max, number}}",
+      "software": "Logiciel",
+      "stop": "Arrêter le flux de {{name}}",
+      "stopShort": "Arrêter",
+      "storage": "Stockage",
+      "streams_one": "{{count, number}} flux",
+      "streams_many": "{{count, number}} flux",
+      "streams_other": "{{count, number}} flux",
+      "temperature": "Température",
+      "unknown": "Pas disponible ici",
+      "up": "lancé depuis {{duration}}",
+      "upload": "Envoi",
+      "used": "{{used}} utilisés sur {{total}}"
     },
     "home": {
-      "fromLibrary": "Dans ta bibliothèque",
-      "library": "{{movies, number}} films · {{shows, number}} séries · dernière analyse {{time}}",
       "nothingNeedsYou": "Rien ne demande ton attention.",
-      "openLibrary": "Ouvrir la bibliothèque",
       "status": {
         "playing_one": "{{count, number}} personne regarde. Tous les flux suivent.",
         "playing_many": "",
@@ -26,7 +68,6 @@
       }
     },
     "nav": {
-      "home": "Vue d’ensemble",
       "libraries": "Bibliothèques",
       "metadata": "Métadonnées",
       "people": "Personnes",
@@ -48,11 +89,21 @@
       "showAdvanced": "Afficher les réglages avancés"
     },
     "sections": "Sections de l’admin",
+    "settings": {
+      "libraries_one": "{{count, number}} bibliothèque",
+      "libraries_many": "{{count, number}} bibliothèques",
+      "libraries_other": "{{count, number}} bibliothèques",
+      "none": "Aucun",
+      "unrecognized": "Non reconnus"
+    },
     "summary": {
-      "hardwareOff": "Matériel désactivé",
       "playing_one": "{{count, number}} flux",
       "playing_many": "",
       "playing_other": "{{count, number}} flux"
+    },
+    "tab": {
+      "dashboard": "Tableau de bord",
+      "settings": "Réglages"
     }
   },
   "auth": {
@@ -75,6 +126,7 @@
     "goToShow": "Voir la série",
     "menu": "Plus d’actions pour {{title}}",
     "moreInfo": "Plus d’infos",
+    "pending": "Recherche des infos…",
     "progressLabel": "Vu à {{percent, number}} %",
     "separator": " · ",
     "timeLeft": "Encore {{duration}}",
@@ -139,6 +191,34 @@
     "too_long": "Trop long.",
     "too_short": "Trop court."
   },
+  "fixMatch": {
+    "allYears": "Chercher toutes les années",
+    "anyYear": "Toutes",
+    "byLink": "Coller un lien TMDB",
+    "clear": "Effacer la recherche",
+    "clearYear": "Effacer l’année",
+    "count_one": "{{count, number}} résultat",
+    "count_many": "{{count, number}} résultats",
+    "count_other": "{{count, number}} résultats",
+    "current": "Association actuelle",
+    "done": "Associé à {{title}} ({{year}})",
+    "doneNoYear": "Associé à {{title}}",
+    "keeps": "Résultats de TMDB. L’historique et tes propres images restent.",
+    "kind": {
+      "movie": "Film",
+      "show": "Série"
+    },
+    "link": "TMDB {{id}}",
+    "none": "Rien pour « {{query}} »",
+    "noneHint": "Essaie sans l’année, ou avec le titre original.",
+    "noneYear": "Rien pour « {{query}} » en {{year}}",
+    "placeholder": "Un titre, ou un lien TMDB",
+    "results": "Résultats",
+    "searching": "Recherche…",
+    "undo": "Annuler",
+    "use": "Utiliser",
+    "year": "Année"
+  },
   "folder": {
     "fs": {
       "local": "Disque local",
@@ -177,33 +257,16 @@
     "end_many": "",
     "end_other": "Voilà les {{count, number}} titres.",
     "filter": {
+      "allGenres": "Tous les genres",
       "clear": "Tout effacer",
-      "decade": "Années {{decade}}",
       "genre": "Genre",
-      "hdrOnly": "HDR uniquement",
-      "remove": "Retirer le filtre {{name}}",
-      "resolution": {
-        "label": "Résolution",
-        "sd": "720p et moins",
-        "uhd": "4K"
-      },
       "watch": {
         "all": "Tout",
         "in_progress": "En cours",
         "label": "Visionnage",
-        "unwatched": "Pas vus",
-        "watched": "Vus"
-      },
-      "years": "Années"
-    },
-    "filters": {
-      "apply_one": "Afficher {{count, number}} titre",
-      "apply_many": "",
-      "apply_other": "Afficher {{count, number}} titres",
-      "count_one": "Filtres ({{count, number}})",
-      "count_many": "",
-      "count_other": "Filtres ({{count, number}})",
-      "label": "Filtres"
+        "newEpisodes": "Nouveaux épisodes",
+        "unwatched": "Pas vus"
+      }
     },
     "letters": "Aller à la lettre",
     "order": {
@@ -212,6 +275,7 @@
     },
     "sort": {
       "added": "Ajouts récents",
+      "by": "Trier par",
       "label": "Trier",
       "played": "Vu récemment",
       "random": "Aléatoire",
@@ -237,6 +301,11 @@
       },
       "title": "Rien à regarder pour l’instant."
     },
+    "hero": {
+      "newIn": "Nouveau dans {{library}}",
+      "resume": "Reprendre",
+      "with": "Avec {{names}}"
+    },
     "row": {
       "continueWatching": "Reprendre",
       "genre": "{{genre}}",
@@ -245,25 +314,51 @@
     }
   },
   "item": {
-    "cast": "Distribution",
+    "about": {
+      "accessibility": "Accessibilité",
+      "added": "Ajouté",
+      "audio": "Audio",
+      "file": "Fichier",
+      "firstAired": "Première diffusion",
+      "information": "Informations",
+      "languages": "Langues",
+      "rated": "Classification",
+      "released": "Sortie",
+      "runtime": "Durée",
+      "sdh": "Sous-titres pour personnes sourdes et malentendantes : les dialogues, le nom de qui parle et les sons importants.",
+      "seasons": "Saisons",
+      "status": "Statut",
+      "studios": "Studios",
+      "subtitles": "Sous-titres",
+      "title": "À propos"
+    },
+    "castAndCrew": "Distribution et équipe",
     "collection": {
-      "partOf": "Fait partie de {{name}}",
       "thisMovie": "Ce film"
     },
     "createdBy": "Créée par {{names}}",
+    "crew": {
+      "creator": "Création",
+      "director": "Réalisation",
+      "writer": "Scénario"
+    },
     "directedBy": "Réalisé par {{names}}",
     "edit": {
       "artwork": {
-        "auto": "PLAID choisit la meilleure",
         "automatic": "Revenir au choix automatique",
         "backdrop": "Arrière-plan",
+        "byHand": "Choisie à la main. Les nouvelles images de TMDB ne la remplaceront pas.",
         "kind": "Type d’image",
         "label": "Changer l’image",
         "logo": "Logo",
         "noLanguage": "Sans texte",
-        "option": "{{language}} · {{width}} × {{height}}",
+        "none": "Pas encore d’image de ce type.",
+        "picked": "Choisie automatiquement. Ton choix s’applique tout de suite, pour tous les profils.",
         "poster": "Affiche",
-        "title": "Changer l’image · {{title}}"
+        "sheet": "Images",
+        "source": {
+          "local": "À côté du fichier"
+        }
       },
       "fixMatch": "Corriger l’identification",
       "label": "Modifier",
@@ -273,6 +368,7 @@
     "episode": {
       "inProgress": "Encore {{duration}}"
     },
+    "episodeNumber": "Épisode {{number, number}}",
     "episodes_one": "{{count, number}} épisode",
     "episodes_many": "",
     "episodes_other": "{{count, number}} épisodes",
@@ -285,12 +381,23 @@
     "originalTitle": "Titre original : {{title}}",
     "play": "Lire",
     "playEpisode": "Lire S{{season, number}} É{{episode, number}}",
+    "preview": {
+      "autoplay": "Lire les aperçus automatiquement",
+      "pause": "Mettre l’aperçu en pause",
+      "play": "Lire l’aperçu"
+    },
     "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
     "rating_many": "",
     "rating_other": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} votes",
     "resumeEpisode": "Reprendre S{{season, number}} É{{episode, number}}",
     "season": "Saison {{number, number}}",
     "seasonPicker": {
+      "all_one": "Les {{count, number}} saisons",
+      "all_many": "Les {{count, number}} saisons",
+      "all_other": "Les {{count, number}} saisons",
+      "allWithSpecials_one": "Les {{count, number}} saisons et les épisodes spéciaux",
+      "allWithSpecials_many": "Les {{count, number}} saisons et les épisodes spéciaux",
+      "allWithSpecials_other": "Les {{count, number}} saisons et les épisodes spéciaux",
       "jump": "Tape un numéro pour y aller",
       "label": "Choisir une saison",
       "title_one": "{{count, number}} saison et épisodes spéciaux",
@@ -306,9 +413,6 @@
       "ended": "Terminée",
       "in_production": "En production",
       "returning": "Renouvelée"
-    },
-    "tech": {
-      "audio": "Audio : {{languages}}"
     },
     "trailer": {
       "notice": "Lue depuis YouTube quand tu cliques.",
@@ -392,6 +496,16 @@
       "shows": "Séries"
     }
   },
+  "matchFile": {
+    "empty": {
+      "body": "Tape ce que tu penses que c’est. Les résultats viennent de TMDB.",
+      "title": "Le nom ne disait pas assez"
+    },
+    "file": "Le fichier",
+    "in": "Dans {{folder}}",
+    "note": "Une fois associé, le fichier rejoint la bibliothèque avec ses images.",
+    "title": "Associer ce fichier"
+  },
   "metadata": {
     "attributions": "Sources",
     "key": {
@@ -424,12 +538,10 @@
       "system": "Système"
     },
     "home": "Accueil",
-    "libraries": "Bibliothèques",
     "main": "Principal",
     "more": "Plus",
     "profileMenu": "Menu du profil {{name}}",
     "search": "Rechercher",
-    "server": "Serveur",
     "serverCard": {
       "idle": "Rien en lecture",
       "watching_one": "{{count, number}} en lecture",
@@ -696,6 +808,7 @@
       "imageNote": "Sous-titres en image : la vidéo se recharge",
       "label": "Sous-titres",
       "off": "Aucun",
+      "preparing": "Sous-titres en préparation…",
       "sdhName": "{{language}} SME",
       "sdhNote": "SME : pour les sourds et malentendants"
     },
@@ -732,12 +845,6 @@
     },
     "position": "{{position}} sur {{duration}}",
     "row": "{{user}} · {{profile}} sur {{device}}",
-    "short": {
-      "asIs": "Lu tel quel",
-      "ok": "Suit",
-      "repackaged": "Réemballé",
-      "slow": "N’arrive pas à suivre"
-    },
     "slow": {
       "advice": {
         "software": "Ce serveur ne peut pas convertir ce fichier en temps réel. Demande à {{user}} de baisser la qualité, ou de regarder sur un appareil qui lit le fichier tel quel."
@@ -786,12 +893,13 @@
   },
   "profiles": {
     "enterPin": "Saisis le code PIN de {{name}}",
+    "manage": "Gérer",
     "pin": {
-      "badge": "Code",
-      "cancel": "Choisir un autre profil",
+      "cancel": "Retour aux profils",
+      "hint": "Tape les 4 chiffres au clavier.",
       "title": "Saisis le code de {{name}}"
     },
-    "switch": "Changer de profil",
+    "switchTo": "Passer à {{name}}",
     "title": "Qui est sous le plaid ?",
     "withPin": "{{name}}, code"
   },
@@ -820,6 +928,7 @@
     "empty": "Rien à vérifier. Chaque fichier a trouvé son film.",
     "identified": "Identifié",
     "identify": "Identifier",
+    "loading": "Recherche des correspondances…",
     "match": "correspond à {{score, number(style: percent)}}",
     "matched": "{{title}} est identifié et verrouillé.",
     "needs": {
@@ -906,7 +1015,9 @@
   },
   "search": {
     "empty": "Rien qui s’appelle « {{query}} » ici.",
+    "emptyHint": "PLAID a cherché dans les titres, les titres originaux, les personnes et les épisodes de {{serverName}}. Vérifie l’orthographe, ou demande à un admin de l’ajouter.",
     "episodeOf": "{{show}} · S{{season, number}} É{{episode, number}}",
+    "genres": "Parcourir par genre",
     "group": {
       "episodes": "Épisodes",
       "movies": "Films",
@@ -914,7 +1025,13 @@
       "shows": "Séries"
     },
     "label": "Rechercher dans {{serverName}}",
-    "placeholder": "Films, séries, personnes"
+    "placeholder": "Films, séries, personnes",
+    "recent": "Recherches récentes",
+    "scope": {
+      "all": "Tout",
+      "label": "Afficher"
+    },
+    "top": "Meilleurs résultats"
   },
   "server": {
     "accel": {
