@@ -58,7 +58,7 @@ export function tag(ctx, status) {
 
 // A real screenshot of the running app, cropped, at two widths.
 export const SHOTS = {
-  player: { w: [960, 1600], ratio: [1600, 922] },
+  player: { w: [960, 1600], ratio: [1600, 300] },
   account: { w: [680, 1200], ratio: [1200, 970] },
   scan: { w: [760, 1400], ratio: [1400, 764] },
   remote: { w: [680, 1200], ratio: [1200, 920] },

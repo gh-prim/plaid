@@ -46,8 +46,9 @@ ${night([
     datetime: '20:55',
     title: t('home.tv.title'),
     body: `<p>${t('home.tv.body')}</p>`,
-    aside: shot(ctx, 'appletv', { sizes: '(min-width: 1100px) 50vw, 100vw' }),
-    layout: 'flip',
+    // The only Apple TV capture is in French: shown on the French page only.
+    aside: ctx.locale === 'fr' ? shot(ctx, 'appletv', { sizes: '(min-width: 1100px) 50vw, 100vw' }) : '',
+    layout: ctx.locale === 'fr' ? 'flip' : 'text',
   }),
   beat({
     id: 'party',
