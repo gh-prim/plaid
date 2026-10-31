@@ -58,10 +58,11 @@ func TestItemPreview(t *testing.T) {
 	e.expect(e.do("GET", long, nil), http.StatusUnauthorized, "")
 }
 
-// With previews cut ahead of time, a title's preview is ready before
-// anyone asks: the first request is already a 200.
+// With previews cut ahead of time, a title's encoded preview is ready
+// before anyone asks: the first request is already a 200. (The clip is
+// light H.264, so copies are off to make it an encoded one.)
 func TestItemPreviewAhead(t *testing.T) {
-	e := newHLSEnv(t, func(o *libOpts) { o.previewsAhead = true })
+	e := newHLSEnv(t, func(o *libOpts) { o.previewsAhead = true; o.hls.PreviewCopyMaxBitrate = -1 })
 	long := "/items/" + e.items["Long"] + "/preview"
 	deadline := time.Now().Add(2 * time.Minute)
 	for time.Now().Before(deadline) {
@@ -79,6 +80,6 @@ func TestItemPreviewAhead(t *testing.T) {
 // without asking for one (which would cut it urgently).
 func previewCached(t *testing.T, e *hlsEnv) bool {
 	t.Helper()
-	m, _ := filepath.Glob(filepath.Join(e.play.CacheDir(), "previews", "*", "*.mp4"))
+	m, _ := filepath.Glob(filepath.Join(e.play.CacheDir(), "previews", "*", "encoded", "*.mp4"))
 	return len(m) > 0
 }

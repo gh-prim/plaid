@@ -31,40 +31,54 @@ func TestPreviewScenesAt(t *testing.T) {
 	}
 }
 
-// One input per scene, H.264 that starts before it's loaded, its sound
-// faded and joined when the file has one, tone mapped from HDR only when
-// the build can.
-func TestPreviewArgs(t *testing.T) {
+// One scene per run, one input, threads bounded; its sound faded when
+// the file has one; tone mapped from HDR only when the build can. The
+// join copies.
+func TestPreviewSceneArgs(t *testing.T) {
 	src := previewSource{path: "/m/a.mkv", duration: time.Hour, audio: 2}
 	full := &FFmpeg{Filters: map[string]bool{"zscale": true, "tonemap": true}}
-	args := previewArgs(src, full, "/c/x.mp4", true)
-	if n := strings.Count(strings.Join(args, " "), "-i /m/a.mkv"); n != previewScenes {
-		t.Errorf("%d inputs, want %d", n, previewScenes)
+	args := previewSceneArgs(src, full, 8*time.Minute, "/t/scene0.mp4", previewThreadsAhead)
+	joined := strings.Join(args, " ")
+	if n := strings.Count(joined, "-i "); n != 1 {
+		t.Errorf("%d inputs, want 1: %s", n, joined)
 	}
-	for _, want := range []string{"[aout]", "aac", "libx264", "+faststart", "/c/x.mp4"} {
-		if !slices.Contains(args, want) {
-			t.Errorf("args lack %q: %v", want, args)
+	for _, want := range []string{"-filter_threads 2", "-threads 2 -ss 480.000 -t 6.000 -i /m/a.mkv",
+		"-map 0:2", "afade=t=out:st=5.600", "-c:a aac", "libx264", "/t/scene0.mp4"} {
+		if !strings.Contains(joined, want) {
+			t.Errorf("args lack %q: %s", want, joined)
 		}
 	}
-	graph := args[slices.Index(args, "-filter_complex")+1]
-	if !strings.Contains(graph, "[0:2]aformat=") || !strings.Contains(graph, "afade=t=out:st=5.600") ||
-		!strings.Contains(graph, "[v3][a3]concat=n=4:v=1:a=1[out][aout]") || strings.Contains(graph, "tonemap") {
-		t.Errorf("SDR graph with sound: %s", graph)
+	if strings.Contains(joined, "tonemap") || strings.Contains(joined, "faststart") {
+		t.Errorf("SDR scene: %s", joined)
 	}
 
 	src.audio = -1
-	args = previewArgs(src, full, "/c/x.mp4", true)
-	graph = args[slices.Index(args, "-filter_complex")+1]
-	if !slices.Contains(args, "-an") || !strings.Contains(graph, "concat=n=4:v=1:a=0[out]") || strings.Contains(graph, "aformat") {
+	if args := previewSceneArgs(src, full, 0, "/t/s.mp4", "4"); !slices.Contains(args, "-an") ||
+		strings.Contains(strings.Join(args, " "), "aformat") {
 		t.Errorf("silent file: %v", args)
 	}
-
 	src.hdr = true
-	if graph := previewArgs(src, full, "/c/x.mp4", true); !strings.Contains(strings.Join(graph, " "), "tonemap=hable") {
+	if args := previewSceneArgs(src, full, 0, "/t/s.mp4", "4"); !strings.Contains(strings.Join(args, " "), "tonemap=hable") {
 		t.Error("HDR source isn't tone mapped")
 	}
-	if graph := previewArgs(src, &FFmpeg{}, "/c/x.mp4", false); strings.Contains(strings.Join(graph, " "), "tonemap") {
+	if args := previewSceneArgs(src, &FFmpeg{}, 0, "/t/s.mp4", "2"); strings.Contains(strings.Join(args, " "), "tonemap") {
 		t.Error("tone mapping asked of a build without zscale")
+	}
+
+	src = previewSource{path: "/m/a.mkv", duration: time.Hour, audio: 1, copy: true}
+	joined = strings.Join(previewSceneArgs(src, full, time.Minute, "/t/s.mp4", "2"), " ")
+	for _, want := range []string{"-noaccurate_seek -ss 60.000", "-c:v copy", "-c:a aac", "-avoid_negative_ts make_zero"} {
+		if !strings.Contains(joined, want) {
+			t.Errorf("copied scene lacks %q: %s", want, joined)
+		}
+	}
+	if strings.Contains(joined, "libx264") || strings.Contains(joined, "scale=") {
+		t.Errorf("copied scene encodes: %s", joined)
+	}
+
+	join := strings.Join(previewJoinArgs("/t/scenes.txt", "/c/x.mp4"), " ")
+	if !strings.Contains(join, "-f concat -safe 0 -i /t/scenes.txt -c copy -movflags +faststart") {
+		t.Errorf("join: %s", join)
 	}
 }
 
@@ -127,5 +141,35 @@ func TestDropOldPreviews(t *testing.T) {
 	}
 	if n := dropOldPreviews(filepath.Join(t.TempDir(), "previews", previewVersion)); n != 0 {
 		t.Errorf("no folder yet: dropped %d", n)
+	}
+}
+
+// Only light, browser-ready H.264 is copied.
+func TestPreviewCopy(t *testing.T) {
+	file := func(v library.Stream, bitrate int64) library.PlayableFile {
+		f := library.PlayableFile{Probe: &library.ProbeResult{Streams: []library.Stream{v}}}
+		f.Bitrate = bitrate
+		return f
+	}
+	h264 := library.Stream{Type: "video", Codec: "h264", Width: 1920, Height: 800, PixFmt: "yuv420p"}
+	if !previewCopy(file(h264, 9_000_000), previewCopyMaxBitrate) {
+		t.Error("1080p H.264 at 9 Mb/s isn't copied")
+	}
+	heavy, hevc, uhd, tenBit, hdr := h264, h264, h264, h264, h264
+	hevc.Codec = "hevc"
+	uhd.Width, uhd.Height = 3840, 2160
+	tenBit.PixFmt = "yuv420p10le"
+	hdr.HDR = "hdr10"
+	for name, f := range map[string]library.PlayableFile{
+		"over the bitrate": file(heavy, 30_000_000), "HEVC": file(hevc, 5_000_000), "4K": file(uhd, 9_000_000),
+		"10-bit": file(tenBit, 5_000_000), "HDR": file(hdr, 5_000_000), "unknown bitrate": file(h264, 0),
+		"not analyzed": {},
+	} {
+		if previewCopy(f, previewCopyMaxBitrate) {
+			t.Errorf("%s is copied", name)
+		}
+	}
+	if previewCopy(file(h264, 9_000_000), -1) {
+		t.Error("copied though copies are off")
 	}
 }
