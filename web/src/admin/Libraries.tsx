@@ -1,23 +1,15 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
-import { formatRelative, languageName, regionName } from '../lib/format'
-import { mountCommand } from '../lib/shellQuote'
+import { formatNumber, formatRelative, languageName, regionName } from '../lib/format'
+import { mountCommand, setfaclCommand } from '../lib/shellQuote'
 import { PickerSheet } from '../onboarding/PickerSheet'
 import { useServer } from '../onboarding/Page'
-import {
-  Button,
-  CommandBlock,
-  Dialog,
-  EmptyState,
-  FolderRow,
-  LibraryRow,
-  Mark,
-  TextField,
-} from '../ui'
-import { Section, useAdmin } from './AdminLayout'
+import { Button, CommandBlock, Dialog, EmptyState, TextField } from '../ui'
+import { useAdmin } from './AdminLayout'
+import { Group, Loading, Row, Section } from './v2'
 
 type Library = components['schemas']['Library']
 type Folder = components['schemas']['LibraryFolder']
@@ -40,49 +32,98 @@ function scanLine(t: ReturnType<typeof useTranslation>['t'], locale: string, l: 
     : ''
 }
 
-/** Every library, each with its counts, scan and folder trouble (board AP05, F007 R20). */
+/** Folders of a library that can't be read right now. */
+const troubled = (l: Library) => l.folders.filter((f) => f.status !== 'ok')
+
+/** Every library, with its count, scan and folder trouble (board TA02, F007 R20). */
 export function Libraries() {
   const { t, i18n } = useTranslation()
-  const { data } = useAdmin()
+  const { data, refresh, toast } = useAdmin()
+  const [scanning, setScanning] = useState(false)
   const locale = i18n.resolvedLanguage ?? 'en'
+  const n = (v: number) => formatNumber(i18n.language, v)
   const libs = data?.libraries ?? []
+  const titles = libs.reduce(
+    (a, l) => a + (l.type === 'movies' ? l.counts.movies : l.counts.shows),
+    0,
+  )
+  const files = libs.reduce((a, l) => a + l.counts.files, 0)
+  const gone = libs.reduce((a, l) => a + troubled(l).length, 0)
+
+  async function scanAll() {
+    setScanning(true)
+    await Promise.all(
+      libs.map((l) =>
+        api
+          .POST('/libraries/{libraryId}/scan', {
+            params: { path: { libraryId: l.id } },
+            body: { full: false },
+          })
+          .catch(() => undefined),
+      ),
+    )
+    setScanning(false)
+    toast(t('admin.libraries.scanStarted', { count: libs.length }))
+    await refresh()
+  }
+
   return (
-    <Section>
-      <div className="adm__head">
-        <h2 className="adm__h2">{t('libraries.title')}</h2>
-        <Link to="/setup/libraries" className="pl-btn pl-btn--secondary pl-btn--sm">
-          {t('home.empty.action')}
-        </Link>
-      </div>
+    <Section
+      title={t('libraries.title')}
+      glyph="libraries"
+      paneTitle={data ? t('admin.libraries.count', { count: libs.length }) : undefined}
+      paneSub={data ? t('admin.libraries.facts', { titles, files }) : undefined}
+      status={
+        gone
+          ? { text: t('admin.libraries.unavailable', { count: gone }), tone: 'warning' }
+          : undefined
+      }
+    >
+      {!data && <Loading />}
       {data && !libs.length && <EmptyState title={t('libraries.empty')} />}
-      <div className="adm__rows">
-        {libs.map((l) => {
-          const gone = l.folders.find((f) => f.status !== 'ok')
-          return (
-            <LibraryRow
-              key={l.id}
-              to={`/admin/libraries/${l.id}`}
-              name={l.name}
-              counts={counts(t, l)}
-              scan={scanLine(t, locale, l)}
-              issue={
-                gone
-                  ? gone.status === 'unavailable'
-                    ? t('folder.status.unavailable')
-                    : t('picker.noAccess')
-                  : undefined
-              }
+      {libs.length > 0 && (
+        <Group>
+          {libs.map((l) => {
+            const trouble = troubled(l)
+            return (
+              <Row
+                key={l.id}
+                to={`/admin/libraries/${l.id}`}
+                label={l.name}
+                value={n(l.type === 'movies' ? l.counts.movies : l.counts.shows)}
+                sub={
+                  trouble.length
+                    ? t('admin.libraries.folderTrouble', {
+                        count: trouble.length,
+                        total: l.folders.length,
+                      })
+                    : [counts(t, l), scanLine(t, locale, l)].filter(Boolean).join(' · ')
+                }
+                subTone={trouble.length ? 'warning' : undefined}
+              />
+            )
+          })}
+        </Group>
+      )}
+      {data && (
+        <Group>
+          <Row to="/setup/libraries" label={t('admin.libraries.add')} />
+          {libs.length > 0 && (
+            <Row
+              label={t('admin.libraries.scanAll')}
+              busy={scanning}
+              onClick={() => void scanAll()}
             />
-          )
-        })}
-      </div>
+          )}
+        </Group>
+      )}
     </Section>
   )
 }
 
 const isNetwork = (fs?: string) => !!fs && /^(nfs|cifs|smb|afp|fuse\.sshfs)/i.test(fs)
 
-/** One library: folders, what to identify, scans and language (board AP06, F007 R20, R21, R22). */
+/** One library: folders, what to identify, scans and language (board TA03, F007 R20, R21, R22). */
 export function LibraryPage() {
   const { t, i18n } = useTranslation()
   const { id = '' } = useParams()
@@ -92,12 +133,17 @@ export function LibraryPage() {
   const locale = i18n.resolvedLanguage ?? 'en'
   const lib = data?.libraries.find((l) => l.id === id)
   const [picking, setPicking] = useState(false)
-  const [expanded, setExpanded] = useState<string>()
   const [deleting, setDeleting] = useState(false)
   const [busy, setBusy] = useState<string>()
   const [language, setLanguage] = useState<{ lang: string; region: string }>()
+  const back = { to: '/admin/libraries', label: t('libraries.title') }
 
-  if (!lib) return <Section>{data && <EmptyState title={t('libraries.empty')} />}</Section>
+  if (!lib)
+    return (
+      <Section title={t('libraries.title')} back={back} glyph="library">
+        {data ? <EmptyState title={t('libraries.empty')} /> : <Loading />}
+      </Section>
+    )
 
   async function act(key: string, run: () => Promise<unknown>) {
     setBusy(key)
@@ -116,196 +162,185 @@ export function LibraryPage() {
       body: { full },
     })
   const remove = (f: Folder) =>
-    act('remove', () =>
+    act(`remove-${f.id}`, () =>
       patch({ folders: lib.folders.filter((x) => x.id !== f.id).map((x) => x.path) }),
     )
   const meta = (f: Folder) =>
     [
-      t('folder.status.ok'),
       f.watched ? t('folder.watch.liveShort') : t('folder.watch.periodicShort', { minutes: 15 }),
       `${isNetwork(f.fsType) ? t('folder.fs.network') : t('folder.fs.local')}${f.fsType ? ` (${f.fsType})` : ''}`,
     ].join(' · ')
-  const typeLabel = lib.type === 'movies' ? t('library.type.movies') : t('library.type.shows')
+  const gone = troubled(lib).length
+  const check = (
+    <div>
+      <Button
+        size="sm"
+        loading={busy === 'check'}
+        onClick={() => void act('check', () => scan(false))}
+      >
+        {t('picker.checkAgain')}
+      </Button>
+    </div>
+  )
 
   return (
-    <Section>
-      <div>
-        <p className="adm__kicker">{t('libraries.kicker', { type: typeLabel })}</p>
-        <h2 className="adm__h2">{lib.name}</h2>
-        <p className="adm__lead">
-          {counts(t, lib)} · {scanLine(t, locale, lib)}
-        </p>
-      </div>
-
-      <section className="adm__section" style={{ gap: 0 }}>
-        <h3 className="adm__h3" style={{ marginBottom: 8 }}>
-          {t('library.folders.label')}
-        </h3>
-        <ul className="adm__rows">
-          {lib.folders.map((f) =>
-            f.status === 'unavailable' ? (
-              <li key={f.id} className="adm__row adm__row--alert">
-                <Mark tone="error" />
-                <div className="adm__row-body adm__row-body--spaced">
-                  <div>
-                    <p className="adm__path">{f.path}</p>
-                    <p className="adm__word pl-tone--error">{t('folder.status.unavailable')}</p>
-                  </div>
-                  <p className="adm__text">{t('folder.unavailable.body', { path: f.path })}</p>
-                  <p className="adm__text">{t('folder.unavailable.check')}</p>
-                  <CommandBlock command={mountCommand(f.path)} />
-                  <div>
-                    <Button
-                      loading={busy === 'check'}
-                      onClick={() => void act('check', () => scan(false))}
-                    >
-                      {t('picker.checkAgain')}
-                    </Button>
-                  </div>
-                </div>
-              </li>
-            ) : f.status === 'unreadable' ? (
-              <FolderRow
-                key={f.id}
-                name={f.path}
-                path={f.path}
-                mono
-                status="noAccess"
-                checkVariant="primary"
-                expanded={expanded === f.id}
-                onToggle={() => setExpanded(expanded === f.id ? undefined : f.id)}
-                onCheck={() => void act('check', () => scan(false))}
-              />
-            ) : (
-              <li key={f.id} className="adm__row">
-                <Mark tone="success" />
-                <span className="adm__row-body">
-                  <p className="adm__path">{f.path}</p>
-                  <p className="adm__help">{meta(f)}</p>
-                </span>
-                {lib.folders.length > 1 && (
-                  <Button variant="ghost" size="sm" onClick={() => void remove(f)}>
+    <Section
+      title={lib.name}
+      back={back}
+      glyph="library"
+      paneTitle={lib.name}
+      paneSub={[counts(t, lib), scanLine(t, locale, lib)].filter(Boolean).join(' · ')}
+      status={
+        gone
+          ? { text: t('admin.library.unavailable', { count: gone }), tone: 'warning' }
+          : undefined
+      }
+    >
+      <Group
+        title={t('library.folders.label')}
+        foot={t('library.folders.count', { count: lib.folders.length })}
+      >
+        {lib.folders.map((f) =>
+          f.status === 'unavailable' ? (
+            <Row
+              key={f.id}
+              mono
+              label={f.path}
+              value={t('folder.status.unavailable')}
+              tone="error"
+              sub={meta(f)}
+            >
+              <p className="adm__text">{t('folder.unavailable.check')}</p>
+              <CommandBlock command={mountCommand(f.path)} />
+              {check}
+            </Row>
+          ) : f.status === 'unreadable' ? (
+            <Row key={f.id} mono label={f.path} value={t('picker.noAccess')} tone="error">
+              <p className="adm__text">{t('picker.unreadable.why', { name: f.path })}</p>
+              <CommandBlock command={setfaclCommand(f.path)} />
+              <p className="adm__help">{t('picker.unreadable.docker')}</p>
+              {check}
+            </Row>
+          ) : (
+            <Row
+              key={f.id}
+              mono
+              label={f.path}
+              value={t('folder.status.ok')}
+              tone="ok"
+              sub={meta(f)}
+              control={
+                lib.folders.length > 1 ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    loading={busy === `remove-${f.id}`}
+                    aria-label={t('library.folders.remove', { path: f.path })}
+                    onClick={() => void remove(f)}
+                  >
                     {t('library.folders.removeShort')}
                   </Button>
-                )}
-              </li>
-            ),
-          )}
-          {lib.folders.length < 16 && (
-            <li className="adm__row" style={{ paddingTop: 12 }}>
-              <Button variant="secondary" onClick={() => setPicking(true)}>
-                {t('library.folders.add')}
-              </Button>
-            </li>
-          )}
-        </ul>
-      </section>
+                ) : undefined
+              }
+            />
+          ),
+        )}
+        {lib.folders.length < 16 && (
+          <Row
+            label={t('admin.library.addFolder')}
+            busy={busy === 'add'}
+            onClick={() => setPicking(true)}
+          />
+        )}
+      </Group>
 
-      <section className="adm__section" style={{ gap: 0 }}>
-        <h3 className="adm__h3" style={{ marginBottom: 8 }}>
-          {t('libraries.identifyReview')}
-        </h3>
-        <div className="adm__rows">
-          <Link
-            to={`/admin/libraries/${lib.id}/unrecognized`}
-            className="adm__row adm__row--center"
-          >
-            <span className="adm__row-body">
-              <span className="adm__row-title">
-                {t('review.unrecognized.title', { count: lib.counts.unrecognized })}
-              </span>
-              <span className="adm__help">{t('libraries.unrecognized.help')}</span>
-            </span>
-            <span className="adm__chev">›</span>
-          </Link>
-          <Link to={`/admin/libraries/${lib.id}/review`} className="adm__row adm__row--center">
-            <span className="adm__row-body">
-              <span className="adm__row-title">{t('review.needs.short')}</span>
-              <span className="adm__help">{t('libraries.review.help')}</span>
-            </span>
-            <span className="adm__chev">›</span>
-          </Link>
-        </div>
-      </section>
+      <Group title={t('libraries.identifyReview')}>
+        <Row
+          to={`/admin/libraries/${lib.id}/unrecognized`}
+          label={t('admin.settings.unrecognized')}
+          value={formatNumber(i18n.language, lib.counts.unrecognized)}
+          tone={lib.counts.unrecognized ? 'warning' : undefined}
+          sub={t('libraries.unrecognized.help')}
+        />
+        <Row
+          to={`/admin/libraries/${lib.id}/review`}
+          label={t('review.needs.short')}
+          sub={t('libraries.review.help')}
+        />
+      </Group>
 
-      <section className="adm__section">
-        <h3 className="adm__h3">{t('libraries.scanning')}</h3>
-        <div className="adm__actions">
-          <Button
-            variant="secondary"
-            loading={busy === 'scan'}
-            onClick={() => void act('scan', () => scan(false))}
-          >
-            {t('libraries.scanNow')}
-          </Button>
-          <Button
-            variant="secondary"
-            loading={busy === 'full'}
-            onClick={() => void act('full', () => scan(true))}
-          >
-            {t('libraries.fullRescan.label')}
-          </Button>
-        </div>
-        <p className="adm__help">{t('libraries.fullRescan.help', { name: lib.name })}</p>
+      <Group
+        title={t('admin.library.details')}
+        foot={language ? undefined : t('libraries.language.help')}
+      >
         {language ? (
-          <div className="adm__form">
-            <TextField
-              label={t('library.metadata.language')}
-              value={language.lang}
-              onValue={(v) => setLanguage({ ...language, lang: v.toLowerCase().slice(0, 2) })}
-              maxLength={2}
-            />
-            <TextField
-              label={t('library.metadata.region.label')}
-              help={t('library.metadata.region.help')}
-              value={language.region}
-              onValue={(v) => setLanguage({ ...language, region: v.toUpperCase().slice(0, 2) })}
-              maxLength={2}
-            />
-            <p className="adm__help">{t('libraries.language.help')}</p>
-            <div className="adm__actions">
-              <Button
-                onClick={() =>
-                  void act('lang', async () => {
-                    await patch({
-                      metadataLanguage: language.lang,
-                      metadataRegion: language.region,
+          <Row label={t('library.metadata.language')}>
+            <div className="adm__form">
+              <TextField
+                label={t('library.metadata.language')}
+                value={language.lang}
+                onValue={(v) => setLanguage({ ...language, lang: v.toLowerCase().slice(0, 2) })}
+                maxLength={2}
+              />
+              <TextField
+                label={t('library.metadata.region.label')}
+                help={t('library.metadata.region.help')}
+                value={language.region}
+                onValue={(v) => setLanguage({ ...language, region: v.toUpperCase().slice(0, 2) })}
+                maxLength={2}
+              />
+              <div className="adm__actions">
+                <Button
+                  loading={busy === 'lang'}
+                  onClick={() =>
+                    void act('lang', async () => {
+                      await patch({
+                        metadataLanguage: language.lang,
+                        metadataRegion: language.region,
+                      })
+                      setLanguage(undefined)
                     })
-                    setLanguage(undefined)
-                  })
-                }
-              >
-                {t('common.save')}
-              </Button>
-              <Button variant="ghost" onClick={() => setLanguage(undefined)}>
-                {t('common.cancel')}
-              </Button>
+                  }
+                >
+                  {t('common.save')}
+                </Button>
+                <Button variant="ghost" onClick={() => setLanguage(undefined)}>
+                  {t('common.cancel')}
+                </Button>
+              </div>
             </div>
-          </div>
+          </Row>
         ) : (
-          <p className="adm__text">
-            {t('library.metadata.summary', {
+          <Row
+            label={t('library.metadata.language')}
+            value={t('admin.library.languageValue', {
               language: languageName(locale, lib.metadataLanguage),
               region: regionName(locale, lib.metadataRegion),
-            })}{' '}
-            ·{' '}
-            <button
-              type="button"
-              className="ob__link"
-              onClick={() =>
-                setLanguage({ lang: lib.metadataLanguage, region: lib.metadataRegion })
-              }
-            >
-              {t('common.change')}
-            </button>
-          </p>
+            })}
+            onClick={() => setLanguage({ lang: lib.metadataLanguage, region: lib.metadataRegion })}
+          />
         )}
-        <div>
-          <Button variant="ghost" className="adm__danger" onClick={() => setDeleting(true)}>
-            {t('libraries.delete.label')}
-          </Button>
-        </div>
-      </section>
+      </Group>
+
+      <Group
+        title={t('libraries.scanning')}
+        foot={t('libraries.fullRescan.help', { name: lib.name })}
+      >
+        <Row
+          label={t('libraries.scanNow')}
+          busy={busy === 'scan'}
+          onClick={() => void act('scan', () => scan(false))}
+        />
+        <Row
+          label={t('libraries.fullRescan.label')}
+          busy={busy === 'full'}
+          onClick={() => void act('full', () => scan(true))}
+        />
+      </Group>
+
+      <Group>
+        <Row danger label={t('libraries.delete.label')} onClick={() => setDeleting(true)} />
+      </Group>
 
       {picking && (
         <PickerSheet

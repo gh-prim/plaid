@@ -1,13 +1,15 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, renderHook, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createInstance } from 'i18next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import en from '../locales/en/common.json'
 import { apiError, fakeApi, profile, server, user } from '../test/fakeApi'
 import { renderApp } from '../test/renderApp'
+import { depth, travel } from './AdminLayout'
 import { reasonCodes, reasonText } from './reasons'
 import { temporaryPassword } from './People'
 import { parseQuery } from './Review'
+import { useLeaving } from './v2'
 
 const admin = {
   status: 200,
@@ -606,6 +608,259 @@ describe('problems', () => {
     fakeApi(routes())
     await renderApp('/admin/problems')
     expect(await screen.findByText('No problems in the last 7 days.')).toBeInTheDocument()
+  })
+})
+
+describe('section pages (V2)', () => {
+  const nas = [
+    {
+      id: 'f1',
+      path: '/mnt/nas/Films',
+      watched: false,
+      status: 'unavailable',
+      fsType: 'nfs',
+    },
+  ]
+  const users = [
+    {
+      id: 'u1',
+      username: 'ada',
+      displayName: 'Ada',
+      role: 'admin',
+      locale: 'en',
+      mustChangePassword: false,
+      disabled: false,
+      createdAt: '2026-10-01T00:00:00Z',
+    },
+    {
+      id: 'u2',
+      username: 'sam',
+      displayName: 'Sam',
+      role: 'member',
+      locale: 'en',
+      mustChangePassword: false,
+      disabled: false,
+      createdAt: '2026-10-02T00:00:00Z',
+    },
+  ]
+  const session = (id: string, deviceName: string, deviceType: string, lastSeenAt: string) => ({
+    id,
+    deviceName,
+    deviceType,
+    createdAt: '2026-10-01T00:00:00Z',
+    lastSeenAt,
+    current: false,
+  })
+
+  it('puts Needs you first in Settings, then the sections in groups', async () => {
+    fakeApi(routes({ 'GET /libraries': { status: 200, body: [library(nas)] } }))
+    await renderApp('/admin/settings')
+    const needs = await screen.findByRole('link', { name: /Needs you/ })
+    expect(needs).toHaveAttribute('href', '/admin')
+    expect(within(needs).getByText('1 thing')).toBeInTheDocument()
+    const group = screen.getByRole('region', { name: 'Library' })
+    expect(within(group).getByRole('link', { name: /Libraries/ })).toHaveTextContent('Unavailable')
+    expect(within(group).getByRole('link', { name: /Not recognized/ })).toHaveTextContent('23')
+    expect(
+      within(screen.getByRole('region', { name: 'People and devices' })).getByRole('link', {
+        name: /Devices/,
+      }),
+    ).toHaveAttribute('href', '/admin/devices')
+    // The tile says where you are: the server and its state in words.
+    expect(screen.getByText('One thing needs you.')).toBeInTheDocument()
+  })
+
+  it('shows the libraries with their trouble, and scans them all', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /libraries': { status: 200, body: [library(nas)] },
+        'POST /libraries/lib1/scan': { status: 202, body: {} },
+      }),
+    )
+    await renderApp('/admin/libraries')
+    const movies = await screen.findByRole('link', { name: /Movies/ })
+    expect(movies).toHaveAttribute('href', '/admin/libraries/lib1')
+    expect(within(movies).getByText('1 of 1 folders unavailable')).toBeInTheDocument()
+    expect(screen.getByText('One folder unavailable')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Scan all libraries now' }))
+    expect(await screen.findByText('Scanning 1 library.')).toBeInTheDocument()
+    expect(calls.find((c) => c.path === '/libraries/lib1/scan')?.body).toEqual({ full: false })
+  })
+
+  it('goes back from a library to Libraries', async () => {
+    fakeApi(routes())
+    await renderApp('/admin/libraries/lib1')
+    expect(await screen.findByRole('link', { name: 'Back to Libraries' })).toHaveAttribute(
+      'href',
+      '/admin/libraries',
+    )
+    // The back link shows before the library has loaded.
+    expect(await screen.findByRole('heading', { level: 1, name: 'Movies' })).toBeInTheDocument()
+    expect(screen.getByText('/srv/media/movies')).toBeInTheDocument()
+    expect(screen.getByText('Reachable')).toBeInTheDocument()
+  })
+
+  it('keeps the only admin an admin, and says why', async () => {
+    fakeApi(
+      routes({
+        'GET /users': { status: 200, body: [users[0]] },
+        'GET /users/u1/sessions': { status: 200, body: [] },
+      }),
+    )
+    await renderApp('/admin/people/u1')
+    const toggle = await screen.findByRole('switch', { name: 'Admin' })
+    expect(toggle).toBeChecked()
+    expect(toggle).toBeDisabled()
+    expect(
+      screen.getByText(
+        'Ada is the only admin. Make someone else an admin before turning this off.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('makes a member an admin with the switch', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /users': { status: 200, body: users },
+        'GET /users/u2/sessions': { status: 200, body: [] },
+        'PATCH /users/u2': { status: 200, body: { ...users[1], role: 'admin' } },
+      }),
+    )
+    await renderApp('/admin/people/u2')
+    const toggle = await screen.findByRole('switch', { name: 'Admin' })
+    expect(toggle).not.toBeChecked()
+    await userEvent.click(toggle)
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ role: 'admin' }),
+    )
+    expect(screen.getByRole('button', { name: 'Delete account' })).toBeInTheDocument()
+  })
+
+  it('shows a spinner while a person loads, never a blank', async () => {
+    fakeApi(
+      routes({
+        'GET /users': () => new Promise(() => {}),
+        'GET /users/u1/sessions': { status: 200, body: [] },
+      }),
+    )
+    await renderApp('/admin/people/u1')
+    expect(await screen.findByRole('status', { name: 'Loading' })).toBeInTheDocument()
+  })
+
+  it('lists every signed-in device, TVs apart, and signs one out', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /users': { status: 200, body: users },
+        'GET /users/u1/sessions': {
+          status: 200,
+          body: [session('s1', 'Chrome on MacBook', 'web', '2026-10-29T10:00:00Z')],
+        },
+        'GET /users/u2/sessions': {
+          status: 200,
+          body: [session('s2', 'Living room TV', 'tvos', '2026-10-29T11:00:00Z')],
+        },
+        'DELETE /users/u2/sessions/s2': { status: 204 },
+      }),
+    )
+    await renderApp('/admin/devices')
+    const tvs = await screen.findByRole('region', { name: 'TVs' })
+    expect(within(tvs).getByText('Living room TV')).toBeInTheDocument()
+    expect(within(tvs).getByText('Sam')).toBeInTheDocument()
+    const others = screen.getByRole('region', { name: 'Browsers and phones' })
+    expect(within(others).getByText('Chrome on MacBook')).toBeInTheDocument()
+    expect(screen.getByText('2 devices')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Sign out Living room TV' }))
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'DELETE' && c.path === '/users/u2/sessions/s2')).toBe(
+        true,
+      ),
+    )
+    expect(await screen.findByText('Living room TV is signed out.')).toBeInTheDocument()
+  })
+
+  it('splits problems into going on and solved', async () => {
+    fakeApi(
+      routes({
+        'GET /problems': {
+          status: 200,
+          body: {
+            problems: [
+              {
+                id: 'p1',
+                code: 'folder_unavailable',
+                params: { path: '/mnt/nas/Films' },
+                firstSeen: '2026-10-29T20:00:00Z',
+                lastSeen: '2026-10-29T21:40:00Z',
+                count: 1,
+              },
+              {
+                id: 'p2',
+                code: 'hw_fallback',
+                params: { accel: 'vaapi' },
+                firstSeen: '2026-10-27T20:00:00Z',
+                lastSeen: '2026-10-27T20:00:00Z',
+                resolvedAt: '2026-10-28T10:00:00Z',
+                count: 1,
+              },
+            ],
+          },
+        },
+      }),
+    )
+    await renderApp('/admin/problems')
+    const open = await screen.findByRole('region', { name: 'Going on' })
+    expect(within(open).getByText(/\/mnt\/nas\/Films disappeared at/)).toBeInTheDocument()
+    expect(
+      within(open).getByText(`findmnt '/mnt/nas/Films' || sudo mount '/mnt/nas/Films'`),
+    ).toBeInTheDocument()
+    const solved = screen.getByRole('region', { name: 'Solved' })
+    expect(within(solved).getByText(/VAAPI failed 3 times at/)).toBeInTheDocument()
+    expect(within(solved).queryByText(/Test the GPU again/)).not.toBeInTheDocument()
+    expect(screen.getByText('1 going on')).toBeInTheDocument()
+  })
+})
+
+describe('motion (TM25)', () => {
+  it('pushes into a section and pops back; the tabs travel sideways', () => {
+    expect(depth('/admin')).toBe(0)
+    expect(depth('/admin/settings')).toBe(1)
+    expect(depth('/admin/libraries')).toBe(2)
+    expect(depth('/admin/libraries/lib1/review')).toBe(4)
+    expect(travel('/admin', '/admin/settings')).toEqual({ dir: 'right' })
+    expect(travel('/admin/settings', '/admin')).toEqual({ dir: 'left' })
+    expect(travel('/admin/settings', '/admin/libraries')).toEqual({ nav: 'push' })
+    expect(travel('/admin/libraries/lib1', '/admin/libraries')).toEqual({ nav: 'pop' })
+    expect(travel('/admin/people', '/admin/libraries')).toEqual({})
+  })
+
+  it('marks the page with the way it travelled', async () => {
+    fakeApi(routes())
+    await renderApp('/admin/settings')
+    await userEvent.click(await screen.findByRole('link', { name: /Libraries/ }))
+    await screen.findByRole('link', { name: 'Back to Settings' })
+    expect(document.querySelector('.adm__main')).toHaveAttribute('data-nav', 'push')
+    await userEvent.click(screen.getByRole('link', { name: 'Back to Settings' }))
+    await screen.findByRole('link', { name: /Libraries/ })
+    expect(document.querySelector('.adm__main')).toHaveAttribute('data-nav', 'pop')
+  })
+
+  it('keeps a stream that ended for a moment, flagged as leaving', () => {
+    vi.useFakeTimers()
+    try {
+      const key = (s: string) => s
+      const { result, rerender } = renderHook(({ items }) => useLeaving(items, key, 320), {
+        initialProps: { items: ['a', 'b'] },
+      })
+      rerender({ items: ['b'] })
+      expect(result.current).toEqual([
+        { item: 'a', leaving: true },
+        { item: 'b', leaving: false },
+      ])
+      act(() => vi.advanceTimersByTime(320))
+      expect(result.current).toEqual([{ item: 'b', leaving: false }])
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 

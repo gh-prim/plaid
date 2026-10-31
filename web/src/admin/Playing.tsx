@@ -5,7 +5,8 @@ import type { components } from '../api/schema'
 import { usePolling } from '../hooks/usePolling'
 import { formatClock } from '../lib/format'
 import { Button, Dialog, StreamCard } from '../ui'
-import { Section, streamPoster, useAdmin } from './AdminLayout'
+import { streamPoster, useAdmin } from './AdminLayout'
+import { Loading, Section } from './v2'
 import { methodText, reasonText } from './reasons'
 import { slow } from './summary'
 
@@ -54,17 +55,24 @@ export function Playing() {
   }
 
   return (
-    <Section>
-      <div>
-        <h2 className="adm__h2">{t('playing.title')}</h2>
-        {data && streams.length > 0 && (
-          <p className="adm__lead">
-            {t('admin.summary.playing', { count: streams.length })}
-            {data.maxTranscodes != null &&
-              ` · ${t('playing.capacity', { count: converting, max: data.maxTranscodes })}`}
-          </p>
-        )}
-      </div>
+    <Section
+      title={t('playing.title')}
+      glyph="playing"
+      paneTitle={data ? t('admin.summary.playing', { count: streams.length }) : undefined}
+      paneSub={
+        data && data.maxTranscodes != null
+          ? `${t('admin.summary.playing', { count: streams.length })} · ${t('playing.capacity', { count: converting, max: data.maxTranscodes })}`
+          : undefined
+      }
+      status={
+        streams.some(slow)
+          ? { text: t('admin.playing.slow'), tone: 'warning' }
+          : streams.length
+            ? { text: t('admin.playing.keepUp'), tone: 'ok' }
+            : undefined
+      }
+    >
+      {!data && <Loading />}
       {data && streams.length === 0 && (
         <div className="adm__empty">
           <p className="title">{t('playing.empty.title')}</p>

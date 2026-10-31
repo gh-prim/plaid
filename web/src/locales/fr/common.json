@@ -22,6 +22,7 @@
   },
   "admin": {
     "back": "Retour à la bibliothèque",
+    "backTo": "Retour à {{name}}",
     "backToWatching": "Retour au visionnage",
     "dash": {
       "added": "Ajouté cette semaine",
@@ -52,6 +53,22 @@
       "upload": "Envoi",
       "used": "{{used}} utilisés sur {{total}}"
     },
+    "devices": {
+      "count_one": "{{count, number}} appareil",
+      "count_many": "{{count, number}} appareils",
+      "count_other": "{{count, number}} appareils",
+      "empty": "Aucun appareil connecté.",
+      "foot": "Déconnecter un appareil ne ferme que cette session ; rien d’autre n’est supprimé.",
+      "otherGroup": "Navigateurs et téléphones",
+      "pairHelp": "Saisis le code affiché par la TV",
+      "signedOut": "{{device}} est déconnecté.",
+      "signOut": "Déconnecter {{device}}",
+      "tvGroup": "TV",
+      "tvs_one": "{{count, number}} TV",
+      "tvs_many": "{{count, number}} TV",
+      "tvs_other": "{{count, number}} TV"
+    },
+    "done": "OK",
     "home": {
       "nothingNeedsYou": "Rien ne demande ton attention.",
       "status": {
@@ -67,7 +84,42 @@
         "slow_other": "{{count, number}} personnes regardent. Un flux n’arrive pas à suivre."
       }
     },
+    "libraries": {
+      "add": "Ajouter une bibliothèque…",
+      "count_one": "{{count, number}} bibliothèque",
+      "count_many": "{{count, number}} bibliothèques",
+      "count_other": "{{count, number}} bibliothèques",
+      "facts": "{{titles, number}} titres · {{files, number}} fichiers",
+      "folderTrouble_one": "{{count, number}} dossier sur {{total, number}} indisponible",
+      "folderTrouble_many": "{{count, number}} dossiers sur {{total, number}} indisponibles",
+      "folderTrouble_other": "{{count, number}} dossiers sur {{total, number}} indisponibles",
+      "scanAll": "Analyser toutes les bibliothèques",
+      "scanStarted_one": "Analyse de {{count, number}} bibliothèque.",
+      "scanStarted_many": "Analyse de {{count, number}} bibliothèques.",
+      "scanStarted_other": "Analyse de {{count, number}} bibliothèques.",
+      "unavailable_one": "Un dossier indisponible",
+      "unavailable_many": "{{count, number}} dossiers indisponibles",
+      "unavailable_other": "{{count, number}} dossiers indisponibles"
+    },
+    "library": {
+      "addFolder": "Ajouter un dossier…",
+      "details": "Détails",
+      "languageValue": "{{language}}, {{region}}",
+      "unavailable_one": "{{count, number}} dossier indisponible",
+      "unavailable_many": "{{count, number}} dossiers indisponibles",
+      "unavailable_other": "{{count, number}} dossiers indisponibles"
+    },
+    "metadata": {
+      "allOk": "Toutes les sources répondent",
+      "credits": "Crédits",
+      "down_one": "Une source ne répond pas",
+      "down_many": "{{count, number}} sources ne répondent pas",
+      "down_other": "{{count, number}} sources ne répondent pas",
+      "matched": "{{matched, number}} titres reconnus sur {{total, number}}",
+      "sources": "TMDB et fanart.tv"
+    },
     "nav": {
+      "devices": "Appareils",
       "libraries": "Bibliothèques",
       "metadata": "Métadonnées",
       "people": "Personnes",
@@ -83,17 +135,55 @@
       "slow": "{{title}} n’arrive pas à suivre : ça va saccader.",
       "title": "À traiter"
     },
+    "people": {
+      "admins_one": "{{count, number}} admin",
+      "admins_many": "{{count, number}} admins",
+      "admins_other": "{{count, number}} admins",
+      "count_one": "{{count, number}} personne",
+      "count_many": "{{count, number}} personnes",
+      "count_other": "{{count, number}} personnes",
+      "foot": "Chaque personne se connecte avec son propre compte et garde ses profils et son historique."
+    },
+    "person": {
+      "access": "Accès",
+      "cantDelete": "Impossible tant que {{name}} est le seul admin",
+      "onlyAdmin": "{{name}} est le seul admin. Nomme quelqu’un d’autre admin avant de désactiver ceci."
+    },
+    "playing": {
+      "keepUp": "Tous les flux suivent",
+      "slow": "Un flux n’arrive pas à suivre"
+    },
     "prefs": {
       "hideAdvanced": "Masquer les réglages avancés",
       "save": "Enregistrer les modifications",
       "showAdvanced": "Afficher les réglages avancés"
     },
+    "problems": {
+      "allClear": "Rien à signaler",
+      "goingOn": "En cours",
+      "open_one": "{{count, number}} en cours",
+      "open_many": "{{count, number}} en cours",
+      "open_other": "{{count, number}} en cours",
+      "solved": "Résolus",
+      "week_one": "{{count, number}} cette semaine",
+      "week_many": "{{count, number}} cette semaine",
+      "week_other": "{{count, number}} cette semaine"
+    },
     "sections": "Sections de l’admin",
     "settings": {
+      "group": {
+        "library": "Bibliothèque",
+        "people": "Personnes et appareils",
+        "playback": "Lecture",
+        "server": "Serveur"
+      },
       "libraries_one": "{{count, number}} bibliothèque",
       "libraries_many": "{{count, number}} bibliothèques",
       "libraries_other": "{{count, number}} bibliothèques",
       "none": "Aucun",
+      "things_one": "{{count, number}} chose",
+      "things_many": "{{count, number}} choses",
+      "things_other": "{{count, number}} choses",
       "unrecognized": "Non reconnus"
     },
     "summary": {
@@ -104,10 +194,25 @@
     "tab": {
       "dashboard": "Tableau de bord",
       "settings": "Réglages"
+    },
+    "transcoding": {
+      "advanced": "Avancé",
+      "hardware": "Matériel, {{accelerator}}",
+      "prefs": "Pendant la conversion",
+      "software": "Logiciel",
+      "working": "Fonctionne"
+    },
+    "unrecognized": {
+      "files_one": "{{count, number}} fichier",
+      "files_many": "{{count, number}} fichiers",
+      "files_other": "{{count, number}} fichiers",
+      "group": "{{name}} · {{n}}",
+      "sub": "PLAID n’a pas su les nommer d’après le fichier ou le dossier."
     }
   },
   "auth": {
     "changePassword": {
+      "body": "Un administrateur t’a donné un mot de passe temporaire. Choisis le tien ; toi seul le connaîtras.",
       "submit": "Enregistrer le mot de passe",
       "title": "Choisis un nouveau mot de passe"
     },
@@ -229,7 +334,6 @@
       "unavailable": "Indisponible"
     },
     "unavailable": {
-      "body": "{{path}} est injoignable. Ses {{count, number}} films sont masqués jusqu’à son retour ; rien n’est supprimé. Après 30 jours d’absence, ils quittent la bibliothèque.",
       "check": "Ses films sont masqués jusqu’à son retour ; rien n’est supprimé. Après 30 jours d’absence, ils quittent la bibliothèque. Vérifie que le disque ou le partage est monté :",
       "title": "{{path}} est injoignable."
     },
@@ -455,7 +559,6 @@
       "label": "Tout réanalyser"
     },
     "identifyReview": "À identifier et à vérifier",
-    "kicker": "Bibliothèque · {{type}}",
     "language": {
       "help": "Les titres et résumés sont récupérés à nouveau en arrière-plan. Les correspondances corrigées restent."
     },
@@ -562,9 +665,9 @@
     "account": {
       "body": "Il existe uniquement sur {{serverName}}. Il n’y a pas de compte PLAID en ligne.",
       "displayName": {
-        "help": "Visible par les personnes que tu ajouteras.",
         "label": "Nom affiché"
       },
+      "others": "Les autres auront un profil plus tard, sans mot de passe sauf si tu le souhaites.",
       "password": {
         "help": "8 caractères minimum. Une longue phrase vaut mieux que des symboles.",
         "label": "Mot de passe"
@@ -573,42 +676,52 @@
       "submitting": "Création du compte",
       "title": "Crée le compte administrateur",
       "username": {
-        "help": "Tu t’en serviras pour te connecter.",
         "invalid": "Utilise des lettres, chiffres, points, tirets ou tirets bas.",
         "label": "Nom d’utilisateur"
       }
     },
     "code": {
-      "body": "Pour prouver que ce serveur est à toi, saisis le code de configuration que PLAID a écrit dans son journal au démarrage.",
+      "body": "Tu te connectes depuis l’extérieur du réseau de {{serverName}}, alors PLAID doit vérifier que ce serveur est à toi : avec le code écrit dans son journal au démarrage. Chez toi, sur ton réseau, cette étape n’apparaît pas.",
+      "continue": "Continuer",
       "deb": "Ubuntu ou Debian (.deb)",
       "docker": "Docker",
+      "kicker": "Seulement depuis l’extérieur de ton réseau",
       "label": "Code de configuration",
       "other": "Sinon : le terminal où PLAID a démarré.",
-      "title": "Tu te connectes depuis l’extérieur de ton réseau.",
-      "where": "Où le trouver"
+      "title": "Saisis le code de configuration",
+      "where": "Où le trouver, sur le serveur"
     },
     "doneElsewhere": {
       "action": "Se connecter",
       "body": "Quelqu’un vient de terminer la configuration. Connecte-toi avec le compte créé.",
       "title": "Ce serveur est déjà configuré."
     },
+    "field": {
+      "error": "{{field}} : {{error}}",
+      "hide": "Masquer",
+      "show": "Afficher"
+    },
     "libraries": {
       "added": "Bibliothèques ajoutées",
       "another": "Ajouter une autre bibliothèque",
       "body": "Choisis des dossiers sur les disques de {{serverName}}, pas sur cet appareil.",
+      "foot": "PLAID ne fait que lire ces dossiers. Tu pourras en ajouter d’autres plus tard.",
       "later": "Ajouter les bibliothèques plus tard",
       "next": "Suivre l’analyse",
       "title": "Où sont tes films et séries ?"
     },
+    "scan": {
+      "profiles": "Créer les profils",
+      "watch": "Commencer à regarder"
+    },
     "start": {
-      "body": "Trois étapes : ta langue, un compte qui reste sur ce serveur, et les dossiers où vivent tes films.",
-      "continue": "Continuer",
+      "continue": "Configurer {{serverName}}",
       "language": {
         "help": "C’est aussi la langue par défaut des titres et résumés de tes bibliothèques.",
         "label": "Langue"
       },
       "title": "Ce soir, tes films viendront de {{serverName}}.",
-      "version": "PLAID {{version}} · {{serverName}}"
+      "version": "PLAID {{version}}"
     },
     "step": "Étape {{step, number}} sur {{total, number}}"
   },
@@ -950,10 +1063,7 @@
       "label": "Chercher sur TMDB"
     },
     "unrecognized": {
-      "body": "PLAID n’a pas pu lire de titre dans ces noms de fichiers. Identifie-les, ou renomme les fichiers et relance l’analyse.",
-      "title_one": "Non reconnu ({{count, number}})",
-      "title_many": "",
-      "title_other": "Non reconnus ({{count, number}})"
+      "body": "PLAID n’a pas pu lire de titre dans ces noms de fichiers. Identifie-les, ou renomme les fichiers et relance l’analyse."
     },
     "use": "Utiliser {{title}} ({{year}})"
   },
@@ -994,7 +1104,6 @@
       "summary": "{{matched, number}} identifiés · {{needsReview, number}} à vérifier · {{unmatched, number}} introuvables"
     },
     "open": "Ouvrir {{library}}",
-    "startWatching": "Commencer maintenant, l’analyse continue",
     "state": {
       "analyzing": "Lecture des fichiers avec ffprobe",
       "idle": "Terminé",
@@ -1055,6 +1164,10 @@
       "limit": "La limite de surveillance de fichiers de Linux est atteinte : {{path}} est vérifié toutes les {{minutes, number}} minutes au lieu d’en direct. Pour l’augmenter :",
       "network": "{{path}} est sur un partage réseau : les nouveaux fichiers n’apparaissent pas tout de suite. PLAID le vérifie toutes les {{minutes, number}} minutes."
     }
+  },
+  "signIn": {
+    "forgot": "Mot de passe oublié ? Demande à un administrateur de le réinitialiser dans Personnes.",
+    "title": "Connexion à {{serverName}}"
   },
   "transcoding": {
     "cap": {
@@ -1133,7 +1246,6 @@
     "status": {
       "error": "Impossible de joindre le serveur. Il est bien branché ?"
     },
-    "title": "PLAID",
     "version": "Version {{version}}"
   }
 }

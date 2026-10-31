@@ -161,9 +161,9 @@ Built on the test server (`scripts/deploy.sh`) against a real library (751 movie
 40. [x] Admin, Step 9 first pass: dashboard, Settings, `GET /server/stats`. (F007-R17, R18, R35)
 41. [x] Profile menu (Step 12, TU01/TU02). (R54)
 42. [x] Hero previews: the queue, the route, `HeroPreview`, the switch; `TestFirstEpisode`, `TestPreviewScenesAt`, `TestPreviewArgs`, `TestItemPreview`, `TestItemPreviewAhead`. (R52)
-43. [ ] Admin, Step 9 second pass: the section pages in V2, motion TM25, the phone admin.
-44. [ ] Onboarding and sign-in, Step 10 (TL01–TL04).
-45. [ ] Evidence for Part E (below), `make test`, one commit per step group, the PR from `feat/F008-polish`.
+43. [x] Admin, Step 9 second pass: the section pages in V2, motion TM25, the phone admin.
+44. [x] Onboarding and sign-in, Step 10 (TL01–TL04).
+45. [ ] Evidence for Part E (below), `make test`, one commit per step group; steps 43–44 ship in a third F008 PR from `feat/F008-v2-admin-onboarding`.
 
 ## Risks
 | Risk | Likelihood | Mitigation |
@@ -213,6 +213,7 @@ Built on the test server (`scripts/deploy.sh`) against a real library (751 movie
 
 ## Log
 Deviations from the plan found during the build (date + what + why).
+- 2026-10-31 (steps 43–44): the owner extended the exemption to a third F008 PR, `feat/F008-v2-admin-onboarding`, since #56 had merged. Admin: a shared V2 frame (`web/src/admin/v2.tsx`: section tile, grouped rows, switch, rolling numbers) for every section page, a new Devices page (`/admin/devices`, built from `/users` and each person's sessions), the TM25 admin motion in `admin.css`, and the phone admin. Onboarding and sign-in: the setup code gets its own card before the account (as F007-R2 orders it), grouped fields with Show/Hide, the step slide through view transitions (a fade with reduced motion), and the shared folder picker becomes a centered glass dialog on desktop, in the admin too. Left out because the API has no data for them: TA08 (code shown on the computer), TA12 (remote access settings), per-file duration and resolution in Not recognized, transcoding caps beyond F006's settings, a per-device "Now" state, the server IP and time estimates in onboarding, folder counts in the picker; TL04 keeps the temporary password field because `POST /me/password` requires it.
 - 2026-10-31 (Part E): added after #55 merged, to carry the V2 work done on `feat/F008-polish`, which skipped the plan-first rule at the owner's request (changes deployed straight to the test server, Git and the SDLC caught up afterwards); the spec was aligned the same day. On the way: the production build put `browse.css` before `components.css`, so the design system's `.pl-menu` won over `.br-pmenu` (fixed with a doubled class), and lightningcss kept only `-webkit-backdrop-filter` when both were written, so Chrome had no glass at all (the prefix is now added by the build). Previews were first cut on the first visit (15–60 s of backdrop); the owner asked for 4 s at most, so every title is cut ahead of time. A preview has no audio, so the hero has a pause button rather than a sound button.
 - 2026-10-29: plan approved by gh-prim; build starts on `feat/F008-browsing-player`.
 - 2026-10-30 (step 32, partly): browser matrix on generated clips (an H.264 MP4; Arrival, an H.264 MKV with English and French audio, English, French, English SDH and French forced text subtitles and a PGS track; a 12-minute HEVC Main 10 MKV), against the dev server on an M-series Mac with VideoToolbox:

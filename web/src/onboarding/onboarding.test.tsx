@@ -72,7 +72,25 @@ describe('start', () => {
     expect(
       await screen.findByRole('heading', { name: 'Ce soir, tes films viendront de nas.' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Continuer' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Configurer nas' })).toBeInTheDocument()
+  })
+
+  it('names the server it found, then goes to the account', async () => {
+    fakeApi({
+      'GET /server': server(false),
+      'GET /setup': { status: 200, body: { setupComplete: false, requiresSetupCode: false } },
+    })
+    await renderApp('/')
+    expect(await screen.findByText('PLAID 0.1.0-test')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Set up nas' }))
+    expect(
+      await screen.findByRole('heading', { name: 'Create the admin account' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Step 1 of 4')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+    expect(
+      await screen.findByRole('heading', { name: 'Tonight’s movies will come from nas.' }),
+    ).toBeInTheDocument()
   })
 })
 
@@ -140,40 +158,54 @@ describe('account', () => {
       'POST /setup/admin': apiError(403, 'setup_code_required'),
     })
     await renderApp('/setup/account')
-    expect(
-      await screen.findByText('You’re connecting from outside your network.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Enter the setup code' })).toBeInTheDocument()
+    expect(screen.getByText('Only from outside your network')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Display name')).not.toBeInTheDocument()
     expect(
       screen.getByText('sudo journalctl -u plaid | grep first_run_setup_code'),
     ).toBeInTheDocument()
-    await userEvent.click(screen.getAllByRole('button', { name: 'Copy' })[0]!)
+    await userEvent.click(screen.getAllByRole('button', { name: 'Copy' })[1]!)
     expect(writeText).toHaveBeenCalledWith('sudo journalctl -u plaid | grep first_run_setup_code')
 
+    // An empty code doesn't go further.
+    await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(screen.getByLabelText('Setup code')).toHaveAttribute('aria-invalid', 'true')
+
     await userEvent.type(screen.getByLabelText('Setup code'), 'wrong')
-    await userEvent.type(screen.getByLabelText('Display name'), 'Ada')
+    await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    await userEvent.type(await screen.findByLabelText('Display name'), 'Ada')
     await userEvent.type(screen.getByLabelText('Username'), 'ada')
     await userEvent.type(screen.getByLabelText('Password'), 'plaid and chill')
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    // The wrong code brings its card back, with the code still typed.
     expect(
       await screen.findByText('This code doesn’t match. Copy the latest one from the log.'),
     ).toBeInTheDocument()
+    expect(screen.getByLabelText('Setup code')).toHaveValue('wrong')
+    expect(screen.getByLabelText('Setup code')).toHaveAccessibleDescription(
+      'This code doesn’t match. Copy the latest one from the log.',
+    )
   })
 
   it('locks the code for the time the server asks after too many attempts', async () => {
-    fakeApi({
+    const calls = fakeApi({
       'GET /server': server(false),
       'GET /setup': { status: 200, body: { setupComplete: false, requiresSetupCode: true } },
       'POST /setup/admin': apiError(429, 'too_many_attempts', { 'Retry-After': '300' }),
     })
     await renderApp('/setup/account')
-    await screen.findByLabelText('Setup code')
-    await userEvent.type(screen.getByLabelText('Setup code'), 'ABCD2345')
-    await userEvent.type(screen.getByLabelText('Display name'), 'Ada')
+    await userEvent.type(await screen.findByLabelText('Setup code'), 'abcd-2345')
+    await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    await userEvent.type(await screen.findByLabelText('Display name'), 'Ada')
     await userEvent.type(screen.getByLabelText('Username'), 'ada')
     await userEvent.type(screen.getByLabelText('Password'), 'plaid and chill')
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     expect(await screen.findByText('Too many attempts. Try again in 5 min.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Create account' })).toBeDisabled()
+    expect(screen.getByLabelText('Setup code')).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
+    expect(calls.find((c) => c.path === '/setup/admin')?.body).toMatchObject({
+      setupCode: 'ABCD2345',
+    })
   })
 
   it('says so when someone else finished setup first', async () => {
@@ -427,7 +459,9 @@ describe('scan', () => {
     expect(
       screen.getByText('Dune: Part Two just arrived. 412 of your movies are here.'),
     ).toBeInTheDocument()
-    expect(container.querySelectorAll('.pl-slot').length).toBeLessThanOrEqual(48)
+    // The wall fills the screen behind the words, and stays small in the DOM.
+    expect(container.querySelectorAll('.pl-slot').length).toBeLessThanOrEqual(60)
+    expect(screen.getByText('Step 3 of 4')).toBeInTheDocument()
     vi.useRealTimers()
   })
 

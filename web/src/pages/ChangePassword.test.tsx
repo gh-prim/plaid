@@ -35,6 +35,25 @@ describe('ChangePassword', () => {
     })
   })
 
+  it('waits for all three fields, then catches a mismatch', async () => {
+    const calls = fakeApi({
+      'GET /server': server(true),
+      'GET /me': { status: 200, body: { user: user({ mustChangePassword: true }), profiles: [] } },
+    })
+    await renderApp('/change-password')
+    expect(
+      await screen.findByRole('heading', { name: 'Choose a new password' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save password' })).toBeDisabled()
+    await userEvent.type(screen.getByLabelText('Current password'), 'temporary password')
+    await userEvent.type(screen.getByLabelText('New password'), 'bob has a long password')
+    await userEvent.type(screen.getByLabelText('Confirm password'), 'bob has a long passwor')
+    await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("Passwords don't match.")
+    expect(screen.getByLabelText('Confirm password')).toHaveAttribute('aria-invalid', 'true')
+    expect(calls.some((c) => c.path === '/me/password')).toBe(false)
+  })
+
   it('shows a wrong current password', async () => {
     fakeApi({
       'GET /server': server(true),

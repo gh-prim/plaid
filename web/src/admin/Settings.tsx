@@ -7,8 +7,9 @@ import { errorMessage, failure } from '../auth/errors'
 import { parseNetworks } from '../lib/cidr'
 import { formatRelative, formatTime } from '../lib/format'
 import { mountCommand } from '../lib/shellQuote'
-import { Button, ProblemEntry, Mark, CommandBlock, TextField } from '../ui'
-import { Section, useAdmin } from './AdminLayout'
+import { Button, Mark, CommandBlock, TextField } from '../ui'
+import { useAdmin } from './AdminLayout'
+import { Group, Loading, Row, Section } from './v2'
 
 type PlaybackSettings = components['schemas']['PlaybackSettings']
 type Update = components['schemas']['PlaybackSettingsUpdate']
@@ -18,7 +19,7 @@ type Problem = components['schemas']['Problem']
 const gb = 1e9
 const remoteOptions = [0, 4e6, 8e6, 12e6, 20e6, 40e6]
 
-/** Hardware test and playback settings (boards AP12–AP14, F007 R24, R28). */
+/** Hardware test and playback settings (boards AP12–AP14, TA09, F007 R24, R28). */
 export function Transcoding() {
   const { t } = useTranslation()
   const { refresh } = useAdmin()
@@ -33,7 +34,12 @@ export function Transcoding() {
     api.GET('/server/capabilities').then(({ data }) => setFfmpeg(data?.ffmpeg.found))
   }, [])
 
-  if (!s) return <Section>{null}</Section>
+  if (!s)
+    return (
+      <Section title={t('transcoding.title')} glyph="transcoding">
+        <Loading />
+      </Section>
+    )
   const hw = s.hardware
   const onSaved = (next: PlaybackSettings) => {
     setS(next)
@@ -59,10 +65,28 @@ export function Transcoding() {
     { value: 'none', label: t('transcoding.hw.none') },
   ]
 
+  const fallback = hw.disabledReason === 'repeated_failures'
   return (
-    <Section>
-      <h2 className="adm__h2">{t('transcoding.title')}</h2>
-      {hw.disabledReason === 'repeated_failures' && (
+    <Section
+      title={t('transcoding.title')}
+      glyph="transcoding"
+      paneTitle={
+        hw.active
+          ? t('admin.transcoding.hardware', { accelerator: hw.active.toUpperCase() })
+          : t('admin.transcoding.software')
+      }
+      paneSub={hw.active ? hw.device : undefined}
+      status={
+        ffmpeg === false
+          ? { text: t('transcoding.ffmpeg.title'), tone: 'error' }
+          : fallback
+            ? { text: t('transcoding.fallback.title'), tone: 'warning' }
+            : hw.active
+              ? { text: t('admin.transcoding.working'), tone: 'ok' }
+              : undefined
+      }
+    >
+      {fallback && (
         <section className="adm__alert">
           <p className="adm__word pl-tone--warning">
             <Mark tone="warning" />
@@ -87,42 +111,43 @@ export function Transcoding() {
           <p className="adm__help">{t('transcoding.ffmpeg.docker')}</p>
         </section>
       )}
-      <section className="adm__section" style={{ gap: 8 }}>
-        <h3 className="adm__h3">{t('transcoding.found')}</h3>
-        <p className="adm__text" style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-          <Mark tone={hw.active ? 'success' : 'warning'} />
-          <span>
-            {hw.active
+      <Group title={t('transcoding.found')}>
+        <Row
+          label={t('transcoding.hw.label')}
+          value={hw.active ? hw.active.toUpperCase() : t('admin.dash.software')}
+          tone={hw.active ? 'ok' : undefined}
+          sub={
+            hw.active
               ? t('transcoding.test.ok', {
                   accelerator: hw.active.toUpperCase(),
                   device: hw.device ?? t('transcoding.device.default'),
                 })
-              : t('transcoding.test.none')}
-          </span>
-        </p>
+              : t('transcoding.test.none')
+          }
+        />
         {hw.active && (
-          <dl className="adm__dl">
-            <dt>{t('transcoding.encodersLabel')}</dt>
-            <dd>{hw.encoders.join(', ') || '—'}</dd>
-            <dt>{t('transcoding.decodersLabel')}</dt>
-            <dd>{hw.decoders.join(', ') || '—'}</dd>
-            <dt>{t('transcoding.tonemapLabel')}</dt>
-            <dd>{hw.tonemap ? t('transcoding.tonemap.gpu') : t('transcoding.tonemap.software')}</dd>
-          </dl>
+          <>
+            <Row label={t('transcoding.encodersLabel')} value={hw.encoders.join(', ') || '—'} />
+            <Row label={t('transcoding.decodersLabel')} value={hw.decoders.join(', ') || '—'} />
+            <Row
+              label={t('transcoding.tonemapLabel')}
+              value={hw.tonemap ? t('transcoding.tonemap.gpu') : t('transcoding.tonemap.software')}
+            />
+          </>
         )}
-        {hw.disabledReason !== 'repeated_failures' && (
-          <div>
-            <Button variant="secondary" loading={testing} onClick={() => void retest()}>
-              {testing ? t('transcoding.hw.testing') : t('transcoding.retest')}
-            </Button>
-          </div>
+        {!fallback && (
+          <Row
+            label={testing ? t('transcoding.hw.testing') : t('transcoding.retest')}
+            busy={testing}
+            onClick={() => void retest()}
+          />
         )}
-        {testError && (
-          <p role="alert" className="ob__folder-error">
-            {testError}
-          </p>
-        )}
-      </section>
+      </Group>
+      {testError && (
+        <p role="alert" className="ob__folder-error">
+          {testError}
+        </p>
+      )}
 
       <Prefs settings={s} accelOptions={accelOptions} onSaved={onSaved} />
     </Section>
@@ -180,17 +205,19 @@ function Pref({
   children: ReactNode
 }) {
   return (
-    <div className="adm__pref">
-      <label className="adm__pref-label" htmlFor={id}>
-        {label}
-      </label>
-      <div className={wide ? 'adm__pref-control adm__pref-control--wide' : 'adm__pref-control'}>
-        {children}
+    <li className="adm-row-item">
+      <div className={`adm-row adm-pref${wide ? ' adm-pref--wide' : ''}`}>
+        <span className="adm-row__text">
+          <label className="adm-row__label" htmlFor={id}>
+            {label}
+          </label>
+          {(error ?? help) && (
+            <span className={`adm-row__sub${error ? ' is-error' : ''}`}>{error ?? help}</span>
+          )}
+        </span>
+        <span className="adm-pref__control">{children}</span>
       </div>
-      {(error ?? help) && (
-        <p className={error ? 'adm__help pl-tone--error' : 'adm__help'}>{error ?? help}</p>
-      )}
-    </div>
+    </li>
   )
 }
 
@@ -260,58 +287,59 @@ function Prefs({
       }}
       noValidate
     >
-      <div className="adm__prefs-bar">
-        <Button variant="secondary" size="sm" onClick={() => setAdvanced(!advanced)}>
-          {advanced ? t('admin.prefs.hideAdvanced') : t('admin.prefs.showAdvanced')}
-        </Button>
-      </div>
-      <Pref id="hw" label={t('transcoding.hw.label')} help={t('transcoding.hw.help')}>
-        <select
-          id="hw"
-          className="adm__select"
-          value={draft.hwAccel}
-          onChange={(e) => set('hwAccel', e.target.value as HwAccel)}
-        >
-          {accelOptions.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </Pref>
-      <Pref
-        id="max"
-        label={t('transcoding.max.label')}
-        help={t('transcoding.max.help', { default: settings.maxTranscodesDefault })}
-        error={maxError}
-      >
-        <input
-          id="max"
-          className="adm__select"
-          inputMode="numeric"
-          aria-invalid={maxError ? 'true' : undefined}
-          value={draft.maxTranscodes}
-          onChange={(e) => set('maxTranscodes', e.target.value)}
-        />
-      </Pref>
-      <Pref id="remote" label={t('transcoding.remote.label')} help={t('transcoding.remote.help')}>
-        <select
-          id="remote"
-          className="adm__select"
-          value={draft.remoteMaxBitrate}
-          onChange={(e) => set('remoteMaxBitrate', Number(e.target.value))}
-        >
-          {[...new Set([...remoteOptions, settings.remoteMaxBitrate])]
-            .sort((a, b) => a - b)
-            .map((b) => (
-              <option key={b} value={b}>
-                {b ? t('transcoding.remote.mbps', { n: b / 1e6 }) : t('transcoding.remote.none')}
+      <Group title={t('admin.transcoding.prefs')}>
+        <Pref id="hw" label={t('transcoding.hw.label')} help={t('transcoding.hw.help')}>
+          <select
+            id="hw"
+            className="adm__select"
+            value={draft.hwAccel}
+            onChange={(e) => set('hwAccel', e.target.value as HwAccel)}
+          >
+            {accelOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
-        </select>
-      </Pref>
+          </select>
+        </Pref>
+        <Pref
+          id="max"
+          label={t('transcoding.max.label')}
+          help={t('transcoding.max.help', { default: settings.maxTranscodesDefault })}
+          error={maxError}
+        >
+          <input
+            id="max"
+            className="adm__select"
+            inputMode="numeric"
+            aria-invalid={maxError ? 'true' : undefined}
+            value={draft.maxTranscodes}
+            onChange={(e) => set('maxTranscodes', e.target.value)}
+          />
+        </Pref>
+        <Pref id="remote" label={t('transcoding.remote.label')} help={t('transcoding.remote.help')}>
+          <select
+            id="remote"
+            className="adm__select"
+            value={draft.remoteMaxBitrate}
+            onChange={(e) => set('remoteMaxBitrate', Number(e.target.value))}
+          >
+            {[...new Set([...remoteOptions, settings.remoteMaxBitrate])]
+              .sort((a, b) => a - b)
+              .map((b) => (
+                <option key={b} value={b}>
+                  {b ? t('transcoding.remote.mbps', { n: b / 1e6 }) : t('transcoding.remote.none')}
+                </option>
+              ))}
+          </select>
+        </Pref>
+        <Row
+          label={advanced ? t('admin.prefs.hideAdvanced') : t('admin.prefs.showAdvanced')}
+          onClick={() => setAdvanced(!advanced)}
+        />
+      </Group>
       {advanced && (
-        <>
+        <Group title={t('admin.transcoding.advanced')}>
           <Pref
             id="nets"
             label={t('transcoding.networks.label')}
@@ -358,7 +386,7 @@ function Prefs({
               onChange={(e) => set('capGb', e.target.value)}
             />
           </Pref>
-        </>
+        </Group>
       )}
       <div className="adm__prefs-save">
         <Button type="submit" loading={saving} disabled={!dirty || saving}>
@@ -384,7 +412,7 @@ function Prefs({
   )
 }
 
-/** Provider keys (write-only), metadata progress and attributions (board AP15, F007 R25). */
+/** Provider keys (write-only), metadata progress and attributions (boards AP15, TA11, F007 R25). */
 export function Metadata() {
   const { t } = useTranslation()
   const { state } = useAuth()
@@ -434,89 +462,109 @@ export function Metadata() {
           ? t('metadata.state.no_api_key', { provider: providerName(p.provider) })
           : t('metadata.state.unreachable', { provider: providerName(p.provider) })
 
+  const providers = status?.providers ?? []
+  const totals = (status?.libraries ?? []).reduce(
+    (a, c) => ({
+      matched: a.matched + c.matched,
+      total: a.total + c.matched + c.needsReview + c.unmatched,
+    }),
+    { matched: 0, total: 0 },
+  )
+  const down = providers.filter((p) => p.state !== 'ok' && p.state !== 'no_api_key')
+
   return (
-    <Section>
-      <h2 className="adm__h2">{t('metadata.title')}</h2>
-      <div className="adm__rows">
-        {(status?.providers ?? []).map((p) => (
-          <div
-            key={p.provider}
-            className="adm__row"
-            style={{ padding: '16px 0', flexWrap: 'wrap' }}
-          >
-            <Mark
-              tone={p.state === 'ok' ? 'success' : p.state === 'no_api_key' ? undefined : 'warning'}
-            />
-            <span className="adm__row-body" style={{ minWidth: 220 }}>
-              <span className="adm__h3">{providerName(p.provider)}</span>
-              <span className="adm__word" style={{ color: 'var(--text-secondary)' }}>
-                {source(p.keySource)}
-              </span>
-              <span className="adm__help">{stateText(p)}</span>
-            </span>
-            {p.provider === 'tmdb' && !editing && (
-              <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
-                {t('metadata.useOwn')}
-              </Button>
-            )}
-            {p.provider === 'tmdb' && editing && (
-              <div className="adm__form" style={{ flexBasis: '100%' }}>
-                <TextField
-                  kind="password"
-                  label={t('metadata.useOwn')}
-                  help={t('metadata.key.help')}
-                  value={key}
-                  onValue={setKey}
-                  autoComplete="off"
-                  error={error}
-                />
-                <div className="adm__actions">
-                  <Button onClick={() => void saveKey()}>{t('common.save')}</Button>
-                  <Button variant="ghost" onClick={() => setEditing(false)}>
-                    {t('common.cancel')}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+    <Section
+      title={t('metadata.title')}
+      glyph="metadata"
+      paneTitle={t('admin.metadata.sources')}
+      paneSub={
+        status
+          ? t('admin.metadata.matched', { matched: totals.matched, total: totals.total })
+          : undefined
+      }
+      status={
+        status
+          ? down.length
+            ? { text: t('admin.metadata.down', { count: down.length }), tone: 'warning' }
+            : { text: t('admin.metadata.allOk'), tone: 'ok' }
+          : undefined
+      }
+    >
+      {!status && !settings && <Loading />}
       {settings && !status && <p className="adm__text">{source(settings.tmdb.keySource)}</p>}
-      <section className="adm__section" style={{ gap: 0 }}>
-        <h3 className="adm__h3" style={{ marginBottom: 8 }}>
-          {t('metadata.perLibrary')}
-        </h3>
-        <div className="adm__rows">
-          {(status?.libraries ?? []).map((c) => (
-            <div key={c.libraryId} className="adm__row">
-              <span className="adm__row-body">
-                <span className="adm__row-title">
-                  {admin?.libraries.find((l) => l.id === c.libraryId)?.name ?? c.libraryId}
-                </span>
-                <span className="adm__help">
-                  {t('metadata.progress', {
-                    matched: c.matched,
-                    needsReview: c.needsReview,
-                    unmatched: c.unmatched,
-                  })}
-                </span>
-              </span>
-            </div>
+      {providers.length > 0 && (
+        <Group title={t('metadata.attributions')}>
+          {providers.map((p) => (
+            <Row
+              key={p.provider}
+              label={providerName(p.provider)}
+              value={p.state === 'ok' ? t('metadata.state.ok') : undefined}
+              tone={p.state === 'ok' ? 'ok' : undefined}
+              sub={[source(p.keySource), p.state === 'ok' ? undefined : stateText(p)]
+                .filter(Boolean)
+                .join(' · ')}
+              subTone={p.state === 'ok' || p.state === 'no_api_key' ? undefined : 'warning'}
+              control={
+                p.provider === 'tmdb' && !editing ? (
+                  <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+                    {t('metadata.useOwn')}
+                  </Button>
+                ) : undefined
+              }
+            >
+              {p.provider === 'tmdb' && editing && (
+                <div className="adm__form">
+                  <TextField
+                    kind="password"
+                    label={t('metadata.useOwn')}
+                    help={t('metadata.key.help')}
+                    value={key}
+                    onValue={setKey}
+                    autoComplete="off"
+                    error={error}
+                  />
+                  <div className="adm__actions">
+                    <Button onClick={() => void saveKey()}>{t('common.save')}</Button>
+                    <Button variant="ghost" onClick={() => setEditing(false)}>
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Row>
           ))}
-        </div>
-      </section>
+        </Group>
+      )}
+      {(status?.libraries.length ?? 0) > 0 && (
+        <Group title={t('metadata.perLibrary')}>
+          {status!.libraries.map((c) => (
+            <Row
+              key={c.libraryId}
+              to={`/admin/libraries/${c.libraryId}`}
+              label={admin?.libraries.find((l) => l.id === c.libraryId)?.name ?? c.libraryId}
+              sub={t('metadata.progress', {
+                matched: c.matched,
+                needsReview: c.needsReview,
+                unmatched: c.unmatched,
+              })}
+            />
+          ))}
+        </Group>
+      )}
       {attributions.length > 0 && (
-        <section className="adm__section">
-          <h3 className="adm__h3">{t('metadata.attributions')}</h3>
+        <Group title={t('admin.metadata.credits')}>
           {attributions.map((a) => (
-            <p key={a.provider} className="adm__help">
-              <a href={a.url} rel="noreferrer" target="_blank" className="adm__link">
-                {a.name}
-              </a>{' '}
-              · {a.notice}
-            </p>
+            <Row
+              key={a.provider}
+              label={
+                <a href={a.url} rel="noreferrer" target="_blank" className="adm__link">
+                  {a.name}
+                </a>
+              }
+              sub={a.notice}
+            />
           ))}
-        </section>
+        </Group>
       )}
     </Section>
   )
@@ -562,43 +610,68 @@ function describe(
   }
 }
 
-/** The last 7 days of problems (board AP16, F007 R26). */
+/** The last 7 days of problems, going on first (board TA10, F007 R26). */
 export function Problems() {
   const { t, i18n } = useTranslation()
   const { data } = useAdmin()
   const locale = i18n.resolvedLanguage ?? 'en'
   const list = data?.problems ?? []
+  const open = list.filter((p) => !p.resolvedAt)
+  const solved = list.filter((p) => p.resolvedAt)
+
+  const row = (p: Problem) => {
+    const time = formatTime(locale, new Date(p.lastSeen))
+    const d = describe(t, p, time)
+    const fixed = p.resolvedAt ? formatRelative(locale, new Date(p.resolvedAt)) : undefined
+    return (
+      <Row
+        key={p.id}
+        label={d.text}
+        value={formatRelative(locale, new Date(p.lastSeen))}
+        sub={[
+          p.count > 1 ? t('problems.count', { count: p.count }) : undefined,
+          fixed ? t('problems.resolved', { time: fixed }) : undefined,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+        tone={fixed ? undefined : 'warning'}
+      >
+        {!fixed && (d.todo || d.command) ? (
+          <>
+            {d.todo && (
+              <p className="adm__text">
+                <strong>{t('problems.whatToDo')}</strong> {d.todo}
+              </p>
+            )}
+            {d.command && <CommandBlock command={d.command} />}
+          </>
+        ) : undefined}
+      </Row>
+    )
+  }
+
   return (
-    <Section>
-      <div>
-        <h2 className="adm__h2">{t('problems.title')}</h2>
-        <p className="adm__lead">{t('problems.lead')}</p>
-      </div>
+    <Section
+      title={t('problems.title')}
+      glyph="problems"
+      paneTitle={data ? t('admin.problems.week', { count: list.length }) : undefined}
+      paneSub={t('problems.lead')}
+      status={
+        data
+          ? open.length
+            ? { text: t('admin.problems.open', { count: open.length }), tone: 'error' }
+            : { text: t('admin.problems.allClear'), tone: 'ok' }
+          : undefined
+      }
+    >
+      {!data && <Loading />}
       {data && !list.length && (
         <div className="adm__empty">
           <p className="title">{t('problems.empty')}</p>
         </div>
       )}
-      <ul className="adm__rows">
-        {list.map((p) => {
-          const time = formatTime(locale, new Date(p.lastSeen))
-          const d = describe(t, p, time)
-          return (
-            <ProblemEntry
-              key={p.id}
-              when={
-                formatRelative(locale, new Date(p.lastSeen)) +
-                (p.count > 1 ? ` · ${t('problems.count', { count: p.count })}` : '')
-              }
-              fixed={p.resolvedAt ? formatRelative(locale, new Date(p.resolvedAt)) : undefined}
-              todo={p.resolvedAt ? undefined : d.todo}
-              command={p.resolvedAt ? undefined : d.command}
-            >
-              {d.text}
-            </ProblemEntry>
-          )
-        })}
-      </ul>
+      {open.length > 0 && <Group title={t('admin.problems.goingOn')}>{open.map(row)}</Group>}
+      {solved.length > 0 && <Group title={t('admin.problems.solved')}>{solved.map(row)}</Group>}
     </Section>
   )
 }

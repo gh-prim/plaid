@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router'
 import { AdminLayout } from './AdminLayout'
 import { AdminSettings } from './AdminSettings'
 import { Dashboard } from './Dashboard'
+import { Devices } from './Devices'
 import { Libraries, LibraryPage } from './Libraries'
 import { People, Person } from './People'
 import { Playing } from './Playing'
@@ -25,6 +26,7 @@ export default function AdminApp() {
         <Route path="libraries/:id/review" element={<Review />} />
         <Route path="people" element={<People />} />
         <Route path="people/:id" element={<Person />} />
+        <Route path="devices" element={<Devices />} />
         <Route path="transcoding" element={<Transcoding />} />
         <Route path="metadata" element={<Metadata />} />
         <Route path="problems" element={<Problems />} />

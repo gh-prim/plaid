@@ -11,6 +11,7 @@ import { imageSrc } from '../browse/media'
 import { methodLabel } from '../player/labels'
 import { streamArt, summaryEvery, useAdmin } from './AdminLayout'
 import { needs, slow, statusLine } from './summary'
+import { Roll, useLeaving } from './v2'
 
 type ActivePlayback = components['schemas']['ActivePlayback']
 type ServerStats = components['schemas']['ServerStats']
@@ -19,6 +20,8 @@ type ItemSummary = components['schemas']['ItemSummary']
 /** Readings kept for the health tiles' small trend lines. */
 const trendLength = 9
 const weekMs = 7 * 24 * 3600 * 1000
+const noStreams: ActivePlayback[] = []
+const streamKey = (s: ActivePlayback) => s.session.id
 
 /**
  * The admin dashboard (V2): the server's name and status in words, what's
@@ -38,6 +41,8 @@ export function Dashboard() {
   }, summaryEvery)
   const [added, setAdded] = useState<{ items: ItemSummary[]; count: number }>()
   const [stopping, setStopping] = useState<string>()
+  // A stream that ends fades before its slot closes (TM25).
+  const shown = useLeaving(data?.streams ?? noStreams, streamKey)
 
   useEffect(() => {
     if (!data?.libraries.length) return
@@ -175,19 +180,23 @@ export function Dashboard() {
         <h2 id="dash-playing" className="adm-dash__h">
           {t('playing.title')} <span>{n(data.streams.length)}</span>
         </h2>
-        {data.streams.length === 0 ? (
+        {shown.length === 0 ? (
           <div className="adm-dash__quiet br-glass">
             <strong>{t('admin.dash.nobody')}</strong>
           </div>
         ) : (
           <ul className="adm-dash__streams">
-            {data.streams.map((s) => {
+            {shown.map(({ item: s, leaving }) => {
               const art = streamArt(s, 'backdrop', 780) ?? streamArt(s, 'still', 780)
               const p =
                 s.session.durationMs > 0 ? Math.min(1, s.positionMs / s.session.durationMs) : 0
               const transcoding = s.session.method === 'transcode'
               return (
-                <li key={s.session.id} className="adm-stream">
+                <li
+                  key={s.session.id}
+                  className={`adm-stream${leaving ? ' is-leaving' : ''}`}
+                  aria-hidden={leaving || undefined}
+                >
                   {art && <img src={art} alt="" />}
                   <span className="adm-stream__shade" aria-hidden="true" />
                   <div className="adm-stream__who">
@@ -238,7 +247,9 @@ export function Dashboard() {
         {tiles.map((x) => (
           <div key={x.key} className="adm-tile br-glass">
             <p>{x.label}</p>
-            <strong>{x.value}</strong>
+            <strong>
+              <Roll value={x.value} />
+            </strong>
             <span className={x.tone === 'warning' ? 'is-warning' : x.tone === 'ok' ? 'is-ok' : ''}>
               {x.sub}
             </span>

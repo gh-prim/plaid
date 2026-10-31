@@ -19,6 +19,7 @@
   },
   "admin": {
     "back": "Back to the library",
+    "backTo": "Back to {{name}}",
     "backToWatching": "Back to watching",
     "dash": {
       "added": "Added this week",
@@ -48,6 +49,20 @@
       "upload": "Upload",
       "used": "{{used}} used of {{total}}"
     },
+    "devices": {
+      "count_one": "{{count, number}} device",
+      "count_other": "{{count, number}} devices",
+      "empty": "No device is signed in.",
+      "foot": "Signing a device out ends that session only; nothing else is deleted.",
+      "otherGroup": "Browsers and phones",
+      "pairHelp": "Type the code the TV shows",
+      "signedOut": "{{device}} is signed out.",
+      "signOut": "Sign out {{device}}",
+      "tvGroup": "TVs",
+      "tvs_one": "{{count, number}} TV",
+      "tvs_other": "{{count, number}} TVs"
+    },
+    "done": "Done",
     "home": {
       "nothingNeedsYou": "Nothing needs you.",
       "status": {
@@ -60,7 +75,36 @@
         "slow_other": "{{count, number}} people are watching. One stream can’t keep up."
       }
     },
+    "libraries": {
+      "add": "Add a library…",
+      "count_one": "{{count, number}} library",
+      "count_other": "{{count, number}} libraries",
+      "facts": "{{titles, number}} titles · {{files, number}} files",
+      "folderTrouble_one": "{{count, number}} of {{total, number}} folders unavailable",
+      "folderTrouble_other": "{{count, number}} of {{total, number}} folders unavailable",
+      "scanAll": "Scan all libraries now",
+      "scanStarted_one": "Scanning {{count, number}} library.",
+      "scanStarted_other": "Scanning {{count, number}} libraries.",
+      "unavailable_one": "One folder unavailable",
+      "unavailable_other": "{{count, number}} folders unavailable"
+    },
+    "library": {
+      "addFolder": "Add a folder…",
+      "details": "Details",
+      "languageValue": "{{language}}, {{region}}",
+      "unavailable_one": "{{count, number}} folder unavailable",
+      "unavailable_other": "{{count, number}} folders unavailable"
+    },
+    "metadata": {
+      "allOk": "All sources answering",
+      "credits": "Credits",
+      "down_one": "One source isn’t answering",
+      "down_other": "{{count, number}} sources aren’t answering",
+      "matched": "{{matched, number}} of {{total, number}} titles matched",
+      "sources": "TMDB and fanart.tv"
+    },
     "nav": {
+      "devices": "Devices",
       "libraries": "Libraries",
       "metadata": "Metadata",
       "people": "People",
@@ -75,16 +119,49 @@
       "slow": "{{title}} can’t keep up: it will buffer.",
       "title": "Needs you"
     },
+    "people": {
+      "admins_one": "{{count, number}} admin",
+      "admins_other": "{{count, number}} admins",
+      "count_one": "{{count, number}} person",
+      "count_other": "{{count, number}} people",
+      "foot": "Each person signs in with their own account and keeps their own profiles and watch history."
+    },
+    "person": {
+      "access": "Access",
+      "cantDelete": "Not possible while {{name}} is the only admin",
+      "onlyAdmin": "{{name}} is the only admin. Make someone else an admin before turning this off."
+    },
+    "playing": {
+      "keepUp": "All streams keep up",
+      "slow": "One stream can’t keep up"
+    },
     "prefs": {
       "hideAdvanced": "Hide advanced",
       "save": "Save changes",
       "showAdvanced": "Show advanced"
     },
+    "problems": {
+      "allClear": "All clear",
+      "goingOn": "Going on",
+      "open_one": "{{count, number}} going on",
+      "open_other": "{{count, number}} going on",
+      "solved": "Solved",
+      "week_one": "{{count, number}} this week",
+      "week_other": "{{count, number}} this week"
+    },
     "sections": "Admin sections",
     "settings": {
+      "group": {
+        "library": "Library",
+        "people": "People and devices",
+        "playback": "Playback",
+        "server": "Server"
+      },
       "libraries_one": "{{count, number}} library",
       "libraries_other": "{{count, number}} libraries",
       "none": "None",
+      "things_one": "{{count, number}} thing",
+      "things_other": "{{count, number}} things",
       "unrecognized": "Not recognized"
     },
     "summary": {
@@ -94,10 +171,24 @@
     "tab": {
       "dashboard": "Dashboard",
       "settings": "Settings"
+    },
+    "transcoding": {
+      "advanced": "Advanced",
+      "hardware": "Hardware, {{accelerator}}",
+      "prefs": "When converting",
+      "software": "Software",
+      "working": "Working"
+    },
+    "unrecognized": {
+      "files_one": "{{count, number}} file",
+      "files_other": "{{count, number}} files",
+      "group": "{{name}} · {{n}}",
+      "sub": "PLAID couldn’t name them from the file or folder."
     }
   },
   "auth": {
     "changePassword": {
+      "body": "An admin gave you a temporary password. Pick your own; only you will know it.",
       "submit": "Save password",
       "title": "Choose a new password"
     },
@@ -217,7 +308,6 @@
       "unavailable": "Unavailable"
     },
     "unavailable": {
-      "body": "{{path}} can’t be reached. Its {{count, number}} movies are hidden until it’s back; nothing is deleted. After 30 days missing, they leave the library.",
       "check": "Its movies are hidden until it’s back; nothing is deleted. After 30 days missing, they leave the library. Check that the disk or share is mounted:",
       "title": "{{path}} can’t be reached."
     },
@@ -432,7 +522,6 @@
       "label": "Full rescan"
     },
     "identifyReview": "To identify and to review",
-    "kicker": "Library · {{type}}",
     "language": {
       "help": "Titles and synopses are fetched again in the background. Matches you fixed stay."
     },
@@ -536,9 +625,9 @@
     "account": {
       "body": "It lives on {{serverName}} only. There’s no PLAID account online.",
       "displayName": {
-        "help": "Shown to the people you add later.",
         "label": "Display name"
       },
+      "others": "Others get a profile later; no password unless you want one.",
       "password": {
         "help": "8 characters or more. A long phrase beats symbols.",
         "label": "Password"
@@ -547,42 +636,52 @@
       "submitting": "Creating account",
       "title": "Create the admin account",
       "username": {
-        "help": "You’ll sign in with it.",
         "invalid": "Use letters, numbers, dots, dashes or underscores.",
         "label": "Username"
       }
     },
     "code": {
-      "body": "To prove this server is yours, enter the setup code PLAID wrote to its log when it started.",
+      "body": "You’re connecting from outside {{serverName}}’s network, so PLAID needs proof that this server is yours: the code it wrote to its log when it started. On your home network this step doesn’t appear.",
+      "continue": "Continue",
       "deb": "Ubuntu or Debian (.deb)",
       "docker": "Docker",
+      "kicker": "Only from outside your network",
       "label": "Setup code",
       "other": "Anything else: the terminal where PLAID started.",
-      "title": "You’re connecting from outside your network.",
-      "where": "Where to find it"
+      "title": "Enter the setup code",
+      "where": "Where to find it, on the server"
     },
     "doneElsewhere": {
       "action": "Sign in",
       "body": "Someone finished setup a moment ago. Sign in with the account they created.",
       "title": "This server is already set up."
     },
+    "field": {
+      "error": "{{field}}: {{error}}",
+      "hide": "Hide",
+      "show": "Show"
+    },
     "libraries": {
       "added": "Libraries added",
       "another": "Add another library",
       "body": "Pick folders on {{serverName}}’s disks, not on this device.",
+      "foot": "PLAID only reads these folders. You can add more later.",
       "later": "Add libraries later",
       "next": "Follow the scan",
       "title": "Where are your movies and shows?"
     },
+    "scan": {
+      "profiles": "Set up profiles",
+      "watch": "Start watching now"
+    },
     "start": {
-      "body": "Three steps: your language, an account that stays on this server, and the folders where your movies live.",
-      "continue": "Continue",
+      "continue": "Set up {{serverName}}",
       "language": {
         "help": "Also the default language for titles and synopses in your libraries.",
         "label": "Language"
       },
       "title": "Tonight’s movies will come from {{serverName}}.",
-      "version": "PLAID {{version}} · {{serverName}}"
+      "version": "PLAID {{version}}"
     },
     "step": "Step {{step, number}} of {{total, number}}"
   },
@@ -919,9 +1018,7 @@
       "label": "Search TMDB"
     },
     "unrecognized": {
-      "body": "PLAID couldn’t read a title from these file names. Identify them, or rename the files and scan again.",
-      "title_one": "Not recognized ({{count, number}})",
-      "title_other": "Not recognized ({{count, number}})"
+      "body": "PLAID couldn’t read a title from these file names. Identify them, or rename the files and scan again."
     },
     "use": "Use {{title}} ({{year}})"
   },
@@ -955,7 +1052,6 @@
       "summary": "{{matched, number}} matched · {{needsReview, number}} to review · {{unmatched, number}} not found"
     },
     "open": "Open {{library}}",
-    "startWatching": "Start watching now, the scan keeps going",
     "state": {
       "analyzing": "Reading files with ffprobe",
       "idle": "Done",
@@ -1014,6 +1110,10 @@
       "limit": "Linux’s file watch limit is reached, so {{path}} is checked every {{minutes, number}} minutes instead of live. To raise the limit:",
       "network": "{{path}} is on a network share, so new files aren’t seen right away. PLAID checks it every {{minutes, number}} minutes."
     }
+  },
+  "signIn": {
+    "forgot": "Forgot it? Ask an admin to reset your password in People.",
+    "title": "Sign in to {{serverName}}"
   },
   "transcoding": {
     "cap": {
@@ -1092,7 +1192,6 @@
     "status": {
       "error": "Can't reach the server. Is it still plugged in?"
     },
-    "title": "PLAID",
     "version": "Version {{version}}"
   }
 }
