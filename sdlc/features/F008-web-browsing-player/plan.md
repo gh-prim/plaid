@@ -18,6 +18,7 @@ One PR for the whole feature (CLAUDE.md), from `feat/F008-browsing-player`, buil
 - **Part B — Web foundations**: dependencies, the shell, routing, the profile picker, cards and rows, the design system's media and player components ported.
 - **Part C — Browsing** (R5–R25): home, grids, detail pages, search.
 - **Part D — Player** (R33–R46).
+- **Part E — V2** (R1, R2, R6, R17, R25, R34, R35, R52–R54; spec revision of 2026-10-31): the canvas page "V2" (Steps 1–12) and the hero previews. Parts A–D shipped in #55; Part E ships as a second F008 PR from `feat/F008-polish`, with the F005, F006 and F007 changes the V2 needed (their specs carry them). **Exemption** from "one PR per feature", granted by the owner on 2026-10-31 for this once: the feature's first PR was already merged.
 
 The screens come from the Claude Design canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz), pages Browse and Player, made with [claude-design-prompt.md](claude-design-prompt.md). Parts B–D take it as input; the PR attaches PNG exports of the boards it builds next to screenshots. Its wrap-up boards ("Rejected directions, proposed components, keys added" and "Player: motion, rejected directions, proposed components") list the components to port; they're built on the design system's existing ones (`pl-player`, `pl-tl`, `pl-next`, `pl-resume`, `pl-ppanel`, `pl-pmsg`, `pl-vol`, `pl-still`, `pl-avatar`, `pl-pin`, `pl-person`, `pl-menu`, `pl-select`, `pl-slider`, `pl-toggle`, all already in `web/src/design/components.css`).
 
@@ -82,6 +83,30 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | `sdlc/roadmap.md` | modify | Plan status. |
 | `CLAUDE.md` | modify | The catalog perf command, next to the other perf commands. |
 
+### Part E — V2
+| File | Action | Why |
+|------|--------|-----|
+| `api/openapi.yaml`, `server/internal/api/oapi-codegen.yaml`, generated files | modify | `Profile.ambient`; `SubtitleCapability.separate`, `/stream/{token}/subtitles/{index}.sup`, `SubtitleFrom` and `X-Subtitle-Until`; `GET /server/stats` (`ServerStats`, `DriveStats`); `LibraryMetadataCounts.refreshing`; `GET /items/{id}/preview` under a new tag `preview`, excluded from the generated server like `stream`. |
+| `server/internal/playback/preview.go` + `preview_test.go`, `service.go`, `storage.go`, `hls.go` | create / modify | R52: the preview queue (urgent first, ahead of time on two threads while nobody transcodes, interruptible), the FFmpeg recipe, the 10 GiB cache; `Options.PreviewsAhead`, `Timings.PreviewRescan`, `fileCache.size`. |
+| `server/internal/handlers/preview.go` + `preview_e2e_test.go`, `server/internal/httpserver/server.go`, `server/cmd/plaid/main.go` | create / modify | The plain `GET /items/{itemId}/preview` handler (Range, 202 + `Retry-After`, 404), mounted through `Options.Preview`. |
+| `server/internal/library/items.go` + `first_episode_test.go` | modify / create | `FirstEpisode` (a show's preview source) and `TopLevelIDs` (the order previews are cut ahead). |
+| `server/internal/playback/subtitles.go`, `profile.go`, `decide.go`, `hls_test.go`, `decide_test.go`, `server/internal/handlers/stream.go` | modify | R34, R35 (F006-R16, R17): `SubtitleQuick` (`?from=` windows, the whole track in the background), `SubtitleSUP`, `SeparateSubtitles`; PGS no longer burned in for such clients; the selected subtitle warmed at session start. |
+| `server/internal/playback/service.go` + `softwarecap_test.go` | modify / create | F006-R21: software transcodes capped at 1080p; F006-R32: the final position retried for 30 s; `Load()` for the dashboard and the preview queue. |
+| `server/internal/metadata/apply.go`, `artwork_sync.go`, `store.go`, `read.go`, `queue.go` + `artwork_retry_test.go`, `queue_unpause_test.go`; `server/internal/db/migrations/0009_artwork_catchup.sql` | modify / create | F005-R17, R35: artwork retried 10 min after a partial failure, seasons written one per transaction, `refreshing` count, `LastWatchedBackdrops` (R2's `Profile.ambient`), the queue unpaused on a key change; the catch-up migration. |
+| `server/internal/db/migrations/0008_catalog_triggers.sql` | create | The people search trigger fires only when a name really changes (it rewrote the FTS row on every cast upsert and held the write lock). |
+| `server/internal/metadata/match/match.go`, `server/internal/library/parse_movie.go`, `reconcile.go` | modify | "The Office (US)" matched by its country tag; an `S01E03` file among movies is unrecognized instead of a movie. |
+| `server/internal/handlers/me.go`, `server_stats.go`, `server/internal/sysstats/` | modify / create | `Profile.ambient`; F007-R35 `GET /server/stats`. |
+| `web/src/browse/Shell.tsx`, `TopBar.tsx`, `ActivityMenu.tsx` (+ test), `Wordmark.tsx`, `ProfileMenu.tsx`, `previewPref.ts`; `Sidebar.tsx`, `SearchBox.tsx` | modify / create / delete | R1, R54: the top bar with glass tabs and the activity button, the wordmark with Foxy, the Step 12 profile menu with its two switches. |
+| `web/src/browse/HomeHero.tsx`, `MovieHeader.tsx`, `HeroPreview.tsx`, `useParallax.ts`, `PageLight.tsx`, `Img.tsx`, `AboutSection.tsx`, `GlassSheet.tsx`, `FixMatchSheet.tsx`, `matchQuery.ts`, `cards/CardPlate.tsx` | create / modify | R6, R17, R51, R52: framed heroes with parallax and scenes, the page light crossfade, images from blurred to sharp, the About panel, glass sheets and toasts, Fix match as a sheet, plates for missing artwork. |
+| `web/src/browse/SearchPage.tsx`, `SearchResults.tsx`, `useSearch.ts` | modify | R25: the V2 search. |
+| `web/src/pages/ProfilePicker.tsx` | modify | R2: lit by `Profile.ambient`. |
+| `web/src/player/Player.tsx`, `PgsLayer.tsx`, `pgs.ts` (+ test), `quickSubtitles.ts`, `capabilities.ts` | modify / create | R34, R35: PGS drawn on a canvas, text tracks fetched the quick way, the centered buffering ring. |
+| `web/src/admin/AdminLayout.tsx`, `Dashboard.tsx`, `AdminSettings.tsx`, `routes.tsx`, `admin.css` | modify / create | F007-R17, R18: the dashboard and Settings. |
+| `web/src/design/motion.css`, `web/src/main.tsx`, `web/src/design/tokens.json` / `tokens.css`, `web/src/design/components.css`, `web/src/browse/browse.css` | create / modify | R53: motion tokens and rules; `backdrop-filter` written once so the build keeps it. |
+| `web/public/icon*.png`, `icon.svg`, `manifest.webmanifest`, `web/index.html` | create / modify | The V2 app icon and theme color. |
+| `web/src/locales/en/common.json`, `fr/common.json` | modify | Every new string. |
+| `scripts/deploy.sh` | create | Builds the working tree and replaces the binary on a `.deb` install (the test server); `SUDO_PASSWORD` goes to sudo through stdin. |
+
 ## Steps, in order
 
 ### Part A — Server
@@ -125,6 +150,21 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 32. [ ] Browser matrix, by hand, on F006's sample files and the perf clips: Chrome, Firefox, Safari macOS, Safari iOS 17.1+, for H.264 MP4 (direct play), HEVC MKV (transcode), a file with forced and SDH subtitles, a PGS subtitle (burn-in), an audio switch; 10 minutes of hls.js playback without a stall (the F006 criterion moved here). Results as a table in the PR.
 33. [ ] `make test`; real run against `make dev` with a TMDB-matched library (movies and a show with two seasons), a child profile, an admin stopping a stream; PNG exports next to screenshots; timing of 3 people from home to playing. Plan status `done`, roadmap updated.
 
+### Part E — V2
+Built on the test server (`scripts/deploy.sh`) against a real library (751 movies and some shows), step by step from the canvas page "V2".
+34. [x] Shell: top bar with the glass tab bar and sliding pill, the admin's activity button, phones' floating tab bar; the wordmark (Instrument Sans 700, Foxy over a dotless i), app icon and manifest. (R1)
+35. [x] Heroes and light: framed home hero (R6) and detail heroes (R17) with parallax clipped by their frame, `PageLight` crossfades, the profile picker lit by `Profile.ambient` (R2, R51); glass sheets and toasts; the About panel; Fix match as a sheet.
+36. [x] Search V2: scopes with counts, Top results as posters, Episodes, People, recent chips, genre tiles, stale results kept faded. (R25)
+37. [x] Subtitles out of the picture: server `SubtitleQuick`, `.sup`, `separate`, warm at start; web `PgsLayer` and `useQuickSubtitle`; "Preparing subtitles…" only while the current cue is missing. Tests: `TestSubtitleQuick`, `TestPGSURL`, `pgsChrome` decide case, `pgs.test.ts`. (R34, R35)
+38. [x] Fixes found on the test server: software transcodes capped at 1080p (a 4K software transcode ran at 0.81×), the final position retried 30 s, artwork retries and `0009`, seasons one per transaction, the `refreshing` count, `0008`'s trigger, country-tagged show names, episodes among movies.
+39. [x] Motion (Step 11, boards TM20–TM24). (R53)
+40. [x] Admin, Step 9 first pass: dashboard, Settings, `GET /server/stats`. (F007-R17, R18, R35)
+41. [x] Profile menu (Step 12, TU01/TU02). (R54)
+42. [x] Hero previews: the queue, the route, `HeroPreview`, the switch; `TestFirstEpisode`, `TestPreviewScenesAt`, `TestPreviewArgs`, `TestItemPreview`, `TestItemPreviewAhead`. (R52)
+43. [ ] Admin, Step 9 second pass: the section pages in V2, motion TM25, the phone admin.
+44. [ ] Onboarding and sign-in, Step 10 (TL01–TL04).
+45. [ ] Evidence for Part E (below), `make test`, one commit per step group, the PR from `feat/F008-polish`.
+
 ## Risks
 | Risk | Likelihood | Mitigation |
 |------|------------|------------|
@@ -138,6 +178,10 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 | The canvas arrives late or changes the components | medium | Part A doesn't depend on it; Part B ports the existing `pl-player` family first; the Log records every change once the canvas lands. |
 | Files the other dev may be editing: `handlers/items.go`, `metadata/read.go`, `library/items.go`, `App.tsx`, the catalogs | medium | Rebase on `main` before each part; the server changes add functions next to existing ones rather than reshaping them. |
 
+| Previews cut ahead of time slow down playback or fill the disk (Part E) | medium | One cut at a time, two threads, none while a transcode runs, an urgent cut interrupts it; a 10 GiB cap and no cutting ahead past 90 % of it; measured on the test server (4–8 s per 1080p title, a few minutes for a 4K HEVC). |
+| Previews spoil a story (Part E) | low | Scenes come from 8–35 % of a movie, a show's first episode; a switch turns them off. |
+| Glass and motion cost frames on modest laptops and phones (Part E) | medium | `backdrop-filter` on a few surfaces only, `prefers-reduced-motion` honored everywhere, previews off with `Save-Data`. |
+
 **Riskiest step:** step 3, the migration and its triggers. It touches the tables every F004 scan and F005 match writes, runs inside their transactions on every write, and a wrong trigger would corrupt the index or slow down scans silently. It gets its tests first, a backfill test on a seeded DB, and the F004/F005 perf runs before Part A continues.
 
 ## Rejected options
@@ -147,6 +191,8 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 - **Keyset cursors for the grid**: a scrollbar sized by `total` needs random access; `offset` on a page of 200 is cheap at library sizes and keeps the existing cursor for every other caller.
 - **Writing our own virtualizer**: grid math, resize handling and scroll restoration are where the bugs are; `@tanstack/react-virtual` is headless (no styles, no components), so it doesn't bring a look, which is what F007 rejected frameworks for.
 - **hls.js everywhere, Safari included**: iOS Safari's MSE support is partial; native HLS is the reliable path there and avoids loading hls.js at all.
+- **YouTube trailers in the hero** (Part E): no control of the framing or quality, ads, tracking, nothing offline; the trailer stays behind its click (R20).
+- **Cutting a preview on the first visit only** (Part E, tried first): 15–60 s of backdrop before the scenes; cut ahead of time instead, the visit only reorders the queue.
 - **Storing track memory and autoplay on the server**: a new settings API for per-profile preferences; `localStorage` per profile is enough for one browser in v1 (the native apps will want a server setting later).
 
 ## Expected evidence
@@ -160,9 +206,14 @@ The screens come from the Claude Design canvas [PLAID first-run onboarding](http
 - [ ] Manual check: close the tab during playback, reopen: Continue watching resumes within 10 s of where it stopped.
 - [ ] Manual check: keyboard only and VoiceOver: pick a profile, search, open a movie, play, change subtitles, leave; `prefers-reduced-motion` on.
 - [ ] Manual check: 3 people timed from home open to playing.
+- [ ] Part E: screenshots next to the V2 boards (shell, home hero, movie and show heroes with scenes, search before and after typing, profile picker, profile menu TU01/TU02, admin dashboard and Settings, player with PGS), dark and light, 375 and 1440 px.
+- [ ] Part E: PGS subtitles drawn by the browser in Chrome, Safari and Firefox, no `burn_in`, first cue within 3 s.
+- [ ] Part E: a title already cut shows its scenes within 4 s of opening its page; the disk used by the previews for the whole library (`du -sh /var/lib/plaid/cache/playback/previews`).
+- [ ] Part E: a transcode running pauses the cutting ahead (logs), and a page opened meanwhile still gets its preview first.
 
 ## Log
 Deviations from the plan found during the build (date + what + why).
+- 2026-10-31 (Part E): added after #55 merged, to carry the V2 work done on `feat/F008-polish`, which skipped the plan-first rule at the owner's request (changes deployed straight to the test server, Git and the SDLC caught up afterwards); the spec was aligned the same day. On the way: the production build put `browse.css` before `components.css`, so the design system's `.pl-menu` won over `.br-pmenu` (fixed with a doubled class), and lightningcss kept only `-webkit-backdrop-filter` when both were written, so Chrome had no glass at all (the prefix is now added by the build). Previews were first cut on the first visit (15–60 s of backdrop); the owner asked for 4 s at most, so every title is cut ahead of time. A preview has no audio, so the hero has a pause button rather than a sound button.
 - 2026-10-29: plan approved by gh-prim; build starts on `feat/F008-browsing-player`.
 - 2026-10-30 (step 32, partly): browser matrix on generated clips (an H.264 MP4; Arrival, an H.264 MKV with English and French audio, English, French, English SDH and French forced text subtitles and a PGS track; a 12-minute HEVC Main 10 MKV), against the dev server on an M-series Mac with VideoToolbox:
 
