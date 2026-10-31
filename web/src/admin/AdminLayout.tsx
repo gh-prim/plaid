@@ -1,11 +1,11 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { usePolling } from '../hooks/usePolling'
 import { Wordmark } from '../browse/Wordmark'
-import { Button, Icon, Toast } from '../ui'
+import { Button, Toast } from '../ui'
 import type { AdminData } from './summary'
 import './admin.css'
 
@@ -58,21 +58,24 @@ export function streamArt(
   return url.replace(/(file|master\.m3u8)(\?.*)?$/, `artwork/${kind}?w=${width}`)
 }
 
-/** A settings page (V2): a round back button to Settings, then its content. */
-export function Section({ children }: { children: ReactNode }) {
-  const { t } = useTranslation()
-  return (
-    <div className="adm-page">
-      <Link
-        to="/admin/settings"
-        className="br-sheet__round br-glass pl-focusable adm-page__back"
-        aria-label={t('admin.tab.settings')}
-      >
-        <Icon name="chevronLeft" size={16} />
-      </Link>
-      <div className="adm-page__body">{children}</div>
-    </div>
-  )
+/**
+ * How deep a path sits: the dashboard 0, Settings 1, a section 2, a
+ * library 3, its review 4. Going deeper pushes, coming back pops (TM25).
+ */
+export function depth(path: string): number {
+  const parts = path.replace(/\/$/, '').split('/').slice(2)
+  if (!parts.length) return 0
+  if (parts[0] === 'settings') return 1
+  return parts.length + 1
+}
+
+/** The motion between two admin pages: tabs travel sideways, sections push and pop. */
+export function travel(from: string, to: string): { dir?: 'left' | 'right'; nav?: 'push' | 'pop' } {
+  const a = depth(from)
+  const b = depth(to)
+  if (a === b) return {}
+  if (a <= 1 && b <= 1) return { dir: b > a ? 'right' : 'left' }
+  return { nav: b > a ? 'push' : 'pop' }
 }
 
 /**
@@ -89,12 +92,18 @@ export function AdminLayout() {
     setMessage(m)
     setTimeout(() => setMessage(undefined), 4000)
   }, [])
-  const onDashboard = location.pathname.replace(/\/$/, '') === '/admin'
+  const path = location.pathname.replace(/\/$/, '')
+  const onDashboard = path === '/admin'
+  const onSection = depth(path) > 1
+  // The previous page, to know which way this one travels (TM25).
+  const [seen, setSeen] = useState({ path, motion: {} as ReturnType<typeof travel> })
+  if (seen.path !== path) setSeen({ path, motion: travel(seen.path, path) })
+  const motion = seen.path === path ? seen.motion : travel(seen.path, path)
   const light = data?.streams[0] ? streamArt(data.streams[0], 'backdrop', 780) : undefined
 
   return (
     <AdminContext.Provider value={{ data, refresh, toast }}>
-      <div className="pl adm adm--v2">
+      <div className={`pl adm adm--v2${onSection ? ' adm--section' : ''}`}>
         {light && (
           <div className="br-light" aria-hidden="true">
             <img key={light} src={light} alt="" />
@@ -123,11 +132,19 @@ export function AdminLayout() {
             </Link>
           </nav>
           <span className="br-top__fill" />
-          <Link to="/" className="br-sheet__pill br-glass pl-focusable">
+          <Link to="/" className="br-sheet__pill br-glass pl-focusable adm-top__back">
             {t('admin.backToWatching')}
           </Link>
+          <Link to="/" className="adm-top__done pl-focusable">
+            {t('admin.done')}
+          </Link>
         </header>
-        <main key={location.pathname} className="adm__main pl-page-enter">
+        <main
+          key={location.pathname}
+          className="adm__main pl-page-enter"
+          data-dir={motion.dir}
+          data-nav={motion.nav}
+        >
           <Outlet />
         </main>
       </div>

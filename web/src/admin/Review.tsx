@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
-import { Button, CandidateCard, EmptyState, FileRow, Spinner, TextField } from '../ui'
+import { Button, CandidateCard, EmptyState, Icon, Spinner, TextField } from '../ui'
 import { candidatePoster, parseQuery } from '../browse/matchQuery'
-import { Section, useAdmin } from './AdminLayout'
+import { useAdmin } from './AdminLayout'
 import { MatchSheet } from '../browse/FixMatchSheet'
-import { formatBytes } from '../lib/format'
+import { formatBytes, formatNumber } from '../lib/format'
+import { Group, Loading, Row, Section } from './v2'
 import '../browse/browse.css'
 
 type Candidate = components['schemas']['MatchCandidate']
@@ -114,32 +115,50 @@ export function Unrecognized() {
   const sheet = files?.find((f) => f.id === open)
   const slash = sheet ? sheet.path.lastIndexOf('/') : -1
   return (
-    <Section>
-      <div>
-        {lib && <p className="adm__kicker">{lib.name}</p>}
-        <h2 className="adm__h2">{t('review.unrecognized.title', { count: remaining.length })}</h2>
-        <p className="adm__lead">{t('review.unrecognized.body')}</p>
-      </div>
-      {!files && (
-        <div className="adm__empty" role="status" aria-busy="true">
-          <Spinner size={28} />
-        </div>
-      )}
+    <Section
+      title={t('admin.settings.unrecognized')}
+      back={{ to: `/admin/libraries/${id}`, label: lib?.name ?? t('libraries.title') }}
+      glyph="unmatched"
+      paneTitle={files ? t('admin.unrecognized.files', { count: remaining.length }) : undefined}
+      paneSub={t('admin.unrecognized.sub')}
+    >
+      {!files && <Loading />}
       {files && !files.length && <EmptyState title={t('review.empty')} />}
-      <ul className="adm__rows">
-        {(files ?? []).map((f) => {
-          const cut = f.path.lastIndexOf('/')
-          return (
-            <FileRow
-              key={f.id}
-              name={f.path.slice(cut + 1)}
-              folder={f.path.slice(0, cut)}
-              identified={done.has(f.id)}
-              onIdentify={() => setOpen(f.id)}
-            />
-          )
-        })}
-      </ul>
+      {files && files.length > 0 && (
+        <Group
+          title={t('admin.unrecognized.group', {
+            name: lib?.name ?? '',
+            n: formatNumber(i18n.language, remaining.length),
+          })}
+          foot={t('review.unrecognized.body')}
+        >
+          {files.map((f) => {
+            const cut = f.path.lastIndexOf('/')
+            return (
+              <Row
+                key={f.id}
+                mono
+                label={f.path.slice(cut + 1)}
+                sub={[f.path.slice(0, cut), formatBytes(i18n.language, f.size)].join(
+                  t('card.separator'),
+                )}
+                control={
+                  done.has(f.id) ? (
+                    <span className="adm-row__done is-ok">
+                      <Icon name="check" size={16} />
+                      {t('review.identified')}
+                    </span>
+                  ) : (
+                    <Button variant="secondary" size="sm" onClick={() => setOpen(f.id)}>
+                      {t('review.identify')}
+                    </Button>
+                  )
+                }
+              />
+            )
+          })}
+        </Group>
+      )}
       {sheet && (
         <MatchSheet
           title={t('matchFile.title')}
@@ -251,27 +270,25 @@ export function Review() {
   const it = items?.[0]
   const pick = it?.candidates.find((c) => c.tmdbId === chosen)
   return (
-    <Section>
-      <div>
-        <p className="adm__kicker">
-          {lib?.name} · {t('review.needs.title', { count: items?.length ?? 0 })}
-        </p>
-        <h2 className="adm__h2">{it ? t('review.pick') : t('review.needs.short')}</h2>
-        {it && (
+    <Section
+      title={t('review.needs.short')}
+      back={{ to: `/admin/libraries/${id}`, label: lib?.name ?? t('libraries.title') }}
+      glyph="review"
+      paneTitle={items ? t('review.needs.title', { count: items.length }) : undefined}
+      paneSub={lib?.name}
+    >
+      {it && (
+        <div>
+          <h2 className="adm__h2">{t('review.pick')}</h2>
           <p className="adm__lead">
             {t('review.parsed', {
               parsed: [it.item.title, it.item.year].filter(Boolean).join(' '),
             })}
             . {reason(it.reason)}.
           </p>
-        )}
-      </div>
-      {!items && (
-        <div className="adm__empty" role="status" aria-busy="true">
-          <Spinner size={28} />
-          <p>{t('review.loading')}</p>
         </div>
       )}
+      {!items && <Loading label={t('review.loading')} />}
       {items && !it && (
         <div className="adm__empty">
           <p className="title">{t('review.empty')}</p>
