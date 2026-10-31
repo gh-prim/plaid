@@ -208,7 +208,7 @@ Built on the test server (`scripts/deploy.sh`) against a real library (751 movie
 - [ ] Manual check: 3 people timed from home open to playing.
 - [ ] Part E: screenshots next to the V2 boards (shell, home hero, movie and show heroes with scenes, search before and after typing, profile picker, profile menu TU01/TU02, admin dashboard and Settings, player with PGS), dark and light, 375 and 1440 px.
 - [ ] Part E: PGS subtitles drawn by the browser in Chrome, Safari and Firefox, no `burn_in`, first cue within 3 s.
-- [ ] Part E: a title already cut shows its scenes within 4 s of opening its page; the disk used by the previews for the whole library (`du -sh /var/lib/plaid/cache/playback/previews`).
+- [ ] Part E: a title already cut shows its scenes within 4 s of opening its page; the disk used by the previews for the whole library (`du -sh /var/lib/plaid/cache/playback/previews`): 1.6 GB for 791 titles with the silent `v1` recipe (2026-10-31, test server); to measure again once `v2` (with sound) has cut them all.
 - [ ] Part E: a transcode running pauses the cutting ahead (logs), and a page opened meanwhile still gets its preview first.
 
 ## Log
