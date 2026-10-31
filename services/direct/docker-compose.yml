@@ -25,7 +25,7 @@ services:
     # DNS one), whatever the domain says: this router, ahead of Coolify's,
     # sends the API and short links to the HTTP port.
     labels:
-      - traefik.http.routers.getplaid-direct.rule=Host(`${DIRECT_ZONE:-getplaid.direct}`)
+      - traefik.http.routers.getplaid-direct.rule=Host(`getplaid.direct`)
       - traefik.http.routers.getplaid-direct.entrypoints=https
       - traefik.http.routers.getplaid-direct.tls=true
       - traefik.http.routers.getplaid-direct.tls.certresolver=letsencrypt
