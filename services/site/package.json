@@ -1,0 +1,18 @@
+{
+  "name": "plaid-site",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "getplaid.tv, the public website of PLAID. Static, bilingual, no runtime framework.",
+  "packageManager": "pnpm@10.33.3",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check-i18n": "node scripts/check-i18n.mjs",
+    "dev": "node scripts/serve.mjs --watch",
+    "preview": "node scripts/serve.mjs"
+  }
+}

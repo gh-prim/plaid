@@ -1,0 +1,31 @@
+# getplaid.direct on Coolify ("Docker Compose" build pack, base directory
+# /services/direct). Coolify's Traefik terminates TLS for the HTTP API and
+# short links; DNS is published straight on the host's port 53.
+services:
+  direct:
+    build: .
+    restart: unless-stopped
+    environment:
+      # Coolify: generates the Traefik route to container port 8080. Set the
+      # domain to https://getplaid.direct in the service's "Domains" field.
+      - SERVICE_FQDN_DIRECT_8080
+      - DIRECT_ZONE=${DIRECT_ZONE:-getplaid.direct}
+      # The host's public IPv4 (the glue record's address). Required.
+      - DIRECT_PUBLIC_IP=${DIRECT_PUBLIC_IP:?set DIRECT_PUBLIC_IP to the host's public IPv4}
+      - DIRECT_PUBLIC_IPV6=${DIRECT_PUBLIC_IPV6:-}
+      - DIRECT_ADMIN_EMAIL=${DIRECT_ADMIN_EMAIL:-hostmaster@getplaid.tv}
+      - DIRECT_SITE_URL=${DIRECT_SITE_URL:-https://getplaid.tv}
+      - DIRECT_TRUSTED_PROXIES=${DIRECT_TRUSTED_PROXIES:-}
+    ports:
+      - "53:5353/udp"
+      - "53:5353/tcp"
+    volumes:
+      - direct-data:/data
+    healthcheck:
+      test: ["CMD", "/direct", "-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  direct-data:
