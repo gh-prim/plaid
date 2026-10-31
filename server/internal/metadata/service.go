@@ -124,6 +124,7 @@ func (s *Service) Start(ctx context.Context) {
 		s.log.Error("metadata keys not loaded", "err", err)
 	}
 	s.queue.Start(ctx)
+	s.resume(ctx)
 	if s.art != nil {
 		s.wg.Add(1)
 		go s.cleanupLoop(ctx)
@@ -160,6 +161,23 @@ func (s *Service) Close() {
 
 // Wake tells the queue there may be work now.
 func (s *Service) Wake() { s.queue.Wake() }
+
+// resume puts the jobs paused for lack of a key back in line when there is
+// one: otherwise they wait out their 10-minute pause after a restart.
+func (s *Service) resume(ctx context.Context) {
+	s.mu.Lock()
+	ok := s.prov != nil
+	s.mu.Unlock()
+	if !ok {
+		return
+	}
+	if n, err := s.store.Unpause(ctx); err != nil {
+		s.log.Error("metadata: resuming paused items failed", "err", err)
+	} else if n > 0 {
+		s.log.Info("metadata: paused items resumed", "count", n)
+		s.queue.Wake()
+	}
+}
 
 // ReloadKeys picks the TMDB key again (ADR 0007 order) and rebuilds the
 // client. With no key, metadata stays local-only (R34).

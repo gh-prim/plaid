@@ -26,6 +26,13 @@ func ts(t time.Time) string { return t.UTC().Format(time.RFC3339Nano) }
 
 func (s *Store) now() time.Time { return s.Now().UTC() }
 
+// refreshBy brings an item's scheduled refresh forward to at, never back.
+func (s *Store) refreshBy(ctx context.Context, itemID string, at time.Time) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE item_metadata SET refresh_at = ?
+		WHERE item_id = ? AND (refresh_at IS NULL OR refresh_at > ?)`, ts(at), itemID, ts(at))
+	return err
+}
+
 // AddPending creates a pending item_metadata row for each item that has
 // none (R1). Existing rows are left alone.
 func (s *Store) AddPending(ctx context.Context, itemIDs []string) error {
@@ -155,9 +162,22 @@ func (s *Store) Release(ctx context.Context, j Job, after time.Duration) error {
 	return err
 }
 
+// Unpause makes every waiting pending job due now: a key is there again,
+// so the ones paused without it (and the ones backing off) go at once.
+func (s *Store) Unpause(ctx context.Context) (int64, error) {
+	res, err := s.db.ExecContext(ctx, `UPDATE item_metadata SET next_attempt_at = ?
+		WHERE state = 'pending' AND next_attempt_at > ?`, ts(s.now()), ts(s.now()))
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
+}
+
 // Counters are a library's metadata progress (R35).
 type Counters struct {
 	Pending, Matched, NeedsReview, Unmatched int
+	// Refreshing are the looked-up titles whose refresh is due (V2 activity).
+	Refreshing int
 }
 
 // Counts returns the counters of a library's movies and shows.
@@ -188,7 +208,14 @@ func (s *Store) Counts(ctx context.Context, libraryID string) (Counters, error) 
 			c.Unmatched = n
 		}
 	}
-	return c, rows.Err()
+	if err := rows.Err(); err != nil {
+		return Counters{}, err
+	}
+	now := ts(s.now())
+	err = s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM item_metadata m JOIN items i ON i.id = m.item_id
+		WHERE i.library_id = ? AND i.kind IN ('movie', 'show') AND i.hidden = 0
+		AND m.state <> 'pending' AND m.refresh_at <= ?`, libraryID, now).Scan(&c.Refreshing)
+	return c, err
 }
 
 // ErrNotFound means the item or row doesn't exist.

@@ -978,6 +978,28 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/items/{itemId}/preview': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    /**
+     * A short silent loop of scenes from the title, for the hero (V2)
+     * @description Four scenes of six seconds from the movie's first third, or from a show's first episode, cut by FFmpeg and cached: H.264 MP4, 1280 wide, no audio. Every title is cut ahead of time, newest first, while nobody transcodes; a title not cut yet goes to the front of the queue and answers 202 with `Retry-After`; ask again until 200. A 404 means there's no preview (no FFmpeg, no file, too short, or the cut failed in the last hour) or the profile may not see the item. Supports `Range`. Served by a plain handler, not the generated server.
+     */
+    get: operations['getItemPreview']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/images/{imageId}': {
     parameters: {
       query?: never
@@ -1299,6 +1321,28 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/stream/{token}/subtitles/{index}.sup': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+        index: components['parameters']['SubtitleIndex']
+      }
+      cookie?: never
+    }
+    /** A PGS track as is, for clients that draw it themselves (`separate` capability, V2) */
+    get: operations['streamSubtitleSup']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/stream/{token}/subtitles/{index}.ass': {
     parameters: {
       query?: never
@@ -1359,6 +1403,26 @@ export interface paths {
      *     in which case paths outside the roots return `404 not_found`.
      */
     get: operations['browseFolders']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/server/stats': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * What the machine is doing, for the admin dashboard (V2)
+     * @description Best effort: what the system doesn't expose (another OS, a container) is left out. Admins only.
+     */
+    get: operations['getServerStats']
     put?: never
     post?: never
     delete?: never
@@ -1531,6 +1595,8 @@ export interface components {
       /** @description Overrides the account locale; null uses the account's. */
       locale: string | null
       isDefault: boolean
+      /** @description The backdrop of what the profile watched last, which lights the profile picker (V2). Never for a profile with a PIN, so it doesn't show what it watches. */
+      ambient?: components['schemas']['Artwork']
     }
     Me: {
       user: components['schemas']['User']
@@ -2083,6 +2149,8 @@ export interface components {
       matched: number
       needsReview: number
       unmatched: number
+      /** @description Titles already looked up whose scheduled refresh is due, being fetched again (artwork, credits). */
+      refreshing?: number
     }
     MetadataSettings: {
       tmdb: {
@@ -2292,8 +2360,10 @@ export interface components {
     SubtitleCapability: {
       /** @description Text formats the client renders itself. */
       text?: ('vtt' | 'srt' | 'ass')[]
-      /** @description Image formats the client renders itself. */
+      /** @description Image formats the client renders itself, from the file it plays. */
       image?: ('pgs' | 'vobsub')[]
+      /** @description Image formats the client draws itself from a stream of their own (a web player's canvas): fetched from the subtitle's `url` as is (.sup), never burned in. */
+      separate?: 'pgs'[]
     }
     /** @description What the client can play (F006 R2). Sent with each playback request, never stored. `preset: external` means "plays everything over HTTP" (VLC, mpv) and ignores the other fields. Unknown codec names are ignored. */
     CapabilityProfile: {
@@ -2363,7 +2433,7 @@ export interface components {
       forced: boolean
       selected: boolean
       /**
-       * @description How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url` as WebVTT; burn_in = drawn into the video.
+       * @description How the track reaches the client when selected: embedded = read by the player from the file it plays (Direct Play only); external = fetched separately from `url`, as WebVTT for a text track or as is (.sup) for a PGS track the client draws (`separate` capability); burn_in = drawn into the video.
        * @enum {string}
        */
       delivery: 'embedded' | 'external' | 'burn_in'
@@ -2536,6 +2606,41 @@ export interface components {
     ActivePlaybackList: {
       sessions: components['schemas']['ActivePlayback'][]
     }
+    ServerStats: {
+      /**
+       * Format: int64
+       * @description How long PLAID has been running.
+       */
+      uptimeSeconds: number
+      /** @description The machine (a Raspberry Pi's board, a PC's product), when known. */
+      model?: string
+      /** @description Processor load since the previous reading, 0–100. */
+      cpuPercent?: number
+      /** @description The hottest thermal zone. */
+      temperatureC?: number
+      /** @description Conversions running now. */
+      transcodes: number
+      maxTranscodes: number
+      /**
+       * Format: int64
+       * @description What the streams are sent at right now, in bits per second (not measured).
+       */
+      uploadBps: number
+      /** @description The drives holding library folders, one per device. */
+      drives: components['schemas']['DriveStats'][]
+    }
+    DriveStats: {
+      /** @description The first library folder on this drive. */
+      path: string
+      /** @description Names of the libraries with folders on it. */
+      libraries: string[]
+      /** @description False when the folder can't be reached (a NAS not answering). */
+      available: boolean
+      /** Format: int64 */
+      totalBytes?: number
+      /** Format: int64 */
+      freeBytes?: number
+    }
     Capabilities: {
       hwAccel: components['schemas']['HardwareStatus']
       ffmpeg: {
@@ -2617,6 +2722,8 @@ export interface components {
     }
   }
   parameters: {
+    /** @description The playback position in milliseconds. When the whole track isn't extracted yet, the answer is the part around it (seconds instead of reading the whole file), with `X-Subtitle-Until`. */
+    SubtitleFrom: number
     LibraryId: string
     ItemId: string
     /** @description Opaque `nextCursor` of the previous page. */
@@ -2635,7 +2742,10 @@ export interface components {
     Range: string
   }
   requestBodies: never
-  headers: never
+  headers: {
+    /** @description Present when the answer is only the part of the track around `from` (milliseconds): where that part ends. The whole track is being extracted meanwhile; ask again to get it. */
+    SubtitleUntil: number
+  }
   pathItems: never
 }
 export type $defs = Record<string, never>
@@ -4134,6 +4244,49 @@ export interface operations {
       default: components['responses']['Error']
     }
   }
+  getItemPreview: {
+    parameters: {
+      query?: never
+      header?: {
+        Range?: components['parameters']['Range']
+      }
+      path: {
+        itemId: components['parameters']['ItemId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The preview */
+      200: {
+        headers: {
+          'Cache-Control'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'video/mp4': string
+        }
+      }
+      /** @description Being cut; ask again after `Retry-After` seconds */
+      202: {
+        headers: {
+          'Retry-After'?: number
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The requested range */
+      206: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'video/mp4': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
   getImage: {
     parameters: {
       query?: {
@@ -4628,7 +4781,10 @@ export interface operations {
   }
   streamSubtitleVtt: {
     parameters: {
-      query?: never
+      query?: {
+        /** @description The playback position in milliseconds. When the whole track isn't extracted yet, the answer is the part around it (seconds instead of reading the whole file), with `X-Subtitle-Until`. */
+        from?: components['parameters']['SubtitleFrom']
+      }
       header?: never
       path: {
         /** @description The playback token from PlaybackSession.url. Never logged. */
@@ -4643,10 +4799,41 @@ export interface operations {
       /** @description OK */
       200: {
         headers: {
+          'X-Subtitle-Until': components['headers']['SubtitleUntil']
           [name: string]: unknown
         }
         content: {
           'text/vtt': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  streamSubtitleSup: {
+    parameters: {
+      query?: {
+        /** @description The playback position in milliseconds. When the whole track isn't extracted yet, the answer is the part around it (seconds instead of reading the whole file), with `X-Subtitle-Until`. */
+        from?: components['parameters']['SubtitleFrom']
+      }
+      header?: never
+      path: {
+        /** @description The playback token from PlaybackSession.url. Never logged. */
+        token: components['parameters']['StreamToken']
+        /** @description The subtitle's stream index, as in PlaybackSession.subtitles. */
+        index: components['parameters']['SubtitleIndex']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          'X-Subtitle-Until': components['headers']['SubtitleUntil']
+          [name: string]: unknown
+        }
+        content: {
+          'application/octet-stream': string
         }
       }
       default: components['responses']['Error']
@@ -4725,6 +4912,27 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['BrowseResult']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getServerStats: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ServerStats']
         }
       }
       default: components['responses']['Error']

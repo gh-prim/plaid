@@ -33,6 +33,9 @@ type Timings struct {
 	SlotIdle      time.Duration // without any activity, the transcode slot is released
 	KeepBehind    int64         // ms of segments kept behind the last requested one
 	Tick          time.Duration // housekeeping period
+	// PreviewRescan is how often the library is looked at again for
+	// titles to cut previews of ahead of time (0: previewRescan).
+	PreviewRescan time.Duration
 }
 
 // DefaultTimings are the spec's values.

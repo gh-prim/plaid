@@ -72,7 +72,8 @@ func (s *Service) Search(ctx context.Context, kind, query string, year int, item
 		}
 	} else {
 		var err error
-		if cands, err = prov.Search(ctx, pkind, query, year, provider.Locale{Language: "en", Region: "US"}); err != nil {
+		q, _ := match.SplitCountry(query)
+		if cands, err = prov.Search(ctx, pkind, q, year, provider.Locale{Language: "en", Region: "US"}); err != nil {
 			return nil, err
 		}
 	}
@@ -222,7 +223,13 @@ func (s *Service) match(ctx context.Context, p parsed, tmdbID int, season, episo
 		if p.Kind == "movie" {
 			return itemID, s.processMovie(ctx, p)
 		}
-		return itemID, s.processShow(ctx, p)
+		// A show fetches every season, episode and image: tens of seconds.
+		// The queue does it; the item shows as pending meanwhile.
+		if err := s.store.queueNow(ctx, itemID); err != nil {
+			return "", err
+		}
+		s.queue.Wake()
+		return itemID, nil
 	case "episode":
 		if season == nil || episode == nil || tmdbID != 0 {
 			return "", ErrKindMismatch
@@ -246,6 +253,14 @@ func (s *Store) lockMatch(ctx context.Context, itemID string, tmdbID int) error 
 		VALUES (?, 'matched', 'manual', 1, 1, ?, ?)
 		ON CONFLICT (item_id) DO UPDATE SET state = 'matched', match_source = 'manual', confidence = 1, match_locked = 1,
 		tmdb_id = excluded.tmdb_id, updated_at = excluded.updated_at`, itemID, tmdbID, now)
+	return err
+}
+
+// queueNow puts a matched item back in the queue, first in line: the
+// locked match is kept (resolve reads it first).
+func (s *Store) queueNow(ctx context.Context, itemID string) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE item_metadata SET state = 'pending', attempts = 0, next_attempt_at = ?
+		WHERE item_id = ?`, ts(s.now()), itemID)
 	return err
 }
 
@@ -724,6 +739,7 @@ func (s *Service) UpdateKeys(ctx context.Context, ch KeyChange) error {
 	if err := s.ReloadKeys(ctx); err != nil {
 		return err
 	}
+	s.resume(ctx)
 	s.queue.Wake()
 	return nil
 }

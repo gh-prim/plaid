@@ -20,13 +20,16 @@ const (
 type Profile struct {
 	// External is the "external" preset: a player like VLC or mpv that
 	// plays everything over HTTP. The other fields are ignored.
-	External            bool
-	Protocols           []string
-	Containers          []string // short names: mp4, mkv, webm, mov, ts, avi…
-	Video               []VideoCap
-	Audio               []AudioCap
-	TextSubtitles       []string // vtt, srt, ass
-	ImageSubtitles      []string // pgs, vobsub
+	External       bool
+	Protocols      []string
+	Containers     []string // short names: mp4, mkv, webm, mov, ts, avi…
+	Video          []VideoCap
+	Audio          []AudioCap
+	TextSubtitles  []string // vtt, srt, ass
+	ImageSubtitles []string // pgs, vobsub
+	// SeparateSubtitles are image formats the client draws itself from a
+	// stream of their own (a web player's canvas): never burned in.
+	SeparateSubtitles   []string // pgs
 	CanSwitchAudioTrack bool
 	MaxBitrate          int64 // bits per second, 0 for no limit
 }
@@ -85,6 +88,12 @@ func (p Profile) audio(codec string) *AudioCap {
 		}
 	}
 	return nil
+}
+
+// drawsSeparately reports an image format the client draws from its own
+// stream, whatever the method.
+func (p Profile) drawsSeparately(format string) bool {
+	return !p.External && slices.Contains(p.SeparateSubtitles, format)
 }
 
 // rendersSubtitle reports whether the client draws a subtitle format

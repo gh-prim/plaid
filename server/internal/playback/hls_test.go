@@ -526,3 +526,46 @@ func (s *Service) setConfig(change func(*Config)) {
 func principalOf(s Session) auth.Principal {
 	return auth.Principal{UserID: s.UserID, ProfileID: s.ProfileID}
 }
+
+// The quick answer is the window around the position, with the file's own
+// timestamps, then the whole track once the background extraction is done.
+func TestSubtitleQuick(t *testing.T) {
+	s, _ := hlsService(t, fastTimings)
+	path := testmedia.Clip(t, testmedia.MKV)
+	m := Media{FileID: "quick", Path: path, Container: "mkv", DurationMs: 60_000, Subtitles: []Subtitle{
+		{Index: 2, Codec: "subrip", Language: "fre"},
+	}}
+	sess := Session{Decision: Decision{Method: DirectStream, Media: m}}
+	ctx := context.Background()
+
+	// A window from 30 s keeps "Au revoir" at 30.5 s, not "Bonjour" at 1 s.
+	src, err := s.subtitleSource(sess, 2, SubtitleVTT)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(t.TempDir(), "w.vtt")
+	if err := s.extractSubtitle(ctx, sess, src, 30_000, dst); err != nil {
+		t.Fatal(err)
+	}
+	b, _ := os.ReadFile(dst) //nolint:gosec // test output
+	cues := vttCues(string(b))
+	if strings.Contains(string(b), "Bonjour") || len(cues) != 1 || cues[0][0] < 30.4 || cues[0][0] > 30.6 {
+		t.Errorf("window from 30 s:\n%s", b)
+	}
+
+	p, until, err := s.SubtitleQuick(ctx, sess, 2, SubtitleVTT, 0)
+	if err != nil || until != 15*60_000 || p == "" {
+		t.Fatalf("first answer: %q until %d, %v", p, until, err)
+	}
+	// The whole track arrives in the background.
+	deadline := time.Now().Add(20 * time.Second)
+	for {
+		if _, until, _ = s.SubtitleQuick(ctx, sess, 2, SubtitleVTT, 0); until == 0 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the whole track never arrived")
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}

@@ -29,6 +29,7 @@ import (
 var hlsTimings = playback.Timings{
 	WaitAhead: 3, SegmentWait: 20 * time.Second, ThrottleAhead: 120_000, ResumeAhead: 60_000,
 	IdleStop: 2 * time.Second, SlotIdle: time.Hour, KeepBehind: 300_000, Tick: 50 * time.Millisecond,
+	PreviewRescan: 200 * time.Millisecond,
 }
 
 // hlsEnv is a movie library of generated clips.
@@ -37,7 +38,7 @@ type hlsEnv struct {
 	items map[string]string // title → item id
 }
 
-func newHLSEnv(t *testing.T) *hlsEnv {
+func newHLSEnv(t *testing.T, opts ...func(*libOpts)) *hlsEnv {
 	t.Helper()
 	testmedia.FFmpeg(t)
 	prober, err := library.FindFFprobe(context.Background(), "", nil)
@@ -45,7 +46,11 @@ func newHLSEnv(t *testing.T) *hlsEnv {
 		t.Skip("ffprobe not installed")
 	}
 	timings := hlsTimings
-	e := &hlsEnv{libEnv: newLibEnv(t, libOpts{prober: prober, hls: &timings}), items: map[string]string{}}
+	o := libOpts{prober: prober, hls: &timings}
+	for _, f := range opts {
+		f(&o)
+	}
+	e := &hlsEnv{libEnv: newLibEnv(t, o), items: map[string]string{}}
 	movies := t.TempDir()
 	for name, clip := range map[string]string{
 		"Long (2001).mkv": testmedia.Long, "Subs (2002).mkv": testmedia.MKV, "Noindex (2003).ts": testmedia.TS,

@@ -188,6 +188,42 @@ func (s *Store) GetItem(ctx context.Context, id string) (Item, error) {
 	return items[0], nil
 }
 
+// TopLevelIDs returns every movie and show, newest first: the order the
+// hero previews are cut ahead of time.
+func (s *Store) TopLevelIDs(ctx context.Context) ([]string, error) {
+	var ids []string
+	err := s.scanRows(ctx, `SELECT id FROM items WHERE kind IN ('movie', 'show')
+		ORDER BY COALESCE(newest_child_added_at, created_at) DESC, id`, nil,
+		func(r *sql.Rows) error {
+			var id string
+			if err := r.Scan(&id); err != nil {
+				return err
+			}
+			ids = append(ids, id)
+			return nil
+		})
+	return ids, err
+}
+
+// FirstEpisode returns the id of a show's first episode with a file on
+// disk: the lowest season from 1 (specials last), then the lowest episode
+// number. A show without one is ErrNotFound.
+func (s *Store) FirstEpisode(ctx context.Context, showID string) (string, error) {
+	var id string
+	err := s.db.QueryRowContext(ctx, `
+		SELECT e.id FROM items e JOIN items se ON se.id = e.parent_id
+		WHERE se.parent_id = ? AND e.kind = 'episode' AND EXISTS (
+			SELECT 1 FROM item_files x JOIN media_files f ON f.id = x.file_id
+			WHERE x.item_id = e.id AND f.missing_since IS NULL)
+		ORDER BY COALESCE(se.season_number, 0) = 0, se.season_number,
+			COALESCE(e.episode_number, 999999), e.id
+		LIMIT 1`, showID).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", ErrNotFound
+	}
+	return id, err
+}
+
 // Shows maps seasons and episodes, by id, to their show's id; other
 // items are left out.
 func (s *Store) Shows(ctx context.Context, ids []string) (map[string]string, error) {

@@ -570,4 +570,31 @@ var catalogRollback = []string{
 	"DROP INDEX items_library_added", "DROP TABLE item_genres", "DROP TABLE search_index", "DROP TABLE search_docs",
 	"ALTER TABLE items DROP COLUMN newest_child_added_at",
 	"DELETE FROM schema_migrations WHERE name = 'migrations/0007_catalog.sql'",
+	"DELETE FROM schema_migrations WHERE name = 'migrations/0008_catalog_triggers.sql'",
+}
+
+// An upsert that rewrites the same name or title (F005 writes a movie's
+// whole cast each time) leaves the search index alone: rewriting it held
+// the write lock for seconds on modest hardware (0008).
+func TestCatalogTriggersSkipUnchanged(t *testing.T) {
+	d, exec, count := catalogFixture(t, t.TempDir())
+	seedCatalog(exec)
+	exec(`INSERT INTO item_metadata (item_id, state, title, original_title, genres, updated_at) VALUES ('m1', 'matched', 'Amélie', 'Amélie', '[{"id":35,"name":"Comédie"}]', ?)`, catalogNow)
+	changes := func() int { return count(`SELECT total_changes()`) }
+
+	before := changes()
+	exec(`UPDATE item_metadata SET title = 'Amélie', original_title = 'Amélie', genres = '[{"id":35,"name":"Comédie"}]' WHERE item_id = 'm1'`)
+	if n := changes() - before; n != 1 {
+		t.Errorf("an unchanged metadata update made %d changes, want 1 (the row only)", n)
+	}
+	before = changes()
+	exec(`UPDATE items SET title = title WHERE id = 'm1'`)
+	if n := changes() - before; n != 1 {
+		t.Errorf("an unchanged title update made %d changes, want 1", n)
+	}
+	// A real change still reindexes.
+	exec(`UPDATE item_metadata SET title = 'Le Fabuleux Destin' WHERE item_id = 'm1'`)
+	if got := search(t, d, `"fabul"*`); len(got) != 1 {
+		t.Errorf("changed title not indexed: %v", got)
+	}
 }

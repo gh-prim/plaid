@@ -65,6 +65,9 @@ type Options struct {
 	// ProbeHardware runs the hardware test at Start (R24). Off, every
 	// transcode runs in software until a settings change asks for a test.
 	ProbeHardware bool
+	// PreviewsAhead cuts every title's hero preview ahead of time (V2);
+	// off, a preview is cut when someone first asks for it.
+	PreviewsAhead bool
 	// Problems records hardware fallbacks and software restarts for the
 	// admin (F007 R29); nil records nothing.
 	Problems problems.Reporter
@@ -89,6 +92,7 @@ type Service struct {
 	keyframes *keyframes.Store
 	storage   *Storage
 	subtitles *fileCache
+	previews  *previews // nil without a cache folder
 
 	cfgMu sync.Mutex
 	cfg   Config
@@ -130,6 +134,9 @@ func New(o Options) *Service {
 		hw:        HWStatus{Configured: HWAuto},
 		streams:   map[string]*hlsStream{},
 	}
+	if o.CacheDir != "" {
+		s.previews = newPreviews(previewDir(o.CacheDir))
+	}
 	s.probeHardware = ProbeHardware
 	s.manager.Now, s.manager.Log = o.Now, o.Log
 	if o.Accounts != nil {
@@ -167,6 +174,9 @@ func (s *Service) Start(ctx context.Context) {
 		}()
 	}
 	go s.manager.Run(ctx)
+	if s.previews != nil && s.o.FFmpeg != nil {
+		go s.runPreviews(ctx)
+	}
 	go func() {
 		tick := time.NewTicker(s.t.Tick)
 		defer tick.Stop()
@@ -399,6 +409,7 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 		return Session{}, err
 	}
 	d.HWAccel = s.accelFor(d)
+	softwareCap(&d, r.Request)
 	owner, err := s.o.Accounts.SessionOwner(ctx, p)
 	if err != nil {
 		if slot {
@@ -417,10 +428,47 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 	if d.Method != DirectPlay {
 		s.newStream(sess, 0, slot)
 	}
+	// An embedded text track means reading the whole file once (tens of
+	// seconds over a NAS): start now, so the player's request finds it
+	// ready or on its way rather than starting from scratch.
+	if sub := d.Subtitle; sub != nil && d.SubtitleDelivery == DeliveryExternal {
+		format := SubtitleVTT
+		if sub.Image {
+			format = SubtitleSUP
+		}
+		// Not tied to this request: the extraction outlives it.
+		bg := context.WithoutCancel(ctx)
+		go func() {
+			if _, _, err := s.SubtitleQuick(bg, sess, sub.Index, format, sess.StartPositionMs); err != nil {
+				s.o.Log.Warn("subtitles not prepared", "playback_id", sess.ID, "stream", sub.Index, "err", err)
+			}
+		}()
+	}
 	s.o.Log.Info("playback started", "playback_id", sess.ID, "user_id", p.UserID, "item_id", item.ID,
 		"file_id", m.FileID, "method", d.Method, "reasons", d.Reasons, "quality", d.Quality, "remote", lim.Remote,
 		"hw_accel", d.HWAccel)
 	return sess, nil
+}
+
+// softwareTop is the largest picture a software transcode makes unless
+// the client asks for more: 4K in software runs below real time on modest
+// hardware (and on a Pi far below), so the picture would stall.
+const softwareTop = "1080p"
+
+// softwareCap brings a software transcode down to softwareTop when the
+// client left the quality to the server.
+func softwareCap(d *Decision, req Request) {
+	if d.Method != Transcode || d.HWAccel != "" || (req.Quality != "" && req.Quality != QualityOriginal) {
+		return
+	}
+	for _, q := range Ladder {
+		if q.Name != softwareTop || d.Height <= q.Height {
+			continue
+		}
+		d.Quality = q.Name
+		d.Width, d.Height = fit(d.Media, q)
+		d.VideoBitrate = min(d.VideoBitrate, q.Bitrate)
+	}
 }
 
 // visibleItem returns an item p's profile may see (R9).
@@ -585,6 +633,7 @@ func (s *Service) ChangeSession(ctx context.Context, p auth.Principal, client cl
 		keepSlot = slot
 	}
 	d.HWAccel = s.accelFor(d)
+	softwareCap(&d, r)
 	s.closeStream(id, keepSlot)
 	gen := 0
 	if st != nil {
@@ -647,6 +696,22 @@ func (s *Service) Session(p auth.Principal, id string) (Session, error) { return
 // Sessions lists every live session (admin, R29).
 func (s *Service) Sessions() []Session { return s.manager.List() }
 
+// Load is what playback asks of the machine right now (V2 dashboard): the
+// transcodes running against their limit, and the bits per second going
+// out to the players (what each stream is sent at, not measured).
+func (s *Service) Load() (transcodes, limit int, uploadBps int64) {
+	for _, sess := range s.manager.List() {
+		d := sess.Decision
+		if d.Method == Transcode {
+			transcodes++
+			uploadBps += d.VideoBitrate + audioBitrate(d)
+			continue
+		}
+		uploadBps += d.Media.Bitrate
+	}
+	return transcodes, s.maxTranscodes(), uploadBps
+}
+
 // Progress records a client's position and state (R32), writing watch
 // state at most every 10 s per session, and always on stopped.
 func (s *Service) Progress(ctx context.Context, p auth.Principal, id string, positionMs int64, state string) error {
@@ -679,6 +744,10 @@ func (s *Service) Stop(p auth.Principal, id string, positionMs *int64) error {
 	})
 }
 
+// finalSaveTimeout is how long the last position of an ending session is
+// retried when the database is busy.
+const finalSaveTimeout = 30 * time.Second
+
 // saveFinal writes the last position of an ending session. Sessions that
 // never reported one (VLC on a direct link) leave watch state alone; HLS
 // sessions use the last segment they asked for (R34).
@@ -686,12 +755,23 @@ func (s *Service) saveFinal(sess Session) {
 	if !sess.reported && !sess.fromSegments {
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// A busy database is waited out: losing the last position takes the
+	// title out of Continue watching.
+	ctx, cancel := context.WithTimeout(context.Background(), finalSaveTimeout)
 	defer cancel()
 	watched := reachedEnd(sess.PositionMs, sess.Decision.Media.DurationMs)
-	if err := s.watch.Save(ctx, sess.ProfileID, sess.ItemID, sess.Decision.Media.FileID,
-		sess.PositionMs, sess.Decision.Media.DurationMs, watched, watched && !sess.counted); err != nil {
-		s.o.Log.Warn("saving the last position failed", "playback_id", sess.ID, "err", err)
+	for {
+		err := s.watch.Save(ctx, sess.ProfileID, sess.ItemID, sess.Decision.Media.FileID,
+			sess.PositionMs, sess.Decision.Media.DurationMs, watched, watched && !sess.counted)
+		if err == nil {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			s.o.Log.Warn("saving the last position failed", "playback_id", sess.ID, "err", err)
+			return
+		case <-time.After(time.Second):
+		}
 	}
 }
 

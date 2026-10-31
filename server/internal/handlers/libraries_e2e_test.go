@@ -70,6 +70,8 @@ type libOpts struct {
 	// hls, when set, plays with the real FFmpeg, a transcode folder and
 	// these timings, on the real clock (F006 PR B).
 	hls *playback.Timings
+	// previewsAhead cuts the hero previews ahead of time (with hls).
+	previewsAhead bool
 }
 
 func newLibEnv(t *testing.T, o libOpts) *libEnv {
@@ -107,7 +109,7 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 		if err != nil {
 			t.Skip("ffmpeg not installed")
 		}
-		po.FFmpeg, po.Timings, po.Now = ffmpeg, o.hls, nil
+		po.FFmpeg, po.Timings, po.Now, po.PreviewsAhead = ffmpeg, o.hls, nil, o.previewsAhead
 		po.TranscodeDir, po.CacheDir = filepath.Join(t.TempDir(), "transcodes"), t.TempDir()
 	}
 	play := playback.New(po)
@@ -119,7 +121,8 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	t.Cleanup(play.Close)
 	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta,
 		Playback: play, Problems: probs, Catalog: catalog.New(catalog.Options{DB: e.db, Now: e.clock.now}), Streams: streams})
-	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct, Stream: handlers.StreamHandler(play, meta, engine.Store())})
+	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct, Stream: handlers.StreamHandler(play, meta, engine.Store()),
+		Preview: handlers.PreviewHandler(play)})
 	le := &libEnv{env: e, engine: engine, play: play, endStream: end}
 	le.admin = e.setup().Token
 	return le

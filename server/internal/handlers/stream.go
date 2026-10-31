@@ -68,7 +68,7 @@ func StreamHandler(svc *playback.Service, meta *metadata.Service, lib *library.S
 			apierr.Write(w, apierr.NotFound("no such stream resource"))
 		case dir == "artwork" && streamArtworkKinds[name]:
 			serveArtwork(w, r, svc, meta, lib, token, name)
-		case dir == "subtitles" && (ext == "m3u8" || ext == playback.SubtitleVTT || ext == playback.SubtitleASS):
+		case dir == "subtitles" && (ext == "m3u8" || ext == playback.SubtitleVTT || ext == playback.SubtitleASS || ext == playback.SubtitleSUP):
 			if n, ok := streamIndex(base); ok {
 				serveSubtitle(w, r, svc, token, n, ext)
 				return
@@ -200,7 +200,7 @@ func serveSegment(w http.ResponseWriter, r *http.Request, svc *playback.Service,
 func serveSubtitle(w http.ResponseWriter, r *http.Request, svc *playback.Service, token string, index int, ext string) {
 	if ext == "m3u8" {
 		servePlaylist(w, r, svc, token, func(s playback.Session) (string, error) {
-			if playback.SubtitleURL(s, playback.Subtitle{Index: index, Codec: codecOf(s, index)}) == "" {
+			if !playback.IsTextSubtitle(playback.Subtitle{Index: index, Codec: codecOf(s, index)}) {
 				return "", playback.ErrNoSuchSubtitle
 			}
 			return playback.SubtitlePlaylist(s.Decision.Media.DurationMs, index), nil
@@ -211,14 +211,32 @@ func serveSubtitle(w http.ResponseWriter, r *http.Request, svc *playback.Service
 	if !ok {
 		return
 	}
-	path, err := svc.SubtitleFile(r.Context(), sess, index, ext)
+	// ?from=<ms>: answer at once with the part around the position while
+	// the whole track is extracted (V2); the header says where it ends.
+	var (
+		path  string
+		until int64
+		err   error
+	)
+	if from, ferr := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64); ferr == nil && from >= 0 {
+		path, until, err = svc.SubtitleQuick(r.Context(), sess, index, ext, from)
+	} else {
+		path, err = svc.SubtitleFile(r.Context(), sess, index, ext)
+	}
 	if err != nil {
 		streamError(w, err)
 		return
 	}
+	if until > 0 {
+		w.Header().Set("X-Subtitle-Until", strconv.FormatInt(until, 10))
+		w.Header().Set("Cache-Control", "no-store")
+	}
 	ctype := "text/vtt; charset=utf-8"
-	if ext == playback.SubtitleASS {
+	switch ext {
+	case playback.SubtitleASS:
 		ctype = "text/x-ssa; charset=utf-8"
+	case playback.SubtitleSUP:
+		ctype = "application/octet-stream"
 	}
 	serveFiles(w, r, ctype, []string{path})
 }

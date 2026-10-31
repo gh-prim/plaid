@@ -47,6 +47,9 @@ func editionLabel(word string) string {
 func ParseMovie(relPath string) (m Movie, ok bool) {
 	relPath = filepath.ToSlash(relPath)
 	base := strings.TrimSuffix(filepath.Base(relPath), filepath.Ext(relPath))
+	if LooksLikeEpisode(relPath) {
+		return m, false
+	}
 	m = parseMovieName(base)
 
 	if dir := filepath.Dir(relPath); dir != "." && dir != "/" {
@@ -131,4 +134,12 @@ func parseMovieName(s string) Movie {
 
 func stripEdition(s string) string {
 	return editionRe.ReplaceAllString(s, " ")
+}
+
+// LooksLikeEpisode reports a file name with an episode number (S01E03):
+// it's an episode filed among movies, unrecognized there rather than shown
+// as a movie.
+func LooksLikeEpisode(relPath string) bool {
+	base := filepath.Base(filepath.ToSlash(relPath))
+	return sxeRe.MatchString(strings.TrimSuffix(base, filepath.Ext(base)))
 }

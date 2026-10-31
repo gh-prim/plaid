@@ -254,6 +254,18 @@ func (s *Scanner) ScanLibrary(ctx context.Context, libraryID string, opts ScanOp
 				} else {
 					rep.Unrecognized++
 				}
+			} else if lib.Type == TypeMovies && LooksLikeEpisode(wf.Rel) {
+				// Linked as a movie before episodes were told apart: unlink;
+				// the movie goes with its last file at the end of the scan.
+				if err := b.Exec(`DELETE FROM item_files WHERE file_id = ?`, r.ID); err != nil {
+					return rep, err
+				}
+				if err := b.Exec(`UPDATE media_files SET parse_status = ?, edition = NULL, updated_at = ? WHERE id = ?`,
+					ParseUnrecognized, now, r.ID); err != nil {
+					return rep, err
+				}
+				rep.Unrecognized++
+				unit = true
 			}
 			if changed, err := syncExternalSubtitles(b, r.ID, wf.Subtitles, extStreams[r.ID]); err != nil {
 				return rep, err
@@ -286,6 +298,10 @@ func (s *Scanner) ScanLibrary(ctx context.Context, libraryID string, opts ScanOp
 	// 4. Move detection (R16): a new file takes over the row of a file that
 	// went missing in this scan when size and fingerprint match one, and
 	// only one, on each side.
+	// Move detection reads files (fingerprints): not under the write lock.
+	if err := b.Commit(); err != nil {
+		return rep, err
+	}
 	moves := s.detectMoves(news, gone)
 	for nf, r := range moves {
 		edition := s.edition(lib, nf.file)
@@ -737,7 +753,9 @@ func (s *Scanner) analyze(ctx context.Context, jobs []analysisJob, rep *Report, 
 			return err
 		}
 		opts.progress(PhaseAnalyzing, "", *rep)
-		if err := b.EndUnit(); err != nil {
+		// Commit each file: the next one waits on ffprobe and a network
+		// share, which mustn't happen while holding the write lock.
+		if err := b.Commit(); err != nil {
 			return err
 		}
 	}

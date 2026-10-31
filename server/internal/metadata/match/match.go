@@ -6,6 +6,7 @@ package match
 import (
 	"context"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"unicode"
@@ -49,6 +50,23 @@ var articles = map[string]bool{
 	"der": true, "die": true, "das": true, "ein": true, "eine": true,
 	"el": true, "los": true, "las": true, "il": true, "lo": true, "gli": true,
 	"de": true, "het": true, "een": true,
+}
+
+// countryTag is a trailing country code in brackets, as release and Plex
+// folder names tell same-name shows apart: "The Office (US)".
+var countryTag = regexp.MustCompile(`^(.+?)[ ._]*[(\[]([A-Z]{2})[)\]]$`)
+
+// SplitCountry splits "The Office (US)" into "The Office" and "US"; UK
+// becomes GB, as TMDB spells it. Titles without a tag come back unchanged.
+func SplitCountry(title string) (string, string) {
+	m := countryTag.FindStringSubmatch(strings.TrimSpace(title))
+	if m == nil {
+		return title, ""
+	}
+	if m[2] == "UK" {
+		return m[1], "GB"
+	}
+	return m[1], m[2]
 }
 
 var (
@@ -128,6 +146,7 @@ type Scored struct {
 
 // Score is a candidate's confidence for a parsed title and year (R4).
 func Score(title string, year int, c provider.Candidate) float64 {
+	title, _ = SplitCountry(title)
 	sim := max(Similarity(title, c.Title), Similarity(title, c.OriginalTitle))
 	return TitleWeight*sim + YearWeight*yearScore(year, c.Year)
 }
@@ -193,6 +212,26 @@ type Searcher interface {
 // against what release names usually carry; the original title covers the
 // rest.
 func Run(ctx context.Context, p Searcher, kind, title string, year int) (Decision, error) {
+	title, country := SplitCountry(title)
+	d, err := run(ctx, p, kind, title, year)
+	if err != nil || country == "" {
+		return d, err
+	}
+	// The tag names the country: decide among the candidates from there,
+	// so "The Office (US)" is the 2005 show without asking.
+	var local []provider.Candidate
+	for _, c := range d.Candidates {
+		if slices.Contains(c.Countries, country) {
+			local = append(local, c.Candidate)
+		}
+	}
+	if len(local) == 0 {
+		return d, nil
+	}
+	return Decide(title, year, local), nil
+}
+
+func run(ctx context.Context, p Searcher, kind, title string, year int) (Decision, error) {
 	loc := provider.Locale{Language: "en", Region: "US"}
 	cands, err := p.Search(ctx, kind, title, year, loc)
 	if err != nil {

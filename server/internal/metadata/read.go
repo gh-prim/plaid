@@ -275,3 +275,35 @@ func nonNil[T any](s []T) []T {
 	}
 	return s
 }
+
+// LastWatchedBackdrops returns, per profile, the backdrop of the title it
+// played last: the item's own, else (an episode) its show's. Profiles
+// that have watched nothing with a backdrop are left out.
+func (s *Store) LastWatchedBackdrops(ctx context.Context, profileIDs []string) (map[string]Art, error) {
+	out := map[string]Art{}
+	for _, pid := range profileIDs {
+		var id string
+		err := s.db.QueryRowContext(ctx, `SELECT COALESCE(
+				(SELECT a.owner_id FROM artwork a WHERE a.owner_type = 'item' AND a.owner_id = i.id AND a.kind = 'backdrop' AND a.selected = 1 LIMIT 1),
+				(SELECT a.owner_id FROM artwork a WHERE a.owner_type = 'item' AND a.owner_id = show.id AND a.kind = 'backdrop' AND a.selected = 1 LIMIT 1), '')
+			FROM watch_state w JOIN items i ON i.id = w.item_id
+			LEFT JOIN items season ON season.id = i.parent_id AND i.kind = 'episode'
+			LEFT JOIN items show ON show.id = season.parent_id
+			WHERE w.profile_id = ? AND w.last_played_at IS NOT NULL
+			ORDER BY w.last_played_at DESC LIMIT 1`, pid).Scan(&id)
+		if errors.Is(err, sql.ErrNoRows) || (err == nil && id == "") {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		art, err := s.selectedArt(ctx, "item", []string{id})
+		if err != nil {
+			return nil, err
+		}
+		if a := first(art[id]["backdrop"]); a != nil {
+			out[pid] = *a
+		}
+	}
+	return out, nil
+}

@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,6 +48,13 @@ const (
 // batchLimit is the maximum number of rows written per transaction (R24).
 const batchLimit = 500
 
+// batchHold is how long a batch keeps its transaction open across units.
+// The write lock is held from the first write (_txlock=immediate) while
+// the scanner reads the next files, which can take seconds on a network
+// share: past this, the batch commits so other writers (metadata, artwork,
+// sessions) don't wait out busy_timeout and fail with SQLITE_BUSY.
+const batchHold = 250 * time.Millisecond
+
 // ErrNotFound is returned when a row doesn't exist.
 var ErrNotFound = errors.New("not found")
 
@@ -78,8 +86,10 @@ type Store struct {
 	db *sql.DB
 	// Now is the clock used for every timestamp; tests replace it.
 	Now func() time.Time
-	// batchSize overrides batchLimit in tests.
+	// batchSize and batchHold override batchLimit and the const batchHold
+	// in tests.
 	batchSize int
+	batchHold time.Duration
 	// afterCommit, when set, runs after each batch commit; tests use it to
 	// simulate a crash between batches.
 	afterCommit func() error
@@ -316,6 +326,8 @@ type Batch struct {
 	tx    *sql.Tx
 	rows  int
 	limit int
+	hold  time.Duration
+	since time.Time
 }
 
 // NewBatch starts a batch; nothing is opened until the first write.
@@ -324,7 +336,11 @@ func (s *Store) NewBatch(ctx context.Context) *Batch {
 	if s.batchSize > 0 {
 		limit = s.batchSize
 	}
-	return &Batch{ctx: ctx, s: s, limit: limit}
+	hold := batchHold
+	if s.batchHold > 0 {
+		hold = s.batchHold
+	}
+	return &Batch{ctx: ctx, s: s, limit: limit, hold: hold}
 }
 
 // Exec runs one write inside the current transaction.
@@ -340,7 +356,7 @@ func (b *Batch) execCount(query string, args ...any) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-		b.tx = tx
+		b.tx, b.since = tx, time.Now()
 	}
 	res, err := b.tx.ExecContext(b.ctx, query, args...)
 	if err != nil {
@@ -350,9 +366,10 @@ func (b *Batch) execCount(query string, args ...any) (int64, error) {
 	return res.RowsAffected()
 }
 
-// EndUnit commits when the current transaction reached the row limit.
+// EndUnit commits when the current transaction reached the row limit, or
+// has held the write lock for batchHold.
 func (b *Batch) EndUnit() error {
-	if b.rows < b.limit {
+	if b.rows < b.limit && (b.tx == nil || time.Since(b.since) < b.hold) {
 		return nil
 	}
 	return b.Commit()
@@ -364,6 +381,10 @@ func (b *Batch) Commit() error {
 		return nil
 	}
 	err := b.tx.Commit()
+	if held := time.Since(b.since); held > time.Second {
+		// Other writers wait this long: worth knowing (and fixing).
+		slog.Warn("scan held the database write lock", "held_ms", held.Milliseconds(), "rows", b.rows)
+	}
 	b.tx, b.rows = nil, 0
 	if err != nil {
 		return err

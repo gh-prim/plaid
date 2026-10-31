@@ -10,6 +10,7 @@ output-options:
   skip-prune: true
   # /stream/{token}/... is served by a plain handler (Range, HEAD, long
   # polling for segments, F006): the operations stay in the contract for
-  # clients, the generated server skips them.
-  exclude-tags: [stream]
+  # clients, the generated server skips them. So does the hero preview
+  # (Range for <video>).
+  exclude-tags: [stream, preview]
 output: api.gen.go

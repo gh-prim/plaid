@@ -124,3 +124,43 @@ func TestCases(t *testing.T) {
 		}
 	}
 }
+
+type fakeSearch []provider.Candidate
+
+func (f fakeSearch) Search(context.Context, string, string, int, provider.Locale) ([]provider.Candidate, error) {
+	return f, nil
+}
+
+func TestCountryTag(t *testing.T) {
+	for in, want := range map[string][2]string{
+		"The Office (US)": {"The Office", "US"},
+		"The Office (UK)": {"The Office", "GB"},
+		"Shameless [US]":  {"Shameless", "US"},
+		"The Office":      {"The Office", ""},
+		"Godzilla (2014)": {"Godzilla (2014)", ""},
+		"Love (Netflix)":  {"Love (Netflix)", ""},
+	} {
+		title, country := SplitCountry(in)
+		if title != want[0] || country != want[1] {
+			t.Errorf("SplitCountry(%q) = %q, %q; want %q, %q", in, title, country, want[0], want[1])
+		}
+	}
+
+	offices := fakeSearch{
+		{TMDBID: 2316, Title: "The Office", Year: 2005, Popularity: 188, Countries: []string{"US"}},
+		{TMDBID: 2996, Title: "The Office", Year: 2001, Popularity: 15, Countries: []string{"GB"}},
+	}
+	for title, want := range map[string]int{"The Office (US)": 2316, "The Office (UK)": 2996} {
+		d, err := Run(context.Background(), offices, provider.Show, title, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if d.State != Matched || d.Best.TMDBID != want {
+			t.Errorf("%s: %s %v, want matched %d", title, d.State, d.Best, want)
+		}
+	}
+	// Without the tag, it's still a close call.
+	if d, _ := Run(context.Background(), offices, provider.Show, "The Office", 0); d.State != NeedsReview {
+		t.Errorf("The Office: %s, want needs_review", d.State)
+	}
+}

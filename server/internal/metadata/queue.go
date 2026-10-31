@@ -26,7 +26,10 @@ type Queue struct {
 	Idle time.Duration
 	// PauseFor is how long a paused job waits (default 10 min).
 	PauseFor time.Duration
-	Log      *slog.Logger
+	// Retry is how long a worker waits after a failed claim (default 2 s):
+	// a busy database during a scan isn't a reason to idle for a minute.
+	Retry time.Duration
+	Log   *slog.Logger
 
 	wake chan struct{}
 	stop context.CancelFunc
@@ -46,6 +49,9 @@ func (q *Queue) Start(ctx context.Context) {
 	}
 	if q.PauseFor == 0 {
 		q.PauseFor = 10 * time.Minute
+	}
+	if q.Retry == 0 {
+		q.Retry = 2 * time.Second
 	}
 	if q.Log == nil {
 		q.Log = slog.Default()
@@ -85,7 +91,7 @@ func (q *Queue) work(ctx context.Context) {
 			if ctx.Err() == nil {
 				q.Log.Error("metadata queue: claim failed", "err", err)
 			}
-			q.sleep(ctx)
+			q.wait(ctx, q.Retry)
 			continue
 		}
 		if !ok {
@@ -118,8 +124,10 @@ func (q *Queue) run(ctx context.Context, j Job) {
 	}
 }
 
-func (q *Queue) sleep(ctx context.Context) {
-	t := time.NewTimer(q.Idle)
+func (q *Queue) sleep(ctx context.Context) { q.wait(ctx, q.Idle) }
+
+func (q *Queue) wait(ctx context.Context, d time.Duration) {
+	t := time.NewTimer(d)
 	defer t.Stop()
 	select {
 	case <-ctx.Done():
