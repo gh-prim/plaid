@@ -21,6 +21,17 @@ services:
     ports:
       - "${DIRECT_DNS_BIND:-0.0.0.0}:53:5353/udp"
       - "${DIRECT_DNS_BIND:-0.0.0.0}:53:5353/tcp"
+    # Coolify routes to the first container port under "ports" (5353, the
+    # DNS one), whatever the domain says: this router, ahead of Coolify's,
+    # sends the API and short links to the HTTP port.
+    labels:
+      - traefik.http.routers.getplaid-direct.rule=Host(`${DIRECT_ZONE:-getplaid.direct}`)
+      - traefik.http.routers.getplaid-direct.entrypoints=https
+      - traefik.http.routers.getplaid-direct.tls=true
+      - traefik.http.routers.getplaid-direct.tls.certresolver=letsencrypt
+      - traefik.http.routers.getplaid-direct.priority=1000
+      - traefik.http.routers.getplaid-direct.service=getplaid-direct
+      - traefik.http.services.getplaid-direct.loadbalancer.server.port=8080
     volumes:
       - direct-data:/data
     healthcheck:
