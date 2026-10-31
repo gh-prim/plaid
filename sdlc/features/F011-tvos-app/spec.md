@@ -39,7 +39,7 @@ A native SwiftUI tvOS app that finds the PLAID server on the home network over B
 | F011-R15 | `GET /api/v1/items/{itemId}/segments` returns the intro, recap, credits and preview of a movie or episode, in time order (ADR 0008): TheIntroDB, cached in `item_segments`; for episodes, end credits detected once per file with FFmpeg at the lowest priority win over TheIntroDB's. An item the profile can't see is a 404; nothing known is an empty list. | must |
 | F011-R16 | Skip intro / skip recap button while inside a known intro or recap. | should |
 | F011-R17 | Next-episode card (web `pl-next--tv` design): shown when the credits start (or 30 s before the end when none are known), 10 s countdown, Play now (focused) and Cancel; "still watching?" after 3 episodes in a row; end-of-show screen after the last. | must |
-| F011-R18 | Settings: previews toggle, language shown, server and account, About with versions and the TMDB / fanart.tv / TheIntroDB attributions. | must |
+| F011-R18 | Settings: previews toggle, language shown, server and account, About with the app and server versions and the attributions the server lists (`GET /server`). | must |
 | F011-R19 | Top Shelf extension: Continue watching from the app group, opening `plaid://item/<id>` or `plaid://play/<id>`. | should |
 | F011-R20 | A link to an item that can't be loaded shows an error with Retry, never an endless spinner. | must |
 

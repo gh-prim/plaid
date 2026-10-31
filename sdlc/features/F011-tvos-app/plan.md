@@ -67,11 +67,12 @@ Each step is one commit or a few, all in one PR from `feat/F011-tvos-app`.
 - Committing `PLAID.xcodeproj`: generated, and it holds the signing team and per-user state.
 
 ## Expected evidence
-- [ ] Tests added: `segments_test.go`, `detect_test.go`, migration rollback.
-- [ ] `make test` green
-- [ ] Screenshots from the simulator: home, menu open, library with filters, title page, person page, next-episode card, settings.
+- [x] Tests added: `segments_test.go`, `detect_test.go`, migration rollback.
+- [x] `make test` green
+- [x] Screenshots from the simulator (`screenshots/`): home, menu open, library, title page, settings. Not captured: person page, next-episode card (the simulator remote can't scrub to the end of an episode).
 - [ ] Manual check: pairing from a fresh install; next-episode card on For All Mankind S1E5 (credits detected at 57:16).
 
 ## Log
 - 2026-10-31: the code was written before this plan (prototype first, by the owner's choice); the intent, spec and plan document what was built.
 - 2026-10-31: trailers open the YouTube app instead of playing inside the app.
+- 2026-10-31: known issue: picking Settings in the open menu leaves the menu open with focus on the profile row; moving right fixes it.
