@@ -1,307 +1,681 @@
 {
   "meta": {
-    "siteName": "PLAID",
-    "ogImageAlt": "PLAID. Your movies and shows, on your own server. Watch alone, or together."
-  },
-  "nav": {
-    "label": "Main",
-    "skip": "Skip to content",
-    "homeAria": "PLAID, home",
-    "home": "Home",
-    "download": "Download",
-    "remoteAccess": "Remote access",
-    "privacy": "Privacy",
-    "otherLanguage": "Français",
-    "themeToggle": "Light theme"
-  },
-  "footer": {
-    "tagline": "Plaid & chill. Your cinema under the blanket.",
-    "license": "Free and open source, under the MIT license. Made by two people and a couch.",
-    "noTracking": "[No analytics, no cookies]({privacy}) on this site.",
-    "pagesLabel": "Pages",
-    "projectLabel": "Project",
-    "github": "Source code on GitHub",
-    "releases": "Releases",
-    "installGuide": "Install guide",
-    "issues": "Report a problem"
-  },
-  "status": {
-    "available": "Available",
-    "inProgress": "In progress",
-    "planned": "Planned"
+    "ogAlt": "The PLAID web player, paused at 1:12:48."
   },
   "common": {
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "serverUrl": "http://<your-server>:32500"
+  },
+  "status": {
+    "available": "Available",
+    "progress": "In progress",
+    "planned": "Planned",
+    "later": "Later",
+    "concept": "Concept"
+  },
+  "header": {
+    "skip": "Skip to content",
+    "home": "PLAID, home",
+    "nav": "Main",
+    "language": "Language",
+    "lang": {
+      "en": "EN",
+      "fr": "FR"
+    },
+    "langName": {
+      "en": "English",
+      "fr": "Français"
+    },
+    "theme": "Light theme",
+    "github": "GitHub",
+    "menu": "Menu"
+  },
+  "nav": {
+    "features": "Features",
+    "party": "Plaid Party",
+    "install": "Install",
+    "roadmap": "Roadmap",
+    "faq": "FAQ",
+    "openSource": "Open source",
+    "remote": "Remote access",
+    "privacy": "Privacy"
+  },
+  "footer": {
+    "tagline": "Plaid & chill. Your cinema under the blanket.",
+    "product": {
+      "title": "Product"
+    },
+    "project": {
+      "title": "Project",
+      "github": "GitHub",
+      "releases": "Releases"
+    },
+    "direct": {
+      "title": "getplaid.direct"
+    },
+    "docs": {
+      "title": "Docs",
+      "guide": "Install guide",
+      "api": "API reference",
+      "protocol": "getplaid.direct protocol"
+    },
+    "bottom": "[MIT licensed]({license}). Made by two people and a couch."
+  },
+  "shots": {
+    "player": {
+      "alt": "The PLAID web player on Nosferatu, paused at 1:12:48, the played part of the timeline woven in tartan.",
+      "caption": "The PLAID web player, paused at 1:12:48 of Nosferatu (1922). The picture is a test card: we don’t ship films."
+    },
+    "account": {
+      "alt": "PLAID’s first-run screen: Create the admin account. It lives on Living room only. There’s no PLAID account online.",
+      "caption": "First run, step 1 of 4. “Living room” is the server’s name."
+    },
+    "scan": {
+      "alt": "PLAID’s first-run scan: Scanning your libraries, done, the woven progress bar full.",
+      "caption": "First run, step 3 of 4. The progress bar is woven like the player’s timeline."
+    },
+    "remote": {
+      "alt": "PLAID’s remote access settings: the switch, the note that videos never go through getplaid.direct, and the router port options.",
+      "caption": "Settings → Remote access, in the web app."
+    },
+    "appletv": {
+      "alt": "The PLAID Apple TV app’s settings, in French: playback options, and the app and server versions.",
+      "caption": "The Apple TV app, set to French."
+    }
+  },
+  "party": {
+    "meta": {
+      "title": "Plaid Party · Watch together, in sync · PLAID",
+      "description": "Plaid Party, PLAID’s flagship feature, planned: one link, everyone on the same frame, each on the stream that suits their screen."
+    },
+    "kicker": "The intent is [written]({intent}); the spec isn’t.",
+    "title": "Same film. Same second. Different couches.",
+    "lead": "A Plaid Party keeps everyone on the same frame, wherever they are and whatever they watch on.",
+    "follow": "Follow it on GitHub",
+    "start": {
+      "title": "Start a party.",
+      "body": "Pick a film, choose Plaid Party. You get a link and a short code to send."
+    },
+    "joined": {
+      "title": "Everyone’s here.",
+      "body": "Friends join from a TV, a laptop or a phone. You see who’s watching and who’s still loading."
+    },
+    "play": {
+      "title": "Press play once.",
+      "body": "Play, pause and seek reach everyone together. The target: less than half a second between any two screens."
+    },
+    "streams": {
+      "title": "4K on the TV. 720p on the train.",
+      "body": "Everyone watches the same moment, but each device gets its own stream: Direct Play on the living room TV, a lighter transcode on a phone on mobile data. Nobody waits for the slowest connection."
+    },
+    "drift": {
+      "title": "No “wait, where are you?”",
+      "body": "The server holds the clock. When someone drifts, PLAID nudges their speed instead of jumping. After buffering, they slide back in on their own."
+    },
+    "pause": {
+      "title": "Sam asks for a pause.",
+      "body": "Anyone can ask. The host decides, or everyone does: your call."
+    },
+    "social": {
+      "reactions": {
+        "name": "Reactions",
+        "text": "Emoji over the film, for everyone."
+      },
+      "chat": {
+        "name": "Chat",
+        "text": "A side panel that never covers the picture."
+      },
+      "pause": {
+        "name": "Pause requests",
+        "text": "A toast for the host, or for everyone."
+      },
+      "control": {
+        "name": "Who controls",
+        "text": "Host only, or everyone. Switch any time."
+      }
+    },
+    "call": {
+      "title": "Credits.",
+      "body": "Video and voice chat stay out of v1 on purpose. You probably already have a call open."
+    },
+    "room": {
+      "film": "Nosferatu",
+      "left": "21m left",
+      "toast": "**Sam** asks for a pause",
+      "accept": "Accept",
+      "keep": "Keep watching",
+      "alt": "Concept of a Plaid Party room: four people at 1:12:48 of the same film, each on a different device and quality.",
+      "altToast": "Concept of a Plaid Party room at 1:12:48, with a notice: Sam asks for a pause, Accept or Keep watching.",
+      "caption": "Concept, drawn with the PLAID design system. Plaid Party doesn’t exist yet.",
+      "people": {
+        "ada": {
+          "initial": "A",
+          "name": "Ada",
+          "device": "Apple TV · 4K Direct Play"
+        },
+        "sam": {
+          "initial": "S",
+          "name": "Sam",
+          "device": "iPad · 1080p"
+        },
+        "jo": {
+          "initial": "J",
+          "name": "Jo",
+          "device": "Phone, on the train · 720p"
+        },
+        "lou": {
+          "initial": "L",
+          "name": "Lou",
+          "device": "Laptop · Direct Play"
+        }
+      }
+    }
   },
   "home": {
     "meta": {
-      "title": "PLAID: your own movie server, a free alternative to Plex",
-      "description": "PLAID is a free, open-source media server you run at home. Your movies and shows on every screen, watch-together and free remote access built in, no cloud account."
+      "title": "PLAID · Your movies and shows, on your own server",
+      "description": "PLAID is a self-hosted, open-source media server: the films on your disks, streamed to every screen in the house. Watch alone, or together."
     },
-    "hero": {
-      "eyebrow": "Free · Open source (MIT) · Self-hosted",
-      "title": "Plaid & chill.",
-      "subtitle": "Your cinema under the blanket.",
-      "lead": "PLAID is a media server you run at home, a free alternative to Plex. It finds the movies and shows on your disks, dresses them with posters and synopses, and streams them to every screen. No cloud account, no subscription, nobody watching what you watch.",
-      "ctaPrimary": "Download PLAID",
-      "ctaSecondary": "View the code on GitHub",
-      "status": "Early days, honestly: the server, the web app and the Apple TV app work today. Watching together and sharing with friends come next."
+    "title": "Your movies and shows, on your own server.",
+    "lead": "PLAID indexes the films and series on your disks and streams them to every screen in the house. No central account, no subscription. Watch alone, or together.",
+    "install": "Install PLAID",
+    "github": "View on GitHub",
+    "state": "**Early development.** The server, the web app and the Apple TV app work today. Sharing and Plaid Party are designed, not built. [Where we are]({roadmap}).",
+    "install18": {
+      "title": "One command, before anyone arrives.",
+      "body": "PLAID is a single Go binary with SQLite and FFmpeg. On Ubuntu or Debian, the script installs a system service that starts on boot. No Docker needed.",
+      "note": "amd64 or arm64: a Raspberry Pi 4 or 5 with a 64-bit OS is enough.",
+      "more": "Every way to install"
     },
-    "pitch": {
-      "title": "Everything you install next to Plex is already inside.",
-      "body": "Remote streaming without a paid pass. Watching together without a browser extension. Sharing without a central account. PLAID builds into the server what people usually bolt on beside it, and keeps all of it at home."
+    "account": {
+      "title": "An account that lives on your server.",
+      "body": "The first visit creates the admin account, on your machine. There’s no PLAID account online, and nothing to sign up for with us."
     },
-    "features": {
-      "title": "Made for movie night",
-      "party": {
-        "title": "Plaid Party",
-        "body": "Movie night, even miles apart. Send a link and everyone lands on the same frame: the server keeps the clock, so play, pause and seek stay in sync. Each person gets a stream suited to their screen and connection, 4K on the living room TV, 720p on a phone on the train."
-      },
-      "sharing": {
-        "title": "Library sharing",
-        "body": "Invite friends and family with a link, choose exactly which libraries they see, and revoke access in one click. Their account lives on your server, nowhere else."
-      },
-      "remote": {
-        "title": "Remote access, built in",
-        "body": "Turn it on and your server gets its own address, like `living-room-k3x7qa.getplaid.direct`, with a real HTTPS certificate. Free, no paid pass, and your movies never go through our servers.",
-        "link": "How remote access works"
-      },
-      "private": {
-        "title": "Yours, really",
-        "body": "Your files stay on your disks and your accounts stay on your server. No phoning home, no ads, no analytics, and it keeps working when the internet doesn't."
+    "link": {
+      "title": "The link is sent.",
+      "body": "Turn on remote access and your server gets an address with a real certificate. Friends open one link:",
+      "never": "Your videos go straight from your server to them. getplaid.direct only answers DNS.",
+      "more": "How remote access works"
+    },
+    "tv": {
+      "title": "On the TV, it’s an app.",
+      "body": "The Apple TV app finds the server on your network, pairs with a code, and plays with the same look and flow as the web. In English or French, per profile."
+    },
+    "party": {
+      "title": "Everyone lands on the same frame.",
+      "body": "Plaid Party is the feature PLAID is built around: one link, and play, pause and seek reach everyone at once, each on the stream that suits their screen. It’s designed, not built yet.",
+      "more": "Plaid Party"
+    },
+    "credits": {
+      "title": "Credits: two developers and a couch.",
+      "body": "PLAID is MIT licensed and built in the open. Every feature starts as a written intent, then a spec, then a plan, all on GitHub.",
+      "star": "Star on GitHub",
+      "more": "How we build"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "Features · PLAID",
+      "description": "What PLAID does today and what comes next: libraries, artwork, Direct Play and transcoding, the web and Apple TV apps, remote access."
+    },
+    "title": "What works tonight, and what doesn’t yet.",
+    "lead": "The basics, done on your hardware. Every line says where it stands.",
+    "libraries": {
+      "title": "Your libraries",
+      "items": {
+        "scan": {
+          "name": "Folder scanning",
+          "text": "New files are picked up on their own; network shares are rescanned every 15 minutes. PLAID only reads your folders."
+        },
+        "match": {
+          "name": "Matching and artwork",
+          "text": "Titles, posters and synopses from TMDB and fanart.tv, in each library’s language. Your own `.nfo` files and images come first."
+        },
+        "search": {
+          "name": "Search and collections",
+          "text": "Find a film, a show or a person. Browse collections."
+        }
+      }
+    },
+    "playback": {
+      "title": "Playback",
+      "items": {
+        "direct": {
+          "name": "Direct Play",
+          "text": "When a device can play the file as it is, PLAID sends it untouched. Almost no CPU."
+        },
+        "transcode": {
+          "name": "Direct Stream and transcoding",
+          "text": "When it can’t, PLAID remuxes or re-encodes to H.264 with FFmpeg, at a quality that fits the connection."
+        },
+        "hw": {
+          "name": "Hardware transcoding",
+          "text": "VAAPI, Intel Quick Sync, NVENC or V4L2 M2M, tested at startup, with software as the fallback. [What works where]({hw})."
+        },
+        "subs": {
+          "name": "Subtitles",
+          "text": "Text and image subtitles, with each profile’s audio and subtitle choices remembered."
+        },
+        "resume": {
+          "name": "Continue watching",
+          "text": "Stop on the TV, pick up in the browser. Each profile keeps its place."
+        }
       }
     },
     "screens": {
-      "title": "Every screen in the house",
-      "body": "One server, native apps on the big screen and a web app everywhere else.",
+      "title": "Screens",
       "items": {
-        "web": "Web, in any modern browser",
-        "appleTv": "Apple TV",
-        "ios": "iPhone and iPad",
-        "android": "Android and Android TV"
+        "web": {
+          "name": "Web",
+          "text": "Served by the server itself, in any recent browser."
+        },
+        "appletv": {
+          "name": "Apple TV",
+          "text": "A native tvOS app. It finds the server on the network and pairs with a code."
+        },
+        "ios": {
+          "name": "iPhone and iPad",
+          "text": "Next in the Apple phase, in SwiftUI like the TV app."
+        },
+        "android": {
+          "name": "Android and Android TV",
+          "text": "Kotlin and Jetpack Compose, after the Apple apps."
+        }
       }
     },
-    "hardware": {
-      "title": "Runs on what you already have",
-      "body": "PLAID is a single Go program with SQLite and FFmpeg. It starts on boot, stays light, and converts video with your GPU when there is one.",
+    "people": {
+      "title": "People",
       "items": {
-        "pi": "Raspberry Pi 4 and 5",
-        "nas": "A NAS",
-        "docker": "Docker",
-        "pc": "An old PC with Ubuntu or Debian"
-      },
-      "link": "See the install options"
+        "accounts": {
+          "name": "Accounts and profiles",
+          "text": "An admin, members, and a profile per person, with an optional PIN."
+        },
+        "pairing": {
+          "name": "TV pairing",
+          "text": "A TV signs in with a short code typed on another device."
+        },
+        "remote": {
+          "name": "Remote access",
+          "text": "A getplaid.direct address and a real certificate for your server. [How it works]({remote})."
+        },
+        "sharing": {
+          "name": "Library sharing",
+          "text": "Invite a friend by link to one library or collection, with a quality cap and instant revocation."
+        },
+        "party": {
+          "name": "Plaid Party",
+          "text": "Watch together, in sync. [The concept]({party})."
+        }
+      }
     },
-    "closing": {
-      "title": "Grab a blanket. Bring your own films.",
-      "body": "Installing takes one command. Your library is ready by the time the popcorn is.",
-      "cta": "Download PLAID"
+    "statuses": {
+      "time": "Labels",
+      "title": "What the labels mean",
+      "body": "**Available**: merged and in the releases, still being polished. **Planned**: written as an intent, not built. **Later**: on the list, not designed yet.",
+      "more": "The roadmap"
     }
   },
-  "download": {
+  "install": {
     "meta": {
-      "title": "Download PLAID: Docker, Debian and Ubuntu packages, Apple TV",
-      "description": "Install PLAID on Ubuntu, Debian or Docker, on amd64 or arm64 (Raspberry Pi 4 and 5). One command, a .deb package or Docker Compose."
+      "title": "Install · PLAID",
+      "description": "Install PLAID on Ubuntu, Debian or Docker, on amd64 or arm64. Then open http://<your-server>:32500."
     },
-    "title": "Download PLAID",
-    "lead": "PLAID runs on Ubuntu 24.04 and 26.04 and on Debian 12 or later, on `amd64` (most PCs) and `arm64` (Raspberry Pi 4 and 5 with a 64-bit OS, ARM servers). Pick the way you like: they all end with opening `http://<your-server>:32500` and creating the admin account.",
-    "script": {
-      "title": "One command, for Ubuntu and Debian",
-      "body": "Downloads the latest package for your processor, refuses to continue if its checksum doesn't match, and installs a system service that starts on boot. It's a short script: feel free to read it first.",
-      "caption": "In a terminal on your server"
+    "title": "Install PLAID.",
+    "lead": "Three ways, on Ubuntu, Debian or Docker. All of them end the same way: open `{url}`.",
+    "pick": {
+      "title": "Pick one."
     },
-    "deb": {
-      "title": "Debian package",
-      "body": "Prefer to do it by hand? Download the `.deb` for your processor and `checksums.txt` from the latest release.",
-      "amd64": "for most PCs and servers",
-      "arm64": "for the Raspberry Pi 4 and 5 and ARM servers",
-      "cta": "Latest release on GitHub",
-      "caption": "Check, then install (here for arm64)",
-      "after": "apt installs FFmpeg with it. Your settings live in `/etc/plaid/plaid.env` and your data in `/var/lib/plaid`; both are kept when you upgrade. To upgrade, install the newer package the same way."
-    },
-    "docker": {
-      "title": "Docker Compose",
-      "body": "The image is built from the repository: clone it, then start it.",
-      "startCaption": "On your Docker host",
-      "compose": "Before starting, add your media folders to `docker-compose.yml`, read-only:",
-      "paths": "When you add a library in PLAID, use the paths inside the container, such as `/media/movies`. The container runs as a non-root user and ships FFmpeg; hardware transcoding needs your GPU passed through, as the install guide explains."
-    },
-    "apps": {
-      "title": "Apps",
-      "appleTv": {
-        "title": "Apple TV",
-        "body": "A native app made for the Siri Remote. It finds your server on the home network by itself. It isn't on the App Store yet: until it is, build it with Xcode from the [apple folder of the repository]({source})."
+    "tabs": {
+      "label": "Install method",
+      "script": {
+        "name": "Script",
+        "body": "Ubuntu or Debian. Installs a system service that starts on boot. No Docker needed.",
+        "note": "It checks the package’s checksum before installing. [Read it first]({script}), it’s short."
       },
-      "web": {
-        "title": "Web",
-        "body": "Nothing to install: your server serves the web app. Open its address in any modern browser."
+      "deb": {
+        "name": "Debian package",
+        "step1": "Download `plaid_<version>_amd64.deb` (or `_arm64.deb`) and `checksums.txt` from the [latest release]({releases}).",
+        "step2": "Check it (optional):",
+        "step3": "Install:",
+        "get": {
+          "caption": "What you get",
+          "bin": {
+            "path": "`/usr/bin/plaid`",
+            "what": "The server"
+          },
+          "env": {
+            "path": "`/etc/plaid/plaid.env`",
+            "what": "Configuration, kept on upgrades"
+          },
+          "data": {
+            "path": "`/var/lib/plaid`",
+            "what": "Your data, never deleted automatically"
+          },
+          "service": {
+            "path": "`plaid.service`",
+            "what": "Enabled and started, runs as the `plaid` user"
+          }
+        }
       },
-      "mobile": {
-        "title": "iPhone, iPad, Android and Android TV",
-        "body": "Planned. They will talk to the same server, with the same accounts."
+      "docker": {
+        "name": "Docker",
+        "body": "Mount your media folders read-only in `docker-compose.yml`, then use the paths inside the container when you add a library."
       }
     },
-    "next": {
-      "title": "Next steps",
-      "body": "The [install guide]({guide}) covers configuration, upgrades, media folder permissions and hardware transcoding. To watch from outside your home, read about [remote access]({remote})."
+    "open": {
+      "title": "Open it.",
+      "body": "The first visit walks you through the admin account, your folders and their language.",
+      "note": "Setup only works from your local network. From elsewhere, PLAID asks for the setup code it prints in its log."
+    },
+    "folders": {
+      "title": "Point it at your folders.",
+      "body": "Movies and shows, each library in its own language. PLAID scans them, matches titles and fetches artwork. It never writes to your media.",
+      "note": "The native package runs PLAID as the `plaid` user, which can’t read your home folder by default. [Give it read access]({guide})."
+    },
+    "req": {
+      "time": "Needs",
+      "title": "What it runs on",
+      "systems": {
+        "name": "Systems",
+        "value": "Ubuntu 24.04 LTS and 26.04 LTS, Debian 12 and later"
+      },
+      "arch": {
+        "name": "Architectures",
+        "value": "amd64 (most PCs), arm64 (Raspberry Pi 4 and 5 with a 64-bit OS, ARM servers)"
+      },
+      "ffmpeg": {
+        "name": "Also installed",
+        "value": "FFmpeg, from your distribution"
+      }
+    },
+    "everyday": {
+      "time": "After",
+      "title": "Everyday commands",
+      "body": "Is it running, and what is it saying?",
+      "guide": "The full guide: configuration, upgrades, hardware transcoding"
     }
   },
   "remote": {
     "meta": {
-      "title": "Remote access with getplaid.direct: how it works and what it knows",
-      "description": "PLAID gives your home server a free address and HTTPS certificate with getplaid.direct. Your movies stream straight from your home: only DNS goes through us."
+      "title": "Remote access · getplaid.direct · PLAID",
+      "description": "How PLAID’s built-in remote access works: a getplaid.direct address, a Let’s Encrypt certificate, and video that never passes through us."
     },
-    "title": "Watch from anywhere, straight from home",
-    "lead": "From a friend's couch, a hotel room or the train, without renting a server, setting up a VPN or paying for a pass. Turn on remote access in PLAID and your server gets an address that works from anywhere.",
-    "what": {
-      "title": "What you get",
-      "body": "Your server takes an address made of its own name and a few random characters. A server called “Living room” gets, for example, a hostname and a short link:",
-      "caption": "Hostname and short link",
-      "https": "Share the short link: it always leads to your server, even when your internet provider changes your home IP address. The connection uses HTTPS with a real Let's Encrypt certificate, which your server requests itself. Its private key never leaves your home."
+    "title": "Your server, reachable from anywhere.",
+    "lead": "Turn it on in **Settings → Remote access**. Your server gets an address with a real certificate, and your videos never pass through us.",
+    "port": {
+      "title": "Open a port.",
+      "body": "PLAID asks your router to open one with UPnP or NAT-PMP. If your router can’t, choose **Manual** and forward a TCP port to port `32501` of the PLAID machine.",
+      "note": "`32501` is PLAID’s HTTPS port (`PLAID_TLS_PORT`)."
     },
-    "how": {
-      "title": "How it works",
-      "steps": {
-        "enable": {
-          "title": "You turn it on",
-          "body": "In PLAID's settings, as the administrator. Your server introduces itself to getplaid.direct with its name, the port it listens on and its version number."
-        },
-        "register": {
-          "title": "getplaid.direct writes down your address",
-          "body": "It notes the public IP address the request came from and creates the name that points to it. Your server checks in every 15 minutes, so the name follows your IP when it changes."
-        },
-        "router": {
-          "title": "Your router lets visitors in",
-          "body": "PLAID asks your router to open its port automatically (UPnP or NAT-PMP). If the router won't, you forward the port by hand once. getplaid.direct then tests your address from outside and PLAID tells you whether it works."
-        },
-        "connect": {
-          "title": "A friend opens your link",
-          "body": "Their device asks the internet's phone book, DNS, where your server is, then connects straight to your home. From there, getplaid.direct is out of the picture."
-        }
-      }
+    "name": {
+      "title": "Get a name.",
+      "body": "PLAID registers with getplaid.direct, which points that name at your public IP and follows it when it changes. The server checks in every 15 minutes."
     },
-    "privacy": {
-      "title": "Your movies never go through us",
-      "body": "getplaid.direct is a phone book, not a relay. It answers one question: at what address is this server? The video, your library, your accounts and what you watch travel directly between your server and the people you invited. We couldn't see them even if we wanted to.",
-      "stored": "It keeps a very short list per server: an identifier, the name-derived part of the address, the public IP, the port, the PLAID version and when it was last seen. The [privacy page]({privacy}) lists everything, and how long it's kept.",
-      "home": "At home, your devices get your server's local address under the same name, so playback stays on your network instead of making a detour through the internet."
+    "cert": {
+      "title": "Get a certificate.",
+      "body": "PLAID gets a Let’s Encrypt certificate for that name. The challenge goes through getplaid.direct’s DNS, so no port 80 is needed and the private key never leaves your server."
     },
-    "diagram": {
-      "device": "A friend's device",
-      "service": "getplaid.direct",
-      "server": "Your server, at home",
-      "question": "Where is living-room-k3x7qa?",
-      "answer": "At 203.0.113.7",
-      "media": "The movie, over HTTPS",
-      "direct": "Directly, never through us",
-      "caption": "getplaid.direct only ever sees the first exchange: a DNS question and its answer."
+    "send": {
+      "title": "Send the link.",
+      "body": "The short link redirects to your server, so friends only need one. Before you send it, getplaid.direct checks from outside that your server answers."
     },
-    "ports": {
-      "title": "Opening the door",
-      "intro": "For people outside to reach your server, your router has to let them in on one port. Three cases:",
-      "auto": {
-        "title": "Automatic",
-        "body": "Most home routers accept PLAID's request to open its port through UPnP or NAT-PMP. Nothing to do."
+    "through": {
+      "time": "Paths",
+      "title": "Video never goes through getplaid.direct",
+      "body": "The link redirects once, DNS answers with your home IP, and from then on the device talks to your server directly. There is no relay: that's also why, behind CGNAT, you need a VPN like Tailscale instead.",
+      "more": "What getplaid.direct keeps"
+    },
+    "paths": {
+      "video": {
+        "what": "Your videos",
+        "route": "From your server to your friend’s screen. Never through us."
       },
-      "manual": {
-        "title": "By hand",
-        "body": "In your router's settings, forward the remote access port shown in PLAID's settings (TCP) to your server's local IP address. With Docker, publish that port in `docker-compose.yml` as well."
+      "dns": {
+        "what": "The address",
+        "route": "getplaid.direct answers DNS with your public IP."
       },
-      "cgnat": {
-        "title": "Still out of reach?",
-        "body": "Some providers share one public IP between many homes (CGNAT), which blocks incoming connections. Ask your provider for a public IP, or put PLAID behind a tunnel such as Tailscale or Cloudflare Tunnel."
+      "cert": {
+        "what": "The certificate",
+        "route": "Let’s Encrypt checks a DNS record PLAID sets. The key stays home."
       }
     },
     "off": {
-      "title": "Turning it off",
-      "body": "Turn off remote access in PLAID's settings. Your server unregisters at once: its name and records are deleted from getplaid.direct straight away, and PLAID removes the port it asked your router to open. A server that stops checking in for 30 days is deleted automatically.",
-      "optional": "Remote access is optional and stays off until you turn it on. PLAID works fully on your home network without it, and you can put your own domain or reverse proxy in front of it instead."
+      "title": "Turn it off.",
+      "body": "Switch remote access off in the same settings: getplaid.direct deletes your server’s records at once. A server it hasn’t heard from in 30 days is removed too."
+    },
+    "limits": {
+      "time": "Caveats",
+      "title": "When it can’t work",
+      "cgnat": {
+        "name": "Behind CGNAT",
+        "text": "Some fibre and mobile providers share one public IP between homes, so no port can be opened. Use a VPN such as Tailscale instead."
+      },
+      "docker": {
+        "name": "In Docker",
+        "text": "UPnP can’t see your router from Docker’s default network. Use `network_mode: host`, or choose Manual and publish `32501:32501`."
+      },
+      "own": {
+        "name": "Your own setup",
+        "text": "Prefer your own domain, reverse proxy or tunnel? PLAID works behind them, with getplaid.direct left off. [Behind a reverse proxy]({proxy})."
+      },
+      "guide": "Remote access in the install guide"
+    }
+  },
+  "roadmap": {
+    "meta": {
+      "title": "Roadmap · PLAID",
+      "description": "Where PLAID stands: what works today, what is designed, what comes later. Every feature is written down on GitHub first."
+    },
+    "title": "Where we are, honestly.",
+    "lead": "PLAID is built in the open, one feature at a time. Each starts as a written intent, then a spec, then a plan, all on GitHub.",
+    "tonight": {
+      "time": "Tonight",
+      "title": "Works today",
+      "body": "Merged, in the releases, and still being polished."
+    },
+    "next": {
+      "time": "Next",
+      "title": "Designed, not built",
+      "body": "Intents written. No code yet."
+    },
+    "later": {
+      "time": "Later",
+      "title": "On the list",
+      "body": "Not designed yet."
+    },
+    "items": {
+      "F001": "Foundations: API contract, CI, Docker, Ubuntu and Debian packages",
+      "F002": "Design system and art direction",
+      "F003": "Accounts, profiles and sign-in",
+      "F004": "Libraries and file scanning",
+      "F005": "Metadata and artwork",
+      "F006": "Playback: Direct Play, remux, transcoding",
+      "F007": "Web: onboarding and administration",
+      "F008": "Web: browsing and player",
+      "F009": "Library sharing",
+      "F010": "Plaid Party",
+      "F011": "Apple TV app",
+      "F012": "Remote access through getplaid.direct",
+      "ios": "iPhone and iPad",
+      "android": "Android and Android TV",
+      "offline": "Offline downloads",
+      "hub": "Plaid Hub",
+      "music": "Music and photos",
+      "live": "Live TV",
+      "intros": "Intro detection without TheIntroDB, trickplay"
+    },
+    "how": {
+      "time": "How",
+      "title": "How a feature is decided",
+      "body": "Every intent, spec and plan lives in `sdlc/` on GitHub, reviewed by the developer who didn’t write it.",
+      "more": "Browse the specs"
+    }
+  },
+  "openSource": {
+    "meta": {
+      "title": "Open source · PLAID",
+      "description": "PLAID is MIT licensed: the server, the web app and the apps. How it is built, what it is made of, how to contribute."
+    },
+    "title": "Open, readable, yours to fork.",
+    "lead": "PLAID is [MIT licensed]({license}). All of it: the server, the web app, the Apple TV app and the apps to come.",
+    "rules": {
+      "time": "Rules",
+      "title": "How we build",
+      "plan": {
+        "name": "No code without a plan.",
+        "text": "Every feature goes intent → spec → plan → code, each step a reviewed file."
+      },
+      "contract": {
+        "name": "One API contract.",
+        "text": "The API is described once in [OpenAPI]({openapi}); the server and the web client are generated from it."
+      },
+      "words": {
+        "name": "Every word translatable.",
+        "text": "English first, French next, and room for your language."
+      },
+      "review": {
+        "name": "Nobody approves their own work.",
+        "text": "We are two developers. Every pull request is approved by the one who didn’t write it."
+      }
+    },
+    "stack": {
+      "time": "Stack",
+      "title": "What it’s made of",
+      "list": "Go · SQLite · FFmpeg · React · SwiftUI · Kotlin and Jetpack Compose"
+    },
+    "contribute": {
+      "time": "You",
+      "title": "Contribute",
+      "body": "A bug, an idea, a language we don’t speak? Open an issue. Translations are a good first contribution.",
+      "issue": "Open an issue",
+      "guide": "Read how we work"
+    }
+  },
+  "faq": {
+    "meta": {
+      "title": "FAQ · PLAID",
+      "description": "Short answers about PLAID: price, what works today, your data, Raspberry Pi, Docker, and reaching your server from outside."
+    },
+    "title": "Questions after the film.",
+    "lead": "Short answers. The install guide has the long ones.",
+    "basics": {
+      "time": "00:05",
+      "title": "The basics",
+      "free": {
+        "q": "Is PLAID free?",
+        "a": "Yes. It’s open source under the MIT license, with no paid tier."
+      },
+      "today": {
+        "q": "Can I use it today?",
+        "a": "Yes, early. The server, the web app and the Apple TV app work: libraries, artwork, playback, remote access. Sharing and Plaid Party come next. Expect rough edges, and check [the roadmap]({roadmap})."
+      },
+      "fork": {
+        "q": "Is it a Plex or Jellyfin fork?",
+        "a": "No. PLAID is written from scratch, with its own API and its own apps."
+      }
+    },
+    "data": {
+      "time": "00:12",
+      "title": "Your data",
+      "account": {
+        "q": "Does PLAID need an online account?",
+        "a": "No. Accounts live on your server. Nothing is required from us."
+      },
+      "sends": {
+        "q": "Does it send anything to you?",
+        "a": "No telemetry. The server asks TMDB and fanart.tv for posters and synopses, sending titles, years and ids, never who watches what. With remote access on, getplaid.direct knows your public IP and port: [what it keeps]({privacy})."
+      },
+      "files": {
+        "q": "Where are my files?",
+        "a": "Exactly where they were. PLAID reads your folders; it never moves or changes your media."
+      }
+    },
+    "hardware": {
+      "time": "00:20",
+      "title": "Hardware",
+      "pi": {
+        "q": "Will it run on a Raspberry Pi?",
+        "a": "Yes, a Pi 4 or 5 with a 64-bit OS. Direct Play costs almost nothing. Transcoding on a Pi runs in software, so for files your devices can’t play as they are, a machine with a GPU helps. [Details]({hw})."
+      },
+      "docker": {
+        "q": "Do I need Docker?",
+        "a": "No. The Debian package installs a regular system service. Docker works too."
+      }
+    },
+    "friends": {
+      "time": "00:31",
+      "title": "Watching with friends",
+      "outside": {
+        "q": "How do friends reach my server from outside?",
+        "a": "Turn on [remote access]({remote}): your server gets a getplaid.direct address and a real certificate, and video goes straight from you to them. Or use your own reverse proxy, or a tunnel like Tailscale or Cloudflare Tunnel: [the install guide covers it]({proxy})."
+      },
+      "install": {
+        "q": "Do my friends need to install anything?",
+        "a": "A browser is enough. On Apple TV, there’s an app."
+      }
+    },
+    "ask": {
+      "time": "00:40",
+      "title": "Still wondering?",
+      "link": "Ask in a GitHub issue"
     }
   },
   "privacy": {
     "meta": {
-      "title": "Privacy: what getplaid.tv and getplaid.direct know",
-      "description": "getplaid.tv has no analytics and no cookies. getplaid.direct stores only what it needs to point a name at your server, and deletes it after 30 days unseen."
+      "title": "Privacy · PLAID",
+      "description": "What getplaid.direct stores about your server and for how long. The getplaid.tv website has no analytics and no cookies."
     },
-    "title": "Privacy",
-    "lead": "The short version: this website doesn't track you, and getplaid.direct only knows what it needs to point a name at your server.",
-    "site": {
-      "title": "This website",
-      "body": "getplaid.tv has no analytics, no cookies, no ads, and no third-party scripts or fonts. Everything it shows comes from this server.",
-      "theme": "If you switch to the light theme, that choice is stored in your own browser and is never sent to us.",
-      "logs": "Like any web server, ours may keep short-lived technical logs (IP address, page, time) to keep the site running and fend off abuse. They are never used to profile anyone or shared."
-    },
-    "direct": {
+    "title": "Privacy.",
+    "lead": "What getplaid.direct keeps about your server, for how long, and what this website keeps about you: nothing.",
+    "stored": {
+      "time": "Kept",
       "title": "What getplaid.direct stores",
-      "intro": "Only servers whose administrator turned on [remote access]({remote}) are known to getplaid.direct. For each of them, it stores:",
-      "headWhat": "What",
-      "headDetail": "Detail",
-      "headWhy": "Why",
-      "rows": {
-        "id": {
-          "what": "Server identifier",
-          "detail": "6 random characters, such as `k3x7qa`.",
-          "why": "Tells servers apart."
-        },
-        "slug": {
-          "what": "Name-derived slug",
-          "detail": "Your server's name, simplified for an address, such as `living-room`.",
-          "why": "Builds the readable part of the address."
-        },
-        "token": {
-          "what": "Token fingerprint",
-          "detail": "A SHA-256 fingerprint of the secret your server uses to prove it's itself. The secret itself is never stored.",
-          "why": "Only your server can update or delete its record."
-        },
-        "ip": {
-          "what": "Public IP address",
-          "detail": "The IPv4 and IPv6 address of your home connection, as seen when your server checks in.",
-          "why": "It's the answer DNS gives."
-        },
-        "port": {
-          "what": "Port",
-          "detail": "The external port your router forwards to PLAID.",
-          "why": "The short link sends visitors to it."
-        },
-        "version": {
-          "what": "PLAID version",
-          "detail": "Such as `0.3.0`.",
-          "why": "Keeps the service compatible with older servers."
-        },
-        "dates": {
-          "what": "Created and last seen",
-          "detail": "When the server registered and when it last checked in.",
-          "why": "Abandoned servers get cleaned up."
-        },
-        "acme": {
-          "what": "Certificate challenge",
-          "detail": "Temporary values your server publishes to get its HTTPS certificate. They expire after one hour.",
-          "why": "Proves to Let's Encrypt that the name is yours."
-        }
-      },
-      "notStoredTitle": "What it never sees",
-      "notStored": "Your library, what you watch, who you share with, your accounts, any email address, and your certificate's private key. Video never goes through getplaid.direct: it only answers DNS questions.",
-      "retentionTitle": "How long it's kept",
-      "retention": "Everything above is deleted at once when you turn off remote access, and automatically after 30 days without a check-in."
+      "body": "Only once you turn remote access on, and only this, per server:",
+      "items": {
+        "id": "A random id, 6 characters",
+        "slug": "A name derived from your server’s name, like `living-room`",
+        "token": "A hash (SHA-256) of the server’s secret token, never the token itself",
+        "ip": "Your public IPv4 and IPv6 addresses",
+        "port": "The external port your router forwards",
+        "version": "The PLAID version",
+        "seen": "When the server registered and when it was last seen",
+        "acme": "While a certificate is issued, temporary DNS challenge values, which expire after an hour"
+      }
+    },
+    "never": {
+      "time": "Never",
+      "title": "What it never sees",
+      "body": "Your videos, your libraries, your accounts, or who watches what. Video goes straight from your server to the screen; getplaid.direct only answers DNS."
+    },
+    "deleted": {
+      "time": "Gone",
+      "title": "When it’s deleted",
+      "body": "At once, when you turn remote access off. Automatically, when a server hasn’t been seen for 30 days."
     },
     "server": {
-      "title": "Your PLAID server",
-      "body": "PLAID sends no telemetry. Your server only contacts outside services for what you'd expect: posters and synopses (TMDB, fanart.tv), intro and credits timestamps (TheIntroDB), and getplaid.direct if you turn on remote access."
+      "time": "Server",
+      "title": "The PLAID server itself",
+      "body": "No telemetry. To match your films, it sends TMDB and fanart.tv their titles, years and ids, from your server’s IP. Nothing about your accounts or what anyone watches."
+    },
+    "site": {
+      "time": "Site",
+      "title": "This website",
+      "body": "No analytics, no cookies, no third-party scripts or fonts. If you switch to the light theme, that choice is stored in your browser only and never sent anywhere."
     },
     "contact": {
+      "time": "Ask",
       "title": "Questions",
-      "body": "PLAID is open source, so you can check all of this in the code. For any question, [open an issue on GitHub]({issues})."
-    },
-    "updated": "Last updated: {date}"
+      "body": "Open a [GitHub issue]({issues}). What the service does is specified in [its protocol]({protocol})."
+    }
   },
   "notFound": {
     "meta": {
       "title": "Page not found · PLAID",
-      "description": "This page doesn't exist."
+      "description": "This page doesn’t exist."
     },
-    "title": "Nothing to watch here.",
-    "body": "This page slipped under the couch cushions. Head back home and get comfortable.",
-    "cta": "Back to home"
+    "title": "This page went to make popcorn.",
+    "body": "It’s not here, and it might not come back.",
+    "home": "Back to the couch"
   }
 }

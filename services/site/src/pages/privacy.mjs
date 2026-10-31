@@ -1,67 +1,27 @@
-import { LINKS } from '../config.mjs';
-import { layout } from '../layout.mjs';
-
-const STORED = ['id', 'slug', 'token', 'ip', 'port', 'version', 'dates', 'acme'];
-
-// Date of the last meaningful change to this policy.
-const UPDATED = new Date(Date.UTC(2026, 9, 31));
+import { LINKS, beat, night, opening, page } from '../layout.mjs';
 
 export default {
   id: 'privacy',
   slug: 'privacy/',
   render(ctx) {
-    const { t, attr, locale } = ctx;
-    const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' }).format(UPDATED);
-    const rows = STORED.map(
-      (k) => `<tr><th scope="row">${t(`privacy.direct.rows.${k}.what`)}</th><td>${t(`privacy.direct.rows.${k}.detail`)}</td><td>${t(`privacy.direct.rows.${k}.why`)}</td></tr>`,
-    ).join('');
-
-    const body = `
-<header class="page-head">
-  <div class="wrap narrow">
-    <h1>${t('privacy.title')}</h1>
-    <p class="lead">${t('privacy.lead')}</p>
-  </div>
-</header>
-
-<div class="wrap narrow prose">
-  <section aria-labelledby="pv-site">
-    <h2 id="pv-site">${t('privacy.site.title')}</h2>
-    <p>${t('privacy.site.body')}</p>
-    <p>${t('privacy.site.theme')}</p>
-    <p>${t('privacy.site.logs')}</p>
-  </section>
-
-  <section aria-labelledby="pv-direct">
-    <h2 id="pv-direct">${t('privacy.direct.title')}</h2>
-    <p>${t('privacy.direct.intro', { remote: ctx.href('remoteAccess') })}</p>
-    <div class="table-wrap" tabindex="0" role="region" aria-labelledby="pv-direct">
-      <table>
-        <thead><tr><th scope="col">${t('privacy.direct.headWhat')}</th><th scope="col">${t('privacy.direct.headDetail')}</th><th scope="col">${t('privacy.direct.headWhy')}</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-    <h3>${t('privacy.direct.notStoredTitle')}</h3>
-    <p>${t('privacy.direct.notStored')}</p>
-    <h3>${t('privacy.direct.retentionTitle')}</h3>
-    <p>${t('privacy.direct.retention')}</p>
-  </section>
-
-  <section aria-labelledby="pv-server">
-    <h2 id="pv-server">${t('privacy.server.title')}</h2>
-    <p>${t('privacy.server.body')}</p>
-  </section>
-
-  <section aria-labelledby="pv-contact">
-    <h2 id="pv-contact">${t('privacy.contact.title')}</h2>
-    <p>${t('privacy.contact.body', { issues: LINKS.issues })}</p>
-    <p class="muted">${t('privacy.updated', { date: updated })}</p>
-  </section>
+    const { t, attr } = ctx;
+    const stored = ['id', 'slug', 'token', 'ip', 'port', 'version', 'seen', 'acme']
+      .map((k) => `<li>${t(`privacy.stored.items.${k}`)}</li>`)
+      .join('');
+    const body = `<div class="wrap">
+${opening(ctx, { title: t('privacy.title'), lead: t('privacy.lead') })}
+${night(
+  [
+    beat({ id: 'stored', time: t('privacy.stored.time'), title: t('privacy.stored.title'), body: `<p>${t('privacy.stored.body')}</p><ul class="plain">${stored}</ul>`, layout: 'text' }),
+    beat({ id: 'never', time: t('privacy.never.time'), title: t('privacy.never.title'), body: `<p>${t('privacy.never.body')}</p>`, layout: 'text' }),
+    beat({ id: 'deleted', time: t('privacy.deleted.time'), title: t('privacy.deleted.title'), body: `<p>${t('privacy.deleted.body')}</p>`, layout: 'text' }),
+    beat({ id: 'server', time: t('privacy.server.time'), title: t('privacy.server.title'), body: `<p>${t('privacy.server.body')}</p>`, layout: 'text' }),
+    beat({ id: 'site', time: t('privacy.site.time'), title: t('privacy.site.title'), body: `<p>${t('privacy.site.body')}</p>`, layout: 'text' }),
+    beat({ id: 'contact', time: t('privacy.contact.time'), title: t('privacy.contact.title'), body: `<p>${t('privacy.contact.body', { issues: LINKS.issues, protocol: LINKS.protocol })}</p>`, layout: 'text' }),
+  ],
+  'words',
+)}
 </div>`;
-    return layout(ctx, {
-      title: attr('privacy.meta.title'),
-      description: attr('privacy.meta.description'),
-      body,
-    });
+    return page(ctx, { title: attr('privacy.meta.title'), description: attr('privacy.meta.description'), body });
   },
 };

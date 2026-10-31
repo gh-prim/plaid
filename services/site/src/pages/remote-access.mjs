@@ -1,80 +1,82 @@
-import { codeBlock, layout, status } from '../layout.mjs';
-
-const STEPS = ['enable', 'register', 'router', 'connect'];
-const PORT_OPTIONS = ['auto', 'manual', 'cgnat'];
-
-const EXAMPLE = `living-room-k3x7qa.getplaid.direct
-https://getplaid.direct/living-room-k3x7qa`;
+import { CODE, LINKS, beat, more, night, opening, page, shot, value } from '../layout.mjs';
 
 export default {
-  id: 'remoteAccess',
+  id: 'remote',
   slug: 'remote-access/',
   render(ctx) {
     const { t, attr } = ctx;
-    const steps = STEPS.map(
-      (s) => `<li><h3>${t(`remote.how.steps.${s}.title`)}</h3><p>${t(`remote.how.steps.${s}.body`)}</p></li>`,
-    ).join('');
-    const ports = PORT_OPTIONS.map(
-      (p) => `<div class="option"><h3>${t(`remote.ports.${p}.title`)}</h3><p>${t(`remote.ports.${p}.body`)}</p></div>`,
-    ).join('');
-
-    const flowRow = (kind, from, label1, label2, to) => `
-      <div class="flow-row flow-row--${kind}">
-        <div class="node">${from}</div>
-        <div class="link"><span>${label1}</span><span class="link-line" aria-hidden="true"></span><span>${label2}</span></div>
-        <div class="node">${to}</div>
-      </div>`;
-
-    const body = `
-<header class="page-head">
-  <div class="wrap narrow">
-    <p class="eyebrow">${status(ctx, 'inProgress')}</p>
-    <h1>${t('remote.title')}</h1>
-    <p class="lead">${t('remote.lead')}</p>
-  </div>
-</header>
-
-<div class="wrap narrow prose">
-  <section aria-labelledby="ra-what">
-    <h2 id="ra-what">${t('remote.what.title')}</h2>
-    <p>${t('remote.what.body')}</p>
-    ${codeBlock(ctx, EXAMPLE, t('remote.what.caption'))}
-    <p>${t('remote.what.https')}</p>
-  </section>
-
-  <section aria-labelledby="ra-how">
-    <h2 id="ra-how">${t('remote.how.title')}</h2>
-    <ol class="steps">${steps}</ol>
-  </section>
-
-  <section aria-labelledby="ra-privacy">
-    <h2 id="ra-privacy">${t('remote.privacy.title')}</h2>
-    <p>${t('remote.privacy.body')}</p>
-    <figure class="flow">
-      ${flowRow('dns', t('remote.diagram.device'), t('remote.diagram.question'), t('remote.diagram.answer'), t('remote.diagram.service'))}
-      ${flowRow('media', t('remote.diagram.device'), t('remote.diagram.media'), t('remote.diagram.direct'), t('remote.diagram.server'))}
-      <figcaption>${t('remote.diagram.caption')}</figcaption>
-    </figure>
-    <p>${t('remote.privacy.stored', { privacy: ctx.href('privacy') })}</p>
-    <p>${t('remote.privacy.home')}</p>
-  </section>
-
-  <section aria-labelledby="ra-ports">
-    <h2 id="ra-ports">${t('remote.ports.title')}</h2>
-    <p>${t('remote.ports.intro')}</p>
-    <div class="options">${ports}</div>
-  </section>
-
-  <section aria-labelledby="ra-off">
-    <h2 id="ra-off">${t('remote.off.title')}</h2>
-    <p>${t('remote.off.body')}</p>
-    <p>${t('remote.off.optional')}</p>
-  </section>
+    // Who talks to whom: the only diagram on the site, in words.
+    const paths = `<ul class="paths">${['video', 'dns', 'cert']
+      .map(
+        (k) =>
+          `<li class="paths__row paths__row--${k}"><span class="paths__what">${t(`remote.paths.${k}.what`)}</span><span class="paths__route">${t(`remote.paths.${k}.route`)}</span></li>`,
+      )
+      .join('')}</ul>`;
+    const body = `<div class="wrap">
+${opening(ctx, { title: t('remote.title'), lead: t('remote.lead') })}
+${night([
+  beat({
+    id: 'port',
+    time: '20:40',
+    datetime: '20:40',
+    title: t('remote.port.title'),
+    body: `<p>${t('remote.port.body')}</p><p class="beat__note">${t('remote.port.note')}</p>`,
+    aside: shot(ctx, 'remote', { sizes: '(min-width: 1100px) 40vw, 100vw' }),
+    layout: 'split',
+  }),
+  beat({
+    id: 'name',
+    time: '20:42',
+    datetime: '20:42',
+    title: t('remote.name.title'),
+    body: `<p class="addr">${value(CODE.host)}</p><p>${t('remote.name.body')}</p>`,
+    layout: 'right',
+  }),
+  beat({
+    id: 'cert',
+    time: '20:43',
+    datetime: '20:43',
+    title: t('remote.cert.title'),
+    body: `<p>${t('remote.cert.body')}</p>`,
+    layout: 'text',
+  }),
+  beat({
+    id: 'send',
+    time: '20:47',
+    datetime: '20:47',
+    title: t('remote.send.title'),
+    body: `<p class="addr">${value(CODE.short)}</p><p>${t('remote.send.body')}</p>`,
+    layout: 'big',
+  }),
+  beat({
+    id: 'through',
+    time: t('remote.through.time'),
+    title: t('remote.through.title'),
+    body: `<p>${t('remote.through.body')}</p>${paths}${more(ctx.href('privacy'), t('remote.through.more'))}`,
+    layout: 'text',
+  }),
+  beat({
+    id: 'off',
+    time: '23:59',
+    datetime: '23:59',
+    title: t('remote.off.title'),
+    body: `<p>${t('remote.off.body')}</p>`,
+    layout: 'right',
+  }),
+  beat({
+    id: 'limits',
+    time: t('remote.limits.time'),
+    title: t('remote.limits.title'),
+    body: `<dl class="facts facts--plain">${['cgnat', 'docker', 'own']
+      .map(
+        (k) =>
+          `<div class="facts__row"><dt>${t(`remote.limits.${k}.name`)}</dt><dd>${t(`remote.limits.${k}.text`, { proxy: LINKS.proxyGuide })}</dd></div>`,
+      )
+      .join('')}</dl>${more(LINKS.remoteGuide, t('remote.limits.guide'))}`,
+    layout: 'text',
+  }),
+])}
 </div>`;
-    return layout(ctx, {
-      title: attr('remote.meta.title'),
-      description: attr('remote.meta.description'),
-      body,
-    });
+    return page(ctx, { title: attr('remote.meta.title'), description: attr('remote.meta.description'), body });
   },
 };

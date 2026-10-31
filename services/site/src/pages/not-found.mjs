@@ -1,26 +1,15 @@
-import { layout } from '../layout.mjs';
+import { button, page } from '../layout.mjs';
 
-// Rendered to 404.html (and fr/404.html); not listed in the sitemap.
 export default {
   id: 'notFound',
   slug: '404.html',
   noindex: true,
   render(ctx) {
     const { t, attr } = ctx;
-    const body = `
-<header class="page-head page-head--center">
-  <div class="wrap narrow center">
-    <h1>${t('notFound.title')}</h1>
-    <p class="lead">${t('notFound.body')}</p>
-    <div class="actions actions--center">
-      <a class="button button--primary" href="${ctx.href('home')}">${t('notFound.cta')}</a>
-    </div>
-  </div>
-</header>`;
-    return layout(ctx, {
-      title: attr('notFound.meta.title'),
-      description: attr('notFound.meta.description'),
-      body,
-    });
+    const body = `<div class="wrap lost">
+<p class="lost__time"><time datetime="03:12">03:12</time></p>
+<div class="lost__text"><h1 class="opening__title">${t('notFound.title')}</h1><p class="opening__lead">${t('notFound.body')}</p><div class="actions">${button(ctx.href('home'), t('notFound.home'), 'cream')}</div></div>
+</div>`;
+    return page(ctx, { title: attr('notFound.meta.title'), description: attr('notFound.meta.description'), body });
   },
 };

@@ -1,5 +1,5 @@
-// Renders every page in every locale to dist/, copies public/, fingerprints
-// CSS and JS, and writes robots.txt and sitemap.xml. No dependencies.
+// Renders every page in every locale to dist/, copies public/, bundles and
+// fingerprints CSS and JS, and writes robots.txt and sitemap.xml. No dependencies.
 
 import { createHash } from 'node:crypto';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -9,18 +9,25 @@ import { fileURLToPath } from 'node:url';
 import { DEFAULT_LOCALE, LOCALES, ORIGIN, localePrefix } from '../src/config.mjs';
 import { loadLocale, makeTranslator } from '../src/i18n.mjs';
 import home from '../src/pages/home.mjs';
-import download from '../src/pages/download.mjs';
+import features from '../src/pages/features.mjs';
+import party from '../src/pages/party.mjs';
+import install from '../src/pages/install.mjs';
 import remoteAccess from '../src/pages/remote-access.mjs';
+import roadmap from '../src/pages/roadmap.mjs';
+import openSource from '../src/pages/open-source.mjs';
+import faq from '../src/pages/faq.mjs';
 import privacy from '../src/pages/privacy.mjs';
 import notFound from '../src/pages/not-found.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
-const PAGES = [home, download, remoteAccess, privacy, notFound];
+export const PAGES = [home, features, party, install, remoteAccess, roadmap, openSource, faq, privacy, notFound];
 const OG_LOCALES = { en: 'en_US', fr: 'fr_FR' };
 
-function fingerprint(src, name, ext) {
-  const content = readFileSync(join(root, 'src', src));
+// Design system first (vendored from web/src/design), then the site's own layer.
+const CSS = ['css/tokens.css', 'css/fonts.css', 'css/components.css', 'css/site.css'];
+
+function fingerprint(name, ext, content) {
   const hash = createHash('sha256').update(content).digest('hex').slice(0, 10);
   const file = `assets/${name}.${hash}.${ext}`;
   writeFileSync(join(dist, file), content);
@@ -38,10 +45,11 @@ export function build() {
   mkdirSync(join(dist, 'assets'), { recursive: true });
   cpSync(join(root, 'public'), dist, { recursive: true });
 
+  const css = CSS.map((f) => readFileSync(join(root, 'src', f), 'utf8')).join('\n');
   const assets = {
-    css: fingerprint('styles.css', 'styles', 'css'),
-    js: fingerprint('site.js', 'site', 'js'),
-    theme: fingerprint('theme.js', 'theme', 'js'),
+    css: fingerprint('site', 'css', css),
+    js: fingerprint('site', 'js', readFileSync(join(root, 'src/js/site.js'))),
+    theme: fingerprint('theme', 'js', readFileSync(join(root, 'src/js/theme.js'))),
   };
 
   const written = [];
@@ -52,6 +60,7 @@ export function build() {
       const ctx = {
         ...tr,
         locale,
+        origin: ORIGIN,
         pageId: page.id,
         noindex: Boolean(page.noindex),
         url: ORIGIN + path,
