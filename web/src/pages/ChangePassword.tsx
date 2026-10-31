@@ -1,22 +1,28 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { errorMessage, failure, fieldCodes, fieldMessage, type Failure } from '../auth/errors'
-import { Field, FormError } from '../components/Field'
+import { FieldGroup, FieldNote, InsetField } from '../onboarding/Fields'
+import { Card, Page } from '../onboarding/Page'
+import { Button } from '../ui'
 
-/** Shown after signing in with a temporary password (F003-R15). */
+/**
+ * Shown after signing in with a temporary password (F003-R15; V2, board
+ * TL04). The API needs the temporary password too, so it stays a field.
+ */
 export function ChangePassword() {
   const { t } = useTranslation()
   const { refresh, signOut } = useAuth()
+  const ids = useId()
   const [form, setForm] = useState({ current: '', next: '', confirm: '' })
   const [mismatch, setMismatch] = useState(false)
   const [busy, setBusy] = useState(false)
   const [fail, setFail] = useState<Failure>()
 
-  const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
-    setForm((f) => ({ ...f, [key]: e.target.value }))
+  const set = (key: keyof typeof form) => (value: string) =>
+    setForm((f) => ({ ...f, [key]: value }))
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -36,46 +42,76 @@ export function ChangePassword() {
   }
 
   const fields = fieldCodes(fail)
+  const nextError = fieldMessage(t, fields.newPassword)
+  const formError = fail && !nextError ? errorMessage(t, fail) : undefined
+  const confirmError = mismatch ? t('errors.password_mismatch') : undefined
+  const empty = !form.current || !form.next || !form.confirm
   return (
-    <main className="page">
-      <h1>{t('auth.changePassword.title')}</h1>
-      <form onSubmit={(e) => void submit(e)} noValidate>
-        <FormError message={fail && errorMessage(t, fail)} />
-        <Field
-          label={t('auth.currentPassword')}
-          type="password"
-          value={form.current}
-          onChange={set('current')}
-          autoComplete="current-password"
-          required
-          autoFocus
-        />
-        <Field
-          label={t('auth.newPassword')}
-          type="password"
-          value={form.next}
-          onChange={set('next')}
-          autoComplete="new-password"
-          required
-          hint={t('auth.passwordHint')}
-          error={fieldMessage(t, fields.newPassword)}
-        />
-        <Field
-          label={t('auth.confirmPassword')}
-          type="password"
-          value={form.confirm}
-          onChange={set('confirm')}
-          autoComplete="new-password"
-          required
-          error={mismatch ? t('errors.password_mismatch') : undefined}
-        />
-        <button type="submit" disabled={busy} aria-busy={busy}>
-          {t('auth.changePassword.submit')}
-        </button>
-      </form>
-      <button type="button" className="link-button" onClick={() => void signOut()}>
-        {t('auth.signOut')}
-      </button>
-    </main>
+    <Page>
+      <Card
+        id="change-password"
+        title={t('auth.changePassword.title')}
+        body={t('auth.changePassword.body')}
+      >
+        <form className="ob__form" onSubmit={(e) => void submit(e)} noValidate>
+          <FieldGroup
+            invalid={!!formError}
+            notes={
+              <>
+                {formError && (
+                  <FieldNote error alert>
+                    {formError}
+                  </FieldNote>
+                )}
+                <FieldNote id={`${ids}-next`} error={!!nextError}>
+                  {nextError ?? t('auth.passwordHint')}
+                </FieldNote>
+                {confirmError && (
+                  <FieldNote id={`${ids}-confirm`} error alert>
+                    {confirmError}
+                  </FieldNote>
+                )}
+              </>
+            }
+          >
+            <InsetField
+              kind="password"
+              label={t('auth.currentPassword')}
+              value={form.current}
+              onValue={set('current')}
+              autoComplete="current-password"
+              required
+              autoFocus
+            />
+            <InsetField
+              kind="password"
+              label={t('auth.newPassword')}
+              value={form.next}
+              onValue={set('next')}
+              invalid={!!nextError}
+              describedBy={`${ids}-next`}
+              autoComplete="new-password"
+              required
+            />
+            <InsetField
+              kind="password"
+              label={t('auth.confirmPassword')}
+              value={form.confirm}
+              onValue={set('confirm')}
+              invalid={!!confirmError}
+              describedBy={confirmError ? `${ids}-confirm` : undefined}
+              autoComplete="new-password"
+              required
+            />
+          </FieldGroup>
+          <Button type="submit" block className="ob__cta" loading={busy} disabled={busy || empty}>
+            {t('auth.changePassword.submit')}
+          </Button>
+          <button type="button" className="ob__link" onClick={() => void signOut()}>
+            {t('auth.signOut')}
+          </button>
+        </form>
+      </Card>
+    </Page>
   )
 }

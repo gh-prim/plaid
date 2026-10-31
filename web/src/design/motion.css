@@ -544,3 +544,132 @@
   animation-name: pl-ep-left;
   animation-timing-function: var(--ease-glide);
 }
+
+/* Onboarding steps (TM25): the card's content leaves 40 px to the left and
+   fades, the next arrives from the right (320 ms glide); the card animates
+   its height; the active dot stretches into a bar. Back reverses. Played
+   as a view transition (onboarding/transition.ts); the first card of a
+   visit rises like any page. */
+:root:not([data-ob-dir]) .ob__card {
+  animation: pl-rise var(--duration-panel) var(--ease-standard) backwards;
+}
+.ob__card {
+  view-transition-name: ob-card;
+}
+.ob__content {
+  view-transition-name: ob-content;
+}
+.ob__dot--1 {
+  view-transition-name: ob-dot-1;
+}
+.ob__dot--2 {
+  view-transition-name: ob-dot-2;
+}
+.ob__dot--3 {
+  view-transition-name: ob-dot-3;
+}
+.ob__dot--4 {
+  view-transition-name: ob-dot-4;
+}
+@keyframes ob-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+@keyframes ob-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+@keyframes ob-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+@keyframes ob-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+::view-transition-group(ob-card),
+::view-transition-group(ob-content),
+::view-transition-group(ob-dot-1),
+::view-transition-group(ob-dot-2),
+::view-transition-group(ob-dot-3),
+::view-transition-group(ob-dot-4) {
+  animation-duration: var(--duration-panel);
+  animation-timing-function: var(--ease-glide);
+}
+::view-transition-old(ob-content) {
+  animation: ob-out-left var(--duration-panel) var(--ease-glide) both;
+}
+::view-transition-new(ob-content) {
+  animation: ob-in-right var(--duration-panel) var(--ease-glide) both;
+}
+:root[data-ob-dir='back']::view-transition-old(ob-content) {
+  animation-name: ob-out-right;
+}
+:root[data-ob-dir='back']::view-transition-new(ob-content) {
+  animation-name: ob-in-left;
+}
+.ob__dot {
+  transition:
+    width var(--duration-panel) var(--ease-glide),
+    background-color var(--duration-panel) var(--ease-glide);
+}
+
+/* A wrong username, password or code: the fields shake once. */
+@keyframes ob-shake {
+  20%,
+  60% {
+    translate: -6px 0;
+  }
+  40%,
+  80% {
+    translate: 6px 0;
+  }
+}
+.ob-fields__box.is-error {
+  animation: ob-shake 360ms var(--ease-standard);
+}
+
+/* The folder picker: the page behind blurs in, the dialog glides up. */
+.ob__picker-scrim {
+  animation: pl-scrim-in var(--duration-panel) var(--ease-glide) backwards;
+}
+.ob__picker {
+  animation: pl-sheet-in var(--duration-panel) var(--ease-glide) backwards;
+}
+
+/* The scan wall fills (TM25): each matched poster drops into its slot,
+   fade and scale 0.85 to 1 in 320 ms, paced 60 ms apart by PosterWall. */
+@keyframes ob-drop {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+}
+.ob__wall > .is-filled {
+  animation: ob-drop var(--duration-panel) var(--ease-standard) backwards;
+}
+.ob__wall .pl-slot__arrive.pl-slot__arrive {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) {
+    animation-duration: 0s;
+  }
+  ::view-transition-old(ob-content),
+  :root[data-ob-dir='back']::view-transition-old(ob-content) {
+    animation: pl-appear 160ms linear reverse both;
+  }
+  ::view-transition-new(ob-content),
+  :root[data-ob-dir='back']::view-transition-new(ob-content) {
+    animation: pl-appear 160ms linear both;
+  }
+}

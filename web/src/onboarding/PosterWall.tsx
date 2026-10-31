@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import type { MatchedItem } from '../hooks/useScanEvents'
 import { PosterSlot } from '../ui'
 
-/** The design system's pacing: one poster every 400 ms; past 24 waiting, the rest land together. */
-export const arriveEvery = 400
+/**
+ * V2 pacing (board TM25): at most one poster every 60 ms, so a fast scan
+ * reads as a flow, not a flicker; past 24 waiting, the rest land together.
+ */
+export const arriveEvery = 60
 export const flushOver = 24
 
 export function posterSrc(imageId: string, width = 342): string {
@@ -11,9 +14,11 @@ export function posterSrc(imageId: string, width = 342): string {
 }
 
 /**
- * The wall that fills during the scan (F007 R12). `items` come newest
- * first; the wall places them left to right, paced, and keeps the latest
- * `slots` on screen so the DOM stays small on a 1,240-movie NAS.
+ * The wall that fills during the scan (F007 R12, board TO06), behind the
+ * screen: each matched poster drops into its slot (fade and scale 0.85 to
+ * 1). `items` come newest first; the wall places them left to right,
+ * paced, and keeps the latest `slots` on screen so the DOM stays small on
+ * a 1,240-movie NAS.
  */
 export function PosterWall({
   items,
@@ -50,7 +55,7 @@ export function PosterWall({
   }, [slots])
 
   return (
-    <ul className="scan__wall" aria-label={label}>
+    <ul className="ob__wall" aria-label={label}>
       {Array.from({ length: slots }, (_, i) => {
         const s = shown[i]
         if (!s) {
@@ -62,7 +67,7 @@ export function PosterWall({
         }
         const src = s.item.poster ? posterSrc(s.item.poster.imageId) : undefined
         return (
-          <li key={s.item.id}>
+          <li key={s.item.id} className="is-filled">
             <PosterSlot
               src={src}
               title={s.item.title}

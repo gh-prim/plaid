@@ -5,8 +5,8 @@ import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { useConnection } from '../hooks/useConnection'
 import { useScanEvents, type ScanState } from '../hooks/useScanEvents'
-import { AmbientBackdrop, ProgressBar, ServerFact } from '../ui'
-import { useServer } from './Page'
+import { AmbientBackdrop, ProgressBar, ServerFact, Spinner } from '../ui'
+import { LoadingCard, Page, useServer, useStepLabel } from './Page'
 import { posterSrc, PosterWall } from './PosterWall'
 import { ScanEnd } from './ScanEnd'
 import { OfflineScreen } from './StatusScreen'
@@ -68,11 +68,15 @@ export function scanFill(s: ScanState | undefined): number {
   return total ? 100 * (1 - m.pending / total) : 100
 }
 
-/** The first scan, live (F007 R11–R13), then its end (R14). */
+/**
+ * The first scan, live (F007 R11–R13; board TO06: the wall fills behind
+ * the words), then its end (R14).
+ */
 export function Scan() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { serverName, version } = useServer()
+  const { serverName } = useServer()
+  const stepLabel = useStepLabel()
   const { connection, lost, retryNow } = useConnection()
   const [libraries, setLibraries] = useState<Library[]>()
   const [caps, setCaps] = useState<Capabilities>()
@@ -203,133 +207,140 @@ export function Scan() {
     l.folders.filter((f) => !f.watched && f.fsType),
   )
 
-  return (
-    <div className="pl scan">
-      {libraries?.map((l) => (
-        <Follow key={l.id} id={l.id} onState={onState} />
-      ))}
+  const follow = libraries?.map((l) => <Follow key={l.id} id={l.id} onState={onState} />)
+  const wall = (
+    <>
       <AmbientBackdrop src={latestBackdrop ? posterSrc(latestBackdrop.imageId, 1280) : undefined} />
-      <div className="scan__frame">
-        <header className="scan__bar">
-          <span className="scan__wordmark">{wordmark}</span>
-          <span className="ob__meta">{t('onboarding.start.version', { version, serverName })}</span>
-        </header>
-        <div className="scan__body">
-          <main className="scan__main">
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'space-between',
-                gap: 24,
-                flexWrap: 'wrap',
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <p className="ob__step">{t('scan.title')}</p>
-                {voice && (
-                  <h1 className="scan__voice" aria-hidden="true">
-                    {t('scan.voice', { latestTitle: voice.title, count: voice.count })}
-                  </h1>
-                )}
-                <p className="pl-sr" aria-live="polite">
-                  {announced
-                    ? t('scan.voice', { latestTitle: announced.title, count: announced.count })
-                    : ''}
-                </p>
-              </div>
-              {libraries && libraries.length > 1 && (
-                <div className="scan__tabs" role="tablist" aria-label={t('scan.libraries')}>
-                  {libraries.map((l) => (
-                    <button
-                      key={l.id}
-                      type="button"
-                      role="tab"
-                      className="scan__tab pl-focusable"
-                      aria-selected={l.id === current}
-                      onClick={() => setTab(l.id)}
-                    >
-                      {l.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            {c && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <ProgressBar
-                  variant="scan"
-                  value={scanFill(state)}
-                  label={lib ? stateLine(lib) : ''}
-                  valueLabel={
-                    p?.state === 'idle'
-                      ? ''
-                      : t('scan.analyzed', { done: c.analyzed, total: c.found })
-                  }
-                  error={!!state?.failed}
-                />
-                <p className="scan__counts">
-                  {[
-                    m &&
-                      t('scan.metadata.summary', {
-                        matched: m.matched,
-                        needsReview: m.needsReview,
-                        unmatched: m.unmatched,
-                      }),
-                    c.unrecognized > 0 && t('scan.unrecognized', { count: c.unrecognized }),
-                    c.failed > 0 && t('scan.failed', { count: c.failed }),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
-              </div>
-            )}
-            <PosterWall
-              items={matched}
-              slots={desktop ? 24 : 12}
-              label={t('scan.wall', { library: lib?.name ?? '' })}
-            />
-          </main>
-          <aside className="scan__aside">
-            <p>{t('scan.leave', { serverName })}</p>
-            {libraries && libraries.length > 1 && (
-              <section>
-                <h2>{t('scan.libraries')}</h2>
-                {libraries.map((l) => (
-                  <p key={l.id}>
-                    <strong>{l.name}</strong>
-                    <br />
-                    {stateLine(l)}
-                  </p>
-                ))}
-              </section>
-            )}
+      <PosterWall
+        items={matched}
+        slots={desktop ? 60 : 24}
+        label={t('scan.wall', { library: lib?.name ?? '' })}
+      />
+      <div className="ob__wall-scrim" aria-hidden="true" />
+    </>
+  )
+
+  if (!libraries) {
+    return (
+      <Page step={3} className="ob--wall" behind={wall}>
+        <LoadingCard />
+        <OfflineScreen connection={connection} onRetry={() => void retryNow()} />
+      </Page>
+    )
+  }
+
+  return (
+    <Page step={3} className="ob--wall scan" behind={wall}>
+      {follow}
+      <div className="scan__main">
+        <p className="ob__kicker">{stepLabel(3)}</p>
+        <h1 className="scan__voice" aria-hidden={voice ? 'true' : undefined}>
+          {voice
+            ? t('scan.voice', { latestTitle: voice.title, count: voice.count })
+            : t('scan.title')}
+        </h1>
+        <p className="pl-sr" aria-live="polite">
+          {announced
+            ? t('scan.voice', { latestTitle: announced.title, count: announced.count })
+            : ''}
+        </p>
+        {libraries.length > 1 && (
+          <div className="scan__tabs" role="tablist" aria-label={t('scan.libraries')}>
+            {libraries.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                role="tab"
+                className="scan__tab ob-glassbtn pl-focusable"
+                aria-selected={l.id === current}
+                onClick={() => setTab(l.id)}
+              >
+                {l.name}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="scan__thread">
+          {c ? (
+            <>
+              <ProgressBar
+                variant="scan"
+                value={scanFill(state)}
+                label={lib ? stateLine(lib) : ''}
+                valueLabel={
+                  p?.state === 'idle'
+                    ? ''
+                    : t('scan.analyzed', { done: c.analyzed, total: c.found })
+                }
+                error={!!state?.failed}
+              />
+              <p className="scan__counts">
+                {[
+                  m &&
+                    t('scan.metadata.summary', {
+                      matched: m.matched,
+                      needsReview: m.needsReview,
+                      unmatched: m.unmatched,
+                    }),
+                  c.unrecognized > 0 && t('scan.unrecognized', { count: c.unrecognized }),
+                  c.failed > 0 && t('scan.failed', { count: c.failed }),
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            </>
+          ) : (
+            <ProgressBar variant="scan" indeterminate label={lib ? stateLine(lib) : ''} />
+          )}
+        </div>
+        <div className="scan__actions">
+          <button
+            type="button"
+            className="ob-glassbtn ob__pill pl-focusable"
+            onClick={() => void navigate('/')}
+          >
+            {t('onboarding.scan.watch')}
+          </button>
+          <button
+            type="button"
+            className="ob-glassbtn ob__pill pl-focusable"
+            onClick={() => void navigate('/admin/people')}
+          >
+            {t('onboarding.scan.profiles')}
+          </button>
+        </div>
+        <p className="ob__foot">{t('scan.leave', { serverName })}</p>
+        <aside className="scan__facts ob-glass">
+          {libraries.length > 1 && (
             <section>
-              <h2>{serverName}</h2>
+              <h2>{t('scan.libraries')}</h2>
+              {libraries.map((l) => (
+                <p key={l.id}>
+                  <strong>{l.name}</strong>
+                  <br />
+                  {stateLine(l)}
+                </p>
+              ))}
+            </section>
+          )}
+          <section>
+            <h2>{serverName}</h2>
+            {caps ? (
               <ServerFacts
                 caps={caps}
                 maxTranscodes={maxTranscodes}
                 networkFolders={networkFolders.map((f) => f.path)}
               />
-            </section>
-            <button
-              type="button"
-              className="ob__link"
-              style={{ alignSelf: 'flex-start' }}
-              onClick={() => void navigate('/')}
-            >
-              {t('scan.startWatching')}
-            </button>
-          </aside>
-        </div>
+            ) : (
+              <Spinner size={20} />
+            )}
+          </section>
+        </aside>
       </div>
       <OfflineScreen connection={connection} onRetry={() => void retryNow()} />
-    </div>
+    </Page>
   )
 }
-
-/** The brand wordmark, never translated. */
-const wordmark = 'PLAID'
 
 /** Only the facts that change something for the admin (F007 R13). */
 function ServerFacts({

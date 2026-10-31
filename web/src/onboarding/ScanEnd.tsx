@@ -4,8 +4,8 @@ import { Link, useNavigate } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import type { ScanState } from '../hooks/useScanEvents'
-import { Button } from '../ui'
-import { useServer } from './Page'
+import { Button, Spinner } from '../ui'
+import { Page, useServer } from './Page'
 import { posterSrc } from './PosterWall'
 import { doneKey, setFlag } from './step'
 import { StatusScreen } from './StatusScreen'
@@ -15,6 +15,8 @@ type ItemSummary = components['schemas']['ItemSummary']
 
 /** How many pages of movies the end screen reads to find the oldest and newest (200 each). */
 const maxPages = 10
+/** Posters on the end wall (board TO07: twelve across, five down). */
+const wallSize = 60
 
 /** The oldest and newest movie by year; with one movie, none (F007 R14). */
 export function range(movies: ItemSummary[]): { oldest: string; newest: string } | undefined {
@@ -24,7 +26,10 @@ export function range(movies: ItemSummary[]): { oldest: string; newest: string }
   return { oldest: title(dated[0]!), newest: title(dated[dated.length - 1]!) }
 }
 
-/** The end of the first scan: the wall of their posters, one serif line, one amber button (R14, R15). */
+/**
+ * The end of the first scan (board TO07): the wall of their posters
+ * behind one big line, Start watching and Set up profiles (R14, R15).
+ */
 export function ScanEnd({
   libraries,
   states,
@@ -41,19 +46,24 @@ export function ScanEnd({
   useEffect(() => {
     let cancelled = false
     void (async () => {
-      const { data } = await api.GET('/libraries').catch(() => ({ data: undefined }))
-      const libs = data ?? libraries
       const all: ItemSummary[] = []
-      for (const l of libs.filter((x) => x.type === 'movies')) {
-        let cursor: string | undefined
-        for (let page = 0; page < maxPages; page++) {
-          const { data: items } = await api.GET('/libraries/{libraryId}/items', {
-            params: { path: { libraryId: l.id }, query: { kind: 'movie', limit: 200, cursor } },
-          })
-          all.push(...(items?.items ?? []))
-          cursor = items?.nextCursor
-          if (!cursor) break
+      let libs = libraries
+      try {
+        const { data } = await api.GET('/libraries')
+        libs = data ?? libraries
+        for (const l of libs.filter((x) => x.type === 'movies')) {
+          let cursor: string | undefined
+          for (let page = 0; page < maxPages; page++) {
+            const { data: items } = await api.GET('/libraries/{libraryId}/items', {
+              params: { path: { libraryId: l.id }, query: { kind: 'movie', limit: 200, cursor } },
+            })
+            all.push(...(items?.items ?? []))
+            cursor = items?.nextCursor
+            if (!cursor) break
+          }
         }
+      } catch {
+        // The counts still say what's home; the wall stays empty.
       }
       if (!cancelled) {
         setFresh(libs)
@@ -77,33 +87,57 @@ export function ScanEnd({
   const review = libraries.reduce((n, l) => n + (states[l.id]?.metadata?.needsReview ?? 0), 0)
   if (totals.movies + totals.shows === 0) return <StatusScreen kind="zero" />
 
-  const wall = (movies ?? []).filter((m) => m.poster).slice(0, 24)
+  const wallItems = (movies ?? []).filter((m) => m.poster).slice(0, wallSize)
   const span = movies && range(movies)
   const start = () => {
     setFlag(doneKey)
     void navigate('/')
   }
 
-  return (
-    <div className="pl end">
-      <ul className="end__wall" aria-label={t('scan.complete.wall')}>
-        {wall.map((m) => (
-          <li key={m.id}>
+  const wall = (
+    <>
+      <ul className="ob__wall ob__wall--end" aria-label={t('scan.complete.wall')}>
+        {wallItems.map((m) => (
+          <li key={m.id} className="is-filled">
             <img src={posterSrc(m.poster!.imageId)} alt={m.displayTitle ?? m.title} />
           </li>
         ))}
       </ul>
-      <div className="end__scrim" aria-hidden="true" />
+      <div className="ob__wall-scrim" aria-hidden="true" />
+    </>
+  )
+
+  return (
+    <Page step={4} className="ob--wall end" behind={wall}>
       <div className="end__text">
-        <h1 className="end__title">
-          {totals.movies > 0 && span
-            ? t('scan.complete.title', {
-                oldestTitle: span.oldest,
-                newestTitle: span.newest,
-                count: totals.movies,
-              })
-            : t('scan.complete.count', { count: totals.movies || totals.shows })}
-        </h1>
+        {movies === undefined ? (
+          <Spinner />
+        ) : (
+          <h1 className="end__title">
+            {totals.movies > 0 && span
+              ? t('scan.complete.title', {
+                  oldestTitle: span.oldest,
+                  newestTitle: span.newest,
+                  count: totals.movies,
+                })
+              : t('scan.complete.count', { count: totals.movies || totals.shows })}
+          </h1>
+        )}
+        <div className="end__actions">
+          <Button className="ob__cta" onClick={start}>
+            {t('scan.complete.watch')}
+          </Button>
+          <button
+            type="button"
+            className="ob-glassbtn ob__pill pl-focusable"
+            onClick={() => {
+              setFlag(doneKey)
+              void navigate('/admin/people')
+            }}
+          >
+            {t('onboarding.scan.profiles')}
+          </button>
+        </div>
         {totals.shows > 0 && totals.movies > 0 && (
           <p>
             {t('scan.complete.shows', {
@@ -120,13 +154,10 @@ export function ScanEnd({
               : totals.unrecognized > 0
                 ? t('scan.later.unrecognized', { count: totals.unrecognized })
                 : t('scan.later.review', { count: review })}{' '}
-            <Link to="/admin/libraries" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-              {t('scan.open', { library: t('libraries.title') })}
-            </Link>
+            <Link to="/admin/libraries">{t('scan.open', { library: t('libraries.title') })}</Link>
           </p>
         )}
-        <Button onClick={start}>{t('scan.complete.watch')}</Button>
       </div>
-    </div>
+    </Page>
   )
 }

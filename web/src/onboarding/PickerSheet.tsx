@@ -10,7 +10,8 @@ type Browse = components['schemas']['BrowseResult']
 export const filterOver = 20
 
 /**
- * The server folder picker as a sheet (phone) or side panel (desktop),
+ * The server folder picker as a sheet (phone) or a glass dialog over the
+ * card (desktop, board TO05),
  * browsing /fs/browse one level at a time (F007 R8, R9).
  */
 export function PickerSheet({
@@ -89,46 +90,53 @@ export function PickerSheet({
 
   return (
     <div
-      className="ob__picker"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t('picker.title', { serverName })}
+      className="ob__picker-scrim"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
     >
-      <FolderPicker
-        serverName={serverName}
-        layout={desktop ? 'panel' : 'sheet'}
-        path={dir?.path ?? ''}
-        atRoots={atRoots}
-        entries={shown}
-        filter={
-          all.length > filterOver
-            ? { value: query, total: all.length, onChange: setQuery }
-            : undefined
-        }
-        onOpen={(e) => void browse(e.path)}
-        onToggle={(e) => setExpanded(expanded === e.path ? undefined : e.path)}
-        onCheck={(e) => void check(e)}
-        onParent={dir?.parent != null ? () => void browse(dir.parent ?? undefined) : undefined}
-        onUse={() => dir?.path && onUse(dir.path)}
-        onClose={onClose}
-        onTypePath={() => setTyping(true)}
-      />
-      {typing && (
-        <form className="ob__picker-path" onSubmit={submitPath}>
-          <TextField
-            label={t('picker.typePath')}
-            value={typed}
-            onValue={setTyped}
-            autoCapitalize="none"
-            spellCheck={false}
-            error={notFound ? t('errors.folder_not_found') : undefined}
-            style={{ fontFamily: 'var(--font-code)' }}
-          />
-          <Button type="submit" variant="secondary" style={{ alignSelf: 'flex-end' }}>
-            {t('picker.open')}
-          </Button>
-        </form>
-      )}
+      <div
+        className="ob__picker"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('picker.title', { serverName })}
+      >
+        <FolderPicker
+          serverName={serverName}
+          layout={desktop ? 'panel' : 'sheet'}
+          path={dir?.path ?? ''}
+          atRoots={atRoots}
+          entries={shown}
+          filter={
+            all.length > filterOver
+              ? { value: query, total: all.length, onChange: setQuery }
+              : undefined
+          }
+          onOpen={(e) => void browse(e.path)}
+          onToggle={(e) => setExpanded(expanded === e.path ? undefined : e.path)}
+          onCheck={(e) => void check(e)}
+          onParent={dir?.parent != null ? () => void browse(dir.parent ?? undefined) : undefined}
+          onUse={() => dir?.path && onUse(dir.path)}
+          onClose={onClose}
+          onTypePath={() => setTyping(true)}
+        />
+        {typing && (
+          <form className="ob__picker-path" onSubmit={submitPath}>
+            <TextField
+              label={t('picker.typePath')}
+              value={typed}
+              onValue={setTyped}
+              autoCapitalize="none"
+              spellCheck={false}
+              error={notFound ? t('errors.folder_not_found') : undefined}
+              style={{ fontFamily: 'var(--font-code)' }}
+            />
+            <Button type="submit" variant="secondary" style={{ alignSelf: 'flex-end' }}>
+              {t('picker.open')}
+            </Button>
+          </form>
+        )}
+      </div>
     </div>
   )
 }

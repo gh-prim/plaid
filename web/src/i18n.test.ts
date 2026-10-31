@@ -11,7 +11,7 @@ describe('i18n', () => {
     browserLanguages(['fr-FR', 'fr'])
     const i18n = await createI18n()
     expect(i18n.resolvedLanguage).toBe('fr')
-    expect(i18n.t('onboarding.start.continue')).toBe('Continuer')
+    expect(i18n.t('onboarding.code.continue')).toBe('Continuer')
     expect(document.documentElement.lang).toBe('fr')
   })
 
