@@ -16,9 +16,11 @@ services:
       - DIRECT_ADMIN_EMAIL=${DIRECT_ADMIN_EMAIL:-hostmaster@getplaid.tv}
       - DIRECT_SITE_URL=${DIRECT_SITE_URL:-https://getplaid.tv}
       - DIRECT_TRUSTED_PROXIES=${DIRECT_TRUSTED_PROXIES:-}
+    # DIRECT_DNS_BIND: the host address DNS listens on. Set it to the public
+    # IP when systemd-resolved holds 127.0.0.53:53, so the two don't clash.
     ports:
-      - "53:5353/udp"
-      - "53:5353/tcp"
+      - "${DIRECT_DNS_BIND:-0.0.0.0}:53:5353/udp"
+      - "${DIRECT_DNS_BIND:-0.0.0.0}:53:5353/tcp"
     volumes:
       - direct-data:/data
     healthcheck:

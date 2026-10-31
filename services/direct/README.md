@@ -93,7 +93,7 @@ The service runs on a host managed by Coolify, which already runs Traefik.
 
 ### 1. The host
 
-- **Free port 53.** On Ubuntu/Debian, systemd-resolved's stub listener holds
+- **Free port 53**, or set `DIRECT_DNS_BIND` to the host's public IP: systemd-resolved only holds `127.0.0.53:53`, so binding the public address alone avoids the clash without touching the resolver. Otherwise: On Ubuntu/Debian, systemd-resolved's stub listener holds
   `127.0.0.53:53` and blocks Docker from publishing `0.0.0.0:53`. In
   `/etc/systemd/resolved.conf` set `DNSStubListener=no`, then
   `sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf` and
