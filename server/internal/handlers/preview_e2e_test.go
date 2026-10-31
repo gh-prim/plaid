@@ -37,7 +37,7 @@ func TestItemPreview(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s := string(out); strings.Contains(s, "audio") || !strings.Contains(s, "codec_type=video") {
+	if s := string(out); !strings.Contains(s, "codec_type=audio") || !strings.Contains(s, "codec_type=video") {
 		t.Errorf("preview streams: %s", s)
 	}
 
@@ -71,6 +71,6 @@ func TestItemPreviewAhead(t *testing.T) {
 // without asking for one (which would cut it urgently).
 func previewCached(t *testing.T, e *hlsEnv) bool {
 	t.Helper()
-	m, _ := filepath.Glob(filepath.Join(e.play.CacheDir(), "previews", "*.mp4"))
+	m, _ := filepath.Glob(filepath.Join(e.play.CacheDir(), "previews", "*", "*.mp4"))
 	return len(m) > 0
 }

@@ -456,8 +456,10 @@
     "playEpisode": "Play S{{season, number}} E{{episode, number}}",
     "preview": {
       "autoplay": "Play previews automatically",
+      "mute": "Mute the preview",
       "pause": "Pause the preview",
-      "play": "Play the preview"
+      "play": "Play the preview",
+      "unmute": "Turn the preview’s sound on"
     },
     "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
     "rating_other": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} votes",

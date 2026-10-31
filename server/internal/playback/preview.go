@@ -18,13 +18,15 @@ import (
 	"github.com/gh-prim/plaid/server/internal/library"
 )
 
-// Previews (V2 hero): a short silent loop of a few scenes from the title
+// Previews (V2 hero): a short loop of a few scenes from the title
 // itself, cut by FFmpeg in the background and cached. A movie's scenes
 // come from its first third, after the opening credits; a show's from its
 // first episode, so they spoil nothing.
 const (
 	previewScenes      = 4
 	previewSceneLength = 6 * time.Second
+	// previewFade fades each scene's sound in and out.
+	previewFade = 400 * time.Millisecond
 	// previewFrom and previewTo bound where the scenes are taken, as a
 	// share of the runtime.
 	previewFrom = 0.08
@@ -39,7 +41,7 @@ const (
 	// holds a few thousand titles. Past 90%, nothing more is cut ahead.
 	previewCacheMax = 10 << 30
 	// previewVersion changes the cache key when the recipe changes.
-	previewVersion = "v1"
+	previewVersion = "v2"
 )
 
 // PreviewState says whether an item's preview can be played.
@@ -88,7 +90,9 @@ type previewSource struct {
 	path     string
 	duration time.Duration
 	hdr      bool
-	key      string
+	// audio is the absolute index of the sound track, -1 when there's none.
+	audio int
+	key   string
 }
 
 // Preview returns the item's preview when it's ready, and otherwise
@@ -169,7 +173,7 @@ func (s *Service) previewSource(ctx context.Context, item library.Item) (preview
 		_, _ = fmt.Fprintf(h, "%s\x00%s\x00%d\x00%s", f.ID, f.Path, f.ModTime.UnixNano(), previewVersion)
 		return previewSource{
 			fileID: f.ID, path: f.Path, duration: d, hdr: f.HDRFormat != "",
-			key: hex.EncodeToString(h.Sum(nil))[:32],
+			audio: previewAudio(f.Streams), key: hex.EncodeToString(h.Sum(nil))[:32],
 		}, true, nil
 	}
 	return previewSource{}, false, nil
@@ -193,6 +197,9 @@ func (s *Service) previewRescan() time.Duration {
 // runPreviews cuts the previews until ctx is done.
 func (s *Service) runPreviews(ctx context.Context) {
 	pv := s.previews
+	if n := dropOldPreviews(pv.cache.Dir); n > 0 {
+		s.o.Log.Info("previews of an older recipe deleted", "count", n)
+	}
 	for {
 		wait := s.previewRescan()
 		if src, ok := pv.next(); ok {
@@ -333,9 +340,28 @@ func previewScenesAt(d time.Duration) []time.Duration {
 	return out
 }
 
+// previewAudio picks the default sound track, else the first one; -1
+// when the file has none.
+func previewAudio(streams []library.MediaStream) int {
+	first := -1
+	for _, st := range streams {
+		if st.Type != "audio" || st.External {
+			continue
+		}
+		if st.Default {
+			return st.Index
+		}
+		if first < 0 {
+			first = st.Index
+		}
+	}
+	return first
+}
+
 // previewArgs builds the FFmpeg command: one fast-seeked input per scene,
-// each scaled (and tone mapped from HDR when the build can), joined into
-// one silent H.264 MP4 that starts playing before it's fully loaded.
+// each scaled (and tone mapped from HDR when the build can), its sound in
+// stereo faded in and out so the cuts don't click, joined into one H.264
+// and AAC MP4 that starts playing before it's fully loaded.
 func previewArgs(src previewSource, ff *FFmpeg, dst string, urgent bool) []string {
 	secs := func(d time.Duration) string { return strconv.FormatFloat(d.Seconds(), 'f', 3, 64) }
 	args := []string{"-hide_banner", "-nostdin", "-loglevel", "error", "-y"}
@@ -354,21 +380,61 @@ func previewArgs(src previewSource, ff *FFmpeg, dst string, urgent bool) []strin
 	}
 	filter += ",setsar=1,fps=24,format=yuv420p"
 	var graph strings.Builder
+	sound := src.audio >= 0
+	fadeOut := previewSceneLength - previewFade
+	afilter := fmt.Sprintf("aformat=sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,"+
+		"afade=t=in:d=%s,afade=t=out:st=%s:d=%s", secs(previewFade), secs(fadeOut), secs(previewFade))
 	for i := range scenes {
 		fmt.Fprintf(&graph, "[%d:v:0]%s[v%d];", i, filter, i)
+		if sound {
+			fmt.Fprintf(&graph, "[%d:%d]%s[a%d];", i, src.audio, afilter, i)
+		}
 	}
 	for i := range scenes {
 		fmt.Fprintf(&graph, "[v%d]", i)
+		if sound {
+			fmt.Fprintf(&graph, "[a%d]", i)
+		}
 	}
-	fmt.Fprintf(&graph, "concat=n=%d:v=1:a=0[out]", len(scenes))
-	args = append(args, "-filter_complex", graph.String(), "-map", "[out]", "-an")
+	if sound {
+		fmt.Fprintf(&graph, "concat=n=%d:v=1:a=1[out][aout]", len(scenes))
+		args = append(args, "-filter_complex", graph.String(), "-map", "[out]",
+			"-map", "[aout]", "-c:a", "aac", "-b:a", "128k")
+	} else {
+		fmt.Fprintf(&graph, "concat=n=%d:v=1:a=0[out]", len(scenes))
+		args = append(args, "-filter_complex", graph.String(), "-map", "[out]", "-an")
+	}
 	args = append(args, threads...)
 	return append(args, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-profile:v", "high",
 		"-movflags", "+faststart", "-f", "mp4", dst)
 }
 
-// previewDir is where previews are cached, under the cache folder.
-func previewDir(cacheDir string) string { return filepath.Join(cacheDir, "previews") }
+// previewDir is where previews are cached, under the cache folder, one
+// folder per recipe version.
+func previewDir(cacheDir string) string {
+	return filepath.Join(cacheDir, "previews", previewVersion)
+}
+
+// dropOldPreviews deletes what an older recipe left next to dir, so it
+// doesn't hold the cache's room until it ages out; it returns how many
+// entries went.
+func dropOldPreviews(dir string) int {
+	parent := filepath.Dir(dir)
+	entries, err := os.ReadDir(parent)
+	if err != nil {
+		return 0
+	}
+	n := 0
+	for _, e := range entries {
+		if e.Name() == filepath.Base(dir) {
+			continue
+		}
+		if err := os.RemoveAll(filepath.Join(parent, e.Name())); err == nil {
+			n++
+		}
+	}
+	return n
+}
 
 func fileExists(path string) bool {
 	_, err := os.Stat(path)

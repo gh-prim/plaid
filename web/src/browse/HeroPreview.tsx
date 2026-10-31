@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import { Icon } from '../ui'
-import { usePreviewsOn } from './previewPref'
+import { setPreviewSoundOn, usePreviewSoundOn, usePreviewsOn } from './previewPref'
 
 /** The backdrop shows alone this long before the scenes fade in. */
 const backdropFirst = 2000
@@ -57,16 +57,21 @@ function usePreviewUrl(itemId: string, on: boolean): string | undefined {
 }
 
 /**
- * The hero's moving picture (V2): a few silent scenes from the title,
- * looping over the backdrop. The backdrop shows first, then the scenes
- * fade in once they play; they pause off screen and in a hidden tab, and
- * a button pauses them for good on this page.
+ * The hero's moving picture (V2): a few scenes from the title, with their
+ * sound, looping over the backdrop. The backdrop shows first, then the
+ * scenes fade in once they play; they pause off screen and in a hidden
+ * tab. One button mutes them (remembered per profile), another pauses
+ * them for good on this page. When the browser refuses sound before the
+ * viewer has touched the page, they play muted until the sound button.
  */
 export function HeroPreview({ itemId }: { itemId: string }) {
   const { t } = useTranslation()
   const { state } = useAuth()
   const profileId = state.status === 'ready' ? (state.me?.activeProfile?.id ?? '') : ''
   const allowed = usePreviewsOn(profileId)
+  const soundOn = usePreviewSoundOn(profileId)
+  const [blocked, setBlocked] = useState(false)
+  const muted = !soundOn || blocked
   const [supported] = useState(canPreview)
   const url = usePreviewUrl(itemId, allowed && supported)
   const [waited, setWaited] = useState(false)
@@ -86,9 +91,18 @@ export function HeroPreview({ itemId }: { itemId: string }) {
     if (!show || !v) return
     let visible = true
     const sync = () => {
-      if (visible && !paused && document.visibilityState === 'visible')
+      if (!(visible && !paused && document.visibilityState === 'visible')) {
+        v.pause()
+        return
+      }
+      v.muted = muted
+      void v.play().catch((e: unknown) => {
+        // No sound before the viewer has touched the page: play muted.
+        if (v.muted || (e as Error | undefined)?.name !== 'NotAllowedError') return
+        v.muted = true
+        setBlocked(true)
         void v.play().catch(() => {})
-      else v.pause()
+      })
     }
     const io = new IntersectionObserver(
       ([e]) => {
@@ -104,7 +118,7 @@ export function HeroPreview({ itemId }: { itemId: string }) {
       io.disconnect()
       document.removeEventListener('visibilitychange', sync)
     }
-  }, [show, paused])
+  }, [show, paused, muted])
 
   if (!show) return null
   return (
@@ -121,15 +135,30 @@ export function HeroPreview({ itemId }: { itemId: string }) {
         onPlaying={() => setPlaying(true)}
       />
       {playing && (
-        <button
-          type="button"
-          className="br-detail__pause br-glass pl-focusable"
-          aria-label={paused ? t('item.preview.play') : t('item.preview.pause')}
-          aria-pressed={paused}
-          onClick={() => setPaused((p) => !p)}
-        >
-          <Icon name={paused ? 'play' : 'pause'} size={16} />
-        </button>
+        <div className="br-detail__controls">
+          <button
+            type="button"
+            className="br-detail__pause br-glass pl-focusable"
+            aria-label={muted ? t('item.preview.unmute') : t('item.preview.mute')}
+            onClick={() => {
+              // A click lets the browser play sound, so unmute right here.
+              if (muted && video.current) video.current.muted = false
+              setBlocked(false)
+              setPreviewSoundOn(profileId, muted)
+            }}
+          >
+            <Icon name={muted ? 'volumeOff' : 'volume'} size={16} />
+          </button>
+          <button
+            type="button"
+            className="br-detail__pause br-glass pl-focusable"
+            aria-label={paused ? t('item.preview.play') : t('item.preview.pause')}
+            aria-pressed={paused}
+            onClick={() => setPaused((p) => !p)}
+          >
+            <Icon name={paused ? 'play' : 'pause'} size={16} />
+          </button>
+        </div>
       )}
     </>
   )
