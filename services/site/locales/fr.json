@@ -183,7 +183,7 @@
     },
     "install": {
       "eyebrow": "Installer",
-      "title": "Une ligne de commande, et c’est prêt avant l’arrivée des invités.",
+      "title": "Prêt avant l’arrivée des invités.",
       "body": "Un seul programme en Go, avec SQLite et FFmpeg. Le script l’installe comme un service qui se lance au démarrage. Pas besoin de Docker, mais ça marche aussi avec.",
       "note": "Ubuntu, Debian · amd64 et arm64 · Raspberry Pi 4 ou 5"
     },
