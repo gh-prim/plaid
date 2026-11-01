@@ -11,12 +11,13 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 |----|----------|--------|
 | [0001](decisions/0001-server-language.md) | Server language: Go | ✅ accepted |
 | [0002](decisions/0002-monorepo-and-api-contract.md) | Monorepo + OpenAPI contract | ✅ accepted |
-| [0003](decisions/0003-remote-access-v1.md) | Remote access v1: pure self-host | 📝 proposed |
+| [0003](decisions/0003-remote-access-v1.md) | Remote access v1: pure self-host | superseded by 0009 |
 | [0004](decisions/0004-license.md) | License: MIT | ✅ accepted |
 | [0005](decisions/0005-no-jellyfin-api-compatibility.md) | No Jellyfin API compatibility, own apps | ✅ accepted |
 | [0006](decisions/0006-ffmpeg-distribution.md) | FFmpeg: distro package now, own build if F006 needs it | ✅ accepted |
 | [0007](decisions/0007-metadata-provider-keys.md) | Metadata provider keys: injected at release build, admin override | ✅ accepted |
 | [0008](decisions/0008-intro-credits-segments.md) | Intro and credits: TheIntroDB, end credits detected locally | ✅ accepted |
+| [0009](decisions/0009-remote-access-getplaid-direct.md) | Remote access through getplaid.direct | ✅ accepted |
 
 ## Features
 
@@ -33,6 +34,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [F009](features/F009-library-sharing/intent.md) | Library sharing | 3 | server, web | ? | 📝 | — | — |
 | [F010](features/F010-plaid-party/intent.md) | Plaid Party (watch together) | 3 | server, web | ? | 📝 | — | — |
 | [F011](features/F011-tvos-app/intent.md) | Apple TV app | 4 | server, apple | gh-prim | ✅ | [✅](features/F011-tvos-app/spec.md) | [🚧](features/F011-tvos-app/plan.md) |
+| [F012](features/F012-remote-access/intent.md) | Remote access through getplaid.direct | 3 | server, web | gh-prim | ✅ | [✅](features/F012-remote-access/spec.md) | [✔️](features/F012-remote-access/plan.md) |
 
 ### Later (intents to write)
 - Apple app (iOS, iPadOS): phase 4 (tvOS is F011)
