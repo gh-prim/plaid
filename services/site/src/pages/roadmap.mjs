@@ -18,7 +18,7 @@ const PHASES = [
     ],
   },
   { id: 'next', items: [['F009', 'planned'], ['F010', 'planned'], ['ios', 'planned'], ['android', 'planned']] },
-  { id: 'later', items: [['offline', 'later'], ['hub', 'later'], ['music', 'later'], ['live', 'later'], ['intros', 'later']] },
+  { id: 'later', items: [['offline', 'later'], ['hub', 'later'], ['music', 'later'], ['intros', 'later']] },
 ];
 
 export default {
