@@ -36,6 +36,9 @@ enum Theme {
     static let gutter: CGFloat = 32
     /// tvOS's horizontal safe margin on a 1920-point screen.
     static let systemMargin: CGFloat = 80
+    /// What pushed pages (a title, a person, a collection) keep instead of
+    /// the rail, which hides there: their gutter lands on the safe margin.
+    static let pushed: CGFloat = systemMargin - gutter
     /// How far a hero's backdrop fades out below the hero.
     static let heroFadeBelow: CGFloat = 140
     /// Right page margin.

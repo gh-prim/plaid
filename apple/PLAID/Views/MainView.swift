@@ -114,6 +114,9 @@ struct MainView: View {
                          railFocus = nil
                      } : nil)
                 .disabled(railOff)
+                // Pushed pages have no menu: it fades out and they take the room.
+                .opacity(path.isEmpty ? 1 : 0)
+                .animation(.smooth(duration: 0.3), value: path.isEmpty)
                 .padding(.leading, 24)
                 .padding(.vertical, 24)
                 .frame(maxHeight: .infinity)
