@@ -177,15 +177,14 @@ export function RemoteSignIn() {
             <span className="rs__forgot-short">{t('remoteSignIn.forgotShort')}</span>
           </p>
         </form>
-
-        <div className="rs__secure">
-          <p>
-            <ShieldIcon />
-            {t('remoteSignIn.secure')}
-          </p>
-          <p>{t('remoteSignIn.credit')}</p>
-        </div>
       </main>
+      <div className="rs__secure">
+        <p>
+          <ShieldIcon />
+          {t('remoteSignIn.secure')}
+        </p>
+        <p>{t('remoteSignIn.credit')}</p>
+      </div>
     </div>
   )
 }

@@ -437,10 +437,28 @@
   }
 }
 
-/* Under 1100 px the secure note joins the flow, below the form. */
+/* Under 1100 px the page stacks in the flow: the form at the bottom, the
+   secure note under it. */
 @media (max-width: 1100px) {
+  .rs {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-sizing: border-box;
+    padding: 120px 40px 40px;
+  }
+
+  .rs__main {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+  }
+
   .rs__secure {
-    position: static;
+    position: relative;
+    right: auto;
+    bottom: auto;
     margin-top: 28px;
     text-align: left;
   }
@@ -463,10 +481,8 @@
     object-position: 30% 40%;
   }
 
-  .rs__main {
-    left: 20px;
-    right: 20px;
-    bottom: max(32px, env(safe-area-inset-bottom));
+  .rs {
+    padding: 104px 20px max(28px, env(safe-area-inset-bottom));
   }
 
   .rs__kicker {
