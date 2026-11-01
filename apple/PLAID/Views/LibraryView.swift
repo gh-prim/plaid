@@ -429,6 +429,7 @@ private struct PeopleRow: View {
                                 }
                                 .frame(width: 180, height: 180)
                                 .clipShape(Circle())
+                                .focusHalo(Circle())
                                 Text(verbatim: p.name).font(Theme.sans(22, .semibold)).lineLimit(1)
                             }
                             .frame(width: 200)

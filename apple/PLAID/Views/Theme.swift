@@ -94,6 +94,30 @@ struct ProgressThread: View {
     }
 }
 
+/// The white halo of a focused element, so the selection reads from the
+/// couch: a thin ring just outside its shape and a soft glow behind it.
+private struct FocusHalo<S: InsettableShape>: ViewModifier {
+    let shape: S
+    @Environment(\.isFocused) private var focused
+
+    func body(content: Content) -> some View {
+        content
+            .background {
+                shape.fill(Color.white).blur(radius: 22).opacity(focused ? 0.28 : 0)
+            }
+            .overlay {
+                shape.inset(by: -6).strokeBorder(Color.white.opacity(focused ? 0.9 : 0), lineWidth: 3)
+            }
+    }
+}
+
+extension View {
+    /// Draws the focus halo around `shape` while the enclosing button has focus.
+    func focusHalo<S: InsettableShape>(_ shape: S) -> some View {
+        modifier(FocusHalo(shape: shape))
+    }
+}
+
 /// The amber primary button and the glass secondary one, as on the web hero.
 struct PillButtonStyle: ButtonStyle {
     var primary = true
@@ -120,6 +144,7 @@ private struct PillButtonBody: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(focused ? Theme.action : Theme.control)
             }
+            .focusHalo(RoundedRectangle(cornerRadius: 12))
             .scaleEffect(focused ? 1.06 : 1)
             .shadow(color: focused ? .black.opacity(0.5) : .clear, radius: 24, y: 12)
             .animation(.smooth(duration: 0.25), value: focused)
@@ -145,6 +170,7 @@ private struct RowButtonBody: View {
             .padding(.vertical, 20)
             .foregroundStyle(focused ? Theme.bgBase : Theme.textPrimary)
             .background(RoundedRectangle(cornerRadius: Theme.radius).fill(focused ? Theme.textPrimary : Theme.surface))
+            .focusHalo(RoundedRectangle(cornerRadius: Theme.radius))
             .scaleEffect(focused ? 1.04 : 1)
             .shadow(color: focused ? .black.opacity(0.5) : .clear, radius: 24, y: 12)
             .animation(.smooth(duration: 0.25), value: focused)

@@ -146,6 +146,7 @@ struct RoundGlassButtonStyle: ButtonStyle {
                 .frame(width: 72, height: 72)
                 .foregroundStyle(focused ? Theme.onAction : Theme.textPrimary)
                 .background(Circle().fill(focused ? Theme.action : Theme.control))
+                .focusHalo(Circle())
                 .scaleEffect(focused ? 1.08 : 1)
                 .shadow(color: focused ? .black.opacity(0.5) : .clear, radius: 24, y: 12)
                 .animation(.smooth(duration: 0.25), value: focused)

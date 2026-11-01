@@ -30,7 +30,7 @@ struct ItemRow: View {
     }
 }
 
-/// Lifts the focused card with the amber ring of the web.
+/// Lifts the focused card; its art draws the white focus halo.
 struct CardButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         CardBody(configuration: configuration)
@@ -68,6 +68,7 @@ struct CardArt: View {
             RemoteImage(art: art, width: width)
         }
         .clipShape(RoundedRectangle(cornerRadius: Theme.radius))
+        .focusHalo(RoundedRectangle(cornerRadius: Theme.radius))
         .shadow(color: .black.opacity(focused ? 0.6 : 0.35), radius: focused ? 30 : 10, y: focused ? 24 : 6)
     }
 }
