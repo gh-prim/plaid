@@ -10,8 +10,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/netip"
@@ -65,6 +67,9 @@ type Config struct {
 	RegisterLimit  *ratelimit.Limiter // per source IP; 5 per hour when nil
 	ProbeLimit     *ratelimit.Limiter // per server; 10 per hour when nil
 	NewID          func() string      // defaults to slug.NewID
+	// App is the PLAID web app built for getplaid.direct, served on short
+	// links. Nil keeps short links as plain redirects to the server.
+	App fs.FS
 }
 
 type handler struct {
@@ -100,11 +105,18 @@ func New(cfg Config) http.Handler {
 	mux.HandleFunc("PUT /api/v1/servers/{id}/acme-challenge", h.auth(h.setACME))
 	mux.HandleFunc("DELETE /api/v1/servers/{id}/acme-challenge", h.auth(h.clearACME))
 	mux.HandleFunc("POST /api/v1/servers/{id}/reachability", h.auth(h.reachability))
+	mux.HandleFunc("GET /api/v1/servers/{id}/connections", h.connections)
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) {
 		writeError(w, http.StatusNotFound, "not_found", "no such endpoint")
 	})
 	mux.HandleFunc("GET /{label}", h.shortLink)
 	mux.HandleFunc("GET /{$}", h.home)
+	if cfg.App != nil {
+		mux.Handle("GET /app/", http.StripPrefix("/app/", appAssets(cfg.App)))
+		// Deep links inside the app (getplaid.direct/<id>/movies/...). A
+		// catch-all, so it never clashes with the method-less /api/ route.
+		mux.HandleFunc("/", h.appDeepLink)
+	}
 	return h.logRequests(mux)
 }
 
@@ -143,6 +155,10 @@ type serverBody struct {
 	Name    *string `json:"name"`
 	Port    *int    `json:"port"`
 	Version *string `json:"version"`
+	// LANIP ("" clears it) and LANPort are the server's address on its own
+	// network, used by short links opened from that network.
+	LANIP   *string `json:"lanIp"`
+	LANPort *int    `json:"lanPort"`
 }
 
 func (b serverBody) validate() string {
@@ -155,7 +171,25 @@ func (b serverBody) validate() string {
 	if b.Version != nil && (len(*b.Version) > maxVersion || !printable(*b.Version)) {
 		return "version must be printable ASCII, at most 40 characters"
 	}
+	if b.LANIP != nil && *b.LANIP != "" {
+		if ip, err := netip.ParseAddr(*b.LANIP); err != nil || !store.IsLAN(ip) {
+			return "lanIp must be a private, CGNAT or link-local IPv4 address"
+		}
+	}
+	if b.LANPort != nil && (*b.LANPort < 0 || *b.LANPort > 65535) {
+		return "lanPort must be between 0 and 65535"
+	}
 	return ""
+}
+
+// applyLAN copies the LAN fields of a validated body onto srv.
+func (b serverBody) applyLAN(srv *store.Server) {
+	if b.LANIP != nil {
+		srv.LANIP, _ = netip.ParseAddr(*b.LANIP) // "" leaves the zero Addr
+	}
+	if b.LANPort != nil {
+		srv.LANPort = *b.LANPort
+	}
 }
 
 func printable(s string) bool {
@@ -199,6 +233,7 @@ func (h *handler) register(w http.ResponseWriter, r *http.Request) {
 		Version:   deref(body.Version),
 		CreatedAt: now,
 	}
+	body.applyLAN(&srv)
 	srv.Seen(ip, now)
 	if err := h.cfg.Store.Create(r.Context(), &srv, h.cfg.NewID); err != nil {
 		h.internal(w, r, err)
@@ -228,6 +263,7 @@ func (h *handler) update(w http.ResponseWriter, r *http.Request, srv store.Serve
 	if body.Version != nil {
 		srv.Version = *body.Version
 	}
+	body.applyLAN(&srv)
 	srv.Seen(ip, h.cfg.Now())
 	if err := h.cfg.Store.Update(r.Context(), srv); err != nil {
 		h.internal(w, r, err)
@@ -335,7 +371,9 @@ func (h *handler) home(w http.ResponseWriter, r *http.Request) {
 // shortLink redirects getplaid.direct/<id> (the link PLAID shows) or
 // getplaid.direct/<label> to the server. The id alone identifies the server,
 // so links with an old slug still work after a rename and land on the
-// current hostname.
+// current hostname. A visitor behind the server's own public IPv4 is on its
+// network: many routers can't loop a connection to their public address
+// back inside, so that visitor goes to the LAN name instead.
 func (h *handler) shortLink(w http.ResponseWriter, r *http.Request) {
 	path := strings.ToLower(r.PathValue("label"))
 	id, ok := path, slug.ValidID(path)
@@ -356,9 +394,118 @@ func (h *handler) shortLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Cache-Control", "no-store") // the port can change
+	if h.cfg.App != nil {
+		if path != srv.ID {
+			// The label form, or an old slug: the app lives under the id.
+			http.Redirect(w, r, "/"+srv.ID, http.StatusFound)
+			return
+		}
+		h.serveApp(w)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store") // the port and the visitor's network can change
+	target := httpsURL(srv.Label()+"."+h.cfg.Zone, srv.Port)
+	if h.atHome(r, srv) {
+		target = httpsURL(strings.ReplaceAll(srv.LANIP.String(), ".", "-")+"."+srv.Label()+"."+h.cfg.Zone, srv.LANPort)
+	}
 	// The target is always a host under our zone, built from stored values.
-	http.Redirect(w, r, httpsURL(srv.Label()+"."+h.cfg.Zone, srv.Port)+"/", http.StatusFound) //nolint:gosec // see above
+	http.Redirect(w, r, target+"/", http.StatusFound) //nolint:gosec // see above
+}
+
+// atHome reports whether the visitor shares the server's public IPv4 and the
+// server sent a LAN address to send them to.
+func (h *handler) atHome(r *http.Request, srv store.Server) bool {
+	if !srv.LANIP.IsValid() || srv.LANPort == 0 {
+		return false
+	}
+	ip, ok := h.clientIP(r)
+	public, published := srv.A()
+	return ok && published && ip.Unmap() == public
+}
+
+// connection is one way to reach a server from a browser.
+type connection struct {
+	URL   string `json:"url"`
+	Local bool   `json:"local"`
+}
+
+// connections lists the addresses the hosted app tries, LAN first: the app
+// keeps the first that answers. Public, like the DNS records it mirrors.
+func (h *handler) connections(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	var srv store.Server
+	err := store.ErrNotFound
+	if slug.ValidID(id) {
+		srv, err = h.cfg.Store.Get(r.Context(), id)
+	}
+	if errors.Is(err, store.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "not_found", "unknown server")
+		return
+	}
+	if err != nil {
+		h.internal(w, r, err)
+		return
+	}
+	host := srv.Label() + "." + h.cfg.Zone
+	var conns []connection
+	if srv.LANIP.IsValid() && srv.LANPort != 0 {
+		conns = append(conns, connection{httpsURL(strings.ReplaceAll(srv.LANIP.String(), ".", "-")+"."+host, srv.LANPort), true})
+	}
+	conns = append(conns, connection{httpsURL(host, srv.Port), false})
+	writeJSON(w, http.StatusOK, struct {
+		ID          string       `json:"id"`
+		Hostname    string       `json:"hostname"`
+		Connections []connection `json:"connections"`
+	}{srv.ID, host, conns})
+}
+
+// appDeepLink serves the app for getplaid.direct/<id>/<route>, so a reload
+// inside the app works. Anything else is the short-link 404 page.
+func (h *handler) appDeepLink(w http.ResponseWriter, r *http.Request) {
+	first, _, nested := strings.Cut(strings.TrimPrefix(r.URL.Path, "/"), "/")
+	if r.Method != http.MethodGet || !nested || !slug.ValidID(first) {
+		h.notFound(w)
+		return
+	}
+	if _, err := h.cfg.Store.Get(r.Context(), first); err != nil {
+		h.notFound(w)
+		return
+	}
+	h.serveApp(w)
+}
+
+// serveApp writes the app's index.html. The policy lets it reach PLAID
+// servers under the zone, on any port, and nothing else.
+func (h *handler) serveApp(w http.ResponseWriter) {
+	index, err := fs.ReadFile(h.cfg.App, "index.html")
+	if err != nil {
+		http.Error(w, "web app missing", http.StatusInternalServerError)
+		return
+	}
+	servers := "https://*." + h.cfg.Zone + ":*"
+	hd := w.Header()
+	hd.Set("Content-Type", "text/html; charset=utf-8")
+	hd.Set("Cache-Control", "no-cache")
+	hd.Set("Content-Security-Policy", fmt.Sprintf("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "+
+		"img-src 'self' data: blob: %[1]s; media-src 'self' blob: %[1]s; connect-src 'self' %[1]s; font-src 'self' data:; "+
+		"worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'", servers))
+	hd.Set("Referrer-Policy", "no-referrer")
+	_, _ = w.Write(index)
+}
+
+// appAssets serves the app's files; hashed bundles under assets/ never change.
+func appAssets(app fs.FS) http.Handler {
+	files := http.FileServerFS(app)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "" || strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "assets/") {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		}
+		files.ServeHTTP(w, r)
+	})
 }
 
 var notFoundPage = template.Must(template.New("404").Parse(`<!doctype html>

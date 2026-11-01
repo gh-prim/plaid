@@ -494,7 +494,7 @@
     },
     "never": {
       "title": "La vidéo ne passe jamais par nous.",
-      "body": "Une redirection, une réponse DNS qui donne l’IP de chez toi, et les écrans se connectent directement à ton serveur. Derrière un CGNAT, ça ne peut pas marcher : passe plutôt par un VPN."
+      "body": "L’adresse de ton serveur vient de getplaid.direct ; ensuite, les écrans se connectent directement à ton serveur, par ton réseau quand tu es chez toi. Derrière un CGNAT, ça ne peut pas marcher : passe plutôt par un VPN."
     },
     "flow": {
       "friend": {
@@ -807,6 +807,10 @@
           "name": "Adresses",
           "value": "Ton IPv4 et ton IPv6 publiques"
         },
+        "lan": {
+          "name": "Adresse locale",
+          "value": "L’adresse privée de ton serveur sur ton réseau, pour que l’app le trouve à la maison"
+        },
         "port": {
           "name": "Port",
           "value": "Le port externe que redirige ton routeur"
@@ -828,7 +832,7 @@
     "never": {
       "kicker": "Jamais",
       "title": "Tes films, tes bibliothèques, tes comptes, ce que tu regardes.",
-      "body": "La vidéo va directement de ton serveur à l’écran. getplaid.direct se contente de répondre aux requêtes DNS."
+      "body": "La vidéo va directement de ton serveur à l’écran. getplaid.direct se contente de répondre au DNS et de servir la page de l’app."
     },
     "gone": {
       "kicker": "Effacé",

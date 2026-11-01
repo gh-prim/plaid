@@ -3,7 +3,10 @@
 # short links; DNS is published straight on the host's port 53.
 services:
   direct:
-    build: .
+    # The repository root: the image also builds the web app (web/, api/).
+    build:
+      context: ../..
+      dockerfile: services/direct/Dockerfile
     restart: unless-stopped
     environment:
       # Coolify: generates the Traefik route to container port 8080. Set the

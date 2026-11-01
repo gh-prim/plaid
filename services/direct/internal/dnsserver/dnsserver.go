@@ -270,14 +270,6 @@ func (s *Server) server(ctx context.Context, label string) (store.Server, bool, 
 	return srv, true, nil
 }
 
-var lanRanges = []netip.Prefix{
-	netip.MustParsePrefix("10.0.0.0/8"),
-	netip.MustParsePrefix("172.16.0.0/12"),
-	netip.MustParsePrefix("192.168.0.0/16"),
-	netip.MustParsePrefix("100.64.0.0/10"),  // CGNAT
-	netip.MustParsePrefix("169.254.0.0/16"), // link-local
-}
-
 // lanIP parses "a-b-c-d" into a.b.c.d when it is a private address. Public
 // addresses are refused: the zone would otherwise point anywhere, for anyone.
 func lanIP(s string) (netip.Addr, bool) {
@@ -298,12 +290,7 @@ func lanIP(s string) (netip.Addr, bool) {
 		b[i] = byte(n)
 	}
 	ip := netip.AddrFrom4(b)
-	for _, p := range lanRanges {
-		if p.Contains(ip) {
-			return ip, true
-		}
-	}
-	return netip.Addr{}, false
+	return ip, store.IsLAN(ip)
 }
 
 func (s *Server) soa() dns.RR {

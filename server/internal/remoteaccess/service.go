@@ -62,6 +62,9 @@ type Options struct {
 	Version        string
 	// TLSPort is the local HTTPS port the router forwards to.
 	TLSPort int
+	// LANIP returns the server's private IPv4 address, or "" when it has
+	// none; LANAddr (the function) in production.
+	LANIP func() string
 	// CertDir holds the certificate and the ACME account key.
 	CertDir string
 	Log     *slog.Logger
@@ -385,17 +388,23 @@ func (s *Service) register(ctx context.Context, ext int) (id, token string, ok b
 	s.mu.Lock()
 	id, token = s.id, s.token
 	s.mu.Unlock()
+	info := ServerInfo{Name: s.o.ServerName, Port: ext, Version: s.o.Version}
+	if s.o.LANIP != nil {
+		if info.LANIP = s.o.LANIP(); info.LANIP != "" {
+			info.LANPort = s.o.TLSPort
+		}
+	}
 	var reg Registration
 	var err error
 	if id != "" {
-		reg, err = s.o.Directory.Update(ctx, id, token, s.o.ServerName, ext, s.o.Version)
+		reg, err = s.o.Directory.Update(ctx, id, token, info)
 		if errors.Is(err, errUnauthorized) {
 			// Expired after 30 days unseen, or the service lost it.
 			id, token = "", ""
 		}
 	}
 	if id == "" {
-		reg, err = s.o.Directory.Register(ctx, s.o.ServerName, ext, s.o.Version)
+		reg, err = s.o.Directory.Register(ctx, info)
 		if err == nil {
 			id, token = reg.ID, reg.Token
 			_ = s.o.Settings.Set(ctx, settings.RemoteDirectID, id)

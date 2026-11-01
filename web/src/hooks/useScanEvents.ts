@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { components } from '../api/schema'
+import { hosted, serverUrl } from '../api/server'
 
 export type ScanProgress = components['schemas']['ScanProgress']
 export type MetadataCounts = components['schemas']['MetadataCounts']
@@ -30,7 +31,12 @@ export function useScanEvents(libraryId: string | undefined): ScanState {
   const [state, setState] = useState<ScanState>(initial)
   useEffect(() => {
     if (!libraryId) return
-    const source = new EventSource(`/api/v1/libraries/${encodeURIComponent(libraryId)}/scan/events`)
+    const source = new EventSource(
+      serverUrl(`/api/v1/libraries/${encodeURIComponent(libraryId)}/scan/events`),
+      {
+        withCredentials: hosted,
+      },
+    )
     const on = (
       type: ScanEvent['type'],
       apply: (ev: ScanEvent) => Partial<ScanState> | ((s: ScanState) => ScanState),

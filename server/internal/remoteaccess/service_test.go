@@ -53,6 +53,7 @@ type fakeDirectory struct {
 	challenge   []string
 	registered  int
 	unreachable bool
+	last        ServerInfo
 }
 
 func (f *fakeDirectory) reg(id string, port int) Registration {
@@ -63,9 +64,11 @@ func (f *fakeDirectory) reg(id string, port int) Registration {
 
 func itoa(n int) string { b, _ := json.Marshal(n); return string(b) }
 
-func (f *fakeDirectory) Register(_ context.Context, _ string, port int, _ string) (Registration, error) {
+func (f *fakeDirectory) Register(_ context.Context, info ServerInfo) (Registration, error) {
+	port := info.Port
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	f.last = info
 	f.registered++
 	id := "abc23" + itoa(f.registered)
 	f.servers[id], f.ports[id] = "tok-"+id, port
@@ -81,12 +84,14 @@ func (f *fakeDirectory) check(id, token string) error {
 	return nil
 }
 
-func (f *fakeDirectory) Update(_ context.Context, id, token, _ string, port int, _ string) (Registration, error) {
+func (f *fakeDirectory) Update(_ context.Context, id, token string, info ServerInfo) (Registration, error) {
+	port := info.Port
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if err := f.check(id, token); err != nil {
 		return Registration{}, err
 	}
+	f.last = info
 	f.ports[id] = port
 	return f.reg(id, port), nil
 }
@@ -178,7 +183,8 @@ func (h *harness) open(t *testing.T, data string) *Service {
 		Settings: h.store, Directory: h.dir, Issuer: h.issuer,
 		DiscoverMapper: func(context.Context) (Mapper, error) { return h.mapper, nil },
 		ServerName:     "Living room", Version: "0.3.0", TLSPort: 32501, CertDir: data + "/remote",
-		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+		LANIP: func() string { return "192.168.1.20" },
+		Log:   slog.New(slog.NewTextHandler(io.Discard, nil)),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -213,6 +219,9 @@ func TestTurnOnMapsRegistersAndGetsACertificate(t *testing.T) {
 	}
 	if h.mapper.mapped[32501] != 32501 || st.ExternalPort != 32501 || st.PortMapping.Method != "upnp" {
 		t.Errorf("mapping %v, status %+v", h.mapper.mapped, st.PortMapping)
+	}
+	if h.dir.last != (ServerInfo{Name: "Living room", Port: 32501, Version: "0.3.0", LANIP: "192.168.1.20", LANPort: 32501}) {
+		t.Errorf("sent %+v", h.dir.last)
 	}
 	if st.Hostname != "living-room-abc231.getplaid.direct" || st.URL != "https://living-room-abc231.getplaid.direct:32501" || st.PublicIP != "203.0.113.7" {
 		t.Errorf("registration %+v", st)
@@ -382,9 +391,9 @@ func TestDirectClient(t *testing.T) {
 		got = append(got, r.Method+" "+r.URL.Path+" "+r.Header.Get("Authorization"))
 		switch {
 		case r.Method == http.MethodPost && r.URL.Path == "/api/v1/servers":
-			var body serverBody
+			var body map[string]any
 			_ = json.NewDecoder(r.Body).Decode(&body)
-			if body.Name != "Living room" || body.Port != 32501 || body.Version != "0.3.0" {
+			if body["name"] != "Living room" || body["port"] != 32501.0 || body["version"] != "0.3.0" || body["lanIp"] != "192.168.1.20" || body["lanPort"] != 32501.0 {
 				t.Errorf("register body %+v", body)
 			}
 			w.WriteHeader(http.StatusCreated)
@@ -402,11 +411,11 @@ func TestDirectClient(t *testing.T) {
 	defer srv.Close()
 	c := NewDirectClient(srv.URL + "/api/v1/")
 	ctx := context.Background()
-	reg, err := c.Register(ctx, "Living room", 32501, "0.3.0")
+	reg, err := c.Register(ctx, ServerInfo{Name: "Living room", Port: 32501, Version: "0.3.0", LANIP: "192.168.1.20", LANPort: 32501})
 	if err != nil || reg.Token != "secret" || reg.ShortURL != "https://getplaid.direct/k3x7qa" {
 		t.Fatalf("Register: %+v, %v", reg, err)
 	}
-	if _, err := c.Update(ctx, "k3x7qa", "wrong", "x", 1, "v"); !errors.Is(err, errUnauthorized) {
+	if _, err := c.Update(ctx, "k3x7qa", "wrong", ServerInfo{Name: "x", Port: 1, Version: "v"}); !errors.Is(err, errUnauthorized) {
 		t.Errorf("Update with a wrong token: %v", err)
 	}
 	if r, err := c.Reachability(ctx, "k3x7qa", "secret"); err != nil || r.Reachable || r.Error != "refused" {
@@ -419,7 +428,7 @@ func TestDirectClient(t *testing.T) {
 		t.Errorf("Unregister: %v", err)
 	}
 	srv.Close()
-	if _, err := c.Register(ctx, "x", 1, "v"); code(err) != "direct_unreachable" {
+	if _, err := c.Register(ctx, ServerInfo{Name: "x", Port: 1, Version: "v"}); code(err) != "direct_unreachable" {
 		t.Errorf("Register on a closed server: %v", err)
 	}
 }

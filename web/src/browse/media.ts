@@ -1,4 +1,5 @@
 import type { components } from '../api/schema'
+import { serverUrl } from '../api/server'
 
 type ItemSummary = components['schemas']['ItemSummary']
 
@@ -6,7 +7,7 @@ type ItemSummary = components['schemas']['ItemSummary']
 export const artWidths = [92, 185, 342, 500, 780, 1280, 1920] as const
 
 export function imageSrc(imageId: string, width: number): string {
-  return `/api/v1/images/${encodeURIComponent(imageId)}?w=${width}`
+  return serverUrl(`/api/v1/images/${encodeURIComponent(imageId)}?w=${width}`)
 }
 
 /** A srcset over the widths, so the browser fetches what it displays (F008 NFR grid). */

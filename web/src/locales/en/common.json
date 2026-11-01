@@ -388,6 +388,18 @@
       "seeAll": "See all"
     }
   },
+  "hosted": {
+    "finding": "Connecting to the server…",
+    "retry": "Try again",
+    "unknown": {
+      "body": "Check the link you were sent: it looks like getplaid.direct followed by six letters and digits.",
+      "title": "This link doesn't lead to a server"
+    },
+    "unreachable": {
+      "body": "It may be switched off, or its owner turned remote access off. Try again in a moment.",
+      "title": "Can't reach this server"
+    }
+  },
   "item": {
     "about": {
       "accessibility": "Accessibility",

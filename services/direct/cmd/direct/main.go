@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 	"github.com/gh-prim/plaid/services/direct/internal/dnsserver"
 	"github.com/gh-prim/plaid/services/direct/internal/probe"
 	"github.com/gh-prim/plaid/services/direct/internal/store"
+	"github.com/gh-prim/plaid/services/direct/internal/webapp"
 )
 
 const (
@@ -60,6 +62,12 @@ func run(cfg config.Config, log *slog.Logger) error {
 	}
 	defer func() { _ = st.Close() }()
 
+	var app fs.FS
+	if webapp.Built() {
+		app = webapp.FS()
+	} else {
+		log.Warn("web app not built in: short links redirect to the server")
+	}
 	httpSrv := &http.Server{
 		Addr: cfg.HTTPAddr,
 		Handler: api.New(api.Config{
@@ -69,6 +77,7 @@ func run(cfg config.Config, log *slog.Logger) error {
 			SiteURL:        cfg.SiteURL,
 			TrustedProxies: cfg.TrustedProxies,
 			Logger:         log,
+			App:            app,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,

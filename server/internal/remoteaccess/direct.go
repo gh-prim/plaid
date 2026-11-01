@@ -39,10 +39,21 @@ var (
 	errUnauthorized      = errors.New("unauthorized")
 )
 
+// ServerInfo is what the server tells getplaid.direct about itself.
+type ServerInfo struct {
+	Name    string `json:"name"`
+	Port    int    `json:"port"`
+	Version string `json:"version"`
+	// LANIP and LANPort let the short link send visitors on the same home
+	// network to the server's LAN name, for routers without NAT loopback.
+	LANIP   string `json:"lanIp,omitempty"`
+	LANPort int    `json:"lanPort,omitempty"`
+}
+
 // Directory is the getplaid.direct API, faked in tests.
 type Directory interface {
-	Register(ctx context.Context, name string, port int, version string) (Registration, error)
-	Update(ctx context.Context, id, token, name string, port int, version string) (Registration, error)
+	Register(ctx context.Context, info ServerInfo) (Registration, error)
+	Update(ctx context.Context, id, token string, info ServerInfo) (Registration, error)
 	Unregister(ctx context.Context, id, token string) error
 	SetChallenge(ctx context.Context, id, token string, values []string) error
 	ClearChallenge(ctx context.Context, id, token string) error
@@ -60,23 +71,17 @@ func NewDirectClient(baseURL string) *DirectClient {
 	return &DirectClient{BaseURL: strings.TrimRight(baseURL, "/"), HTTP: &http.Client{Timeout: 20 * time.Second}}
 }
 
-type serverBody struct {
-	Name    string `json:"name"`
-	Port    int    `json:"port"`
-	Version string `json:"version"`
-}
-
 // Register asks for a hostname; the token in the answer is shown once.
-func (c *DirectClient) Register(ctx context.Context, name string, port int, version string) (Registration, error) {
+func (c *DirectClient) Register(ctx context.Context, info ServerInfo) (Registration, error) {
 	var r Registration
-	err := c.do(ctx, http.MethodPost, "/servers", "", serverBody{name, port, version}, &r)
+	err := c.do(ctx, http.MethodPost, "/servers", "", info, &r)
 	return r, err
 }
 
-// Update is the heartbeat: it refreshes the public IP, port and name.
-func (c *DirectClient) Update(ctx context.Context, id, token, name string, port int, version string) (Registration, error) {
+// Update is the heartbeat: it refreshes the public IP, port, name and LAN address.
+func (c *DirectClient) Update(ctx context.Context, id, token string, info ServerInfo) (Registration, error) {
 	var r Registration
-	err := c.do(ctx, http.MethodPut, "/servers/"+id, token, serverBody{name, port, version}, &r)
+	err := c.do(ctx, http.MethodPut, "/servers/"+id, token, info, &r)
 	return r, err
 }
 

@@ -9,12 +9,15 @@
 /server/tmp/
 /server/internal/webui/dist/*
 !/server/internal/webui/dist/.keep
+/services/direct/internal/webapp/dist/*
+!/services/direct/internal/webapp/dist/.keep
 /server/data/
 coverage.out
 
 # Web
 node_modules/
 /web/dist/
+/web/dist-hosted/
 /web/coverage/
 *.tsbuildinfo
 

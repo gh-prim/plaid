@@ -43,6 +43,10 @@ type Server struct {
 	Version   string
 	CreatedAt time.Time
 	LastSeen  time.Time
+	// LANIP and LANPort are the server's address on its own network, empty
+	// when it didn't send one.
+	LANIP   netip.Addr
+	LANPort int
 }
 
 // Label is the server's first DNS label, "<slug>-<id>".
@@ -68,6 +72,29 @@ func (s Server) A() (netip.Addr, bool) {
 // AAAA returns the IPv6 address to publish, if any.
 func (s Server) AAAA() (netip.Addr, bool) {
 	return s.IPv6, s.IPv6.IsValid() && s.LastSeen.Sub(s.IPv6Seen) <= FamilyStaleAfter
+}
+
+// lanRanges are the private, CGNAT and link-local IPv4 ranges a LAN address
+// may come from.
+var lanRanges = []netip.Prefix{
+	netip.MustParsePrefix("10.0.0.0/8"),
+	netip.MustParsePrefix("172.16.0.0/12"),
+	netip.MustParsePrefix("192.168.0.0/16"),
+	netip.MustParsePrefix("100.64.0.0/10"),  // CGNAT
+	netip.MustParsePrefix("169.254.0.0/16"), // link-local
+}
+
+// IsLAN reports whether ip is a private, CGNAT or link-local IPv4 address.
+func IsLAN(ip netip.Addr) bool {
+	if !ip.Is4() {
+		return false
+	}
+	for _, p := range lanRanges {
+		if p.Contains(ip) {
+			return true
+		}
+	}
+	return false
 }
 
 // Store wraps the database.
@@ -153,11 +180,11 @@ func (s *Store) Create(ctx context.Context, srv *Server, newID func() string) er
 	for range 10 {
 		id := newID()
 		res, err := s.db.ExecContext(ctx, `INSERT INTO servers
-			(id, slug, token_hash, ipv4, ipv4_seen, ipv6, ipv6_seen, port, version, created_at, last_seen)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			(id, slug, token_hash, ipv4, ipv4_seen, ipv6, ipv6_seen, port, version, created_at, last_seen, lan_ip, lan_port)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 			ON CONFLICT (id) DO NOTHING`,
 			id, srv.Slug, srv.TokenHash, addrString(srv.IPv4), unix(srv.IPv4Seen), addrString(srv.IPv6), unix(srv.IPv6Seen),
-			srv.Port, srv.Version, unix(srv.CreatedAt), unix(srv.LastSeen))
+			srv.Port, srv.Version, unix(srv.CreatedAt), unix(srv.LastSeen), addrString(srv.LANIP), srv.LANPort)
 		if err != nil {
 			return fmt.Errorf("insert server: %w", err)
 		}
@@ -173,12 +200,12 @@ func (s *Store) Create(ctx context.Context, srv *Server, newID func() string) er
 func (s *Store) Get(ctx context.Context, id string) (Server, error) {
 	var (
 		srv                   Server
-		ipv4, ipv6            string
+		ipv4, ipv6, lan       string
 		v4Seen, v6Seen, c, ls int64
 	)
-	err := s.db.QueryRowContext(ctx, `SELECT id, slug, token_hash, ipv4, ipv4_seen, ipv6, ipv6_seen, port, version, created_at, last_seen
+	err := s.db.QueryRowContext(ctx, `SELECT id, slug, token_hash, ipv4, ipv4_seen, ipv6, ipv6_seen, port, version, created_at, last_seen, lan_ip, lan_port
 		FROM servers WHERE id = ?`, id).
-		Scan(&srv.ID, &srv.Slug, &srv.TokenHash, &ipv4, &v4Seen, &ipv6, &v6Seen, &srv.Port, &srv.Version, &c, &ls)
+		Scan(&srv.ID, &srv.Slug, &srv.TokenHash, &ipv4, &v4Seen, &ipv6, &v6Seen, &srv.Port, &srv.Version, &c, &ls, &lan, &srv.LANPort)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Server{}, ErrNotFound
 	}
@@ -187,6 +214,7 @@ func (s *Store) Get(ctx context.Context, id string) (Server, error) {
 	}
 	srv.IPv4, _ = netip.ParseAddr(ipv4)
 	srv.IPv6, _ = netip.ParseAddr(ipv6)
+	srv.LANIP, _ = netip.ParseAddr(lan)
 	srv.IPv4Seen, srv.IPv6Seen = fromUnix(v4Seen), fromUnix(v6Seen)
 	srv.CreatedAt, srv.LastSeen = fromUnix(c), fromUnix(ls)
 	return srv, nil
@@ -195,9 +223,9 @@ func (s *Store) Get(ctx context.Context, id string) (Server, error) {
 // Update writes every mutable field of srv.
 func (s *Store) Update(ctx context.Context, srv Server) error {
 	res, err := s.db.ExecContext(ctx, `UPDATE servers SET slug = ?, ipv4 = ?, ipv4_seen = ?, ipv6 = ?, ipv6_seen = ?,
-		port = ?, version = ?, last_seen = ? WHERE id = ?`,
+		port = ?, version = ?, last_seen = ?, lan_ip = ?, lan_port = ? WHERE id = ?`,
 		srv.Slug, addrString(srv.IPv4), unix(srv.IPv4Seen), addrString(srv.IPv6), unix(srv.IPv6Seen),
-		srv.Port, srv.Version, unix(srv.LastSeen), srv.ID)
+		srv.Port, srv.Version, unix(srv.LastSeen), addrString(srv.LANIP), srv.LANPort, srv.ID)
 	if err != nil {
 		return fmt.Errorf("update server: %w", err)
 	}

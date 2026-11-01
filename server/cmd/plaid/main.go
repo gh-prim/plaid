@@ -106,7 +106,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 			DirectoryURL: cfg.ACMEDirectory, KeyPath: filepath.Join(cfg.DataDir, "remote", "acme-account.pem"),
 			Propagation: 5 * time.Second,
 		},
-		ServerName: cfg.ServerName, Version: buildinfo.Version, TLSPort: cfg.TLSPort,
+		ServerName: cfg.ServerName, Version: buildinfo.Version, TLSPort: cfg.TLSPort, LANIP: remoteaccess.LANAddr,
 		CertDir: filepath.Join(cfg.DataDir, "remote"), Log: logger,
 	})
 	if err != nil {
@@ -136,6 +136,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Sessions:       accts,
 		Stream:         handlers.StreamHandler(play, meta, engine.Store()),
 		Preview:        handlers.PreviewHandler(play),
+		AppOrigins:     cfg.AppOrigins,
 	})
 
 	ln, err := (&net.ListenConfig{}).Listen(ctx, "tcp", cfg.Addr())

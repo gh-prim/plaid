@@ -19,7 +19,8 @@ The service never sees media traffic: DNS points straight at the home server,
 and each server gets its own Let's Encrypt certificate through DNS-01 (its
 private key never leaves the home server). The service stores, per server:
 id, slug, token hash (SHA-256), public IPv4/IPv6, external port, PLAID
-version, created/last-seen times, and current ACME TXT values. Nothing else.
+version, created/last-seen times, current ACME TXT values, and optionally the
+server's private LAN IPv4 and HTTPS port. Nothing else.
 
 ## HTTP API
 
@@ -31,8 +32,11 @@ The server's public IP is **always the source address of the request**
 trusted proxy). A client can't point a name at an address it doesn't own.
 
 ### `POST /servers` — register
-Body: `{"name": "Living room", "port": 32501, "version": "0.3.0"}`
+Body: `{"name": "Living room", "port": 32501, "version": "0.3.0", "lanIp": "192.168.1.20", "lanPort": 32501}`
 `port` is the external port the router forwards to the server's HTTPS listener.
+`lanIp` (a private, CGNAT or link-local IPv4) and `lanPort` (the HTTPS port on
+that address) are optional: they let browsers at home reach the server
+without going through the router, which many can't do (no NAT loopback).
 
 `201`:
 ```json
@@ -77,18 +81,38 @@ verified, 5 s timeout) and reports whether a PLAID server answered
 or `{"reachable": false, ..., "error": "timeout|refused|not_plaid|tls"}`.
 Rate limit: 10 per server per hour.
 
+### `GET /servers/{id}/connections` — where a browser can reach it
+No auth. `200`:
+```json
+{"id": "k3x7qa", "hostname": "living-room-k3x7qa.getplaid.direct",
+ "connections": [
+   {"url": "https://192-168-1-20.living-room-k3x7qa.getplaid.direct:32501", "local": true},
+   {"url": "https://living-room-k3x7qa.getplaid.direct:32501", "local": false}]}
+```
+The LAN connection is listed only when the server sent `lanIp` and `lanPort`.
+Unknown id: `404 not_found`.
+
 ### `GET /ip`
 No auth. `200 {"ip": "203.0.113.7"}`: what the service sees as the caller's
 address.
 
 ## Short links
 
-`GET https://getplaid.direct/<id>` (the link PLAID shows, `shortUrl`) or
-`GET https://getplaid.direct/<label>` answers `302` to
-`https://<label>.getplaid.direct:<port>/`, so a person only ever has to
-remember or click one link. The redirect is all the service does: the video
-then goes straight from the home server to the device. Unknown id: `404`
-page that links to getplaid.tv.
+`GET https://getplaid.direct/<id>` (the link PLAID shows, `shortUrl`) serves
+the PLAID web app, like `app.plex.tv`: the page asks
+`/api/v1/servers/<id>/connections`, tries each address from the browser (the
+LAN one gets a head start) and keeps the first that answers. The address bar
+stays `getplaid.direct/<id>`; every API call, image and video then goes
+straight from the home server to the device. Routes inside the app
+(`/<id>/movies/…`) serve the same page. `GET /<label>` redirects to `/<id>`.
+The app and the servers share a site (getplaid.direct), so the server's
+session cookie works across them; servers send CORS headers, with
+credentials, to `https://getplaid.direct` only (`PLAID_APP_ORIGINS`).
+
+Without the app built in, the link answers `302` to
+`https://<label>.getplaid.direct:<port>/`, or to the LAN name when the
+visitor's address is the server's public IPv4 (they're on its network).
+Unknown id: `404` page that links to getplaid.tv.
 
 ## DNS
 

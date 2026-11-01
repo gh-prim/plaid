@@ -1,9 +1,24 @@
 # getplaid.direct: one static binary on distroless, running as non-root.
+# Built from the repository root (see docker-compose.yml): the binary embeds
+# the PLAID web app, built in hosted mode, which it serves on short links.
+
+# --- Web app, hosted mode (base /app/) ---
+FROM --platform=$BUILDPLATFORM node:24-slim AS web
+WORKDIR /src/web
+RUN corepack enable
+COPY web/package.json web/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY api/ /src/api/
+COPY web/ ./
+RUN pnpm build:hosted
+
+# --- Service ---
 FROM golang:1.26-alpine AS build
 WORKDIR /src
-COPY go.mod go.sum ./
+COPY services/direct/go.mod services/direct/go.sum ./
 RUN go mod download
-COPY . .
+COPY services/direct/ ./
+COPY --from=web /src/web/dist-hosted/ ./internal/webapp/dist/
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/direct ./cmd/direct \
  && mkdir -p /out/data
 

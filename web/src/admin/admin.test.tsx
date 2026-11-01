@@ -917,9 +917,7 @@ describe('remote access', () => {
     )
     await renderApp('/admin/remote-access')
     await userEvent.click(await screen.findByRole('switch', { name: 'Remote access' }))
-    expect(
-      await screen.findByText('https://getplaid.direct/k3x7qa'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('https://getplaid.direct/k3x7qa')).toBeInTheDocument()
     expect(screen.getByText('Open with UPnP, port 32501')).toBeInTheDocument()
     expect(screen.getAllByText('Reachable from outside').length).toBeGreaterThan(0)
     expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ enabled: true })

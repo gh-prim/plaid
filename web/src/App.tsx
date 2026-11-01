@@ -136,9 +136,10 @@ export function AppRoutes() {
   )
 }
 
-export function App() {
+/** `basename` is "/<id>" in hosted mode, where the app lives under the short link. */
+export function App({ basename }: { basename?: string }) {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <AppRoutes />
     </BrowserRouter>
   )

@@ -44,6 +44,9 @@ type Config struct {
 	TLSPort int
 	// DirectURL is the getplaid.direct API (F012).
 	DirectURL string
+	// AppOrigins may call the API from a browser with the session cookie:
+	// the web app getplaid.direct serves on the server's short link (F012).
+	AppOrigins []string
 	// ACMEDirectory is the certificate authority (F012): Let's Encrypt,
 	// or its staging directory while testing.
 	ACMEDirectory string
@@ -95,6 +98,13 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 	cfg.TLSPort = tlsPort
 	cfg.DirectURL = get("PLAID_DIRECT_URL", "https://getplaid.direct/api/v1")
+	if origins := get("PLAID_APP_ORIGINS", "https://getplaid.direct"); origins != "none" {
+		for o := range strings.SplitSeq(origins, ",") {
+			if o = strings.TrimRight(strings.TrimSpace(o), "/"); o != "" {
+				cfg.AppOrigins = append(cfg.AppOrigins, o)
+			}
+		}
+	}
 	cfg.ACMEDirectory = get("PLAID_ACME_DIRECTORY", "https://acme-v02.api.letsencrypt.org/directory")
 
 	switch cfg.LogLevel {

@@ -1,6 +1,6 @@
 import { banner, card, eyebrow, page, pageHero } from '../layout.mjs';
 
-const KEPT = ['id', 'name', 'token', 'ips', 'port', 'version', 'dates', 'acme'];
+const KEPT = ['id', 'name', 'token', 'ips', 'lan', 'port', 'version', 'dates', 'acme'];
 
 export default {
   id: 'privacy',

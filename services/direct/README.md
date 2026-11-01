@@ -78,7 +78,7 @@ use local TLS servers.
 ## Docker
 
 ```bash
-docker build -t plaid-direct .
+docker build -f services/direct/Dockerfile -t plaid-direct ../..  # from services/direct: the image builds the web app too
 docker run --rm -e DIRECT_PUBLIC_IP=203.0.113.10 \
   -p 8080:8080 -p 53:5353/udp -p 53:5353/tcp -v direct-data:/data plaid-direct
 ```

@@ -418,6 +418,18 @@
       "seeAll": "Tout voir"
     }
   },
+  "hosted": {
+    "finding": "Connexion au serveur…",
+    "retry": "Réessayer",
+    "unknown": {
+      "body": "Vérifie le lien reçu : il ressemble à getplaid.direct suivi de six lettres et chiffres.",
+      "title": "Ce lien ne mène à aucun serveur"
+    },
+    "unreachable": {
+      "body": "Il est peut-être éteint, ou son propriétaire a coupé l’accès à distance. Réessaie dans un instant.",
+      "title": "Impossible de joindre ce serveur"
+    }
+  },
   "item": {
     "about": {
       "accessibility": "Accessibilité",

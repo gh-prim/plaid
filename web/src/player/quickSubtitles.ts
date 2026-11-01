@@ -1,4 +1,5 @@
 import { useEffect, useState, type RefObject } from 'react'
+import { serverUrl } from '../api/server'
 
 /** How often a partial track is asked again, until the whole one is there. */
 const retryMs = 15_000
@@ -23,7 +24,7 @@ export function useQuickSubtitle<T>(
     const ask = () => {
       const from = Math.max(0, Math.round((video.current?.currentTime ?? 0) * 1000))
       const sep = url.includes('?') ? '&' : '?'
-      fetch(`${url}${sep}from=${from}`, { signal: ctrl.signal })
+      fetch(serverUrl(`${url}${sep}from=${from}`), { signal: ctrl.signal })
         .then(async (r) => {
           if (!r.ok) throw new Error(String(r.status))
           const partial = r.headers.get('X-Subtitle-Until') !== null
