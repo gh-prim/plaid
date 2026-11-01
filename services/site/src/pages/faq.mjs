@@ -1,10 +1,10 @@
-import { LINKS, beat, more, night, opening, page } from '../layout.mjs';
+import { LINKS, ambient, banner, btn, ctaRow, icon, page, pageHero } from '../layout.mjs';
 
 const GROUPS = [
-  { id: 'basics', qs: ['free', 'today', 'fork'] },
-  { id: 'data', qs: ['account', 'sends', 'files'] },
-  { id: 'hardware', qs: ['pi', 'docker'] },
-  { id: 'friends', qs: ['outside', 'install'] },
+  ['basics', 'sparkle', ['free', 'today', 'fork']],
+  ['data', 'lock', ['account', 'sends', 'files']],
+  ['hardware', 'chip', ['pi', 'docker']],
+  ['friends', 'people', ['reach', 'install']],
 ];
 
 export default {
@@ -12,40 +12,21 @@ export default {
   slug: 'faq/',
   render(ctx) {
     const { t, attr } = ctx;
-    const vars = {
-      roadmap: ctx.href('roadmap'),
-      remote: ctx.href('remote'),
-      privacy: ctx.href('privacy'),
-      proxy: LINKS.proxyGuide,
-      hw: LINKS.hwGuide,
-    };
-    const body = `<div class="wrap">
-${opening(ctx, { title: t('faq.title'), lead: t('faq.lead') })}
-${night(
-  GROUPS.map((g) =>
-    beat({
-      id: g.id,
-      time: t(`faq.${g.id}.time`),
-      title: t(`faq.${g.id}.title`),
-      body: g.qs
-        .map(
-          (q) =>
-            `<details class="qa" id="${q}"><summary class="qa__q pl-focusable">${t(`faq.${g.id}.${q}.q`)}</summary><div class="qa__a"><p>${t(`faq.${g.id}.${q}.a`, vars)}</p></div></details>`,
-        )
-        .join(''),
-      layout: 'text',
-    }),
-  ).concat(
-    beat({
-      id: 'ask',
-      time: t('faq.ask.time'),
-      title: t('faq.ask.title'),
-      body: more(LINKS.issues, t('faq.ask.link')),
-      layout: 'text',
-    }),
-  ),
-  'words',
-)}
+    const groups = GROUPS.map(
+      ([g, ic, qs]) =>
+        `<section class="qgroup" aria-labelledby="q-${g}"><div class="qgroup__head rv">${icon(ic)}<h2 class="qgroup__title" id="q-${g}">${t(`faq.groups.${g}`)}</h2></div><dl class="qlist">${qs
+          .map((q) => `<div class="qitem hl rv"><dt>${t(`faq.items.${q}.q`)}</dt><dd>${t(`faq.items.${q}.a`)}</dd></div>`)
+          .join('')}</dl></section>`,
+    ).join('');
+
+    const body = `<div class="hero-zone hero-zone--page">
+${ambient(['still-caminandes'], 'ambient--short')}
+${pageHero(ctx, { eyebrow: t('faq.eyebrow'), title: t('faq.title'), lead: t('faq.lead') })}
+</div>
+<div class="wrap">
+${banner(ctx, { img: 'still-caminandes', alt: attr('faq.bannerAlt'), credit: t('credits.caminandes'), pos: 'center' })}
+<div class="qgroups">${groups}</div>
+${ctaRow({ icon: 'question', title: t('faq.still.title'), actions: btn(LINKS.issues, t('faq.still.action'), 'cream', 'md') })}
 </div>`;
     return page(ctx, { title: attr('faq.meta.title'), description: attr('faq.meta.description'), body });
   },

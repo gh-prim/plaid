@@ -1,19 +1,29 @@
-import { LINKS, beat, more, night, opening, page, shot, tag } from '../layout.mjs';
+import { ambient, banner, icon, page, pageHero, status } from '../layout.mjs';
 
-// Each group is one moment of the night; each line is a fact with its status.
+// Each group lists [key, icon, status].
 const GROUPS = [
-  { id: 'libraries', time: '19:10', shot: 'scan', items: [['scan', 'available'], ['match', 'available'], ['search', 'available']] },
-  {
-    id: 'playback',
-    time: '21:00',
-    items: [['direct', 'available'], ['transcode', 'available'], ['hw', 'available'], ['subs', 'available'], ['resume', 'available']],
-  },
-  { id: 'screens', time: '21:01', items: [['web', 'available'], ['appletv', 'available'], ['ios', 'planned'], ['android', 'planned']] },
-  {
-    id: 'people',
-    time: '21:02',
-    items: [['accounts', 'available'], ['pairing', 'available'], ['remote', 'available'], ['sharing', 'planned'], ['party', 'planned']],
-  },
+  ['libraries', [['scan', 'scan', 'available'], ['match', 'image', 'available'], ['search', 'search', 'available']]],
+  [
+    'playback',
+    [
+      ['direct', 'play', 'available'],
+      ['transcode', 'swap', 'available'],
+      ['hardware', 'chip', 'available'],
+      ['subtitles', 'subtitles', 'available'],
+      ['resume', 'resume', 'available'],
+    ],
+  ],
+  ['screens', [['web', 'globe', 'available'], ['appletv', 'tv', 'available'], ['ios', 'phone', 'planned'], ['android', 'android', 'planned']]],
+  [
+    'people',
+    [
+      ['accounts', 'people', 'available'],
+      ['pairing', 'pair', 'available'],
+      ['remote', 'link', 'available'],
+      ['sharing', 'share', 'planned'],
+      ['party', 'party', 'planned'],
+    ],
+  ],
 ];
 
 export default {
@@ -21,36 +31,24 @@ export default {
   slug: 'features/',
   render(ctx) {
     const { t, attr } = ctx;
-    const list = (g) =>
-      `<dl class="facts">${g.items
-        .map(
-          ([key, status]) =>
-            `<div class="facts__row"><dt>${t(`features.${g.id}.items.${key}.name`)}</dt><dd>${t(`features.${g.id}.items.${key}.text`, { party: ctx.href('party'), remote: ctx.href('remote'), hw: LINKS.hwGuide })}</dd><dd class="facts__status">${tag(ctx, status)}</dd></div>`,
-        )
-        .join('')}</dl>`;
-    const body = `<div class="wrap">
-${opening(ctx, { title: t('features.title'), lead: t('features.lead') })}
-${night(
-  GROUPS.map((g) =>
-    beat({
-      id: g.id,
-      time: g.time,
-      datetime: g.time,
-      title: t(`features.${g.id}.title`),
-      body: `${list(g)}`,
-      aside: g.shot ? shot(ctx, g.shot, { sizes: '(min-width: 1100px) 40vw, 100vw' }) : '',
-      layout: g.shot ? 'split' : 'text',
-    }),
-  ).concat(
-    beat({
-      id: 'statuses',
-      time: t('features.statuses.time'),
-      title: t('features.statuses.title'),
-      body: `<p>${t('features.statuses.body')}</p>${more(ctx.href('roadmap'), t('features.statuses.more'))}`,
-      layout: 'text',
-    }),
-  ),
-)}
+    const groups = GROUPS.map(
+      ([g, items]) =>
+        `<section class="fgroup" aria-labelledby="g-${g}"><h2 class="fgroup__title rv" id="g-${g}">${t(`features.groups.${g}`)}</h2><ul class="frows">${items
+          .map(
+            ([k, ic, st]) =>
+              `<li class="frow hl rv">${icon(ic, 30)}<h3 class="frow__name">${t(`features.items.${k}.name`)}</h3><p class="frow__body">${t(`features.items.${k}.body`)}</p>${status(ctx, st)}</li>`,
+          )
+          .join('')}</ul></section>`,
+    ).join('');
+
+    const body = `<div class="hero-zone hero-zone--page">
+${ambient(['still-big-buck-bunny-close'], 'ambient--features')}
+${pageHero(ctx, { eyebrow: t('features.eyebrow'), title: t('features.title'), lead: t('features.lead'), cls: 'phero--features' })}
+</div>
+<div class="wrap">
+${banner(ctx, { img: 'still-big-buck-bunny', alt: attr('features.bannerAlt'), credit: t('credits.bigBuckBunny'), pos: 'bbb' })}
+<div class="fgroups">${groups}</div>
+<p class="legend rv">${t('features.legend')}</p>
 </div>`;
     return page(ctx, { title: attr('features.meta.title'), description: attr('features.meta.description'), body });
   },

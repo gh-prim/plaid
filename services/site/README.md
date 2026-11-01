@@ -2,19 +2,18 @@
 
 The public website of PLAID: a static, bilingual site (English at `/`, French at `/fr/`) with no runtime framework, no analytics and no cookies.
 
-Pages: home, `features/`, `party/`, `install/`, `remote-access/` (how getplaid.direct works), `roadmap/`, `open-source/`, `faq/`, `privacy/`, plus a 404 page per locale. `/download/` (the first site's install page) redirects to `/install/`.
+Pages: home, `features/`, `party/`, `install/`, `remote-access/` (how getplaid.direct works), `protocol/` (the getplaid.direct protocol), `roadmap/`, `open-source/`, `faq/`, `privacy/`, plus a 404 page per locale. `/download/` (the first site's install page) redirects to `/install/`.
 
 ## Design
 
-The site is built from the web app's design system, not next to it:
+The site reproduces the Claude Design mockup of getplaid.tv as real, responsive HTML and CSS:
 
-- `src/css/tokens.css`, `fonts.css` and `components.css` are copied from `web/src/design/` (components: only the blocks the site uses). Update them by copying again; never edit values here.
-- Buttons are the app's onboarding pills (cream for the one primary action, glass for the rest), code blocks are its `CommandBlock`, status labels its `.pl-tag`, the Plaid Party room its timeline, avatars and toast.
-- **One idea: one movie night, timestamped.** Section markers are times of a single night (18:30 install, 20:47 the link is sent, 21:02 everyone has joined, 1:12:48 Sam asks for a pause). The thread down the left is a timeline whose played part is woven like the player's and follows the reader. It is the only decoration and the only motion.
-- Amber is progress and focus only: one amber element per viewport. The tartan appears only in the logo and in the played part of a timeline.
-- The kill list (patterns that must not come back) is at the top of `src/css/site.css`.
-
-Imagery is real: `public/shots/` holds cropped screenshots of the running app (web player, first run, remote access settings) and of the Apple TV app (`sdlc/features/F011-tvos-app/screenshots/settings.jpg`). The film in the player is a public-domain title (*Nosferatu*, 1922) whose picture is a test card. Screens that don't exist yet (Plaid Party) are drawn with the design system's components and labelled "Concept". No commercial posters.
+- One dark theme: `#0b0b0c` background, cream `#f4f0e9` text, Bricolage Grotesque (600 to 700) for display headings with tight negative tracking, Instrument Sans for text. Both fonts are self-hosted in `public/fonts` (SIL OFL).
+- A liquid-glass pill header that turns solid after the first screen and hides while scrolling down; cream pills for the main action, glass pills for the rest.
+- Each page opens on a blurred field of film stills, a display title and a lead, then a rounded still with its credit. The home page draws the web app in a tilted browser window, the Apple TV app and the Plaid Party devices.
+- Imagery: stills and posters of public-domain films and Blender open movies (CC BY), credited in the footer and under each still. No commercial posters.
+- Motion is progressive: `src/js/boot.js` marks the page as scripted before first paint, and only then do scroll reveals hide content until it is seen. Hooks are explicit classes (`.rv`, `.rvi`, `.hl`, `[data-words]`, `[data-type]`, `[data-devices]`, `[data-copy]`). `prefers-reduced-motion` turns it all off.
+- The Content Security Policy forbids inline styles and scripts, so templates never use `style=""`; every variation is a class, and scripts only touch styles through the CSSOM.
 
 ## Layout
 
@@ -22,11 +21,12 @@ Imagery is real: `public/shots/` holds cropped screenshots of the running app (w
 |------|------|
 | `locales/en.json`, `locales/fr.json` | Every user-facing string. English is the source; French uses "tu". |
 | `src/pages/*.mjs` | One template per page, plain template literals. |
-| `src/layout.mjs` | `<head>` (Open Graph, hreflang, canonical), header, footer, and the shared components (`cmd`, `button`, `tag`, `shot`, `night`/`beat`, `partyRoom`). |
+| `src/layout.mjs` | `<head>` (Open Graph, hreflang, canonical), header, footer, and the shared components (`btn`, `cmd`, `banner`, `ambient`, `pageHero`, `card`, `ctaRow`, `posterParade`). |
+| `src/icons.mjs` | The line icons, stroked with the cream-to-blue gradient. |
 | `src/i18n.mjs` | Locale loading and the inline markup allowed in strings: `` `code` ``, `**strong**`, `[label](url)`, `{placeholder}`. |
-| `src/css/` | Design system (vendored) + `site.css`, bundled and fingerprinted at build time. |
-| `src/js/theme.js`, `src/js/site.js` | The only scripts: theme before first paint; theme toggle, copy buttons, install tabs, the night's thread. The site works without them. |
-| `public/` | Copied as is: fonts (Instrument Sans and Serif, SIL OFL), favicon (the app icon), screenshots, Open Graph image. |
+| `src/css/` | `fonts.css` and `site.css`, bundled and fingerprinted at build time. |
+| `src/js/boot.js`, `src/js/site.js` | The only scripts: the `js` class before first paint; header, reveals, typed command, copy buttons, FAQ accordion, page transitions. The site works without them. |
+| `public/` | Copied as is: fonts, `logo.svg` (the tartan play button), favicon, film stills and posters (`img/`), Open Graph image. |
 | `scripts/build.mjs` | Renders every page in every locale to `dist/`, plus `robots.txt` and `sitemap.xml`. |
 | `scripts/check-i18n.mjs` | Fails if the locales differ in keys or placeholders, or a template uses an unknown key. |
 

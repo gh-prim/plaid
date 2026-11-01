@@ -5,28 +5,27 @@ export const ORIGIN = 'https://getplaid.tv';
 export const LOCALES = ['en', 'fr'];
 export const DEFAULT_LOCALE = 'en';
 
+// The wordmark is the brand, never translated.
+export const BRAND = 'plaid';
+
 const REPO = 'https://github.com/gh-prim/plaid';
 
 export const LINKS = {
   github: REPO,
-  releases: `${REPO}/releases/latest`,
+  releases: `${REPO}/releases`,
+  latestRelease: `${REPO}/releases/latest`,
   issues: `${REPO}/issues`,
+  newIssue: `${REPO}/issues/new`,
   contributing: `${REPO}/blob/main/sdlc/README.md`,
   installGuide: `${REPO}/blob/main/docs/install.md`,
-  remoteGuide: `${REPO}/blob/main/docs/install.md#remote-access`,
-  proxyGuide: `${REPO}/blob/main/docs/install.md#behind-a-reverse-proxy`,
-  permissionsGuide: `${REPO}/blob/main/docs/install.md#letting-plaid-read-your-media-folders`,
-  hwGuide: `${REPO}/blob/main/docs/install.md#hardware-transcoding`,
-  roadmap: `${REPO}/blob/main/sdlc/roadmap.md`,
-  specs: `${REPO}/tree/main/sdlc/features`,
-  partyIntent: `${REPO}/blob/main/sdlc/features/F010-plaid-party/intent.md`,
+  features: `${REPO}/tree/main/sdlc/features`,
   openapi: `${REPO}/blob/main/api/openapi.yaml`,
   protocol: `${REPO}/blob/main/services/direct/PROTOCOL.md`,
   license: `${REPO}/blob/main/LICENSE`,
   installScript: `${REPO}/blob/main/packaging/install.sh`,
 };
 
-// Commands and paths shown on the site. Code is never translated.
+// Commands, paths and addresses shown on the site. Code is never translated.
 export const CODE = {
   script: 'curl -fsSL https://raw.githubusercontent.com/gh-prim/plaid/main/packaging/install.sh | sudo bash',
   debVerify: 'sha256sum -c --ignore-missing checksums.txt',
@@ -35,8 +34,11 @@ export const CODE = {
   dockerUp: 'docker compose up -d',
   status: 'systemctl status plaid',
   logs: 'journalctl -u plaid -f',
-  host: 'living-room-k3x7qa.getplaid.direct',
-  short: 'https://getplaid.direct/k3x7qa',
+  serverUrl: 'http://<your-server>:32500',
+  lanHost: 'living-room.local',
+  short: 'getplaid.direct/k3x7qa',
+  longHost: 'living-room-k3x7qa.getplaid.direct:32501',
+  apiBase: 'https://getplaid.direct/api/v1',
 };
 
 // URL prefix of a locale: the default locale lives at the root.

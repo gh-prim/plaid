@@ -1,30 +1,46 @@
-import { LINKS, beat, button, night, opening, page } from '../layout.mjs';
+import { LINKS, ambient, banner, btn, card, ctaRow, page, pageHero, posterParade } from '../layout.mjs';
+
+const STACK = ['Go', 'SQLite', 'FFmpeg', 'React', 'SwiftUI', 'Kotlin', 'Jetpack Compose'];
 
 export default {
   id: 'openSource',
   slug: 'open-source/',
   render(ctx) {
     const { t, attr } = ctx;
-    const rules = ['plan', 'contract', 'words', 'review']
-      .map((k) => `<li><h3>${t(`openSource.rules.${k}.name`)}</h3><p>${t(`openSource.rules.${k}.text`, { openapi: LINKS.openapi })}</p></li>`)
+    const how = [
+      ['written', 'doc'],
+      ['contract', 'braces'],
+      ['words', 'translate'],
+      ['review', 'merge'],
+    ]
+      .map(([k, ic], i) =>
+        card({
+          kicker: `<span class="card__num card__num--sm" aria-hidden="true">0${i + 1}</span>`,
+          icon: ic,
+          title: t(`openSource.how.${k}.title`),
+          body: `<p>${t(`openSource.how.${k}.body`)}</p>`,
+          cls: 'card--how',
+        }),
+      )
       .join('');
-    const body = `<div class="wrap">
-${opening(ctx, { title: t('openSource.title'), lead: t('openSource.lead', { license: LINKS.license }) })}
-${night(
-  [
-    beat({ id: 'rules', time: t('openSource.rules.time'), title: t('openSource.rules.title'), body: `<ol class="rules">${rules}</ol>`, layout: 'text' }),
-    beat({ id: 'stack', time: t('openSource.stack.time'), title: t('openSource.stack.title'), body: `<p class="stack">${t('openSource.stack.list')}</p>`, layout: 'text' }),
-    beat({
-      id: 'contribute',
-      time: t('openSource.contribute.time'),
-      title: t('openSource.contribute.title'),
-      body: `<p>${t('openSource.contribute.body')}</p><div class="actions">${button(LINKS.issues, t('openSource.contribute.issue'))}${button(LINKS.contributing, t('openSource.contribute.guide'))}</div>`,
-      layout: 'text',
-    }),
-  ],
-  'words',
-)}
-</div>`;
+
+    const body = `<div class="hero-zone hero-zone--page">
+${ambient(['still-sprite-fright'], 'ambient--short')}
+${pageHero(ctx, { eyebrow: t('openSource.eyebrow'), title: t('openSource.title'), lead: t('openSource.lead') })}
+</div>
+<div class="wrap">
+${banner(ctx, { img: 'still-sprite-fright', alt: attr('openSource.bannerAlt'), credit: t('credits.spriteFright'), pos: 'center' })}
+<section class="block" aria-labelledby="how-title">
+<h2 class="h2 h2--md" id="how-title" data-words>${t('openSource.how.title')}</h2>
+<div class="grid2 grid2--how">${how}</div>
+</section>
+<section class="block block--tight" aria-labelledby="stack-title">
+<h2 class="h2 h2--md" id="stack-title" data-words>${t('openSource.stack')}</h2>
+<ul class="chips">${STACK.map((s) => `<li class="chip rv">${s}</li>`).join('')}</ul>
+</section>
+${ctaRow({ icon: 'heart', title: t('openSource.help.title'), body: t('openSource.help.body'), actions: btn(LINKS.newIssue, t('openSource.help.issue'), 'cream', 'md') + btn(LINKS.contributing, t('openSource.help.how'), 'glass', 'md') })}
+</div>
+${posterParade(ctx, 'openSource.parade')}`;
     return page(ctx, { title: attr('openSource.meta.title'), description: attr('openSource.meta.description'), body });
   },
 };
