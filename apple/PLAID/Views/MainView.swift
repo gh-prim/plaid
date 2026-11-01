@@ -50,12 +50,15 @@ struct MainView: View {
     /// Down from the search keyboard lands on the first focusable view of
     /// the app, the menu's top row, unless the menu is off: on Search it only
     /// takes focus from the results, or when asked for from the keyboard.
+    /// Pushed pages (a title, a person) have no menu: Back leaves them, as in
+    /// Apple's TV app, and left at the start of a row stays put.
     private var railOff: Bool {
-        !railEnabled || app.splashing || (section == .search && railFocus == nil && !railRequested && !searchResultsFocused)
+        !railEnabled || app.splashing || !path.isEmpty || (section == .search && railFocus == nil && !railRequested && !searchResultsFocused)
     }
 
     /// Focus on the menu, on the row of the page shown.
     private func openRail() {
+        guard path.isEmpty else { return }
         railRequested = true
         // The menu turns on first, then takes focus.
         Task { railFocus = .section(section) }
