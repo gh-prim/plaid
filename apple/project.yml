@@ -44,6 +44,8 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, fr]
+        # App Store Connect rejects 64-bit binaries that don't require arm64.
+        UIRequiredDeviceCapabilities: [arm64]
         # The splash's graphite, so the launch intro starts on the same color.
         UILaunchScreen:
           UIColorName: Splash
@@ -83,6 +85,7 @@ targets:
         CFBundleDisplayName: PLAID
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UIRequiredDeviceCapabilities: [arm64]
         NSExtension:
           NSExtensionPointIdentifier: com.apple.tv-top-shelf
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ContentProvider
