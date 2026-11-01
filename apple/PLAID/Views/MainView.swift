@@ -56,6 +56,22 @@ struct MainView: View {
         !railEnabled || app.splashing || !path.isEmpty || (section == .search && railFocus == nil && !railRequested && !searchResultsFocused)
     }
 
+    /// The back button: it goes away with the page it sat on, so the root
+    /// page takes focus before the menu turns on again.
+    private func goBack() {
+        path.removeLast()
+        guard path.isEmpty else { return }
+        let wasEnabled = railEnabled
+        railEnabled = false
+        Task {
+            // After the pop's slide, when the root page can take focus again.
+            try? await Task.sleep(for: .milliseconds(450))
+            pageFocusTick += 1
+            try? await Task.sleep(for: .milliseconds(300))
+            if wasEnabled { railEnabled = true }
+        }
+    }
+
     /// Focus on the menu, on the row of the page shown.
     private func openRail() {
         guard path.isEmpty else { return }
@@ -93,6 +109,19 @@ struct MainView: View {
                         if wasEnabled { railEnabled = true }
                     }
                 }
+            // Pushed pages: a discreet way back, for those who don't think of
+            // the remote's Back button. Up from the page's buttons reaches it.
+            if !path.isEmpty {
+                Button { goBack() } label: {
+                    Image(systemName: "chevron.left").accessibilityLabel(Text("common.back"))
+                }
+                .buttonStyle(RoundGlassButtonStyle(size: 56))
+                .padding(.leading, Theme.systemMargin)
+                .padding(.top, 48)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .ignoresSafeArea()
+                .transition(.opacity)
+            }
             // The page dims while the menu is open.
             Color.black.opacity(railFocus == nil ? 0 : 0.5)
                 .ignoresSafeArea()
