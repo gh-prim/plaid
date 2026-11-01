@@ -117,9 +117,20 @@ func (l Layout) MediaPlaylist() string {
 	return b.String()
 }
 
-// SubtitlePlaylist lists one WebVTT file covering the whole duration (R16).
+// SubtitlePlaylist lists a text track as WebVTT segments of
+// SubtitleSegmentMs (R16): a player fetches the part it plays, which the
+// quick window answers in seconds. One file for the whole duration made
+// AVPlayer wait for a whole embedded track to be extracted, minutes over a
+// NAS, and give up after 120 s.
 func SubtitlePlaylist(durationMs int64, index int) string {
-	secs := float64(max(durationMs, 1)) / 1000
-	return fmt.Sprintf("#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:%d\n#EXT-X-MEDIA-SEQUENCE:0\n"+
-		"#EXT-X-PLAYLIST-TYPE:VOD\n#EXTINF:%.3f,\n%d.vtt\n#EXT-X-ENDLIST\n", int(math.Ceil(secs)), secs, index)
+	durationMs = max(durationMs, 1)
+	var b strings.Builder
+	target := math.Ceil(float64(min(durationMs, SubtitleSegmentMs)) / 1000)
+	fmt.Fprintf(&b, "#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:%d\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-PLAYLIST-TYPE:VOD\n", int(target))
+	for n, start := 0, int64(0); start < durationMs; n, start = n+1, start+SubtitleSegmentMs {
+		end := min(start+SubtitleSegmentMs, durationMs)
+		fmt.Fprintf(&b, "#EXTINF:%.3f,\n%d.vtt?seg=%d\n", float64(end-start)/1000, index, n)
+	}
+	b.WriteString("#EXT-X-ENDLIST\n")
+	return b.String()
 }
