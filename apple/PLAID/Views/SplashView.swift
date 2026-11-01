@@ -78,6 +78,26 @@ struct SplashView: View {
     }
 }
 
+/// The logo lockup as the splash ends: the woven play button and "plaid",
+/// in cream. `size` is about the height of the old text wordmark.
+struct Wordmark: View {
+    var size: CGFloat = 44
+    /// The lockup's box on the splash board, mark and lettering.
+    private static let box = CGRect(x: 548, y: 400, width: 397, height: 131)
+
+    var body: some View {
+        let k = size * 1.2 / Self.box.height
+        Canvas { ctx, _ in
+            ctx.scaleBy(x: k, y: k)
+            ctx.translateBy(x: -Self.box.minX, y: -Self.box.minY)
+            SplashFrame(p: SplashView.fadeFrom).drawLockup(in: ctx)
+        }
+        .frame(width: Self.box.width * k, height: Self.box.height * k)
+        .accessibilityElement()
+        .accessibilityLabel(Text("splash.label"))
+    }
+}
+
 /// One frame of the splash at fraction `p` of its 6 s timeline, drawn in the
 /// board's 1440 × 900 space scaled to fit the screen.
 struct SplashFrame {
@@ -160,14 +180,41 @@ struct SplashFrame {
     func draw(in ctx: inout GraphicsContext, size: CGSize) {
         // Fit the board's 1440 × 900 frame, centered.
         let k = min(size.width / 1440, size.height / 900)
-        ctx.translateBy(x: (size.width - 1440 * k) / 2, y: (size.height - 900 * k) / 2)
+        let origin = CGPoint(x: (size.width - 1440 * k) / 2, y: (size.height - 900 * k) / 2)
+        ctx.translateBy(x: origin.x, y: origin.y)
         ctx.scaleBy(x: k, y: k)
 
-        drawMark(in: ctx)
+        // The screen in board units: wider than the board on a 16:9 TV.
+        let screen = CGRect(x: -origin.x / k, y: -origin.y / k, width: size.width / k, height: size.height / k)
+        drawMark(in: ctx, screen: screen)
         drawLettering(in: ctx)
     }
 
-    private func drawMark(in parent: GraphicsContext) {
+    /// How far a piece must start, in the mark's units, to be wholly off
+    /// `screen` while the mark is centered and big: the board's distance, or
+    /// more when the screen shows past the board's edges.
+    private func startDistance(_ piece: (clip: CGRect, from: CGVector, distance: Double, hit: Double), screen: CGRect) -> Double {
+        // The piece in board units: the mark at (600, 330) × 2.4, the
+        // triangle's box with its stroke (x 30…84, y 19…81) inside the clip.
+        let r = piece.clip.intersection(CGRect(x: 30, y: 19, width: 54, height: 62))
+        let b = CGRect(x: 600 + r.minX * 2.4, y: 330 + r.minY * 2.4, width: r.width * 2.4, height: r.height * 2.4)
+        let margin = 20.0
+        let needed: Double = switch (piece.from.dx, piece.from.dy) {
+        case (0, ..<0): b.maxY - screen.minY + margin
+        case (0, _): screen.maxY - b.minY + margin
+        case (..<0, _): b.maxX - screen.minX + margin
+        default: screen.maxX - b.minX + margin
+        }
+        return max(piece.distance, needed / 2.4)
+    }
+
+    /// The mark and the lettering in board units, without fitting the screen.
+    func drawLockup(in ctx: GraphicsContext) {
+        drawMark(in: ctx, screen: CGRect(x: 0, y: 0, width: 1440, height: 900))
+        drawLettering(in: ctx)
+    }
+
+    private func drawMark(in parent: GraphicsContext, screen: CGRect) {
         var ctx = parent
         // The mark glides from the center, big, to the left of the name.
         let move = seg(44, 56, Self.glide)
@@ -187,7 +234,7 @@ struct SplashFrame {
 
         for piece in Self.pieces {
             var pc = ctx
-            let d = pieceDistance(piece.distance, hit: piece.hit)
+            let d = pieceDistance(startDistance(piece, screen: screen), hit: piece.hit)
             pc.translateBy(x: piece.from.dx * d, y: piece.from.dy * d)
             pc.clip(to: Path(piece.clip))
             pc.fill(Self.triangle, with: .color(Self.cream))

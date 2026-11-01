@@ -42,6 +42,24 @@ struct MainView: View {
     @State private var pageFocusTick = 0
     /// The pages pushed over the section's root (item pages).
     @State private var path = NavigationPath()
+    /// Search: focus is on a result, not on the system keyboard.
+    @State private var searchResultsFocused = false
+    /// Search: the menu was asked for (left or Back on the keyboard).
+    @State private var railRequested = false
+
+    /// Down from the search keyboard lands on the first focusable view of
+    /// the app, the menu's top row, unless the menu is off: on Search it only
+    /// takes focus from the results, or when asked for from the keyboard.
+    private var railOff: Bool {
+        !railEnabled || app.splashing || (section == .search && railFocus == nil && !railRequested && !searchResultsFocused)
+    }
+
+    /// Focus on the menu, on the row of the page shown.
+    private func openRail() {
+        railRequested = true
+        // The menu turns on first, then takes focus.
+        Task { railFocus = .section(section) }
+    }
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -56,9 +74,22 @@ struct MainView: View {
                 // Back closes a pushed page first; at a section's root it
                 // goes to the menu, as in Apple's apps.
                 .onExitCommand {
-                    if path.isEmpty { railFocus = .section(section) } else { path.removeLast() }
+                    if path.isEmpty { openRail() } else { path.removeLast() }
                 }
-                .onChange(of: section) { path = NavigationPath() }
+                .onChange(of: section) { path = NavigationPath(); railRequested = false; searchResultsFocused = false }
+                .onChange(of: railFocus) { if railFocus == nil { railRequested = false } }
+                // The page couldn't take focus under the intro: it takes it
+                // now, before the menu turns on again.
+                .onChange(of: app.splashing) {
+                    guard !app.splashing else { return }
+                    let wasEnabled = railEnabled
+                    railEnabled = false
+                    pageFocusTick += 1
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(400))
+                        if wasEnabled { railEnabled = true }
+                    }
+                }
             // The page dims while the menu is open.
             Color.black.opacity(railFocus == nil ? 0 : 0.5)
                 .ignoresSafeArea()
@@ -73,8 +104,13 @@ struct MainView: View {
                          // The open panel covers the page's edge, so tvOS
                          // can't move right on its own: the page takes focus.
                          Task { try? await Task.sleep(for: .milliseconds(150)); pageFocusTick += 1 }
-                     })
-                .disabled(!railEnabled)
+                     },
+                     moveRight: section == .search ? {
+                         // Search can't be told to focus its keyboard: the
+                         // menu lets go and turns off, and tvOS picks the page.
+                         railFocus = nil
+                     } : nil)
+                .disabled(railOff)
                 .padding(.leading, 24)
                 .padding(.vertical, 24)
                 .frame(maxHeight: .infinity)
@@ -138,14 +174,14 @@ struct MainView: View {
         case .search:
             // Keeps tvOS's safe margins: the system keyboard and its
             // dictation hint lay out inside them.
-            NavigationStack(path: $path) { SearchView().withItemDestinations() }
+            NavigationStack(path: $path) { SearchView(resultsFocused: $searchResultsFocused).withItemDestinations() }
                 // A safe margin, not a padding: the system search bar lays
                 // its dictation hint out against the full width.
                 .safeAreaPadding(.leading, Theme.rail - Theme.systemMargin)
                 .focusSection()
                 // The system keyboard holds focus at its left edge: left there
-                // goes to the menu.
-                .onMoveCommand { if $0 == .left { railFocus = .section(.search) } }
+                // goes to the menu. From the results tvOS moves on its own.
+                .onMoveCommand { if $0 == .left, !searchResultsFocused, railFocus == nil { openRail() } }
         case .settings:
             SettingsView()
                 .focusSection()
@@ -174,6 +210,8 @@ struct SideRail: View {
     var reselect: () -> Void = {}
     /// Moves focus to the page shown.
     var focusPage: () -> Void = {}
+    /// Right on the menu, when it differs from `focusPage`.
+    var moveRight: (() -> Void)?
     @Environment(AppState.self) private var app
     /// Distance from the panel's top to the first entry.
     private static let top: CGFloat = 40
@@ -232,7 +270,7 @@ struct SideRail: View {
             }
         }
         .animation(.spring(response: 0.42, dampingFraction: 0.82), value: open)
-        .onMoveCommand { if $0 == .right { focusPage() } }
+        .onMoveCommand { if $0 == .right { (moveRight ?? focusPage)() } }
     }
 
     /// The libraries, then Settings.

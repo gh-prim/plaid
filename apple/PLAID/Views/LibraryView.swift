@@ -344,7 +344,10 @@ private struct LetterIndex: View {
 /// Search (F008 R28): movies, shows, episodes and people as you type;
 /// with an empty field, the profile's recent searches.
 struct SearchView: View {
+    /// Whether focus is on a result rather than on the system keyboard.
+    @Binding var resultsFocused: Bool
     @Environment(AppState.self) private var app
+    @FocusState private var focusInResults: Bool
     @State private var query = ""
     @State private var results: SearchResults?
     @State private var recent: [String] = []
@@ -383,7 +386,9 @@ struct SearchView: View {
                     .focusSection()
                 }
             }
+            .focused($focusInResults)
         }
+        .onChange(of: focusInResults) { resultsFocused = focusInResults }
         .searchable(text: $query, prompt: Text("search.prompt"))
         .onAppear { recent = UserDefaults.standard.stringArray(forKey: recentKey) ?? [] }
         .task(id: query) {

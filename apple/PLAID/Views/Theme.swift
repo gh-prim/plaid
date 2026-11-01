@@ -94,30 +94,6 @@ struct ProgressThread: View {
     }
 }
 
-/// The lowercase "plaıd" wordmark with Foxy as the dot of the ı.
-struct Wordmark: View {
-    var size: CGFloat = 44
-
-    var body: some View {
-        HStack(spacing: 0) {
-            Text(verbatim: "pla")
-            Text(verbatim: "ı")
-                .overlay(alignment: .top) {
-                    Image("Foxy")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: size * 0.42)
-                        .offset(y: size * 0.02)
-                }
-            Text(verbatim: "d")
-        }
-        .font(Theme.sans(size, .bold))
-        .tracking(-size * 0.035)
-        .foregroundStyle(Theme.textPrimary)
-        .accessibilityLabel(Text(verbatim: "PLAID"))
-    }
-}
-
 /// The amber primary button and the glass secondary one, as on the web hero.
 struct PillButtonStyle: ButtonStyle {
     var primary = true

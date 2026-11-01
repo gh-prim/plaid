@@ -15,6 +15,9 @@ final class AppState {
     }
 
     private(set) var phase: Phase = .loading
+    /// The launch intro plays once per cold start, over the app loading
+    /// behind it; nothing behind it takes focus meanwhile.
+    var splashing = true
     private(set) var client: APIClient?
     private(set) var serverName: String?
     private(set) var server: ServerInfo?
