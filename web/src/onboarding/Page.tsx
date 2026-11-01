@@ -105,7 +105,15 @@ export function Card({
   return (
     <section className={cx('ob__card', wide && 'ob__card--wide')}>
       <div className="ob__content" key={id}>
-        {icon && <img className="ob__icon" src="/icon.svg" alt="" width={96} height={96} />}
+        {icon && (
+          <img
+            className="ob__icon"
+            src={`${import.meta.env.BASE_URL}icon.svg`}
+            alt=""
+            width={96}
+            height={96}
+          />
+        )}
         {kicker && <p className="ob__kicker">{kicker}</p>}
         <h1 className="ob__title">{title}</h1>
         {body && <p className="ob__body">{body}</p>}

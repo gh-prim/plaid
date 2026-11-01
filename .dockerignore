@@ -6,6 +6,9 @@ server/tmp
 server/data
 server/internal/webui/dist/*
 !server/internal/webui/dist/.keep
+web/dist-hosted
+services/direct/internal/webapp/dist/*
+!services/direct/internal/webapp/dist/.keep
 data
 dist
 sdlc

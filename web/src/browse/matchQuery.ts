@@ -1,10 +1,13 @@
 import type { components } from '../api/schema'
+import { serverUrl } from '../api/server'
 
 type Candidate = components['schemas']['MatchCandidate']
 
 export function candidatePoster(c: Candidate): string | undefined {
   return c.posterPath
-    ? `/api/v1/metadata/candidate-images/${encodeURIComponent(c.posterPath.replace(/^\//, ''))}`
+    ? serverUrl(
+        `/api/v1/metadata/candidate-images/${encodeURIComponent(c.posterPath.replace(/^\//, ''))}`,
+      )
     : undefined
 }
 

@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     ports:
       - "32500:32500"
+      # HTTPS for remote access (Settings > Remote access, Manual port).
+      - "32501:32501"
     volumes:
       # Server data (database, cache). A named volume keeps permissions right for the non-root user.
       - plaid-data:/data

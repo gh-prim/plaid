@@ -14,6 +14,8 @@ import { ChangePassword } from './pages/ChangePassword'
 import { Pair } from './pages/Pair'
 import { ProfilePicker } from './pages/ProfilePicker'
 import { SignIn } from './pages/SignIn'
+import { hosted } from './api/server'
+import { RemoteSignIn } from './hosted/RemoteSignIn'
 import { Account } from './onboarding/Account'
 import { Libraries } from './onboarding/Libraries'
 import { Scan } from './onboarding/Scan'
@@ -63,9 +65,7 @@ export function AppRoutes() {
         <Route
           path="/login"
           element={
-            <RequireStep allow={['login']}>
-              <SignIn />
-            </RequireStep>
+            <RequireStep allow={['login']}>{hosted ? <RemoteSignIn /> : <SignIn />}</RequireStep>
           }
         />
         <Route
@@ -136,9 +136,10 @@ export function AppRoutes() {
   )
 }
 
-export function App() {
+/** `basename` is "/<id>" in hosted mode, where the app lives under the short link. */
+export function App({ basename }: { basename?: string }) {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <AppRoutes />
     </BrowserRouter>
   )

@@ -11,7 +11,9 @@ export function fakeApi(routes: Record<string, Handler | Reply>) {
   const calls: { method: string; path: string; body: unknown; headers: Headers }[] = []
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (req: Request) => {
+    vi.fn(async (input: Request | string, init?: RequestInit) => {
+      // The hosted client calls fetch(url, init) rather than fetch(request).
+      const req = typeof input === 'string' ? new Request(input, init) : input
       const path = new URL(req.url).pathname.replace(/^\/api\/v1/, '')
       const text = req.body ? await req.text() : ''
       const body = text ? JSON.parse(text) : undefined

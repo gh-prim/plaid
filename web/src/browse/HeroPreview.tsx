@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { loadChoice } from '../player/trackMemory'
 import { Icon } from '../ui'
 import { setPreviewSoundOn, usePreviewSoundOn, usePreviewsOn } from './previewPref'
+import { serverOrigin } from '../api/server'
 
 /** The backdrop shows alone this long before the scenes fade in. */
 const backdropFirst = 2000
@@ -34,7 +35,7 @@ function usePreviewUrl(itemId: string, profileId: string, on: boolean): string |
     if (!on) return
     const audio = loadChoice(profileId).audio
     const url =
-      `${window.location.origin}/api/v1/items/${encodeURIComponent(itemId)}/preview` +
+      `${serverOrigin()}/api/v1/items/${encodeURIComponent(itemId)}/preview` +
       (audio ? `?audio=${encodeURIComponent(audio)}` : '')
     let stop = false
     let timer = 0
@@ -42,7 +43,11 @@ function usePreviewUrl(itemId: string, profileId: string, on: boolean): string |
     const ask = async () => {
       tries++
       try {
-        const r = await fetch(url, { method: 'HEAD', headers: { 'X-Plaid-Client': 'web' } })
+        const r = await fetch(url, {
+          method: 'HEAD',
+          headers: { 'X-Plaid-Client': 'web' },
+          credentials: 'include',
+        })
         if (stop) return
         if (r.status === 200) setReady({ id: itemId, url })
         else if (r.status === 202 && tries < maxTries) {

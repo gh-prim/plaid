@@ -17,6 +17,9 @@ func (h *Handlers) GetServerInfo(ctx context.Context, _ api.GetServerInfoRequest
 		return nil, err
 	}
 	out := api.GetServerInfo200JSONResponse{Name: h.serverName, Version: buildinfo.Version, SetupComplete: done}
+	if h.remote != nil {
+		out.RemoteUrl = optional(h.remote.RemoteURL())
+	}
 	if h.metadata != nil {
 		attr := []api.Attribution{}
 		for _, a := range h.metadata.Attributions() {

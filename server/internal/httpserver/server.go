@@ -25,6 +25,9 @@ type Options struct {
 	// Preview serves GET /api/v1/items/{itemId}/preview (V2 hero), which
 	// needs Range. Nil leaves it a 404.
 	Preview http.Handler
+	// AppOrigins may call the API from the browser with the session cookie:
+	// the web app hosted on getplaid.direct (F012).
+	AppOrigins []string
 }
 
 // New returns the root handler: /api/v1/* is the generated API, any other
@@ -61,8 +64,8 @@ func New(h api.StrictServerInterface, web fs.FS, logger *slog.Logger, opts Optio
 	if sessions == nil {
 		sessions = auth.NoSessions{}
 	}
-	// Outermost first: recover → access log → client info → session → routes.
+	// Outermost first: recover → access log → client info → CORS → session → routes.
 	return withRecover(logger, withAccessLog(logger,
 		clientinfo.Middleware(opts.TrustedProxies,
-			auth.Authenticate(sessions, mux))))
+			withCORS(opts.AppOrigins, auth.Authenticate(sessions, mux)))))
 }

@@ -94,7 +94,7 @@ func Authenticate(sessions SessionLookup, next http.Handler) http.Handler {
 		if matches(public, r) {
 			// A web client asking for a session cookie must come from our
 			// own origin, or another site could sign a browser in.
-			if !isSafeMethod(r.Method) && IsWebClient(ctx) && !sameOrigin(r) {
+			if !isSafeMethod(r.Method) && IsWebClient(ctx) && !sameOrigin(r) && !fromApp(r) {
 				apierr.Write(w, apierr.CSRF())
 				return
 			}
@@ -113,7 +113,7 @@ func Authenticate(sessions SessionLookup, next http.Handler) http.Handler {
 			apierr.Write(w, apierr.Unauthorized())
 			return
 		}
-		if viaCookie && !isSafeMethod(r.Method) && (!IsWebClient(ctx) || !sameOrigin(r)) {
+		if viaCookie && !isSafeMethod(r.Method) && (!IsWebClient(ctx) || (!sameOrigin(r) && !fromApp(r))) {
 			apierr.Write(w, apierr.CSRF())
 			return
 		}
@@ -176,7 +176,20 @@ func sameOrigin(r *http.Request) bool {
 type (
 	webKey       struct{}
 	viaCookieKey struct{}
+	appOriginKey struct{}
 )
+
+// WithAppOrigin marks a request as coming from a trusted web app origin
+// other than this server (the app hosted on getplaid.direct): the CSRF check
+// accepts it like the server's own origin.
+func WithAppOrigin(ctx context.Context) context.Context {
+	return context.WithValue(ctx, appOriginKey{}, true)
+}
+
+func fromApp(r *http.Request) bool {
+	v, _ := r.Context().Value(appOriginKey{}).(bool)
+	return v
+}
 
 // IsWebClient reports whether the request comes from the web app
 // (X-Plaid-Client: web), which gets sessions as a cookie instead of a token.

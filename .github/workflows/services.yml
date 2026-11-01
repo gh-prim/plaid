@@ -1,0 +1,46 @@
+name: services
+
+# Called by ci.yml when services/ change: getplaid.direct (Go) and the
+# getplaid.tv website (static), both deployed on Coolify (F012).
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  direct:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: services/direct
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: services/direct/go.mod
+          cache-dependency-path: services/direct/go.sum
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12.1
+          working-directory: services/direct
+      - run: go test -race ./...
+
+  site:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: services/site
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: services/site/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: services/site/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check-i18n
+      - run: pnpm build

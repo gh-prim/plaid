@@ -1,4 +1,5 @@
 import type { components } from '../api/schema'
+import { serverUrl } from '../api/server'
 
 type Method = components['schemas']['PlaybackMethod']
 type HlsModule = typeof import('hls.js')
@@ -64,7 +65,7 @@ export async function attach(o: EngineOptions): Promise<Engine> {
   if (o.method === 'direct_play' || o.nativeHls) {
     video.addEventListener('error', onError)
     seekOnLoad(video, o.startMs)
-    video.src = o.url
+    video.src = serverUrl(o.url)
     return { kind: o.method === 'direct_play' ? 'file' : 'native-hls', destroy: clear }
   }
 
@@ -94,7 +95,7 @@ export async function attach(o: EngineOptions): Promise<Engine> {
     if (data.type === Hls.ErrorTypes.MEDIA_ERROR) o.onFatal({ kind: 'media', code: 3 })
     else o.onFatal({ kind: 'network', status: data.response?.code })
   })
-  hls.loadSource(o.url)
+  hls.loadSource(serverUrl(o.url))
   hls.attachMedia(video)
   return {
     kind: 'hls.js',

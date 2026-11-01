@@ -1,0 +1,588 @@
+/* Remote sign-in (V2 step 15, boards TR01–TR04): the server's name over a
+   film still, a glass bar for the username and password, and the cream play
+   button that signs in. Only in hosted mode (getplaid.direct/<id>/login). */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/fonts/BricolageGrotesque-latin.woff2') format('woff2');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/fonts/BricolageGrotesque-latin-ext.woff2') format('woff2');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+.rs {
+  --rs-ink: #f4f0e9;
+  --rs-ink-2: rgba(244, 240, 233, 0.66);
+  --rs-ink-3: rgba(244, 240, 233, 0.45);
+  --rs-display: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #0b0b0c;
+  color: var(--rs-ink);
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+}
+
+.rs__still {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.rs__still img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 40%;
+  animation: rs-kb 28s ease-in-out infinite alternate;
+}
+
+.rs__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(8, 8, 9, 0.9) 0%, rgba(8, 8, 9, 0.62) 42%, rgba(8, 8, 9, 0) 76%),
+    linear-gradient(
+      180deg,
+      rgba(8, 8, 9, 0.45) 0%,
+      rgba(8, 8, 9, 0) 22%,
+      rgba(8, 8, 9, 0) 45%,
+      rgba(8, 8, 9, 0.92) 100%
+    );
+}
+
+/* Liquid glass: the bar and the pills. */
+.rs-glass {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 250, 240, 0.1) 0%,
+      rgba(255, 250, 240, 0.03) 40%,
+      rgba(255, 250, 240, 0.05) 100%
+    ),
+    rgba(34, 30, 26, 0.52);
+  backdrop-filter: blur(48px) saturate(1.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    0 40px 120px -20px rgba(0, 0, 0, 0.7);
+}
+
+.rs-glass-b {
+  background: rgba(255, 250, 240, 0.1);
+  backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.rs__top {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 32px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rs__brand {
+  height: 48px;
+  padding: 0 18px 0 8px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rs__lang {
+  position: relative;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* The native select covers the pill, invisible, so the keyboard and screen
+   readers get a real control. */
+.rs__lang select {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.rs__lang:focus-within {
+  outline: 2px solid var(--rs-ink);
+  outline-offset: 2px;
+}
+
+.rs__main {
+  position: absolute;
+  left: 64px;
+  bottom: 64px;
+  right: 64px;
+  max-width: 760px;
+}
+
+.rs__kicker {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--rs-ink-2);
+}
+
+.rs__kicker code {
+  font:
+    500 14px/1 ui-monospace,
+    Menlo,
+    monospace;
+}
+
+.rs__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 9px;
+  background: var(--rs-ink-3);
+  flex: none;
+}
+
+.rs__title {
+  margin: 14px 0 0;
+  font: 700 88px/0.95 var(--rs-display);
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+}
+
+.rs__lead {
+  margin: 16px 0 0;
+  max-width: 560px;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 29px;
+  color: var(--rs-ink-2);
+}
+
+.rs__form {
+  margin-top: 36px;
+}
+
+.rs__error {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 16px 0 12px;
+  border-radius: 999px;
+  margin: 0 0 16px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #ffc2b6;
+}
+
+.rs__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.rs__row.is-wrong {
+  animation: rs-shake 0.5s ease 1;
+}
+
+.rs__bar {
+  flex: 1;
+  min-width: 0;
+  height: 64px;
+  border-radius: 999px;
+  padding: 4px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 4px;
+}
+
+.rs__field {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  border-radius: 999px;
+  padding: 0 9px 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+
+/* The field being typed in lifts into its own glass pill. */
+.rs__field:focus-within {
+  background: rgba(255, 250, 240, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.rs__field.is-wrong {
+  background: rgba(255, 120, 100, 0.1);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 150, 130, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.rs__field svg {
+  flex: none;
+  display: block;
+}
+
+.rs__field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: none;
+  color: var(--rs-ink);
+  font-weight: 500;
+  font-size: 17px;
+  font-family: inherit;
+  outline: none;
+}
+
+.rs__field input::placeholder {
+  color: var(--rs-ink-3);
+}
+
+.rs__reveal {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rs__reveal:focus-visible,
+.rs__go:focus-visible {
+  outline: 2px solid var(--rs-ink);
+  outline-offset: 3px;
+}
+
+.rs__go {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border: 0;
+  border-radius: 99px;
+  background: var(--rs-ink);
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 16px 40px -10px rgba(244, 240, 233, 0.35);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 17px;
+  transition: transform 0.2s;
+}
+
+.rs__go:hover:not(:disabled) {
+  transform: scale(1.04);
+}
+
+.rs__go:disabled {
+  cursor: default;
+  opacity: 0.92;
+}
+
+.rs__go-label {
+  display: none;
+}
+
+.rs__spin {
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border-radius: 99px;
+  border: 2.5px solid rgba(17, 17, 18, 0.2);
+  border-top-color: #111;
+  animation: rs-spin 0.8s linear infinite;
+}
+
+.rs__foot {
+  margin: 16px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  align-items: center;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--rs-ink-3);
+}
+
+.rs__foot-status {
+  color: var(--rs-ink-2);
+}
+
+.rs__forgot-short {
+  display: none;
+}
+
+.rs__secure {
+  position: absolute;
+  right: 40px;
+  bottom: 40px;
+  text-align: right;
+  font-weight: 500;
+  font-size: 12.5px;
+  line-height: 19px;
+  color: var(--rs-ink-3);
+}
+
+.rs__secure p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.rs__secure p + p {
+  margin-top: 6px;
+  color: rgba(244, 240, 233, 0.3);
+}
+
+.rs-in-1 {
+  animation: rs-up 1s cubic-bezier(0.32, 0.72, 0, 1) 0.1s both;
+}
+
+.rs-in-2 {
+  animation: rs-up 1s cubic-bezier(0.32, 0.72, 0, 1) 0.22s both;
+}
+
+.rs-in-3 {
+  animation: rs-up 1s cubic-bezier(0.32, 0.72, 0, 1) 0.36s both;
+}
+
+@keyframes rs-kb {
+  from {
+    transform: scaleX(-1) scale(1.04);
+  }
+  to {
+    transform: scaleX(-1) scale(1.12) translate(-1.5%, -1%);
+  }
+}
+
+@keyframes rs-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(8px);
+  }
+}
+
+@keyframes rs-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-10px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes rs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Under 1100 px the page stacks in the flow: the form at the bottom, the
+   secure note under it. */
+@media (max-width: 1100px) {
+  .rs {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-sizing: border-box;
+    padding: 120px 40px 40px;
+  }
+
+  .rs__main {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+  }
+
+  .rs__secure {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    margin-top: 28px;
+    text-align: left;
+  }
+
+  .rs__secure p {
+    justify-content: flex-start;
+  }
+}
+
+/* Phone (TR04): the fields stack in one glass block, Sign in is a full
+   width button with its label. */
+@media (max-width: 700px) {
+  .rs__top {
+    left: 16px;
+    right: 16px;
+    top: max(16px, env(safe-area-inset-top));
+  }
+
+  .rs__still img {
+    object-position: 30% 40%;
+  }
+
+  .rs {
+    padding: 104px 20px max(28px, env(safe-area-inset-bottom));
+  }
+
+  .rs__kicker {
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .rs__kicker code {
+    font-size: 13px;
+  }
+
+  .rs__title {
+    margin-top: 12px;
+    font-size: 52px;
+  }
+
+  .rs__lead {
+    margin-top: 12px;
+    font-size: 16px;
+    line-height: 23px;
+  }
+
+  .rs__form {
+    margin-top: 24px;
+  }
+
+  .rs__row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .rs__bar {
+    height: auto;
+    border-radius: 22px;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .rs__field {
+    flex: none;
+    height: 54px;
+    border-radius: 16px;
+    padding: 0 8px 0 16px;
+    gap: 12px;
+  }
+
+  .rs__field input {
+    font-size: 16px;
+  }
+
+  .rs__go {
+    width: auto;
+    height: 56px;
+    border-radius: 999px;
+    box-shadow: none;
+  }
+
+  .rs__go-label {
+    display: inline;
+  }
+
+  .rs__foot {
+    justify-content: center;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .rs__foot-status,
+  .rs__foot .rs__dot,
+  .rs__forgot-long {
+    display: none;
+  }
+
+  .rs__forgot-short {
+    display: inline;
+  }
+
+  .rs__secure {
+    text-align: center;
+    margin-top: 18px;
+  }
+
+  .rs__secure p {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs *,
+  .rs *::before {
+    animation: none !important;
+  }
+}
+
+.rs__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

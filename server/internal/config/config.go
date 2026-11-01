@@ -39,6 +39,22 @@ type Config struct {
 	FanartAPIKey string
 	// ArtworkCacheBytes caps resized artwork (F005 R20); 0 = 2 GiB.
 	ArtworkCacheBytes int64
+	// TLSPort is the HTTPS port remote access forwards to (F012); 0 turns
+	// the HTTPS listener off.
+	TLSPort int
+	// DirectURL is the getplaid.direct API (F012).
+	DirectURL string
+	// AppOrigins may call the API from a browser with the session cookie:
+	// the web app getplaid.direct serves on the server's short link (F012).
+	AppOrigins []string
+	// ACMEDirectory is the certificate authority (F012): Let's Encrypt,
+	// or its staging directory while testing.
+	ACMEDirectory string
+}
+
+// TLSAddr returns the host:port the HTTPS server listens on.
+func (c Config) TLSAddr() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.TLSPort))
 }
 
 // Addr returns the host:port the HTTP server listens on.
@@ -75,6 +91,21 @@ func Load(getenv func(string) string) (Config, error) {
 		return Config{}, fmt.Errorf("PLAID_PORT must be a number between 1 and 65535, got %q", getenv("PLAID_PORT"))
 	}
 	cfg.Port = port
+
+	tlsPort, err := strconv.Atoi(get("PLAID_TLS_PORT", "32501"))
+	if err != nil || tlsPort < 0 || tlsPort > 65535 || (tlsPort != 0 && tlsPort == port) {
+		return Config{}, fmt.Errorf("PLAID_TLS_PORT must be 0 (off) or a port other than PLAID_PORT, got %q", getenv("PLAID_TLS_PORT"))
+	}
+	cfg.TLSPort = tlsPort
+	cfg.DirectURL = get("PLAID_DIRECT_URL", "https://getplaid.direct/api/v1")
+	if origins := get("PLAID_APP_ORIGINS", "https://getplaid.direct"); origins != "none" {
+		for o := range strings.SplitSeq(origins, ",") {
+			if o = strings.TrimRight(strings.TrimSpace(o), "/"); o != "" {
+				cfg.AppOrigins = append(cfg.AppOrigins, o)
+			}
+		}
+	}
+	cfg.ACMEDirectory = get("PLAID_ACME_DIRECTORY", "https://acme-v02.api.letsencrypt.org/directory")
 
 	switch cfg.LogLevel {
 	case "debug", "info", "warn", "error":

@@ -6,6 +6,7 @@ import { Devices } from './Devices'
 import { Libraries, LibraryPage } from './Libraries'
 import { People, Person } from './People'
 import { Playing } from './Playing'
+import { RemoteAccess } from './RemoteAccess'
 import { Review, Unrecognized } from './Review'
 import { Metadata, Problems, Transcoding } from './Settings'
 
@@ -30,6 +31,7 @@ export default function AdminApp() {
         <Route path="transcoding" element={<Transcoding />} />
         <Route path="metadata" element={<Metadata />} />
         <Route path="problems" element={<Problems />} />
+        <Route path="remote-access" element={<RemoteAccess />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
     </Routes>

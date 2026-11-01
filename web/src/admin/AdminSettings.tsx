@@ -106,6 +106,7 @@ export function AdminSettings() {
     {
       title: t('admin.settings.group.server'),
       items: [
+        { to: '/admin/remote-access', label: t('admin.nav.remoteAccess') },
         {
           to: '/admin/problems',
           label: t('admin.nav.problems'),

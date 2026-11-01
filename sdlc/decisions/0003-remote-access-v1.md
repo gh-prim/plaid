@@ -1,13 +1,15 @@
 ---
 id: 0003
 title: Remote access in v1
-status: proposed
+status: superseded
 date: 2026-10-26
 deciders: [TBD, TBD]
 supersedes: null
 ---
 
 # 0003 — Remote access in v1
+
+> Superseded by [0009](0009-remote-access-getplaid-direct.md): remote access goes through getplaid.direct (F012).
 
 ## Context
 Library sharing and the Plaid Party with friends require the server to be reachable from outside. Plex relies on a central service for this (plex.tv).

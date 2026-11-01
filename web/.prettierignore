@@ -1,4 +1,5 @@
 dist
+dist-hosted
 coverage
 pnpm-lock.yaml
 src/design/components.css

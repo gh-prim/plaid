@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { serverUrl } from '../api/server'
 import type { MatchedItem } from '../hooks/useScanEvents'
 import { PosterSlot } from '../ui'
 
@@ -10,7 +11,7 @@ export const arriveEvery = 60
 export const flushOver = 24
 
 export function posterSrc(imageId: string, width = 342): string {
-  return `/api/v1/images/${encodeURIComponent(imageId)}?w=${width}`
+  return serverUrl(`/api/v1/images/${encodeURIComponent(imageId)}?w=${width}`)
 }
 
 /**

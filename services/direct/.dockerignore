@@ -1,0 +1,7 @@
+data/
+*.db
+*.db-*
+.golangci.yml
+README.md
+PROTOCOL.md
+docker-compose.yml

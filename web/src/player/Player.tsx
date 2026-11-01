@@ -51,6 +51,7 @@ import {
 import { endPhase } from './upNext'
 import { useCues, useMedia } from './useMedia'
 import './player.css'
+import { hosted, serverUrl } from '../api/server'
 
 type Item = components['schemas']['ItemDetail']
 type Summary = components['schemas']['ItemSummary']
@@ -337,7 +338,9 @@ function Playback({
     })
     if ('failure' in r) return false
     try {
-      await navigator.clipboard.writeText(new URL(r.session.url, window.location.origin).href)
+      await navigator.clipboard.writeText(
+        new URL(serverUrl(r.session.url), window.location.origin).href,
+      )
       return true
     } catch {
       return false
@@ -744,13 +747,15 @@ function Playback({
         ref={video}
         className={cx('pv-video', !playing && phase.k !== 'problem' && 'is-waiting')}
         playsInline
+        // Hosted, the server is another origin: subtitle tracks need CORS.
+        crossOrigin={hosted ? 'anonymous' : undefined}
       >
         {textSubs.map((s) => (
           <track
             key={`${s.index}-${s.index === sub ? (quick.data ?? 'wait') : s.url}`}
             id={`sub-${s.index}`}
             kind="subtitles"
-            src={s.index === sub ? quick.data : s.url}
+            src={s.index === sub ? quick.data : s.url && serverUrl(s.url)}
             label={subtitleLabel(t, lng, s, s.sdh)}
           />
         ))}
