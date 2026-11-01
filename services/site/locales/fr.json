@@ -1,6 +1,6 @@
 {
   "meta": {
-    "ogAlt": "PLAID : tes films, ton serveur, tous tes écrans."
+    "ogAlt": "PLAID : tes films, ton serveur, sur tous tes écrans."
   },
   "common": {
     "copy": "Copier",
@@ -43,7 +43,7 @@
   },
   "footer": {
     "tagline": "Plaid & chill.",
-    "credits": "Films montrés : Nosferatu (1922), Das Cabinet des Dr. Caligari (1920), Le Voyage dans la Lune (1902), affiche de Metropolis par Boris Bilinsky (1927), domaine public. Big Buck Bunny, Sintel, Tears of Steel, Elephants Dream © Blender Foundation, CC BY. Sprite Fright, Cosmos Laundromat, Caminandes © Blender Studio, CC BY 4.0.",
+    "credits": "Films à l’écran : Nosferatu (1922), Das Cabinet des Dr. Caligari (1920), Le Voyage dans la Lune (1902), affiche de Metropolis par Boris Bilinsky (1927), domaine public. Big Buck Bunny, Sintel, Tears of Steel, Elephants Dream © Blender Foundation, CC BY. Sprite Fright, Cosmos Laundromat, Caminandes © Blender Studio, CC BY 4.0.",
     "product": "Produit",
     "project": "Projet",
     "direct": "getplaid.direct",
@@ -77,14 +77,14 @@
   },
   "home": {
     "meta": {
-      "title": "PLAID · Tes films. Ton serveur. Tous tes écrans.",
-      "description": "PLAID transforme les disques que tu as déjà en service de streaming pour les gens que tu aimes. Open source, auto-hébergé, sans compte, sans abonnement, sans personne pour regarder par-dessus ton épaule."
+      "title": "PLAID · Tes films. Ton serveur. Sur tous tes écrans.",
+      "description": "PLAID fait de tes disques durs un service de streaming pour tes proches. Open source, auto-hébergé, sans compte, sans abonnement, et personne ne sait ce que tu regardes."
     },
     "hero": {
       "line1": "Tes films.",
       "line2": "Ton serveur.",
-      "line3": "Tous tes écrans.",
-      "lead": "PLAID transforme les disques que tu as déjà en service de streaming pour les gens que tu aimes. Sans compte, sans abonnement, sans personne pour regarder.",
+      "line3": "Sur tous tes écrans.",
+      "lead": "PLAID fait de tes disques durs un service de streaming pour tes proches. Sans compte, sans abonnement, et personne ne sait ce que tu regardes.",
       "install": "Installer en une ligne",
       "github": "Voir sur GitHub"
     },
@@ -101,34 +101,34 @@
     },
     "what": {
       "eyebrow": "Ce que c’est",
-      "title": "On dirait un service de streaming. C’est le tien.",
+      "title": "Ça ressemble à un service de streaming. Sauf qu’il est à toi.",
       "library": {
-        "title": "Ta bibliothèque, en beau",
-        "body": "PLAID trouve chaque film et chaque série sur tes disques, les nomme et les habille d’affiches, de fonds, de castings et de bandes-annonces. Tes fichiers restent exactement où ils sont."
+        "title": "Ta bibliothèque, enfin belle",
+        "body": "PLAID repère tous les films et séries de tes disques, leur donne un nom et les habille : affiches, images de fond, casting, bandes-annonces. Tes fichiers, eux, ne bougent pas."
       },
       "plays": {
-        "title": "Lit sur tout",
-        "body": "Il envoie le fichier d’origine quand l’écran sait le lire, et ne convertit que s’il ne sait pas, même sur un Raspberry Pi. Sous-titres, pistes audio et 4K HDR compris."
+        "title": "Se lit partout",
+        "body": "Si l’écran sait lire le fichier, PLAID l’envoie tel quel. Sinon, il le convertit à la volée, même sur un Raspberry Pi. Sous-titres, pistes audio et 4K HDR compris."
       },
       "yours": {
         "title": "Rien qu’à toi",
-        "body": "Les comptes vivent sur ton serveur. Pas de compte PLAID, pas d’abonnement, aucun pistage. Open source, sous licence MIT."
+        "body": "Les comptes sont stockés sur ton serveur. Pas de compte PLAID, pas d’abonnement, aucun pistage. Open source, sous licence MIT."
       }
     },
     "tv": {
       "eyebrow": "Apple TV",
       "title": "Sur la télé, c’est une vraie app.",
-      "body": "Elle trouve ton serveur sur le réseau, s’appaire avec un code court et se souvient de chacun : son profil, sa langue, là où il s’est arrêté.",
+      "body": "Elle trouve ton serveur sur le réseau, se connecte avec un code court et se souvient de chacun : son profil, sa langue, l’endroit où il s’est arrêté.",
       "alt": "L’app Apple TV de PLAID en train de lire Big Buck Bunny.",
       "points": {
-        "pins": "Des profils avec code PIN pour les enfants",
-        "hdr": "4K HDR et Dolby Atmos, lus tels quels",
-        "lang": "Anglais et français, au choix de chacun"
+        "pins": "Des profils protégés par code PIN pour les enfants",
+        "hdr": "4K HDR et Dolby Atmos, sans conversion",
+        "lang": "Anglais ou français, au choix de chacun"
       }
     },
     "party": {
-      "title": "Plaid Party. Tout le monde sur la même image.",
-      "body": "Un seul lien à envoyer. Lecture, pause et avance rapide arrivent chez tout le monde en même temps, chacun avec un flux taillé pour son écran et sa connexion.",
+      "title": "Plaid Party. Tout le monde voit la même image, au même moment.",
+      "body": "Tu envoies un lien. Lecture, pause, retour en arrière : tout le monde suit en même temps, chacun avec un flux adapté à son écran et à sa connexion.",
       "devices": {
         "tv": {
           "name": "Télé du salon",
@@ -150,32 +150,32 @@
     },
     "install": {
       "eyebrow": "Installer",
-      "title": "Une ligne, avant que les autres arrivent.",
-      "body": "Un seul programme Go, avec SQLite et FFmpeg. Le script l’installe comme un service qui démarre avec la machine. Pas besoin de Docker, même s’il y tourne aussi.",
+      "title": "Une ligne de commande, et c’est prêt avant l’arrivée des invités.",
+      "body": "Un seul programme en Go, avec SQLite et FFmpeg. Le script l’installe comme un service qui se lance au démarrage. Pas besoin de Docker, mais ça marche aussi avec.",
       "note": "Ubuntu, Debian · amd64 et arm64 · Raspberry Pi 4 ou 5"
     },
     "duo": {
       "label": "Comptes et accès à distance",
       "account": {
         "eyebrow": "Ton compte",
-        "title": "Vit sur ton serveur.",
-        "body": "La première visite crée le compte admin sur ta machine. Il n’y a rien à créer chez nous."
+        "title": "Il reste sur ton serveur.",
+        "body": "À la première visite, tu crées le compte admin sur ta propre machine. Rien à créer chez nous."
       },
       "remote": {
         "eyebrow": "Loin de chez toi",
-        "title": "Un lien, pas un mode d’emploi.",
-        "body": "Active l’accès à distance et ton serveur reçoit une adresse avec un vrai certificat. La vidéo va directement de chez toi à chez eux."
+        "title": "Envoie un lien, pas un tuto.",
+        "body": "Active l’accès à distance : ton serveur obtient une adresse et un vrai certificat HTTPS. La vidéo va directement de chez toi à chez eux."
       }
     },
     "faq": {
       "title": "Questions",
       "free": {
         "q": "PLAID est-il gratuit ?",
-        "a": "Oui. Il est open source sous licence MIT, sans abonnement ni offre payante."
+        "a": "Oui. Il est open source (licence MIT), sans abonnement ni version payante."
       },
       "account": {
         "q": "Faut-il un compte PLAID ?",
-        "a": "Non. La première visite crée le compte admin sur ton propre serveur. Rien ne nous est envoyé."
+        "a": "Non. À la première visite, tu crées le compte admin sur ton propre serveur. Rien ne nous est envoyé."
       },
       "pi": {
         "q": "Est-ce que ça tourne sur mon Raspberry Pi ?",
@@ -183,11 +183,11 @@
       },
       "video": {
         "q": "Où passe la vidéo quand des amis regardent depuis chez eux ?",
-        "a": "Directement de ton serveur jusqu’à eux. getplaid.direct ne fait que donner à ton serveur une adresse avec un certificat."
+        "a": "Directement de ton serveur jusqu’à eux. getplaid.direct se contente de donner une adresse et un certificat à ton serveur."
       },
       "party": {
         "q": "Quand arrive Plaid Party ?",
-        "a": "Son intention est écrite ; la spec vient ensuite, puis le code. Suis la roadmap sur GitHub."
+        "a": "Le besoin est décrit ; la spec arrive ensuite, puis le code. Suis l’avancement sur la roadmap GitHub."
       }
     }
   },
@@ -197,55 +197,55 @@
       "description": "Ce que PLAID fait aujourd’hui et ce qui est prévu : bibliothèques, illustrations, Direct Play et transcodage, apps web et Apple TV, comptes, accès à distance."
     },
     "eyebrow": "Fonctionnalités",
-    "title": "Tout ce qu’il fait. Rien de ce qu’il prétend.",
-    "lead": "PLAID tourne sur ton propre matériel. Chaque fonctionnalité dit où elle en est.",
+    "title": "Tout ce qu’il sait faire. Sans faire semblant.",
+    "lead": "PLAID tourne sur ton propre matériel. Pour chaque fonctionnalité, on te dit où elle en est.",
     "bannerAlt": "Big Buck Bunny dans une clairière ensoleillée.",
     "groups": {
       "libraries": "Tes bibliothèques",
       "playback": "Lecture",
       "screens": "Écrans",
-      "people": "Les gens"
+      "people": "Utilisateurs"
     },
     "items": {
       "scan": {
         "name": "Analyse des dossiers",
-        "body": "Les nouveaux fichiers apparaissent d’eux-mêmes. Les partages réseau sont réanalysés toutes les 15 minutes. PLAID ne fait que lire tes dossiers."
+        "body": "Les nouveaux fichiers apparaissent tout seuls. Les partages réseau sont réanalysés toutes les 15 minutes. PLAID lit tes dossiers sans jamais y écrire."
       },
       "match": {
         "name": "Identification et illustrations",
-        "body": "Titres, affiches et synopsis depuis TMDB et fanart.tv, dans la langue de chaque bibliothèque. Tes propres fichiers .nfo et images ont le dernier mot."
+        "body": "Titres, affiches et synopsis depuis TMDB et fanart.tv, dans la langue de chaque bibliothèque. Tes propres fichiers .nfo et images passent en priorité."
       },
       "search": {
         "name": "Recherche et collections",
-        "body": "Trouver un film, une série ou une personne, et parcourir les collections."
+        "body": "Retrouve un film, une série ou une personne, et parcours les collections."
       },
       "direct": {
         "name": "Direct Play",
-        "body": "Quand un écran sait lire le fichier tel quel, PLAID l’envoie sans y toucher, presque sans CPU."
+        "body": "Quand un écran sait lire le fichier tel quel, PLAID l’envoie sans y toucher, et le processeur ne fait presque rien."
       },
       "transcode": {
         "name": "Direct Stream et transcodage",
-        "body": "Quand il ne sait pas, PLAID remuxe ou réencode en H.264 avec FFmpeg, à une qualité adaptée à la connexion."
+        "body": "Sinon, PLAID change le conteneur ou réencode en H.264 avec FFmpeg, dans une qualité adaptée à la connexion."
       },
       "hardware": {
         "name": "Transcodage matériel",
-        "body": "VAAPI, Intel Quick Sync, NVENC et V4L2 M2M, testés au démarrage, avec le logiciel en secours."
+        "body": "VAAPI, Intel Quick Sync, NVENC et V4L2 M2M, testés au démarrage, avec repli sur le logiciel."
       },
       "subtitles": {
         "name": "Sous-titres",
-        "body": "Sous-titres texte et image. Les choix d’audio et de sous-titres de chaque profil sont mémorisés."
+        "body": "Sous-titres texte et image. Chaque profil retrouve ses choix d’audio et de sous-titres."
       },
       "resume": {
         "name": "Reprendre la lecture",
-        "body": "On s’arrête sur un écran, on reprend sur un autre. Chaque profil garde sa place."
+        "body": "Tu t’arrêtes sur un écran, tu reprends sur un autre. Chaque profil garde sa position."
       },
       "web": {
         "name": "Web",
-        "body": "Servie par le serveur lui-même, dans n’importe quel navigateur récent."
+        "body": "Servie directement par le serveur, dans n’importe quel navigateur récent."
       },
       "appletv": {
         "name": "Apple TV",
-        "body": "Une app tvOS native qui trouve le serveur et s’appaire avec un code."
+        "body": "Une app tvOS native qui trouve le serveur et se connecte avec un code."
       },
       "ios": {
         "name": "iPhone et iPad",
@@ -260,8 +260,8 @@
         "body": "Un admin, des membres et un profil par personne, avec un code PIN facultatif."
       },
       "pairing": {
-        "name": "Appairage de la télé",
-        "body": "Une télé se connecte avec un code court saisi sur un autre appareil."
+        "name": "Connexion de la télé",
+        "body": "La télé se connecte grâce à un code court saisi sur un autre appareil."
       },
       "remote": {
         "name": "Accès à distance",
@@ -269,49 +269,49 @@
       },
       "sharing": {
         "name": "Partage de bibliothèque",
-        "body": "Inviter quelqu’un par lien à une bibliothèque ou une collection, avec une qualité plafonnée et une révocation immédiate."
+        "body": "Invite quelqu’un par lien sur une bibliothèque ou une collection, avec une qualité maximale et un accès révocable à tout moment."
       },
       "party": {
         "name": "Plaid Party",
-        "body": "Regarder ensemble, synchronisés, depuis des maisons différentes."
+        "body": "Regarder ensemble, en même temps, chacun chez soi."
       }
     },
-    "legend": "**Disponible** : fusionné et dans les versions publiées. **Prévu** : l’intention est écrite. **Plus tard** : attend son tour."
+    "legend": "**Disponible** : intégré et livré dans les versions publiées. **Prévu** : le besoin est décrit. **Plus tard** : en attente."
   },
   "party": {
     "meta": {
-      "title": "Plaid Party · Regarder ensemble, synchronisés · PLAID",
-      "description": "Plaid Party garde tout le monde sur la même image, où qu’on soit et quel que soit l’écran. Prévu : l’intention est écrite, la spec vient ensuite."
+      "title": "Plaid Party · Regarder ensemble, en même temps · PLAID",
+      "description": "Plaid Party met tout le monde sur la même image, où qu’on soit et quel que soit l’écran. Prévu : le besoin est décrit, la spec arrive."
     },
-    "badge": "Prévu · intention écrite, spec ensuite",
+    "badge": "Prévu · besoin décrit, spec à venir",
     "title": "Même film. Même seconde. Canapés différents.",
-    "lead": "Une Plaid Party garde tout le monde sur la même image, où qu’on soit et quel que soit l’écran.",
+    "lead": "Une Plaid Party met tout le monde sur la même image, où qu’on soit et quel que soit l’écran.",
     "bannerAlt": "Le comte Orlok dans l’encadrement d’une porte, dans Nosferatu (1922).",
     "night": {
       "label": "Une soirée avec Plaid Party",
       "start": {
-        "title": "Lancer une party",
-        "body": "Choisis un film puis Plaid Party. Tu obtiens un lien et un code court à envoyer."
+        "title": "Lancer une Plaid Party",
+        "body": "Choisis un film, puis Plaid Party. Tu obtiens un lien et un code court à partager."
       },
       "join": {
         "title": "Tout le monde est là",
-        "body": "Les amis rejoignent depuis une télé, un portable ou un téléphone. Tu vois qui regarde et qui charge encore."
+        "body": "Tes amis rejoignent depuis une télé, un ordi ou un téléphone. Tu vois qui regarde et qui charge encore."
       },
       "play": {
-        "title": "Un seul appui sur lecture",
-        "body": "Lecture, pause et avance rapide arrivent chez tout le monde ensemble, à moins d’une demi-seconde d’écart."
+        "title": "Un appui, et c’est parti",
+        "body": "Lecture, pause et déplacements arrivent chez tout le monde à moins d’une demi-seconde d’écart."
       },
       "streams": {
         "title": "4K sur la télé, 720p dans le train",
-        "body": "Chaque écran reçoit son propre flux. La télé lit le fichier tel quel ; le téléphone en 4G en reçoit un plus léger. Personne n’attend le plus lent."
+        "body": "Chaque écran reçoit son propre flux. La télé lit le fichier tel quel ; le téléphone en 4G reçoit une version plus légère. Personne n’attend le plus lent."
       },
       "drift": {
         "title": "Fini les « attends, t’en es où ? »",
-        "body": "Le serveur tient l’horloge commune. Si quelqu’un dérive, sa vitesse s’ajuste en douceur au lieu de sauter. Après une mise en mémoire tampon, il se raccroche."
+        "body": "Le serveur garde l’horloge commune. Si quelqu’un se décale, sa vitesse s’ajuste en douceur, sans saut. Après un chargement, il recolle au groupe."
       },
       "pause": {
         "title": "Sam demande une pause",
-        "body": "Tout le monde peut demander. L’hôte décide, ou tout le monde vote."
+        "body": "Tout le monde peut la demander. L’hôte décide, ou on vote."
       }
     },
     "room": {
@@ -349,23 +349,23 @@
       "title": "Autour du film",
       "reactions": {
         "title": "Réactions",
-        "body": "Des emoji qui flottent sur l’image, pour tout le monde."
+        "body": "Des emojis qui flottent sur l’image, visibles par tous."
       },
       "chat": {
         "title": "Discussion",
-        "body": "Un panneau latéral qui ne couvre jamais le film."
+        "body": "Un panneau latéral qui ne cache jamais le film."
       },
       "requests": {
         "title": "Demandes de pause",
-        "body": "Un petit signe à l’hôte, ou à tout le monde."
+        "body": "Un petit signal à l’hôte, ou à tout le monde."
       },
       "control": {
         "title": "Qui contrôle",
-        "body": "L’hôte seul, ou tout le monde. Ça se change à tout moment."
+        "body": "L’hôte seul, ou tout le monde. Modifiable à tout moment."
       },
       "notv1": {
-        "title": "Pas dans la version 1 : la visio et le vocal.",
-        "body": "Un appel est sûrement déjà ouvert. PLAID garde l’image pour le film."
+        "title": "Pas dans la version 1 : appel vidéo et vocal.",
+        "body": "Vous êtes sûrement déjà en appel. PLAID garde l’écran pour le film."
       }
     }
   },
@@ -375,8 +375,8 @@
       "description": "Installer PLAID en une minute sur Ubuntu, Debian ou Docker, en amd64 ou arm64 : un script, un paquet Debian ou Docker Compose."
     },
     "eyebrow": "Installer",
-    "title": "PLAID installé en une minute.",
-    "lead": "Ubuntu, Debian ou Docker, en amd64 ou arm64. Chaque méthode finit pareil : ouvrir son serveur dans un navigateur.",
+    "title": "PLAID, installé en une minute.",
+    "lead": "Ubuntu, Debian ou Docker, en amd64 ou arm64. Dans tous les cas, ça finit pareil : tu ouvres ton serveur dans un navigateur.",
     "bannerAlt": "Deux personnages se disputent sur un pont au-dessus d’un canal d’Amsterdam, dans Tears of Steel.",
     "methods": "Méthodes d’installation",
     "script": {
@@ -395,18 +395,18 @@
     },
     "docker": {
       "name": "Docker",
-      "body": "Clone le dépôt et lance-le. Monte tes dossiers de médias en lecture seule dans `docker-compose.yml`, puis utilise les chemins du conteneur en ajoutant une bibliothèque."
+      "body": "Clone le dépôt et lance-le. Dans `docker-compose.yml`, monte tes dossiers de médias en lecture seule, puis indique les chemins du conteneur quand tu ajoutes une bibliothèque."
     },
     "after": "Après l’installation",
     "open": {
       "kicker": "Ensuite",
       "title": "Ouvre-le",
-      "body": "Va sur ton serveur, port 32500. Le premier lancement crée le compte admin, ajoute les dossiers et choisit leur langue. Depuis l’extérieur de ton réseau, PLAID demande le code de configuration écrit dans son journal."
+      "body": "Ouvre ton serveur sur le port 32500. Au premier lancement, tu crées le compte admin, tu ajoutes tes dossiers et tu choisis leur langue. Si tu te connectes depuis l’extérieur de ton réseau, PLAID demande le code de configuration affiché dans ses logs."
     },
     "folders": {
       "kicker": "Et",
       "title": "Indique-lui tes dossiers",
-      "body": "Ajoute des bibliothèques de films et de séries, chacune avec sa langue. PLAID analyse, identifie et récupère les illustrations. Il ne modifie jamais tes médias. Le paquet tourne sous l’utilisateur plaid, qui ne peut pas lire ton dossier personnel tant que tu ne l’as pas autorisé."
+      "body": "Ajoute des bibliothèques de films et de séries, chacune dans sa langue. PLAID analyse, identifie et récupère les illustrations, sans jamais modifier tes médias. Le paquet tourne sous l’utilisateur plaid, qui n’a pas accès à ton dossier personnel tant que tu ne l’y autorises pas."
     },
     "ops": "Configuration requise et commandes du quotidien",
     "req": {
@@ -427,7 +427,7 @@
     "cmds": {
       "title": "Commandes du quotidien",
       "status": "Est-ce qu’il tourne ?",
-      "logs": "Suivre le journal"
+      "logs": "Suivre les logs"
     },
     "parade": "Après la première analyse"
   },
@@ -438,30 +438,30 @@
     },
     "eyebrow": "getplaid.direct",
     "title": "Ton serveur, joignable de partout.",
-    "lead": "À activer dans Réglages, Accès à distance. Ton serveur reçoit une adresse avec un vrai certificat, et la vidéo ne passe jamais par getplaid.direct.",
+    "lead": "Ça s’active dans Réglages > Accès à distance. Ton serveur obtient une adresse et un vrai certificat, et la vidéo ne passe jamais par getplaid.direct.",
     "bannerAlt": "Un jeune homme se repose au milieu de robots en ferraille, dans Tears of Steel.",
     "steps": {
       "label": "Comment ça marche, en quatre étapes",
       "port": {
         "title": "Ouvrir un port",
-        "body": "PLAID le demande à ton routeur par UPnP ou NAT-PMP. Si ça échoue, choisis Manuel et redirige un port TCP vers le 32501 de la machine PLAID."
+        "body": "PLAID demande à ton routeur d’ouvrir un port, via UPnP ou NAT-PMP. Si ça échoue, choisis Manuel et redirige un port TCP vers le port 32501 de la machine PLAID."
       },
       "name": {
         "title": "Obtenir un nom",
-        "body": "PLAID s’enregistre auprès de getplaid.direct et obtient un nom qui pointe vers ton IP publique. Il suit ton IP quand elle change ; le serveur se signale toutes les 15 minutes."
+        "body": "PLAID s’inscrit auprès de getplaid.direct et obtient un nom qui pointe vers ton IP publique. Si ton IP change, le nom suit : le serveur donne des nouvelles toutes les 15 minutes."
       },
       "cert": {
         "title": "Obtenir un certificat",
-        "body": "Un certificat Let’s Encrypt pour ce nom, via un challenge DNS. Pas de port 80, et la clé privée reste sur ton serveur."
+        "body": "Un certificat Let’s Encrypt pour ce nom, validé par DNS. Pas besoin du port 80, et la clé privée reste sur ton serveur."
       },
       "link": {
         "title": "Envoyer le lien",
-        "body": "Un lien getplaid.direct court qui mène à ton serveur. Avant que tu le partages, getplaid.direct vérifie depuis l’extérieur que ton serveur répond."
+        "body": "Un lien court getplaid.direct qui mène à ton serveur. Avant que tu le partages, getplaid.direct vérifie depuis l’extérieur que ton serveur répond bien."
       }
     },
     "never": {
       "title": "La vidéo ne passe jamais par nous.",
-      "body": "Après une redirection et une réponse DNS qui donne l’IP de chez toi, les écrans se connectent directement à ton serveur. Derrière un CGNAT, ça ne peut pas marcher ; utilise plutôt un VPN."
+      "body": "Une redirection, une réponse DNS qui donne l’IP de chez toi, et les écrans se connectent directement à ton serveur. Derrière un CGNAT, ça ne peut pas marcher : passe plutôt par un VPN."
     },
     "flow": {
       "friend": {
@@ -470,7 +470,7 @@
       },
       "direct": {
         "title": "getplaid.direct",
-        "body": "Répond à une question DNS et à une redirection. Rien d’autre."
+        "body": "Répond à une requête DNS et fait une redirection. Rien de plus."
       },
       "server": {
         "title": "Ton serveur",
@@ -478,11 +478,11 @@
       },
       "dns": "DNS",
       "ip": "ton IP",
-      "video": "La vidéo, en direct. Sans relais."
+      "video": "La vidéo, en direct. Aucun relais."
     },
     "off": {
-      "title": "Tu le coupes, tout disparaît.",
-      "body": "Le désactiver supprime aussitôt les enregistrements de ton serveur. Un serveur qui ne s’est pas signalé depuis 30 jours est supprimé aussi."
+      "title": "Tu désactives, tout disparaît.",
+      "body": "Désactiver l’accès supprime immédiatement les données de ton serveur. Un serveur sans nouvelles depuis 30 jours est supprimé aussi."
     },
     "cant": {
       "title": "Quand ça ne peut pas marcher",
@@ -496,7 +496,7 @@
       },
       "own": {
         "title": "Ta propre installation",
-        "body": "Ton propre domaine, reverse proxy ou tunnel fonctionne avec getplaid.direct désactivé."
+        "body": "Ton propre domaine, reverse proxy ou tunnel marche très bien avec getplaid.direct désactivé."
       }
     }
   },
@@ -516,26 +516,26 @@
     },
     "names": {
       "eyebrow": "Noms",
-      "title": "Trois sortes de noms, une par serveur.",
-      "body": "Le label, c’est le nom du serveur rendu compatible DNS, coupé à 20 caractères, plus 6 caractères aléatoires. La partie aléatoire suffit à identifier le serveur.",
+      "title": "Trois types de noms par serveur.",
+      "body": "Le label, c’est le nom du serveur adapté au DNS, limité à 20 caractères, suivi de 6 caractères aléatoires. La partie aléatoire suffit à identifier le serveur.",
       "tableLabel": "Les noms d’un serveur",
       "rows": {
         "public": "L’IP publique de ton serveur. C’est l’adresse qu’utilisent les amis.",
-        "lan": "Une adresse privée de ton réseau, pour que les écrans de la maison restent à la maison.",
-        "acme": "Posé par ton serveur pendant qu’il obtient son propre certificat."
+        "lan": "Une adresse privée de ton réseau, pour que les écrans de la maison restent en local.",
+        "acme": "Créé par ton serveur le temps d’obtenir son certificat."
       }
     },
     "api": {
       "eyebrow": "API HTTP",
-      "title": "Sept appels, du JSON dans les deux sens.",
+      "title": "Sept appels, en JSON.",
       "body": "URL de base `{base}`. Les erreurs reviennent sous forme d’un code et d’une phrase en anglais, avec un statut 4xx ou 5xx.",
       "token": "…affiché une seule fois",
       "sample": "POST /servers répond 201",
       "calls": {
-        "register": "Enregistrement. Renvoie l’id, un jeton secret affiché une seule fois, le nom d’hôte et le lien court. 5 par IP et par heure.",
-        "update": "Mise à jour et signal de vie : au démarrage, toutes les 15 minutes et quand le port change.",
-        "unregister": "Désenregistrement. Les enregistrements disparaissent aussitôt.",
-        "acmeSet": "Pose les valeurs DNS-01 pour un certificat. Elles expirent au bout d’une heure.",
+        "register": "Inscription. Renvoie l’id, un jeton secret affiché une seule fois, le nom d’hôte et le lien court. 5 par IP et par heure.",
+        "update": "Mise à jour et signe de vie : au démarrage, toutes les 15 minutes et quand le port change.",
+        "unregister": "Désinscription. Les enregistrements disparaissent immédiatement.",
+        "acmeSet": "Publie les valeurs DNS-01 d’un certificat. Elles expirent au bout d’une heure.",
         "acmeClear": "Les efface.",
         "reach": "Vérifie depuis l’extérieur qu’un serveur PLAID répond. 10 par serveur et par heure.",
         "ip": "L’adresse que le service voit pour toi. Sans jeton."
@@ -546,12 +546,12 @@
       "title": "Un seul lien à retenir.",
       "from": "Le lien que tu envoies",
       "to": "Où il mène",
-      "note": "La redirection, c’est tout ce que fait le service. Un ancien nom redirige encore, vers le nom actuel. Le port 443 est omis de l’adresse."
+      "note": "Le service se contente de rediriger. Un ancien nom redirige toujours vers le nom actuel. Le port 443 n’apparaît pas dans l’adresse."
     },
     "dns": {
       "eyebrow": "DNS",
       "title": "Le service répond pour getplaid.direct.",
-      "body": "C’est le serveur de noms qui fait autorité sur la zone, pas un résolveur : les questions sur d’autres zones sont refusées, les noms inconnus reçoivent NXDOMAIN.",
+      "body": "C’est le serveur DNS qui fait autorité sur la zone, pas un résolveur : les questions sur d’autres zones sont refusées, les noms inconnus reçoivent NXDOMAIN.",
       "tableLabel": "Les enregistrements auxquels répond getplaid.direct",
       "rows": {
         "zone": "Le service lui-même",
@@ -563,55 +563,55 @@
     },
     "rules": {
       "eyebrow": "Règles",
-      "title": "Des détails sur lesquels un serveur peut compter.",
+      "title": "Des règles sur lesquelles un serveur peut compter.",
       "source": {
-        "title": "L’adresse est celle de la requête",
-        "body": "Ton IP publique est toujours la source de l’appel. Personne ne peut faire pointer un nom vers une adresse qui n’est pas la sienne."
+        "title": "L’adresse vient de la requête",
+        "body": "Ton IP publique, c’est toujours celle d’où part l’appel. Personne ne peut faire pointer un nom vers une adresse qui n’est pas la sienne."
       },
       "families": {
-        "title": "IPv4 et IPv6 séparées",
-        "body": "Un appel ne rafraîchit que sa propre famille. Une adresse non rafraîchie depuis 24 heures n’est plus publiée."
+        "title": "IPv4 et IPv6, chacune de son côté",
+        "body": "Un appel ne met à jour que l’adresse de son propre type. Une adresse qui n’a pas été mise à jour depuis 24 heures n’est plus publiée."
       },
       "token": {
         "title": "Un jeton, un serveur",
-        "body": "Après l’enregistrement, chaque appel porte un jeton bearer. Un mauvais jeton et un id inconnu reçoivent le même 401."
+        "body": "Après l’inscription, chaque appel porte un jeton. Un mauvais jeton et un id inconnu reçoivent la même erreur 401."
       },
       "ttl": {
         "title": "Des TTL courts",
-        "body": "60 secondes pour les enregistrements des serveurs, pour qu’une nouvelle IP se propage vite. Les serveurs silencieux depuis 30 jours sont supprimés."
+        "body": "60 secondes pour les enregistrements des serveurs, pour qu’une nouvelle IP soit vite prise en compte. Les serveurs sans nouvelles depuis 30 jours sont supprimés."
       },
       "keys": {
         "title": "Les clés restent à la maison",
         "body": "Chaque serveur obtient son propre certificat Let’s Encrypt via DNS-01. La clé privée ne quitte jamais ta machine."
       },
       "probe": {
-        "title": "Aucun sondage à l’intérieur",
-        "body": "La vérification de joignabilité ne se connecte jamais à une adresse privée, CGNAT ou link-local."
+        "title": "Jamais de sondage en interne",
+        "body": "La vérification d’accessibilité ne se connecte jamais à une adresse privée, CGNAT ou link-local."
       }
     },
     "read": {
       "title": "Lire le document complet.",
-      "body": "PROTOCOL.md vit à côté du code du service, versionné avec lui.",
+      "body": "PROTOCOL.md est rangé à côté du code du service, et versionné avec lui.",
       "action": "Ouvrir sur GitHub"
     }
   },
   "roadmap": {
     "meta": {
       "title": "Roadmap · PLAID",
-      "description": "Où en est PLAID, honnêtement : dix fonctionnalités marchent aujourd’hui, quatre sont conçues, quelques-unes attendent leur tour."
+      "description": "Où en est PLAID, en toute honnêteté : dix fonctionnalités marchent déjà, quatre sont conçues, d’autres attendent leur tour."
     },
     "eyebrow": "Roadmap",
-    "title": "Où en est PLAID, honnêtement.",
-    "lead": "Dix fonctionnalités marchent aujourd’hui, quatre sont conçues, quelques-unes attendent leur tour.",
+    "title": "Où en est PLAID, en toute honnêteté.",
+    "lead": "Dix fonctionnalités marchent déjà, quatre sont conçues, d’autres attendent leur tour.",
     "bannerAlt": "Deux personnages dans un étrange monde de machines, dans Elephants Dream.",
     "cols": {
       "today": {
-        "title": "Marche aujourd’hui",
-        "sub": "Fusionné, dans les versions publiées, encore en cours de finition."
+        "title": "Déjà là",
+        "sub": "Intégré, livré, encore en finition."
       },
       "designed": {
-        "title": "Conçu, pas construit",
-        "sub": "Intentions écrites. Pas encore de code."
+        "title": "Conçu, pas encore codé",
+        "sub": "Besoin décrit. Pas encore de code."
       },
       "later": {
         "title": "Sur la liste",
@@ -639,9 +639,9 @@
       "intro": "Détection des génériques sans TheIntroDB, trickplay"
     },
     "written": {
-      "title": "Chaque étape est écrite.",
-      "body": "Chaque fonctionnalité passe de l’intention à la spec puis au plan dans `sdlc/` sur GitHub, relue par le développeur qui ne l’a pas écrite.",
-      "action": "Lire les intentions"
+      "title": "Chaque étape est écrite noir sur blanc.",
+      "body": "Chaque fonctionnalité passe par un intent, une spec puis un plan, dans `sdlc/` sur GitHub, relus par le développeur qui ne les a pas écrits.",
+      "action": "Lire les intents"
     },
     "parade": "À quoi ça ressemble déjà"
   },
@@ -651,8 +651,8 @@
       "description": "Les questions sur PLAID, avec des réponses claires : prix, comptes, données, Raspberry Pi, Docker, et regarder avec des amis."
     },
     "eyebrow": "FAQ",
-    "title": "Des questions, des réponses claires.",
-    "lead": "Si la tienne n’y est pas, pose-la sur GitHub. On répond.",
+    "title": "Tes questions, des réponses sans détour.",
+    "lead": "Ta question n’y est pas ? Pose-la sur GitHub, on répond.",
     "bannerAlt": "Un lama écarquille les yeux, dans Caminandes.",
     "groups": {
       "basics": "L’essentiel",
@@ -663,22 +663,22 @@
     "items": {
       "free": {
         "q": "PLAID est-il gratuit ?",
-        "a": "Oui. Open source sous licence MIT, sans offre payante. Et ça restera comme ça."
+        "a": "Oui. Open source sous licence MIT, sans version payante. Et ça ne changera pas."
       },
       "today": {
-        "q": "Peut-on l’utiliser dès aujourd’hui ?",
-        "a": "Oui, même si c’est encore tôt. Le serveur, l’app web et l’app Apple TV gèrent les bibliothèques, les illustrations, la lecture et l’accès à distance. Le partage et Plaid Party arrivent ; attends-toi à quelques angles vifs."
+        "q": "Je peux l’utiliser dès aujourd’hui ?",
+        "a": "Oui, même si c’est encore jeune. Le serveur, l’app web et l’app Apple TV gèrent les bibliothèques, les illustrations, la lecture et l’accès à distance. Le partage et Plaid Party arrivent ; attends-toi à quelques imperfections."
       },
       "fork": {
         "q": "Est-ce un fork de Plex ou de Jellyfin ?",
         "a": "Non. PLAID est écrit de zéro, avec sa propre API et ses propres apps."
       },
       "account": {
-        "q": "PLAID a-t-il besoin d’un compte en ligne ?",
-        "a": "Non. Les comptes vivent sur ton serveur. Le projet ne te demande rien."
+        "q": "PLAID a besoin d’un compte en ligne ?",
+        "a": "Non. Les comptes sont stockés sur ton serveur. Le projet ne te demande rien."
       },
       "sends": {
-        "q": "Est-ce que ça vous envoie quelque chose ?",
+        "q": "Est-ce que PLAID vous envoie des données ?",
         "a": "Aucune télémétrie. Ton serveur demande les affiches et synopsis à TMDB et fanart.tv en n’envoyant que des titres, des années et des identifiants, jamais ce que tu regardes. Avec l’accès à distance activé, getplaid.direct connaît ton IP publique et ton port."
       },
       "files": {
@@ -687,15 +687,15 @@
       },
       "pi": {
         "q": "Est-ce que ça tourne sur un Raspberry Pi ?",
-        "a": "Oui, un Pi 4 ou 5 avec un système 64 bits. Le Direct Play ne coûte presque rien ; sur un Pi, la conversion se fait en logiciel, donc une machine avec un GPU fait bien mieux pour les fichiers que tes écrans ne savent pas lire tels quels."
+        "a": "Oui, un Pi 4 ou 5 avec un système 64 bits. Le Direct Play ne lui coûte presque rien ; en revanche, il convertit en logiciel, donc pour les fichiers que tes écrans ne savent pas lire tels quels, une machine avec un GPU fait bien mieux."
       },
       "docker": {
         "q": "Faut-il Docker ?",
         "a": "Non. Le paquet Debian installe un service système classique. Docker marche aussi."
       },
       "reach": {
-        "q": "Comment mes amis atteignent-ils mon serveur depuis l’extérieur ?",
-        "a": "Active l’accès à distance pour une adresse getplaid.direct et un vrai certificat, utilise ton propre reverse proxy, ou un tunnel comme Tailscale ou Cloudflare Tunnel."
+        "q": "Comment mes amis accèdent-ils à mon serveur depuis l’extérieur ?",
+        "a": "Active l’accès à distance pour avoir une adresse getplaid.direct et un vrai certificat. Sinon, utilise ton propre reverse proxy ou un tunnel comme Tailscale ou Cloudflare Tunnel."
       },
       "install": {
         "q": "Mes amis doivent-ils installer quelque chose ?",
@@ -704,7 +704,7 @@
     },
     "still": {
       "title": "Encore une question ?",
-      "action": "La poser sur GitHub"
+      "action": "Pose-la sur GitHub"
     }
   },
   "openSource": {
@@ -713,26 +713,26 @@
       "description": "PLAID est sous licence MIT : le serveur, l’app web, l’app Apple TV et toutes les apps à venir. Comment il est construit, avec quoi, et comment aider."
     },
     "eyebrow": "Open source",
-    "title": "Ouvert, lisible, à forker librement.",
+    "title": "Ouvert, lisible, et libre à forker.",
     "lead": "Sous licence MIT : le serveur, l’app web, l’app Apple TV, et toutes les apps à venir.",
     "bannerAlt": "Une créature champignon crie dans une forêt sombre, dans Sprite Fright.",
     "how": {
       "title": "Notre méthode",
       "written": {
         "title": "Écrit avant d’être construit",
-        "body": "Chaque fonctionnalité passe par l’intention, la spec, le plan, puis le code. Chaque étape est un fichier, et chaque fichier est relu."
+        "body": "Chaque fonctionnalité suit le même chemin : intent, spec, plan, code. Chaque étape est un fichier, et chaque fichier est relu."
       },
       "contract": {
         "title": "Un seul contrat d’API",
-        "body": "L’API est décrite une seule fois en OpenAPI. Le serveur et le client web en sont générés."
+        "body": "L’API est décrite une seule fois, en OpenAPI. Le code du serveur et du client web en est généré."
       },
       "words": {
-        "title": "Chaque mot traduisible",
-        "body": "L’anglais d’abord, puis le français, avec de la place pour d’autres langues."
+        "title": "Tout le texte est traduisible",
+        "body": "L’anglais d’abord, puis le français, et de la place pour d’autres langues."
       },
       "review": {
         "title": "Personne n’approuve son propre travail",
-        "body": "Deux développeurs relisent mutuellement leurs pull requests."
+        "body": "Les deux développeurs relisent les pull requests l’un de l’autre."
       }
     },
     "stack": "Fait avec",
@@ -740,9 +740,9 @@
       "title": "Envie d’aider ?",
       "body": "Ouvre une issue pour un bug, une idée ou une langue. Les traductions sont une bonne première contribution.",
       "issue": "Ouvrir une issue",
-      "how": "Comment on travaille"
+      "how": "Notre façon de travailler"
     },
-    "parade": "Fait pour des films comme ceux-là"
+    "parade": "Fait pour des films comme ceux-ci"
   },
   "privacy": {
     "meta": {
@@ -750,13 +750,13 @@
       "description": "Ce que getplaid.direct conserve, et combien de temps : presque rien, et seulement si l’accès à distance est activé. Ce site ne conserve rien du tout."
     },
     "eyebrow": "Confidentialité",
-    "title": "Ce qu’on garde, et combien de temps.",
+    "title": "Ce qu’on garde, et pour combien de temps.",
     "lead": "En bref : presque rien, et seulement si tu actives l’accès à distance. Ce site ne garde rien du tout.",
     "bannerAlt": "Gros plan sur Big Buck Bunny tenant une brindille.",
     "kept": {
       "kicker": "Conservé",
       "title": "Ce que stocke getplaid.direct",
-      "body": "Seulement une fois l’accès à distance activé, et seulement par serveur.",
+      "body": "Uniquement si tu actives l’accès à distance, et serveur par serveur.",
       "rows": {
         "id": {
           "name": "ID",
@@ -795,27 +795,27 @@
     "never": {
       "kicker": "Jamais",
       "title": "Tes films, tes bibliothèques, tes comptes, ce que tu regardes.",
-      "body": "La vidéo va directement de ton serveur à l’écran. getplaid.direct ne fait que répondre au DNS."
+      "body": "La vidéo va directement de ton serveur à l’écran. getplaid.direct se contente de répondre aux requêtes DNS."
     },
     "gone": {
       "kicker": "Effacé",
       "title": "Dès que tu le désactives.",
-      "body": "Ou de lui-même, après 30 jours sans nouvelles de ton serveur."
+      "body": "Ou automatiquement, après 30 jours sans nouvelles de ton serveur."
     },
     "server": {
       "kicker": "Le serveur PLAID",
       "title": "Aucune télémétrie.",
-      "body": "Pour identifier tes films, il envoie des titres, des années et des identifiants à TMDB et fanart.tv, avec l’IP de ton serveur. Jamais les comptes ni ce que tu regardes."
+      "body": "Pour identifier tes films, il envoie des titres, années et identifiants à TMDB et fanart.tv, avec l’IP de ton serveur. Jamais tes comptes, ni ce que tu regardes."
     },
     "site": {
       "kicker": "Ce site",
       "title": "Rien sur toi.",
-      "body": "Pas de mesure d’audience, pas de cookies, ni scripts ni polices tiers. Rien n’est stocké dans ton navigateur."
+      "body": "Pas de statistiques de visite, pas de cookies, ni scripts ni polices externes. Rien n’est stocké dans ton navigateur."
     },
     "questions": {
       "kicker": "Questions",
       "title": "Pose-les sur GitHub.",
-      "body": "Le comportement du service est écrit dans son [document de protocole]({protocol}), au grand jour."
+      "body": "Le fonctionnement du service est décrit publiquement dans son [document de protocole]({protocol})."
     }
   },
   "notFound": {
@@ -825,7 +825,7 @@
     },
     "eyebrow": "404",
     "title": "Cette bobine a disparu.",
-    "body": "La page demandée n’est pas là. Le reste du programme, si.",
+    "body": "La page que tu cherches n’existe pas. Le reste du programme t’attend.",
     "home": "Revenir au début"
   }
 }
