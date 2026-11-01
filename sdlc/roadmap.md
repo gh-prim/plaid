@@ -35,6 +35,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [F010](features/F010-plaid-party/intent.md) | Plaid Party (watch together) | 3 | server, web | ? | 📝 | — | — |
 | [F011](features/F011-tvos-app/intent.md) | Apple TV app | 4 | server, apple | gh-prim | ✅ | [✅](features/F011-tvos-app/spec.md) | [🚧](features/F011-tvos-app/plan.md) |
 | [F012](features/F012-remote-access/intent.md) | Remote access through getplaid.direct | 3 | server, web | gh-prim | ✅ | [✅](features/F012-remote-access/spec.md) | [✔️](features/F012-remote-access/plan.md) |
+| [F013](features/F013-pair-tv-v2/intent.md) | Web: Pair a TV in the V2 look | 4 | web | gh-prim | ✅ | [✅](features/F013-pair-tv-v2/spec.md) | [✔️](features/F013-pair-tv-v2/plan.md) |
 
 ### Later (intents to write)
 - Apple app (iOS, iPadOS): phase 4 (tvOS is F011)

@@ -741,10 +741,24 @@
     "step": "Étape {{step, number}} sur {{total, number}}"
   },
   "pairing": {
+    "codeHint": "6 caractères, sans 0, O, 1, I ni L. Le code expire au bout de 10 minutes.",
     "codeLabel": "Code affiché sur la TV",
     "confirm": "Associer",
-    "done": "{{device}} est connectée.",
-    "startProfile": "Profil de départ",
+    "done": {
+      "another": "Associer une autre TV",
+      "devices": "Tu la retrouves dans Réglages, Appareils.",
+      "finish": "Terminé",
+      "profile": "Elle s’ouvre sur le profil de {{name}}.",
+      "title": "{{device}} est connectée."
+    },
+    "hello": {
+      "afternoon": "Bon après-midi {{name}}",
+      "evening": "Bonsoir {{name}}",
+      "morning": "Bonjour {{name}}"
+    },
+    "lead": "Ouvre PLAID sur la TV, puis tape ici le code qu’elle affiche.",
+    "pin": "Code du profil de {{name}}",
+    "startProfile": "Elle s’ouvrira sur",
     "title": "Associer une TV"
   },
   "people": {
@@ -1020,7 +1034,6 @@
     "whatToDo": "Que faire"
   },
   "profiles": {
-    "enterPin": "Saisis le code PIN de {{name}}",
     "manage": "Gérer",
     "pin": {
       "cancel": "Retour aux profils",
