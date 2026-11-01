@@ -50,6 +50,7 @@ Each step is one commit or a few, all in one PR from `feat/F011-tvos-app`.
 10. [x] Error state for links; menu kept folded when opened by a link (R7, R20).
 11. [ ] `make test` green; build the app for the simulator and the device; screenshots; open the PR.
 12. [ ] Follow-up on `feat/F011-icon-splash`: the V2 logo (board "Logo · Woven play, splash", step 14 of the design). Layered app icon (graphite ground behind, the woven play button in front, its threads see-through) and Top Shelf lockup, drawn by `apple/scripts/make-icons.swift`; launch screen in the splash's graphite (`Splash` color); `SplashView`, the board's 6 s intro played once per cold start over the loading app, the still lockup under Reduce Motion, Select or Play/Pause skips to the fade.
+13. [ ] Follow-up on `feat/F011-direct-code`: the server picker also takes a getplaid.direct code (k3x7qa, the short link, or a getplaid.direct hostname). `DirectLink` asks `GET /api/v1/servers/{id}/connections` (F012) and the app keeps the first address that answers, the local one first (4 s each, the last one 15 s). An unknown code falls back to a host name on the network before saying so. Pairing is unchanged.
 
 ## Risks
 | Risk | Likelihood | Mitigation |

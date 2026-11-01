@@ -66,26 +66,77 @@ struct ServerPickerView: View {
     }
 
     private func connectTyped() {
+        if let code = DirectLink.code(in: address) {
+            connect(code: code)
+        } else if let url = typedURL() {
+            connect(url)
+        } else {
+            error = "server.invalidAddress"
+        }
+    }
+
+    /// The typed address as a URL: plain http on PLAID's port unless it says otherwise.
+    private func typedURL() -> URL? {
         var s = address.trimmingCharacters(in: .whitespaces)
         if !s.contains("://") { s = "http://" + s }
-        guard var c = URLComponents(string: s), c.host != nil else { error = "server.invalidAddress"; return }
+        guard var c = URLComponents(string: s), c.host != nil else { return nil }
         if c.port == nil && c.scheme == "http" { c.port = 32500 }
-        guard let url = c.url else { error = "server.invalidAddress"; return }
-        connect(url)
+        return c.url
     }
 
     private func connect(_ url: URL) {
         connecting = true
         error = nil
         Task {
-            let probe = APIClient(baseURL: url)
-            do {
-                let _: ServerInfo = try await probe.get("/server")
+            if await Self.answers(url) {
                 await app.useServer(url)
-            } catch {
+            } else {
                 self.error = "server.unreachable"
             }
             connecting = false
+        }
+    }
+
+    /// A getplaid.direct code: asks the service where the server is and keeps
+    /// the first address that answers, the local one first (a TV at home).
+    private func connect(code: String) {
+        connecting = true
+        error = nil
+        Task {
+            defer { connecting = false }
+            let urls: [URL]
+            do {
+                urls = try await DirectLink.addresses(for: code)
+            } catch DirectLink.Failure.unknownCode {
+                // A six-letter host name on the network looks like a code too.
+                if let url = typedURL(), await Self.answers(url) { await app.useServer(url) } else { error = "server.unknownCode" }
+                return
+            } catch {
+                self.error = "server.directUnreachable"
+                return
+            }
+            for (i, url) in urls.enumerated() where await Self.answers(url, within: i < urls.count - 1 ? 4 : 15) {
+                await app.useServer(url)
+                return
+            }
+            error = "server.unreachable"
+        }
+    }
+
+    /// Whether a PLAID server answers at `url` within `seconds`.
+    private static func answers(_ url: URL, within seconds: Double = 15) async -> Bool {
+        await withTaskGroup(of: Bool.self) { group in
+            group.addTask {
+                let info: ServerInfo? = try? await APIClient(baseURL: url).get("/server")
+                return info != nil
+            }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(seconds))
+                return false
+            }
+            let first = await group.next() ?? false
+            group.cancelAll()
+            return first
         }
     }
 }

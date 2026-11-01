@@ -688,13 +688,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "192.168.1.10:32500"
+            "value": "192.168.1.10 or k3x7qa"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "192.168.1.10:32500"
+            "value": "192.168.1.10 ou k3x7qa"
           }
         }
       }
@@ -756,13 +756,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Or type its address"
+            "value": "Or type its address or getplaid.direct code"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ou saisissez son adresse"
+            "value": "Ou saisissez son adresse ou son code getplaid.direct"
           }
         }
       }
@@ -797,6 +797,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choisissez votre serveur PLAID"
+          }
+        }
+      }
+    },
+    "server.directUnreachable": {
+      "comment": "getplaid.direct could not be reached to look up a server code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "getplaid.direct can't be reached. Check the Apple TV's internet connection."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "getplaid.direct est injoignable. Vérifiez la connexion internet de l’Apple TV."
+          }
+        }
+      }
+    },
+    "server.unknownCode": {
+      "comment": "No server is registered on getplaid.direct with the code typed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No PLAID server has this code. It's the end of the server's getplaid.direct link."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun serveur PLAID n’a ce code. C’est la fin du lien getplaid.direct du serveur."
           }
         }
       }
