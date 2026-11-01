@@ -701,10 +701,24 @@
     "step": "Step {{step, number}} of {{total, number}}"
   },
   "pairing": {
+    "codeHint": "6 characters, no 0, O, 1, I or L. The code expires after 10 minutes.",
     "codeLabel": "Code shown on the TV",
     "confirm": "Pair",
-    "done": "{{device}} is signed in.",
-    "startProfile": "Start on profile",
+    "done": {
+      "another": "Pair another TV",
+      "devices": "You’ll find it in Settings, Devices.",
+      "finish": "Done",
+      "profile": "It opens on {{name}}’s profile.",
+      "title": "{{device}} is connected."
+    },
+    "hello": {
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}",
+      "morning": "Good morning, {{name}}"
+    },
+    "lead": "Open PLAID on the TV, then type the code it shows here.",
+    "pin": "{{name}}’s PIN",
+    "startProfile": "It will open on",
     "title": "Pair a TV"
   },
   "people": {
@@ -976,7 +990,6 @@
     "whatToDo": "What to do"
   },
   "profiles": {
-    "enterPin": "Enter the PIN for {{name}}",
     "manage": "Manage",
     "pin": {
       "cancel": "Back to profiles",
