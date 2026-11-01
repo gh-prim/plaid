@@ -130,10 +130,46 @@ func TestPlaylists(t *testing.T) {
 #EXT-X-MEDIA-SEQUENCE:0
 #EXT-X-PLAYLIST-TYPE:VOD
 #EXTINF:61.500,
-3.vtt
+3.vtt?seg=0
 #EXT-X-ENDLIST
 `
 	if got != want {
 		t.Fatalf("subtitle playlist:\n%s\nwant:\n%s", got, want)
+	}
+	// A film is cut in 5-minute segments, the last one shorter.
+	got = SubtitlePlaylist(700_000, 2)
+	want = `#EXTM3U
+#EXT-X-VERSION:7
+#EXT-X-TARGETDURATION:300
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXTINF:300.000,
+2.vtt?seg=0
+#EXTINF:300.000,
+2.vtt?seg=1
+#EXTINF:100.000,
+2.vtt?seg=2
+#EXT-X-ENDLIST
+`
+	if got != want {
+		t.Fatalf("long subtitle playlist:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestCutWebVTT(t *testing.T) {
+	vtt := "WEBVTT\r\n\r\nNOTE made by FFmpeg\r\n\r\n" +
+		"00:04:50.000 --> 00:05:10.000\r\nAcross the boundary\r\n\r\n" +
+		"1\n00:05:20.500 --> 00:05:22.000 align:start\nInside\n\n" +
+		"01:00:00.000 --> 01:00:02.000\nLater\n\n" +
+		"04:00.000 --> 04:10.000\nBefore\n"
+	got := string(CutWebVTT([]byte(vtt), 300_000, 600_000))
+	want := "WEBVTT\n\nNOTE made by FFmpeg\n\n00:04:50.000 --> 00:05:10.000\nAcross the boundary\n\n" +
+		"1\n00:05:20.500 --> 00:05:22.000 align:start\nInside\n\n"
+	if got != want {
+		t.Fatalf("cut:\n%q\nwant:\n%q", got, want)
+	}
+	// The first segment keeps the short form and the boundary cue too.
+	if got := string(CutWebVTT([]byte(vtt), 0, 300_000)); !strings.Contains(got, "Before") || !strings.Contains(got, "Across") || strings.Contains(got, "Inside") {
+		t.Fatalf("first segment:\n%s", got)
 	}
 }

@@ -211,6 +211,11 @@ func serveSubtitle(w http.ResponseWriter, r *http.Request, svc *playback.Service
 	if !ok {
 		return
 	}
+	// ?seg=<n>: one segment of the HLS rendition, cut from the quick window.
+	if seg := r.URL.Query().Get("seg"); seg != "" && ext == playback.SubtitleVTT {
+		serveSubtitleSegment(w, r, svc, sess, index, seg)
+		return
+	}
 	// ?from=<ms>: answer at once with the part around the position while
 	// the whole track is extracted (V2); the header says where it ends.
 	var (
@@ -239,6 +244,33 @@ func serveSubtitle(w http.ResponseWriter, r *http.Request, svc *playback.Service
 		ctype = "application/octet-stream"
 	}
 	serveFiles(w, r, ctype, []string{path})
+}
+
+// serveSubtitleSegment serves segment n of a text track's HLS rendition
+// (R16): the cues of [n × 5 min, (n+1) × 5 min), from the whole track when
+// it's ready, else from the quick window starting there, which covers it.
+func serveSubtitleSegment(w http.ResponseWriter, r *http.Request, svc *playback.Service, sess playback.Session, index int, seg string) {
+	n, err := strconv.Atoi(seg)
+	start := int64(n) * playback.SubtitleSegmentMs
+	if err != nil || n < 0 || start >= max(sess.Decision.Media.DurationMs, 1) {
+		streamError(w, playback.ErrNoSuchSubtitle)
+		return
+	}
+	path, _, err := svc.SubtitleQuick(r.Context(), sess, index, playback.SubtitleVTT, start)
+	if err != nil {
+		streamError(w, err)
+		return
+	}
+	data, err := os.ReadFile(path) //nolint:gosec // a file the subtitle cache made
+	if err != nil {
+		streamError(w, err)
+		return
+	}
+	body := playback.CutWebVTT(data, start, start+playback.SubtitleSegmentMs)
+	w.Header().Set("Content-Type", "text/vtt; charset=utf-8")
+	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	_, _ = w.Write(body) //nolint:gosec // WebVTT served as text/vtt with nosniff, never HTML
 }
 
 // streamArtworkKinds are the kinds served through a token (R40).
