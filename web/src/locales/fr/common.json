@@ -1114,6 +1114,16 @@
     "testing": "Vérification…",
     "title": "Accès à distance"
   },
+  "remoteSignIn": {
+    "credit": "Tears of Steel © Blender Foundation, CC BY",
+    "forgot": "Mot de passe oublié ? Un administrateur peut le réinitialiser dans Réglages, Personnes.",
+    "forgotShort": "Mot de passe oublié ? Demande à un administrateur.",
+    "hint": "Appuie sur lecture pour entrer.",
+    "kicker": "Accès à distance",
+    "lead": "Connecte-toi pour reprendre là où tu t’étais arrêté.",
+    "secure": "Chiffré, directement vers ton serveur. Rien ne passe par getplaid.direct.",
+    "signingIn": "Connexion…"
+  },
   "review": {
     "choose": "Celui-ci",
     "empty": "Rien à vérifier. Chaque fichier a trouvé son film.",

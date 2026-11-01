@@ -1070,6 +1070,16 @@
     "testing": "Checking…",
     "title": "Remote access"
   },
+  "remoteSignIn": {
+    "credit": "Tears of Steel © Blender Foundation, CC BY",
+    "forgot": "Forgot your password? An admin can reset it in Settings, People.",
+    "forgotShort": "Forgot your password? Ask an admin.",
+    "hint": "Press play to sign in.",
+    "kicker": "Remote access",
+    "lead": "Sign in to pick up where you left off.",
+    "secure": "Encrypted, straight to your server. Nothing goes through getplaid.direct.",
+    "signingIn": "Signing in…"
+  },
   "review": {
     "choose": "This one",
     "empty": "Nothing to review. Every file found its movie.",
