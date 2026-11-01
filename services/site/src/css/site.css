@@ -3527,3 +3527,65 @@ body.leaving .foot {
     transform: none;
   }
 }
+
+/* Home: how it works, and why not Plex. Three columns under a heading. */
+.trio {
+  margin-top: 160px;
+}
+
+.trio__h {
+  max-width: 900px;
+}
+
+.trio__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trio__col {
+  padding-top: 32px;
+}
+
+.trio__n {
+  display: block;
+  font: 700 17px/1 var(--display);
+  color: var(--t4);
+}
+
+.trio__t {
+  margin-top: 14px;
+  font: 700 28px/32px var(--display);
+  letter-spacing: -0.02em;
+}
+
+.trio__col p {
+  margin-top: 12px;
+  font: 500 17px/26px var(--sans);
+  color: var(--t3);
+}
+
+@media (max-width: 960px) {
+  .trio {
+    margin-top: 110px;
+  }
+
+  .trio__grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .trio {
+    margin-top: 80px;
+  }
+
+  .trio__t {
+    font-size: 24px;
+    line-height: 28px;
+  }
+}

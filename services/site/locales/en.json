@@ -77,16 +77,16 @@
   },
   "home": {
     "meta": {
-      "title": "PLAID · Your films. Your server. Every screen.",
-      "description": "PLAID turns the drives you already have into a streaming service for the people you love. Open source, self-hosted, no account, no subscription, nobody watching."
+      "title": "PLAID · Your own streaming server, no account, no subscription",
+      "description": "PLAID turns the drives you already have into a streaming service for the people you love. A self-hosted alternative to Plex: open source, no account, no subscription, nobody watching."
     },
     "hero": {
       "line1": "Your films.",
       "line2": "Your server.",
       "line3": "Every screen.",
-      "lead": "PLAID turns the drives you already have into a streaming service for the people you love. No account, no subscription, nobody watching.",
+      "lead": "PLAID turns the drives you already have into a streaming service for the people you love: posters, resume where you stopped, an Apple TV app. No account, no subscription, nobody watching.",
       "install": "Install in one line",
-      "github": "View on GitHub"
+      "github": "See the code on GitHub"
     },
     "app": {
       "alt": "The PLAID web app on a home server: Tears of Steel to continue watching, and a row of recently added films.",
@@ -113,6 +113,38 @@
       "yours": {
         "title": "Belongs to you",
         "body": "Accounts live on your server. No PLAID account, no subscription, no tracking. Open source under MIT."
+      }
+    },
+    "how": {
+      "eyebrow": "How it works",
+      "title": "Three steps, one evening.",
+      "install": {
+        "title": "Install it",
+        "body": "One line on Ubuntu, Debian or a Raspberry Pi. It runs as a service that starts on boot."
+      },
+      "folders": {
+        "title": "Point it at your folders",
+        "body": "PLAID recognises your films and shows and adds posters, synopses and cast. Your files don’t move."
+      },
+      "invite": {
+        "title": "Invite your people",
+        "body": "Send a link, even to someone far away. The video goes straight from your server to their screen."
+      }
+    },
+    "vs": {
+      "eyebrow": "Why not Plex or Jellyfin?",
+      "title": "Private like Jellyfin. Polished like Plex.",
+      "account": {
+        "title": "No account with us",
+        "body": "Plex asks everyone to sign in with a Plex account. PLAID has none: accounts live on your server."
+      },
+      "looks": {
+        "title": "Looks like a paid service",
+        "body": "A real home screen, posters and an Apple TV app, built for the people watching, not for the person running the server."
+      },
+      "open": {
+        "title": "Open, written from scratch",
+        "body": "Built from the ground up, MIT licensed. No paid tier, no ads, no premium pass."
       }
     },
     "tv": {
@@ -146,7 +178,8 @@
           "name": "Phone on a train",
           "spec": "720p"
         }
-      }
+      },
+      "badge": "Coming next"
     },
     "install": {
       "eyebrow": "Install",

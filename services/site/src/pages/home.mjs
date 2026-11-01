@@ -1,4 +1,4 @@
-import { CODE, LINKS, ambient, btn, cmd, eyebrow, glyph, page, poster, POSTERS, status } from '../layout.mjs';
+import { CODE, LINKS, ambient, btn, cmd, eyebrow, glyph, page, poster, POSTERS } from '../layout.mjs';
 
 const still = (img, alt, sizes, cls = '') =>
   `<img${cls ? ` class="${cls}"` : ''} src="/img/${img}.jpg" srcset="/img/${img}-800.jpg 800w, /img/${img}.jpg 1600w" sizes="${sizes}" width="1600" height="900" alt="${alt}" loading="lazy" decoding="async">`;
@@ -40,6 +40,17 @@ export default {
       )
       .join('');
 
+    // Three numbered or titled columns under a heading: how it works, and why not Plex.
+    const trio = (key, items, numbered) => {
+      const tag = numbered ? 'li' : 'div';
+      return items
+        .map(
+          (k, i) =>
+            `<${tag} class="trio__col hl rv">${numbered ? `<span class="trio__n" aria-hidden="true">${i + 1}</span>` : ''}<h3 class="trio__t">${t(`home.${key}.${k}.title`)}</h3><p>${t(`home.${key}.${k}.body`)}</p></${tag}>`,
+        )
+        .join('');
+    };
+
     const faq = ['free', 'account', 'pi', 'video', 'party']
       .map(
         (k, i) =>
@@ -63,6 +74,12 @@ ${eyebrow(t('home.what.eyebrow'), 'rv')}
 <div class="whatis__grid">${cards}</div>
 </section>
 
+<section class="wrap trio" aria-labelledby="how-title">
+${eyebrow(t('home.how.eyebrow'), 'rv')}
+<h2 class="h2 trio__h" id="how-title" data-words>${t('home.how.title')}</h2>
+<ol class="trio__grid">${trio('how', ['install', 'folders', 'invite'], true)}</ol>
+</section>
+
 <section class="atv" aria-labelledby="atv-title">
 <div class="atv__bg" aria-hidden="true"><img src="/img/still-big-buck-bunny-800.jpg" width="800" height="450" alt="" loading="lazy" decoding="async"></div>
 <div class="wrap atv__in">
@@ -72,11 +89,10 @@ ${tv}
 </div>
 </section>
 
-<section class="wrap teaser" aria-labelledby="party-title">
-<p class="badge rv">${status(ctx, 'planned')}</p>
-<h2 class="h2 teaser__h" id="party-title" data-words>${t('home.party.title')}</h2>
-<p class="lead teaser__lead rv">${t('home.party.body')}</p>
-<ul class="devices" data-devices>${devices}</ul>
+<section class="wrap trio" aria-labelledby="vs-title">
+${eyebrow(t('home.vs.eyebrow'), 'rv')}
+<h2 class="h2 trio__h" id="vs-title" data-words>${t('home.vs.title')}</h2>
+<div class="trio__grid">${trio('vs', ['account', 'looks', 'open'], false)}</div>
 </section>
 
 <section class="wrap install-teaser" aria-labelledby="install-title">
@@ -87,6 +103,13 @@ ${cmd(ctx, CODE.script, { variant: 'terminal', note: t('home.install.note') })}
 <section class="wrap duo" aria-label="${attr('home.duo.label')}">
 <div class="duo__col hl rv">${eyebrow(t('home.duo.account.eyebrow'))}<h3 class="h3">${t('home.duo.account.title')}</h3><p>${t('home.duo.account.body')}</p></div>
 <div class="duo__col hl rv">${eyebrow(t('home.duo.remote.eyebrow'))}<h3 class="h3">${t('home.duo.remote.title')}</h3><p>${t('home.duo.remote.body')}</p><p class="duo__code"><a href="${ctx.href('remote')}"><code>${CODE.short}</code></a></p></div>
+</section>
+
+<section class="wrap teaser" aria-labelledby="party-title">
+<p class="badge rv">${t('home.party.badge')}</p>
+<h2 class="h2 teaser__h" id="party-title" data-words>${t('home.party.title')}</h2>
+<p class="lead teaser__lead rv">${t('home.party.body')}</p>
+<ul class="devices" data-devices>${devices}</ul>
 </section>
 
 <section class="wrap faqmini" aria-labelledby="faq-title">
