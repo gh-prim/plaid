@@ -59,7 +59,10 @@
 		<string>InstrumentSerif-Regular-latin.ttf</string>
 	</array>
 	<key>UILaunchScreen</key>
-	<dict/>
+	<dict>
+		<key>UIColorName</key>
+		<string>Splash</string>
+	</dict>
 	<key>UIUserInterfaceStyle</key>
 	<string>Dark</string>
 </dict>

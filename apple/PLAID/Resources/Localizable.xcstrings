@@ -2593,6 +2593,24 @@
           }
         }
       }
+    },
+    "splash.label": {
+      "comment": "Accessibility label of the launch intro: the PLAID logo.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PLAID"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PLAID"
+          }
+        }
+      }
     }
   }
 }
