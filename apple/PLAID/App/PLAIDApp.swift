@@ -3,8 +3,6 @@ import SwiftUI
 @main
 struct PLAIDApp: App {
     @State private var app = AppState()
-    /// The launch intro plays once per cold start, over the app loading behind it.
-    @State private var showSplash = true
 
     var body: some Scene {
         WindowGroup {
@@ -12,9 +10,9 @@ struct PLAIDApp: App {
                 RootView()
                     .environment(app)
                     // Nothing behind the intro takes focus or remote presses.
-                    .disabled(showSplash)
-                if showSplash {
-                    SplashView { showSplash = false }
+                    .disabled(app.splashing)
+                if app.splashing {
+                    SplashView { app.splashing = false }
                 }
             }
             .preferredColorScheme(.dark)

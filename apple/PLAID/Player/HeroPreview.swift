@@ -130,22 +130,26 @@ struct PreviewSoundButton: View {
 }
 
 struct RoundGlassButtonStyle: ButtonStyle {
+    var size: CGFloat = 72
+
     func makeBody(configuration: Configuration) -> some View {
-        Round(configuration: configuration)
+        Round(configuration: configuration, size: size)
     }
 
     private struct Round: View {
         let configuration: ButtonStyleConfiguration
+        let size: CGFloat
         @Environment(\.isFocused) private var focused
         @Environment(\.onHeroFocus) private var onHeroFocus
 
         var body: some View {
             configuration.label
                 .onChange(of: focused) { _, on in if on { onHeroFocus() } }
-                .font(.system(size: 26, weight: .semibold))
-                .frame(width: 72, height: 72)
+                .font(.system(size: size * 0.36, weight: .semibold))
+                .frame(width: size, height: size)
                 .foregroundStyle(focused ? Theme.onAction : Theme.textPrimary)
                 .background(Circle().fill(focused ? Theme.action : Theme.control))
+                .focusHalo(Circle())
                 .scaleEffect(focused ? 1.08 : 1)
                 .shadow(color: focused ? .black.opacity(0.5) : .clear, radius: 24, y: 12)
                 .animation(.smooth(duration: 0.25), value: focused)

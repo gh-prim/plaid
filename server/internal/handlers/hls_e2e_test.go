@@ -387,8 +387,18 @@ func TestHLSSubtitlesAndIndexes(t *testing.T) {
 	if r := e.get(base + "subtitles/3.ass"); r.Code != http.StatusOK || !strings.Contains(r.Body.String(), "Dialogue:") {
 		t.Errorf("ASS: %d %s", r.Code, r.Body)
 	}
-	if r := e.get(base + "subtitles/3.m3u8"); r.Code != http.StatusOK || !strings.Contains(r.Body.String(), "3.vtt") {
+	if r := e.get(base + "subtitles/3.m3u8"); r.Code != http.StatusOK || !strings.Contains(r.Body.String(), "3.vtt?seg=0") {
 		t.Errorf("subtitle playlist: %d %s", r.Code, r.Body)
+	}
+	// The rendition's segments, cut from the quick window (R16).
+	if r := e.get(strings.TrimSuffix(srt, ".vtt") + ".vtt?seg=0"); r.Code != http.StatusOK || !strings.HasPrefix(r.Body.String(), "WEBVTT") ||
+		!strings.Contains(r.Body.String(), "Bonjour") {
+		t.Errorf("subtitle segment: %d %s", r.Code, r.Body)
+	}
+	for _, seg := range []string{"99", "-1", "x"} {
+		if r := e.get(strings.TrimSuffix(srt, ".vtt") + ".vtt?seg=" + seg); r.Code < 400 {
+			t.Errorf("segment %s: %d", seg, r.Code)
+		}
 	}
 	for _, bad := range []string{
 		"subtitles/99.vtt", "subtitles/2.ass", "subtitles/-1.vtt", "subtitles/1.vtt", "video/99999.m4s",

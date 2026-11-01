@@ -54,7 +54,7 @@ struct ItemView: View {
                 }
             }
             .padding(.bottom, 80)
-            .padding(.leading, Theme.rail)
+            .padding(.leading, Theme.pushed)
         }
         .scrollClipDisabled()
         .scrollPosition($scroll)
@@ -103,7 +103,7 @@ struct ItemView: View {
             HeroBackdrop(art: detail?.metadata?.backdrops.first ?? item.backdrop ?? item.still,
                          previewId: item.kind == .movie || item.kind == .show ? item.id : nil,
                          active: visible && previewsActive)
-                .padding(.leading, -Theme.rail)
+                .padding(.leading, -Theme.pushed)
                 // A show's backdrop runs to about two thirds of the screen,
                 // under its seasons and episodes, though the hero is shorter.
                 .padding(.bottom, -Theme.heroFadeBelow - (hasEpisodes ? 200 : 0))
@@ -320,6 +320,7 @@ struct SeasonPillStyle: ButtonStyle {
                 .frame(height: 60)
                 .foregroundStyle(focused ? Theme.onAction : Theme.textPrimary)
                 .background(Capsule().fill(focused ? Theme.action : selected ? Color.white.opacity(0.32) : Theme.control))
+                .focusHalo(Capsule())
                 .scaleEffect(focused ? 1.06 : 1)
                 .animation(.smooth(duration: 0.25), value: focused)
         }
@@ -381,6 +382,7 @@ struct CastRow: View {
                                 }
                                 .frame(width: 180, height: 180)
                                 .clipShape(Circle())
+                                .focusHalo(Circle())
                                 Text(verbatim: c.name).font(Theme.sans(22, .semibold)).lineLimit(1)
                                 Text(verbatim: c.character ?? localized("person.role." + c.role))
                                     .font(Theme.sans(20, .medium))

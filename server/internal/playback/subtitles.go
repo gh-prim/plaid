@@ -41,6 +41,10 @@ const (
 	subtitleBuckets = 5 * time.Minute
 )
 
+// SubtitleSegmentMs is the length of an HLS subtitle segment: one bucket,
+// so a segment always lies inside the quick window that starts at it.
+const SubtitleSegmentMs = int64(subtitleBuckets / time.Millisecond)
+
 // SubtitleFile returns a session's text subtitle track as WebVTT, an
 // ASS/SSA track as is, or a PGS track as is (.sup), converted once with
 // FFmpeg and cached by file, mtime and track (R16). An embedded track
@@ -157,6 +161,66 @@ func (s *Service) extractSubtitle(ctx context.Context, sess Session, src subtitl
 	s.o.Log.Info("subtitles converted", "file_id", sess.Decision.Media.FileID, "stream", src.sub.Index, "format", src.format,
 		"window_start_ms", startMs, "duration_ms", time.Since(start).Milliseconds())
 	return nil
+}
+
+// CutWebVTT keeps the cues of a WebVTT file that overlap [startMs, endMs):
+// one HLS subtitle segment. A cue across a boundary goes in both segments,
+// as HLS expects (players drop the repeat). Blocks without a timing line
+// (the header, STYLE, NOTE) are kept.
+func CutWebVTT(vtt []byte, startMs, endMs int64) []byte {
+	text := strings.ReplaceAll(string(vtt), "\r\n", "\n")
+	var b strings.Builder
+	for _, block := range strings.Split(text, "\n\n") {
+		block = strings.Trim(block, "\n")
+		if block == "" {
+			continue
+		}
+		if from, to, ok := cueTiming(block); ok && (to <= startMs || from >= endMs) {
+			continue
+		}
+		b.WriteString(block)
+		b.WriteString("\n\n")
+	}
+	return []byte(b.String())
+}
+
+// cueTiming reads a cue's "start --> end" line, in milliseconds.
+func cueTiming(block string) (from, to int64, ok bool) {
+	for _, line := range strings.Split(block, "\n") {
+		a, rest, found := strings.Cut(line, "-->")
+		if !found {
+			continue
+		}
+		fields := strings.Fields(rest)
+		if len(fields) == 0 {
+			return 0, 0, false
+		}
+		f, ok1 := vttTime(strings.TrimSpace(a))
+		t, ok2 := vttTime(fields[0])
+		return f, t, ok1 && ok2
+	}
+	return 0, 0, false
+}
+
+// vttTime parses "hh:mm:ss.ttt" or "mm:ss.ttt".
+func vttTime(s string) (int64, bool) {
+	hms, frac, found := strings.Cut(s, ".")
+	if !found || len(frac) != 3 {
+		return 0, false
+	}
+	ms, err := strconv.ParseInt(frac, 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	var total int64
+	for _, part := range strings.Split(hms, ":") {
+		n, err := strconv.ParseInt(part, 10, 64)
+		if err != nil || n < 0 {
+			return 0, false
+		}
+		total = total*60 + n
+	}
+	return total*1000 + ms, true
 }
 
 // SubtitleURL is where a subtitle delivered separately is fetched: the

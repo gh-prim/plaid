@@ -234,6 +234,7 @@ struct ProfilePickerView: View {
                             Circle()
                                 .fill(Theme.party[p.avatarColor % Theme.party.count])
                                 .frame(width: 200, height: 200)
+                                .focusHalo(Circle())
                                 .overlay {
                                     Text(verbatim: String(p.name.prefix(1)).uppercased())
                                         .font(Theme.sans(88, .semibold))

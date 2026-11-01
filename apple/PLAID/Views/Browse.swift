@@ -46,7 +46,7 @@ struct PersonView: View {
                 }
             }
             .padding(.vertical, 80)
-            .padding(.leading, Theme.rail)
+            .padding(.leading, Theme.pushed)
         }
         .scrollClipDisabled()
         .ignoresSafeArea(edges: .horizontal)
@@ -86,7 +86,7 @@ struct CollectionView: View {
                 .frame(height: 480)
                 .background {
                     HeroBackdrop(art: collection?.summary.backdrop)
-                        .padding(.leading, -Theme.rail)
+                        .padding(.leading, -Theme.pushed)
                         .padding(.bottom, -Theme.heroFadeBelow)
                 }
                 if let items = collection?.items {
@@ -94,7 +94,7 @@ struct CollectionView: View {
                 }
             }
             .padding(.bottom, 80)
-            .padding(.leading, Theme.rail)
+            .padding(.leading, Theme.pushed)
         }
         .scrollClipDisabled()
         .ignoresSafeArea(edges: [.horizontal, .top])

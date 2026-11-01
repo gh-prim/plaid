@@ -36,6 +36,9 @@ enum Theme {
     static let gutter: CGFloat = 32
     /// tvOS's horizontal safe margin on a 1920-point screen.
     static let systemMargin: CGFloat = 80
+    /// What pushed pages (a title, a person, a collection) keep instead of
+    /// the rail, which hides there: their gutter lands on the safe margin.
+    static let pushed: CGFloat = systemMargin - gutter
     /// How far a hero's backdrop fades out below the hero.
     static let heroFadeBelow: CGFloat = 140
     /// Right page margin.
@@ -94,27 +97,27 @@ struct ProgressThread: View {
     }
 }
 
-/// The lowercase "plaıd" wordmark with Foxy as the dot of the ı.
-struct Wordmark: View {
-    var size: CGFloat = 44
+/// The white halo of a focused element, so the selection reads from the
+/// couch: a thin ring just outside its shape and a soft glow behind it.
+private struct FocusHalo<S: InsettableShape>: ViewModifier {
+    let shape: S
+    @Environment(\.isFocused) private var focused
 
-    var body: some View {
-        HStack(spacing: 0) {
-            Text(verbatim: "pla")
-            Text(verbatim: "ı")
-                .overlay(alignment: .top) {
-                    Image("Foxy")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: size * 0.42)
-                        .offset(y: size * 0.02)
-                }
-            Text(verbatim: "d")
-        }
-        .font(Theme.sans(size, .bold))
-        .tracking(-size * 0.035)
-        .foregroundStyle(Theme.textPrimary)
-        .accessibilityLabel(Text(verbatim: "PLAID"))
+    func body(content: Content) -> some View {
+        content
+            .background {
+                shape.fill(Color.white).blur(radius: 22).opacity(focused ? 0.28 : 0)
+            }
+            .overlay {
+                shape.inset(by: -6).strokeBorder(Color.white.opacity(focused ? 0.9 : 0), lineWidth: 3)
+            }
+    }
+}
+
+extension View {
+    /// Draws the focus halo around `shape` while the enclosing button has focus.
+    func focusHalo<S: InsettableShape>(_ shape: S) -> some View {
+        modifier(FocusHalo(shape: shape))
     }
 }
 
@@ -144,6 +147,7 @@ private struct PillButtonBody: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(focused ? Theme.action : Theme.control)
             }
+            .focusHalo(RoundedRectangle(cornerRadius: 12))
             .scaleEffect(focused ? 1.06 : 1)
             .shadow(color: focused ? .black.opacity(0.5) : .clear, radius: 24, y: 12)
             .animation(.smooth(duration: 0.25), value: focused)
@@ -169,6 +173,7 @@ private struct RowButtonBody: View {
             .padding(.vertical, 20)
             .foregroundStyle(focused ? Theme.bgBase : Theme.textPrimary)
             .background(RoundedRectangle(cornerRadius: Theme.radius).fill(focused ? Theme.textPrimary : Theme.surface))
+            .focusHalo(RoundedRectangle(cornerRadius: Theme.radius))
             .scaleEffect(focused ? 1.04 : 1)
             .shadow(color: focused ? .black.opacity(0.5) : .clear, radius: 24, y: 12)
             .animation(.smooth(duration: 0.25), value: focused)
