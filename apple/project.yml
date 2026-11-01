@@ -44,7 +44,9 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, fr]
-        UILaunchScreen: {}
+        # The splash's graphite, so the launch intro starts on the same color.
+        UILaunchScreen:
+          UIColorName: Splash
         UIUserInterfaceStyle: Dark
         NSLocalNetworkUsageDescription: PLAID looks for your media server on the local network.
         NSBonjourServices: [_plaid._tcp]

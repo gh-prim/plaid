@@ -49,6 +49,7 @@ Each step is one commit or a few, all in one PR from `feat/F011-tvos-app`.
 9. [x] Settings, About, Top Shelf (R18, R19).
 10. [x] Error state for links; menu kept folded when opened by a link (R7, R20).
 11. [ ] `make test` green; build the app for the simulator and the device; screenshots; open the PR.
+12. [ ] Follow-up on `feat/F011-icon-splash`: the V2 logo (board "Logo · Woven play, splash", step 14 of the design). Layered app icon (graphite ground behind, the woven play button in front, its threads see-through) and Top Shelf lockup, drawn by `apple/scripts/make-icons.swift`; launch screen in the splash's graphite (`Splash` color); `SplashView`, the board's 6 s intro played once per cold start over the loading app, the still lockup under Reduce Motion, Select or Play/Pause skips to the fade.
 
 ## Risks
 | Risk | Likelihood | Mitigation |

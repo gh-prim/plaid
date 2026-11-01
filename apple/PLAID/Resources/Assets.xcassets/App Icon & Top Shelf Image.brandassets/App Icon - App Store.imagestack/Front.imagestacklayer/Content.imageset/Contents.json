@@ -1,9 +1,9 @@
 {
   "images" : [
     {
-      "scale" : "1x",
       "filename" : "icon.png",
-      "idiom" : "tv"
+      "idiom" : "tv",
+      "scale" : "1x"
     }
   ],
   "info" : {
