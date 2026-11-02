@@ -228,11 +228,11 @@ func (s *Service) watchRun(st *hlsStream, run *Run) {
 	<-run.Done()
 	if err := run.Err(); err != nil {
 		if s.fallBack(st, run) == nil {
-			s.o.Log.Error("ffmpeg run failed", "playback_id", st.sessionID, "run", run.Spec.RunID, "err", err)
+			s.o.Log.Error("ffmpeg run failed", "playback_id", st.id(), "run", run.Spec.RunID, "err", err)
 		}
 		return
 	}
-	s.o.Log.Info("ffmpeg run ended", "playback_id", st.sessionID, "run", run.Spec.RunID, "produced", run.Produced())
+	s.o.Log.Info("ffmpeg run ended", "playback_id", st.id(), "run", run.Spec.RunID, "produced", run.Produced())
 }
 
 // fallBack replaces a failed run: a hardware run that failed in its first
@@ -445,7 +445,10 @@ func (s *Service) housekeep() {
 
 	var total int64
 	for _, st := range streams {
-		lastActive, ok := s.manager.Activity(st.sessionID)
+		st.mu.Lock()
+		id := st.sessionID // a shared encode hands it to another reader
+		st.mu.Unlock()
+		lastActive, ok := s.manager.Activity(id)
 		st.mu.Lock()
 		if run := st.alive(); run != nil {
 			switch ahead := st.layout.PieceStartMs[max(run.Produced(), run.Spec.StartPiece)] - st.layout.Segments[st.lastSeg].EndMs; {

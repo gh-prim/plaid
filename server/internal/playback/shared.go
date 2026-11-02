@@ -71,7 +71,7 @@ func (s *Service) attachShared(sess Session) bool {
 	s.streams[sess.ID] = st
 	s.mu.Unlock()
 	s.o.Log.Info("playback joins a shared encode", "playback_id", sess.ID, "party_id", sess.PartyID,
-		"quality", sess.Decision.Quality, "with", st.sessionID)
+		"quality", sess.Decision.Quality, "with", st.id())
 	return true
 }
 
@@ -166,4 +166,12 @@ func (s *Service) detach(sess Session) error {
 	s.newStream(sess, gen, true)
 	s.o.Log.Info("playback leaves a shared encode", "playback_id", sess.ID)
 	return nil
+}
+
+// id is the session a stream is logged under, read under its lock (a
+// shared encode hands it to another reader).
+func (st *hlsStream) id() string {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	return st.sessionID
 }
