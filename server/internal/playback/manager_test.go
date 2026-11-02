@@ -125,3 +125,31 @@ func TestManagerEndsSessionsOfSignedOutDevices(t *testing.T) {
 		t.Errorf("ended = %v", *ended)
 	}
 }
+
+// TestManagerGuestOwnership covers F010-R5: a guest sees their own party
+// sessions only, never an account's nor another guest's, and accounts
+// never see a guest's (both have an empty UserID).
+func TestManagerGuestOwnership(t *testing.T) {
+	m := NewManager()
+	cam := m.Add(Session{GuestID: "cam", AuthSessionID: guestAuthPrefix + "cam", PartyID: "p1"})
+	hugo := m.Add(Session{GuestID: "hugo", AuthSessionID: guestAuthPrefix + "hugo", PartyID: "p1"})
+	mine := m.Add(Session{UserID: "alex", AuthSessionID: "s1"})
+	guest := auth.Principal{GuestID: "cam", PartyID: "p1"}
+	if _, err := m.Get(guest, cam.ID); err != nil {
+		t.Errorf("guest can't see own session: %v", err)
+	}
+	for _, id := range []string{hugo.ID, mine.ID} {
+		if _, err := m.Get(guest, id); err == nil {
+			t.Errorf("guest sees %s", id)
+		}
+	}
+	if _, err := m.Get(auth.Principal{UserID: "", SessionID: "x"}, cam.ID); err == nil {
+		t.Error("an empty account sees a guest's session")
+	}
+	if err := m.End(auth.Principal{UserID: "alex"}, cam.ID, nil); err == nil {
+		t.Error("an account ended a guest's session")
+	}
+	if _, err := m.Get(auth.Principal{UserID: "root", Role: auth.RoleAdmin}, cam.ID); err != nil {
+		t.Errorf("admin can't see guest session: %v", err)
+	}
+}

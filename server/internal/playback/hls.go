@@ -66,6 +66,11 @@ type hlsStream struct {
 	slot      bool // holds a transcode slot (R26)
 	hw        *HWConfig
 	slowRun   int // the run last logged as slower than real time
+	// share is the key of a shared party encode (F010-R25), "" otherwise;
+	// readers then holds each session's last requested segment.
+	share   string
+	readers map[string]int
+	closed  bool // its last reader left; nobody may join it
 }
 
 func (st *hlsStream) piece(n int) string { return filepath.Join(st.dir, strconv.Itoa(n)+".m4s") }
@@ -115,9 +120,22 @@ func (s *Service) newStream(sess Session, gen int, slot bool) {
 	if hw := s.hwConfig(); hw != nil && sess.Decision.HWAccel == hw.Accel {
 		st.hw = hw
 	}
+	// Lock order is st.mu then s.mu (startRun takes a slot under st.mu), so
+	// a stream's own lock is never taken while holding s.mu.
+	if s.attachShared(sess) {
+		if slot {
+			s.releaseSlot()
+		}
+		return
+	}
+	key := shareKey(sess.PartyID, sess.Decision)
 	s.mu.Lock()
+	defer s.mu.Unlock()
+	if key != "" && s.shared[key] == nil {
+		st.share, st.readers = key, map[string]int{sess.ID: st.lastSeg}
+		s.shared[key] = st
+	}
 	s.streams[sess.ID] = st
-	s.mu.Unlock()
 }
 
 func (s *Service) stream(sessionID string) *hlsStream {
@@ -135,6 +153,29 @@ func (s *Service) closeStream(sessionID string, keepSlot bool) {
 	s.mu.Unlock()
 	if st == nil {
 		return
+	}
+	if st.share != "" {
+		// A shared encode goes on for its other readers (F010-R25).
+		st.mu.Lock()
+		delete(st.readers, sessionID)
+		left := len(st.readers)
+		if left == 0 {
+			st.closed = true
+		} else if st.sessionID == sessionID {
+			for id := range st.readers {
+				st.sessionID = id
+				break
+			}
+		}
+		st.mu.Unlock()
+		if left > 0 {
+			return
+		}
+		s.mu.Lock()
+		if s.shared[st.share] == st {
+			delete(s.shared, st.share)
+		}
+		s.mu.Unlock()
 	}
 	st.mu.Lock()
 	run := st.run
@@ -254,7 +295,18 @@ func (s *Service) Segment(ctx context.Context, sess Session, n int) ([]string, e
 		return nil, ErrNoSuchSegment
 	}
 	seg := st.layout.Segments[n]
-	st.lastSeg, st.lastSegAt = n, s.o.Now()
+	if st.share != "" && sess.PartyID != "" {
+		st.mu.Unlock()
+		if s.drifted(st, sess, seg.StartMs) {
+			if err := s.detach(sess); err != nil {
+				return nil, err
+			}
+			return s.Segment(ctx, sess, n)
+		}
+		st.mu.Lock()
+	}
+	st.readFrom(sess.ID, n)
+	st.lastSegAt = s.o.Now()
 	s.manager.SegmentPosition(sess.ID, seg.StartMs)
 	s.dropBehind(st)
 	if files, ok := st.onDisk(seg); ok {
@@ -359,8 +411,9 @@ func (s *Service) MediaPlaylist(sess Session) (string, error) {
 // dropBehind deletes segments more than KeepBehind before the last
 // requested one (R27). Callers hold st.mu.
 func (s *Service) dropBehind(st *hlsStream) {
-	cutoff := st.layout.Segments[st.lastSeg].StartMs - s.t.KeepBehind
-	for st.keptFrom < st.lastSeg && st.layout.Segments[st.keptFrom].EndMs <= cutoff {
+	slowest := st.behind()
+	cutoff := st.layout.Segments[slowest].StartMs - s.t.KeepBehind
+	for st.keptFrom < slowest && st.layout.Segments[st.keptFrom].EndMs <= cutoff {
 		removeSegment(st, st.layout.Segments[st.keptFrom])
 		st.keptFrom++
 	}
@@ -381,8 +434,12 @@ func (s *Service) housekeep() {
 	now := s.o.Now()
 	s.mu.Lock()
 	streams := make([]*hlsStream, 0, len(s.streams))
+	seen := map[*hlsStream]bool{}
 	for _, st := range s.streams {
-		streams = append(streams, st)
+		if !seen[st] { // a shared encode is listed once per reader
+			seen[st] = true
+			streams = append(streams, st)
+		}
 	}
 	s.mu.Unlock()
 

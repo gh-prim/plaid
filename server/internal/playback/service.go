@@ -32,7 +32,27 @@ var (
 	ErrItemNotPlayable = errors.New("only movies and episodes play")
 	// ErrFFmpegMissing: the file needs HLS, which needs FFmpeg (R31).
 	ErrFFmpegMissing = errors.New("ffmpeg_missing")
+	// ErrPartyAgeLimit: the party's title is beyond the profile's age
+	// limit (F010-R6).
+	ErrPartyAgeLimit = errors.New("party_age_limit")
 )
+
+// PartyAccess is what playback needs from Plaid Party (F010): being in a
+// party opens its item, even outside the person's libraries (R6), and lets
+// a guest play it (R5).
+type PartyAccess interface {
+	// InParty reports whether p is in partyID, live on itemID, and the
+	// name to show for a guest.
+	InParty(ctx context.Context, p auth.Principal, partyID, itemID string) (guestName string, ok bool, err error)
+	// GuestActive reports whether a guest's token still works.
+	GuestActive(ctx context.Context, guestID string) (bool, error)
+	// Position is a live party's reference position now (shared encodes,
+	// R25); ok is false when the party isn't playing.
+	Position(partyID string) (ms int64, ok bool)
+}
+
+// guestAuthPrefix marks a guest's sessions in place of an F003 session id.
+const guestAuthPrefix = "guest:"
 
 // Playback states clients report (R32).
 const (
@@ -57,6 +77,8 @@ type Options struct {
 	Library  *library.Store
 	Accounts Accounts
 	Settings *settings.Store
+	// Party opens party items and guest playback (F010); nil knows none.
+	Party PartyAccess
 	// FFmpeg is nil when it isn't installed: Direct Play still works.
 	FFmpeg *FFmpeg
 	// TranscodeDir holds HLS segments (R27); CacheDir holds converted
@@ -121,6 +143,7 @@ type Service struct {
 
 	mu      sync.Mutex
 	streams map[string]*hlsStream // by session id
+	shared  map[string]*hlsStream // shared party encodes by key (F010-R25)
 	slots   int                   // transcode slots in use (R26)
 	full    bool                  // the transcode folder is over its cap (R27)
 }
@@ -145,6 +168,7 @@ func New(o Options) *Service {
 		cfg:       Config{EncoderPreset: PresetFast, HWAccel: HWAuto},
 		hw:        HWStatus{Configured: HWAuto},
 		streams:   map[string]*hlsStream{},
+		shared:    map[string]*hlsStream{},
 	}
 	if o.CacheDir != "" {
 		s.previews = newPreviews(previewDir(o.CacheDir))
@@ -152,7 +176,7 @@ func New(o Options) *Service {
 	s.probeHardware = ProbeHardware
 	s.manager.Now, s.manager.Log = o.Now, o.Log
 	if o.Accounts != nil {
-		s.manager.Alive = o.Accounts.SessionActive
+		s.manager.Alive = s.authAlive
 	}
 	s.manager.OnEnd = s.onEnd
 	return s
@@ -381,19 +405,40 @@ func (s *Service) SaveSettings(ctx context.Context, u ConfigUpdate) (SettingsVie
 	return s.Settings(), nil
 }
 
+// authAlive reports whether the F003 session, or the party guest, behind a
+// playback can still be used.
+func (s *Service) authAlive(ctx context.Context, authID string) (bool, error) {
+	if guest, ok := strings.CutPrefix(authID, guestAuthPrefix); ok {
+		if s.o.Party == nil {
+			return false, nil
+		}
+		return s.o.Party.GuestActive(ctx, guest)
+	}
+	return s.o.Accounts.SessionActive(ctx, authID)
+}
+
 // StartRequest is a playback request with the client's profile.
 type StartRequest struct {
 	Request
 	Profile         Profile
 	StartPositionMs int64
+	// PartyID plays the item as a screen of that Plaid Party (F010-R12).
+	PartyID string
 }
 
 // StartSession starts playing an item for p (R1–R9).
 func (s *Service) StartSession(ctx context.Context, p auth.Principal, client clientinfo.Info, itemID string, r StartRequest) (Session, error) {
-	if p.ProfileID == "" {
+	if p.ProfileID == "" && !p.IsGuest() {
 		return Session{}, ErrProfileRequired
 	}
-	item, err := s.visibleItem(ctx, p, itemID)
+	guestName := ""
+	var item library.Item
+	var err error
+	if r.PartyID != "" || p.IsGuest() {
+		item, guestName, err = s.partyItem(ctx, p, r.PartyID, itemID)
+	} else {
+		item, err = s.visibleItem(ctx, p, itemID)
+	}
 	if err != nil {
 		return Session{}, err
 	}
@@ -409,8 +454,10 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 	if err != nil {
 		return Session{}, err
 	}
-	if err := s.checkStreams(ctx, p.UserID); err != nil {
-		return Session{}, err
+	if !p.IsGuest() {
+		if err := s.checkStreams(ctx, p.UserID); err != nil {
+			return Session{}, err
+		}
 	}
 	m, err := ChooseFile(files, r.FileID, func(m Media) Decision { d, _ := Decide(m, r.Request, r.Profile, lim); return d })
 	if err != nil {
@@ -420,23 +467,30 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 	if err != nil {
 		return Session{}, err
 	}
-	slot, err := s.admit(d)
-	if err != nil {
-		return Session{}, err
-	}
 	d.HWAccel = s.accelFor(d)
 	softwareCap(&d, r.Request)
-	owner, err := s.o.Accounts.SessionOwner(ctx, p)
-	if err != nil {
-		if slot {
-			s.releaseSlot()
+	slot := false
+	if !s.canShare(r.PartyID, d) {
+		if slot, err = s.admit(d); err != nil {
+			return Session{}, err
 		}
-		return Session{}, err
+	}
+	owner := accounts.SessionOwner{ProfileName: guestName, DeviceName: "Guest"}
+	authID := guestAuthPrefix + p.GuestID
+	if !p.IsGuest() {
+		authID = p.SessionID
+		owner, err = s.o.Accounts.SessionOwner(ctx, p)
+		if err != nil {
+			if slot {
+				s.releaseSlot()
+			}
+			return Session{}, err
+		}
 	}
 	start := min(max(r.StartPositionMs, 0), m.DurationMs)
 	sess := s.manager.Add(Session{
-		UserID: p.UserID, AuthSessionID: p.SessionID, ProfileID: p.ProfileID,
-		ItemID: item.ID, ItemTitle: item.Title,
+		UserID: p.UserID, AuthSessionID: authID, ProfileID: p.ProfileID,
+		ItemID: item.ID, ItemTitle: item.Title, PartyID: r.PartyID, GuestID: p.GuestID,
 		Owner:    Owner{Username: owner.Username, ProfileName: owner.ProfileName, DeviceName: owner.DeviceName},
 		Decision: d, Request: r.Request, Profile: r.Profile,
 		ClientIP: client.IP, Remote: lim.Remote, StartPositionMs: start, PositionMs: start,
@@ -485,6 +539,42 @@ func softwareCap(d *Decision, req Request) {
 		d.Width, d.Height = fit(d.Media, q)
 		d.VideoBitrate = min(d.VideoBitrate, q.Bitrate)
 	}
+}
+
+// partyItem returns a party's item for p: the party opens it whatever the
+// person's libraries (F010-R6), but a profile's age limit still applies. A
+// guest plays only their own party's item (R5).
+func (s *Service) partyItem(ctx context.Context, p auth.Principal, partyID, itemID string) (library.Item, string, error) {
+	if p.IsGuest() {
+		partyID = p.PartyID
+	}
+	if s.o.Party == nil {
+		return library.Item{}, "", ErrItemNotFound
+	}
+	name, ok, err := s.o.Party.InParty(ctx, p, partyID, itemID)
+	if err != nil {
+		return library.Item{}, "", err
+	}
+	if !ok {
+		return library.Item{}, "", ErrItemNotFound
+	}
+	item, err := s.o.Library.GetItem(ctx, itemID)
+	if errors.Is(err, library.ErrNotFound) {
+		return library.Item{}, "", ErrItemNotFound
+	}
+	if err != nil {
+		return library.Item{}, "", err
+	}
+	if !p.IsGuest() {
+		limit, err := s.o.Accounts.AccessLimit(ctx, p)
+		if err != nil {
+			return library.Item{}, "", err
+		}
+		if !limit.AllowsAge(item.AgeRating) {
+			return library.Item{}, "", ErrPartyAgeLimit
+		}
+	}
+	return item, name, nil
 }
 
 // visibleItem returns an item p's profile may see (R9).
@@ -571,6 +661,9 @@ func (s *Service) EndUser(userID string) {
 // after an admin changed who sees what (F009).
 func (s *Service) Recheck(ctx context.Context) {
 	for _, sess := range s.manager.List() {
+		if sess.PartyID != "" {
+			continue // a party opens its item (F010-R6)
+		}
 		p := auth.Principal{UserID: sess.UserID, SessionID: sess.AuthSessionID, ProfileID: sess.ProfileID}
 		if _, err := s.visibleItem(ctx, p, sess.ItemID); errors.Is(err, ErrItemNotFound) {
 			_ = s.manager.End(p, sess.ID, nil)
@@ -643,10 +736,15 @@ type Change struct {
 // new stream that starts at the client's position.
 func (s *Service) ChangeSession(ctx context.Context, p auth.Principal, client clientinfo.Info, id string, c Change) (Session, error) {
 	sess, err := s.manager.Get(p, id)
-	if err != nil || sess.UserID != p.UserID { // admins end others' sessions, they don't change them
+	if err != nil || sess.UserID != p.UserID || sess.GuestID != p.GuestID { // admins end others' sessions, they don't change them
 		return Session{}, ErrSessionNotFound
 	}
-	if _, err := s.visibleItem(ctx, p, sess.ItemID); err != nil {
+	if sess.PartyID != "" || p.IsGuest() {
+		_, _, err = s.partyItem(ctx, p, sess.PartyID, sess.ItemID)
+	} else {
+		_, err = s.visibleItem(ctx, p, sess.ItemID)
+	}
+	if err != nil {
 		return Session{}, err
 	}
 	r := sess.Request
@@ -691,19 +789,19 @@ func (s *Service) ChangeSession(ctx context.Context, p auth.Principal, client cl
 	hadSlot := false
 	if st != nil {
 		st.mu.Lock()
-		hadSlot = st.slot
+		hadSlot = st.ownsSlot(id)
 		st.mu.Unlock()
 	}
+	d.HWAccel = s.accelFor(d)
+	softwareCap(&d, r)
 	keepSlot := hadSlot && d.Method == Transcode
-	if d.Method != DirectPlay && !keepSlot {
+	if d.Method != DirectPlay && !keepSlot && !s.canShare(sess.PartyID, d) {
 		slot, err := s.admit(d)
 		if err != nil {
 			return Session{}, err
 		}
 		keepSlot = slot
 	}
-	d.HWAccel = s.accelFor(d)
-	softwareCap(&d, r)
 	s.closeStream(id, keepSlot)
 	gen := 0
 	if st != nil {
@@ -806,8 +904,8 @@ func (s *Service) Progress(ctx context.Context, p auth.Principal, id string, pos
 			sess.counted = sess.counted || watched
 		}
 	})
-	if err != nil || !write {
-		return err
+	if err != nil || !write || sess.ProfileID == "" {
+		return err // a guest leaves no watch state (F010-R5)
 	}
 	return s.watch.Save(ctx, sess.ProfileID, sess.ItemID, sess.Decision.Media.FileID,
 		positionMs, sess.Decision.Media.DurationMs, watched, count)
@@ -830,7 +928,7 @@ const finalSaveTimeout = 30 * time.Second
 // never reported one (VLC on a direct link) leave watch state alone; HLS
 // sessions use the last segment they asked for (R34).
 func (s *Service) saveFinal(sess Session) {
-	if !sess.reported && !sess.fromSegments {
+	if (!sess.reported && !sess.fromSegments) || sess.ProfileID == "" {
 		return
 	}
 	// A busy database is waited out: losing the last position takes the
@@ -856,6 +954,9 @@ func (s *Service) saveFinal(sess Session) {
 // AccessLimit is the age limit of a session's profile now (R9), for the
 // artwork served through its token (R40).
 func (s *Service) AccessLimit(ctx context.Context, sess Session) (access.Limit, error) {
+	if sess.GuestID != "" {
+		return access.Limit{}, nil // the token opens its one item only
+	}
 	return s.o.Accounts.AccessLimit(ctx, auth.Principal{UserID: sess.UserID, SessionID: sess.AuthSessionID, ProfileID: sess.ProfileID})
 }
 
@@ -867,7 +968,7 @@ func (s *Service) StreamSession(ctx context.Context, token string, checkAuth boo
 	if err != nil || !checkAuth || s.o.Accounts == nil {
 		return sess, err
 	}
-	ok, err := s.o.Accounts.SessionActive(ctx, sess.AuthSessionID)
+	ok, err := s.authAlive(ctx, sess.AuthSessionID)
 	if err != nil {
 		return Session{}, err
 	}
