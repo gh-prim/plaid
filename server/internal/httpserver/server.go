@@ -19,6 +19,8 @@ type Options struct {
 	TrustedProxies []netip.Prefix
 	// Sessions resolves session tokens. Nil refuses every protected route.
 	Sessions auth.SessionLookup
+	// Realtime serves GET /api/v1/ws, the WebSocket (F010-R44).
+	Realtime http.Handler
 	// Guests resolves Plaid Party guest tokens (F010-R5); nil knows none.
 	Guests auth.GuestLookup
 	// Stream serves /api/v1/stream/ (F006), which authenticates by the
@@ -53,6 +55,9 @@ func New(h api.StrictServerInterface, web fs.FS, logger *slog.Logger, opts Optio
 
 	if opts.Stream != nil {
 		mux.Handle("/api/v1/stream/", opts.Stream)
+	}
+	if opts.Realtime != nil {
+		mux.Handle("GET /api/v1/ws", opts.Realtime)
 	}
 	if opts.Preview != nil {
 		mux.Handle("GET /api/v1/items/{itemId}/preview", opts.Preview)
