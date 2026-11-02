@@ -3045,8 +3045,11 @@ type PartySettings struct {
 	// Guests Someone without an account can join from the party's link. Off by default.
 	Guests bool `json:"guests"`
 
-	// MaxPeople People per party, the host included. 8 by default.
+	// MaxPeople People per party, the host included. 8 by default (F010-R4).
 	MaxPeople int `json:"maxPeople"`
+
+	// UploadMbps The home connection's upload speed in Mbps, given by the admin; 0 when unknown. Caps remote party streams (F010-R27).
+	UploadMbps int `json:"uploadMbps"`
 }
 
 // PartySettingsUpdate defines model for PartySettingsUpdate.
@@ -3054,6 +3057,9 @@ type PartySettingsUpdate struct {
 	Enabled   *bool `json:"enabled,omitempty"`
 	Guests    *bool `json:"guests,omitempty"`
 	MaxPeople *int  `json:"maxPeople,omitempty"`
+
+	// UploadMbps 0 forgets the value.
+	UploadMbps *int `json:"uploadMbps,omitempty"`
 }
 
 // Person defines model for Person.
@@ -4484,7 +4490,7 @@ type ServerInterface interface {
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(w http.ResponseWriter, r *http.Request)
-	// GetPartySettings Plaid Party settings (admin, step 21, ahead of F010)
+	// GetPartySettings Plaid Party settings (admin, F010-R42)
 	// (GET /settings/party)
 	GetPartySettings(w http.ResponseWriter, r *http.Request)
 	// UpdatePartySettings Change the Plaid Party settings (admin)
@@ -11888,7 +11894,7 @@ type StrictServerInterface interface {
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(ctx context.Context, request SelectProfileRequestObject) (SelectProfileResponseObject, error)
-	// GetPartySettings Plaid Party settings (admin, step 21, ahead of F010)
+	// GetPartySettings Plaid Party settings (admin, F010-R42)
 	// (GET /settings/party)
 	GetPartySettings(ctx context.Context, request GetPartySettingsRequestObject) (GetPartySettingsResponseObject, error)
 	// UpdatePartySettings Change the Plaid Party settings (admin)

@@ -1876,7 +1876,7 @@ paths:
   /settings/party:
     get:
       operationId: getPartySettings
-      summary: Plaid Party settings (admin, step 21, ahead of F010)
+      summary: Plaid Party settings (admin, F010-R42)
       tags: [sharing]
       responses:
         "200":
@@ -4973,7 +4973,7 @@ components:
           $ref: "#/components/schemas/HardwareStatus"
     PartySettings:
       type: object
-      required: [enabled, maxPeople, guests]
+      required: [enabled, maxPeople, guests, uploadMbps]
       properties:
         enabled:
           type: boolean
@@ -4981,11 +4981,16 @@ components:
         maxPeople:
           type: integer
           minimum: 2
-          maximum: 16
-          description: People per party, the host included. 8 by default.
+          maximum: 20
+          description: People per party, the host included. 8 by default (F010-R4).
         guests:
           type: boolean
           description: Someone without an account can join from the party's link. Off by default.
+        uploadMbps:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          description: The home connection's upload speed in Mbps, given by the admin; 0 when unknown. Caps remote party streams (F010-R27).
     PartySettingsUpdate:
       type: object
       properties:
@@ -4994,9 +4999,14 @@ components:
         maxPeople:
           type: integer
           minimum: 2
-          maximum: 16
+          maximum: 20
         guests:
           type: boolean
+        uploadMbps:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          description: 0 forgets the value.
     PlaybackSettingsUpdate:
       type: object
       properties:

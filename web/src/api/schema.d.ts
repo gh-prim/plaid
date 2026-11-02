@@ -1415,7 +1415,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** Plaid Party settings (admin, step 21, ahead of F010) */
+    /** Plaid Party settings (admin, F010-R42) */
     get: operations['getPartySettings']
     put?: never
     post?: never
@@ -3233,15 +3233,19 @@ export interface components {
     PartySettings: {
       /** @description Watch together, at home or away. On by default. */
       enabled: boolean
-      /** @description People per party, the host included. 8 by default. */
+      /** @description People per party, the host included. 8 by default (F010-R4). */
       maxPeople: number
       /** @description Someone without an account can join from the party's link. Off by default. */
       guests: boolean
+      /** @description The home connection's upload speed in Mbps, given by the admin; 0 when unknown. Caps remote party streams (F010-R27). */
+      uploadMbps: number
     }
     PartySettingsUpdate: {
       enabled?: boolean
       maxPeople?: number
       guests?: boolean
+      /** @description 0 forgets the value. */
+      uploadMbps?: number
     }
     PlaybackSettingsUpdate: {
       maxTranscodes?: number | null

@@ -71,6 +71,9 @@ func TestMigrationsApplyIncrementally(t *testing.T) {
 	}
 	// Roll back to "only 0001 applied".
 	for _, stmt := range append(catalogRollback[:len(catalogRollback):len(catalogRollback)],
+		"DROP TABLE release_alerts", "DROP TABLE upcoming_episodes", "DROP TABLE show_follows",
+		"DROP TABLE party_ballots", "DROP TABLE party_proposals", "DROP TABLE party_votes",
+		"DROP TABLE party_removed", "DROP TABLE party_guests", "DROP TABLE party_invites", "DROP TABLE parties",
 		"DROP TABLE play_log", "DROP TABLE profile_photos", "DROP TABLE invitation_groups", "DROP TABLE invitations", "DROP TABLE user_libraries",
 		"DROP TABLE user_rights", "DROP TABLE group_members", "DROP TABLE group_libraries", "DROP TABLE groups",
 		"DROP TABLE item_segments", "DROP TABLE problems", "DROP TABLE watch_state", "DROP TABLE media_keyframes",
