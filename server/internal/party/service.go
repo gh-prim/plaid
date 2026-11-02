@@ -142,12 +142,17 @@ func (s *Service) Run(ctx context.Context) {
 	}
 	t := time.NewTicker(s.o.Tick)
 	defer t.Stop()
+	sched := time.NewTicker(30 * time.Second)
+	defer sched.Stop()
+	s.schedule(ctx)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-t.C:
 			s.tick(ctx)
+		case <-sched.C:
+			s.schedule(ctx)
 		}
 	}
 }
@@ -989,6 +994,12 @@ func (s *Service) Message(c *realtime.Conn, env realtime.Envelope) error {
 	case "party.end":
 		if err = l.room.End(now, me); err == nil {
 			ended = true
+		}
+	case "party.start":
+		if me != l.room.Host() {
+			err = ErrNotHost
+		} else {
+			s.startNow(ctx, l, now)
 		}
 	case "party.resume.without":
 		err = l.room.ResumeWithout(now, me)

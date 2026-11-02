@@ -235,3 +235,62 @@ func TestVoteLifecycle(t *testing.T) {
 		t.Errorf("vote = %+v", vote)
 	}
 }
+
+// TestScheduler covers R29 and the catch-up after a restart: the lobby and
+// reminder 15 minutes before, the start at the time, and a party nobody
+// started cancelled 3 hours later.
+func TestScheduler(t *testing.T) {
+	_, st := fixture(t)
+	ctx := context.Background()
+	now := t0
+	svc := New(Options{Store: st, Accounts: fakeAccounts{}, Now: func() time.Time { return now }})
+	alexP := auth.Principal{UserID: "alex", ProfileID: "p-alex"}
+	at := now.Add(time.Hour)
+	pt, err := svc.Create(ctx, alexP, NewParty{ItemID: "nosferatu", ScheduledAt: &at, Invite: []string{"mia", "sam"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	st.Answer(ctx, pt.ID, "mia", AnswerYes, now)
+
+	now = at.Add(-20 * time.Minute)
+	svc.schedule(ctx)
+	if got, _ := st.Get(ctx, pt.ID); got.Status != StatusScheduled || svc.roomOf(pt.ID) != nil {
+		t.Fatalf("early: %s", got.Status)
+	}
+	now = at.Add(-15 * time.Minute)
+	svc.schedule(ctx)
+	got, _ := st.Get(ctx, pt.ID)
+	l := svc.roomOf(pt.ID)
+	if got.Status != StatusLobby || l == nil {
+		t.Fatalf("lobby: %s, room %v", got.Status, l != nil)
+	}
+	inv, _ := st.Invites(ctx, pt.ID)
+	for _, in := range inv {
+		// Every invite is marked so nobody is reminded twice; only yes and
+		// maybe got the notification.
+		if in.RemindedAt == nil {
+			t.Errorf("%s not marked reminded", in.UserID)
+		}
+	}
+	l.room.Join(now, alex, "c-alex", KindScreen, realtime.Device{})
+	l.room.Report(now, "c-alex", Report{State: ScreenReady})
+
+	now = at
+	svc.schedule(ctx)
+	svc.tick(ctx)
+	if pb := l.room.Playback(); pb.State != Playing || pb.PositionMs != 0 {
+		t.Fatalf("not started at the time: %+v", pb)
+	}
+	if got, _ := st.Get(ctx, pt.ID); got.Status != StatusLive || got.StartedAt == nil {
+		t.Errorf("stored = %+v", got)
+	}
+
+	// A party the server slept through is cancelled once 3 hours passed.
+	at2 := now.Add(time.Hour)
+	stale, _ := svc.Create(ctx, alexP, NewParty{ItemID: "nosferatu", ScheduledAt: &at2})
+	now = at2.Add(3 * time.Hour)
+	svc.schedule(ctx)
+	if got, _ := st.Get(ctx, stale.ID); got.Status != StatusCancelled {
+		t.Errorf("stale party = %s", got.Status)
+	}
+}
