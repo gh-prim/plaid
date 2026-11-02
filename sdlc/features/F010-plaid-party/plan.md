@@ -22,7 +22,7 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 | `server/internal/party/store.go` (+ `_test`) | create | SQL for parties, invites, guests, votes, follows, alerts; short transactions |
 | `server/internal/party/room.go` (+ `_test`) | create | The in-memory room: participants, devices, queue, control, playback state, waiting, pause requests, host rules, chat and reaction limits, summary. Pure state machine with an injected clock |
 | `server/internal/party/sync.go` (+ `_test`) | create | Reference state math, drift rules (R8–R10), shared with the simulator |
-| `server/internal/party/synctest/` | create | Simulated clients (RTT, skew, jitter, buffering) that run the room over the real hub; the p95 test |
+| `server/internal/party/sync_test.go` | create | Simulated clients (RTT, skew, jitter, seek cost) driven by the room; the p95 test |
 | `server/internal/party/service.go` (+ `_test`) | create | Create, join (by id for invitees, by code otherwise), invite, answer, removal, end; owns rooms; wires playback and realtime |
 | `server/internal/party/scheduler.go` (+ `_test`) | create | Minute ticker: reminders, lobby, auto start, 3 h cancel, vote deadlines, release alerts; catches up after a restart |
 | `server/internal/party/vote.go` (+ `_test`) | create | Proposals, ballots, tally (3/2/1, veto), seeded tie draw |
@@ -62,12 +62,12 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 ## Steps, in order
 
 **Server**
-1. [ ] Migration `0017_plaid_party.sql` and `party/store.go`, with store tests (insert, unique code among live parties, invite answers, removed people, guest token hash). R1, R2, R5, R16, R28, R31–R33, R35–R36.
-2. [ ] Settings: `maxPeople` 2–20, `uploadMbps`; `openapi.yaml` `PartySettings`; `make generate`; tests on bounds. R42.
-3. [ ] Guest identity in `auth`: `Principal.GuestID` and `PartyID`, guest tokens (32 bytes, SHA-256 kept), cookie `plaid_guest`, deny-by-default extended (a guest reaches only `/ws`, its party, its item's playback, stream and artwork). Tests: a guest gets `401` everywhere else (table of every route from `openapi.yaml`). R5.
-4. [ ] `realtime` hub: `/api/v1/ws` with `coder/websocket`, auth (cookie + `Origin`, bearer, guest), `{type, data, ts, id}` envelope, `ack`/`error`, ping every 25 s, send queue of 256 with drop after 5 s of backlog, token-bucket limits per message type, `sync.ping`/`pong`. Check the HTTP server's write timeout doesn't cut long-lived connections (same path as scan events). Tests with `httptest`. R9, R44, NFR.
-5. [ ] `party/room.go`: the state machine with a fake clock. Table tests for join and queue (R4), control modes and grants (R13, R14), pause request and "in 5 min" (R15), host hand-over, 2 min disconnect rule, removal (R16, R17), waiting at 1.5 s and resume without after 20 s (R11), chat and reaction limits, 200-message history (R18, R19), presence (R20), end rules (R7), summary (R21).
-6. [ ] `party/sync.go` and `synctest`: R8–R10 math shared by the room and simulated clients; the acceptance test with 80 ms RTT, 40 ms skew, 20 actions, p95 < 500 ms; drift at 1.2 s → rate 1.05, at 4 s → seek.
+1. [x] Migration `0017_plaid_party.sql` and `party/store.go`, with store tests (insert, unique code among live parties, invite answers, removed people, guest token hash). R1, R2, R5, R16, R28, R31–R33, R35–R36.
+2. [x] Settings: `maxPeople` 2–20, `uploadMbps`; `openapi.yaml` `PartySettings`; `make generate`; tests on bounds. R42.
+3. [x] Guest identity in `auth`: `Principal.GuestID` and `PartyID`, guest tokens (32 bytes, SHA-256 kept), cookie `plaid_guest`, deny-by-default extended (a guest reaches only `/ws`, its party, its item's playback, stream and artwork). Tests: a guest gets `401` everywhere else (table of every route from `openapi.yaml`). R5.
+4. [x] `realtime` hub: `/api/v1/ws` with `coder/websocket`, auth (cookie + `Origin`, bearer, guest), `{type, data, ts, id}` envelope, `ack`/`error`, ping every 25 s, send queue of 256 with drop after 5 s of backlog, token-bucket limits per message type, `sync.ping`/`pong`. Check the HTTP server's write timeout doesn't cut long-lived connections (same path as scan events). Tests with `httptest`. R9, R44, NFR.
+5. [x] `party/room.go`: the state machine with a fake clock. Table tests for join and queue (R4), control modes and grants (R13, R14), pause request and "in 5 min" (R15), host hand-over, 2 min disconnect rule, removal (R16, R17), waiting at 1.5 s and resume without after 20 s (R11), chat and reaction limits, 200-message history (R18, R19), presence (R20), end rules (R7), summary (R21).
+6. [x] `party/sync.go` and its simulator (`sync_test.go`): R8–R10 math shared by the room and simulated clients; the acceptance test with 80 ms RTT, 40 ms skew, 20 actions, p95 < 500 ms; drift at 1.2 s → rate 1.05, at 4 s → seek.
 7. [ ] Playback for parties: `POST /playback` with `partyId` starts at the room's position; guest-owned sessions (no watch state, no profile); R6 access override in `access` while the person is in the party, age limit still checked (`403 party_age_limit`). Tests. R5, R6, R12.
 8. [ ] Shared encodes in `playback`: runs keyed by (file, audio track, burned subtitle, quality), reference-counted, one slot of `maxTranscodes`; each session keeps its token and resolves segments to the shared run; a session more than 30 s away from the run's position leaves it (its own run, subject to the limit). Then the R26 flow: a `503` for a party screen raises `party.transcode.limit` to the host; "shared" moves the waiting screens to the common quality, "order" queues them for the next free slot. Upload cap R27. Tests with the fake FFmpeg (`testdata/fakeffmpeg.sh`). R25–R27.
 9. [ ] `party/service.go` + REST `handlers/parties.go`: create (right `start`), `GET /parties`, detail, patch, cancel, invites (also during a live party, with `notify`), answer, `/parties/people`, public lookup and guest join by code with the per-IP backoff, admin list and end. `party.join` by id only for invitees, by code for others. E2E tests from the acceptance criteria. R1–R5, R16, R28, R43.
@@ -125,4 +125,4 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 - [ ] Manual check: Apple TV simulator + iPhone simulator + two browsers in one party, play / pause / seek / buffer / host leaves / guest join / next episode.
 
 ## Log
-_Empty._
+- 2026-11-02, step 6: the simulator is a deterministic discrete-time model in `party/sync_test.go` driving the room directly, not simulated clients over the real hub: the hub has its own tests (step 4), and a deterministic model gives stable p95 numbers in `make test`.
