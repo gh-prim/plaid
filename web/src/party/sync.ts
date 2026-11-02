@@ -31,7 +31,12 @@ export interface Correction {
  * until within 50 ms, a seek beyond 3 s. `canRate` false (a player that
  * ignores small rate changes) seeks past 1 s instead.
  */
-export function correct(localMs: number, targetMs: number, rate: number, canRate = true): Correction {
+export function correct(
+  localMs: number,
+  targetMs: number,
+  rate: number,
+  canRate = true,
+): Correction {
   const drift = targetMs - localMs
   const abs = Math.abs(drift)
   if (abs > driftSeekMs || (!canRate && abs > 1000)) return { rate: 1, seekMs: targetMs }
@@ -73,14 +78,7 @@ export class Clock {
 
 /** The screen states a player reports (party.report). */
 export type ScreenState =
-  | 'loading'
-  | 'ready'
-  | 'playing'
-  | 'paused'
-  | 'buffering'
-  | 'ended'
-  | 'blocked'
-  | 'credits'
+  'loading' | 'ready' | 'playing' | 'paused' | 'buffering' | 'ended' | 'blocked' | 'credits'
 
 export interface SyncHooks {
   /** Server time now. */

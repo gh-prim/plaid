@@ -1,0 +1,157 @@
+/* The Upcoming tab (F010, PartiesWeb). */
+
+.up-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.up-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.up-loading {
+  display: grid;
+  place-items: center;
+  min-height: 30vh;
+}
+
+.up-h {
+  margin: 24px 0 8px;
+  font: 700 17px/1.2 var(--font-display, inherit);
+  text-transform: capitalize;
+}
+
+.up-days {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.up-row,
+.up-invite {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid color-mix(in oklch, currentColor 8%, transparent);
+}
+
+.up-invite {
+  padding: 16px;
+  margin-bottom: 8px;
+  border: 0;
+  border-radius: 22px;
+}
+
+.up-row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.up-row__main p {
+  margin: 0;
+}
+
+.up-row__kicker {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.up-row__title {
+  font: 700 17px/1.25 var(--font-display, inherit);
+}
+
+.up-row__status {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+
+.up-row__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.up-month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.up-month__head {
+  padding: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+}
+
+.up-month__day {
+  min-height: 88px;
+  padding: 6px;
+  border-radius: 12px;
+  background: color-mix(in oklch, currentColor 4%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.up-month__day.is-other {
+  opacity: 0.45;
+}
+
+.up-month__day.is-today {
+  box-shadow: inset 0 0 0 1.5px var(--fg);
+}
+
+.up-month__n {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.up-month__ev {
+  font-size: 11px;
+  line-height: 1.25;
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: color-mix(in oklch, currentColor 9%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.up-month__ev.is-party {
+  background: var(--party-2);
+  color: #111;
+}
+
+.up-foot {
+  margin-top: 32px;
+}
+
+@media (max-width: 760px) {
+  .up-row,
+  .up-invite {
+    flex-wrap: wrap;
+  }
+
+  .up-month__day {
+    min-height: 56px;
+  }
+
+  .up-month__ev {
+    font-size: 0;
+    height: 6px;
+    padding: 0;
+  }
+}

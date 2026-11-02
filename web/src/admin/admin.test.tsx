@@ -614,11 +614,11 @@ describe('people (F009, step 19)', () => {
       routes({
         'GET /settings/party': {
           status: 200,
-          body: { enabled: true, maxPeople: 8, guests: false },
+          body: { enabled: true, maxPeople: 8, guests: false, uploadMbps: 40 },
         },
         'PATCH /settings/party': {
           status: 200,
-          body: { enabled: true, maxPeople: 8, guests: true },
+          body: { enabled: true, maxPeople: 8, guests: true, uploadMbps: 40 },
         },
       }),
     )
@@ -629,10 +629,9 @@ describe('people (F009, step 19)', () => {
     await userEvent.click(guests)
     await waitFor(() => expect(guests).toHaveAttribute('aria-checked', 'true'))
     expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ guests: true })
-    expect(screen.getByRole('link', { name: /Who can start/ })).toHaveAttribute(
-      'href',
-      '/admin/groups',
-    )
+    // Up to 20 per party, and what the upload carries (Party26, Party27).
+    expect(screen.getByRole('option', { name: 'up to 20' })).toBeInTheDocument()
+    expect(screen.getByText(/Enough for 4 people away from home/)).toBeInTheDocument()
   })
 
   it('invites into the chosen group, and moves the people selected', async () => {

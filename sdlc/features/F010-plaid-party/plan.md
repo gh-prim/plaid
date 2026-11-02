@@ -79,13 +79,13 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 15. [x] `api/events.md`: every message with an example; a test parses the file and replays each client example against the hub, checking the server examples' shape. `slog` events without chat, codes or tokens (R45). R44.
 
 **Web**
-16. [ ] `party/socket.ts`, `clock.ts`, `sync.ts`: reconnect with backoff (1 → 30 s), snapshot on reconnect, offset estimate, R10 on the engine (`playbackRate` 0.95/1.05, seek past 3 s). Fake-timer tests; check Safari's native HLS honours `playbackRate`.
-17. [ ] Player party mode + `PartyPlayer` (Party13): side panel with people, chat, reactions, "Ask for a pause", invite with code; `SyncToasts` (Party15); host sheets (17–19); end summary (16); loading shimmers. Tests per component.
-18. [ ] Launch sheet from the item page (Party04, 05, the web version of the iPhone sheet), invite (06), join with a code (07), scheduled party (08), lobby with countdown (09).
-19. [ ] Guest page `/p/:code` (Party14) with the guests-off and unknown-code states, full party queue (25).
-20. [ ] Upcoming tab (PartiesWeb: list, calendar, invitation card) with the invitations badge, "Follow" on show pages, home row (Party21), vote screens (VoteBig web: propose, rank with right-click veto, results, tie draw animation).
-21. [ ] Admin › Settings › Plaid Party (Party26, 27).
-22. [ ] Catalogs `en` and `fr`, `make check-i18n`; German-length check on the launch sheet and host sheets.
+16. [x] `party/socket.ts`, `clock.ts`, `sync.ts`: reconnect with backoff (1 → 30 s), snapshot on reconnect, offset estimate, R10 on the engine (`playbackRate` 0.95/1.05, seek past 3 s). Fake-timer tests; check Safari's native HLS honours `playbackRate`.
+17. [x] Player party mode + `PartyPlayer` (Party13): side panel with people, chat, reactions, "Ask for a pause", invite with code; `SyncToasts` (Party15); host sheets (17–19); end summary (16); loading shimmers. Tests per component.
+18. [x] Launch sheet from the item page (Party04, 05, the web version of the iPhone sheet), invite (06), join with a code (07), scheduled party (08), lobby with countdown (09).
+19. [x] Guest page `/p/:code` (Party14) with the guests-off and unknown-code states, full party queue (25).
+20. [x] Upcoming tab (PartiesWeb: list, calendar, invitation card) with the invitations badge, "Follow" on show pages, home row (Party21), vote screens (VoteBig web: propose, rank with right-click veto, results, tie draw animation).
+21. [x] Admin › Settings › Plaid Party (Party26, 27).
+22. [x] Catalogs `en` and `fr`, `make check-i18n`; German-length check on the launch sheet and host sheets.
 
 **Apple**
 23. [ ] Common: `PartySocket` (URLSessionWebSocketTask, same reconnect and clock rules), models, `PartySync` driving `AVPlayer.rate` and seeks; the REST calls.
@@ -125,6 +125,7 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 - [ ] Manual check: Apple TV simulator + iPhone simulator + two browsers in one party, play / pause / seek / buffer / host leaves / guest join / next episode.
 
 ## Log
+- 2026-11-03, steps 16–22: a party lets its people read its title (`GET /items/{itemId}`, guests included): the player needs the files and tracks. The admin's existing `party.*` i18n keys moved under `party.settings.*` (they clashed with the room's keys). Dynamic keys from server values are kept by `preservePatterns` in `i18next.config.ts`. The invitations badge on the Upcoming tab (R39) isn't drawn yet.
 - 2026-11-03, step 9: the public code routes are `/party-codes/{code}` and `/party-codes/{code}/guest`, not `/parties/code/…`: Go's mux rejects `/parties/code/{code}` next to `/parties/{partyId}/vote`.
 - 2026-11-03, step 14: release dates come from the existing `Show` and `Season` provider calls (latest two seasons) instead of new TMDB endpoints, so no new recordings; tests use a fake provider. Alerts are keyed by show, season and episode (`/shows/{showId}/alerts/{season}/{episode}`), matching how a future-episode party is stored.
 - 2026-11-03, step 8: R27 (upload budget) isn't enforced yet; the setting is stored and shown (Party26). Tracked as a follow-up.

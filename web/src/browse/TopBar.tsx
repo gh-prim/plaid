@@ -72,6 +72,9 @@ export function TopBar({
             {l.name}
           </NavLink>
         ))}
+        <NavLink to="/upcoming" className="br-nav__tab pl-focusable">
+          {t('nav.upcoming')}
+        </NavLink>
         {onSearch ? (
           // On the search page the magnifier becomes the field (V2).
           <label className="br-nav__search" role="search">

@@ -908,7 +908,8 @@
       "watching_other": "{{count, number}} watching"
     },
     "serverStrip_one": "{{serverName}} · {{count, number}} watching",
-    "serverStrip_other": "{{serverName}} · {{count, number}} watching"
+    "serverStrip_other": "{{serverName}} · {{count, number}} watching",
+    "upcoming": "Upcoming"
   },
   "offline": {
     "body": "Check that it’s on and on the same network. Steps you finished are saved on the server.",
@@ -1002,19 +1003,264 @@
     "title": "Pair a TV"
   },
   "party": {
-    "guests": "Guests without an account",
-    "guestsHelp": "They join from the party’s link.",
-    "help": "Watch together, at home or away.",
-    "none": "No party yet.",
-    "noneHelp": "Live and planned parties show up here.",
-    "parties": "Parties",
-    "people": "People per party",
-    "peopleHelp": "host included",
+    "answer": {
+      "maybe": "Maybe",
+      "no": "No",
+      "state": {
+        "maybe": "Maybe",
+        "no": "Won't come",
+        "pending": "Hasn't answered yet",
+        "yes": "Will be there"
+      },
+      "yes": "I'll be there"
+    },
+    "chat": {
+      "placeholder": "Message",
+      "send": "Send",
+      "system": {
+        "host": "{{name}} is the host now",
+        "joined": "{{name}} joined from {{device}} · {{quality}}",
+        "left": "{{name}} left",
+        "removed": "{{name}} was removed from the party"
+      },
+      "title": "Chat"
+    },
+    "companion": {
+      "back": "−10 s",
+      "back10": "Back 10 seconds",
+      "forward": "+10 s",
+      "forward10": "Forward 10 seconds",
+      "onTv": "On the TV"
+    },
+    "control": {
+      "everyone": "Everyone",
+      "host": "Only you",
+      "refused": "Only the host can do that. Ask for a pause instead."
+    },
+    "device": {
+      "android": "Android",
+      "androidtv": "Android TV",
+      "browser": "browser",
+      "ios": "the iPhone",
+      "ipados": "the iPad",
+      "other": "a device",
+      "tvos": "Apple TV",
+      "web": "browser"
+    },
+    "end": {
+      "leave": "Leave",
+      "next": "Schedule the next one",
+      "pauses_one": "pause asked",
+      "pauses_other": "pauses asked",
+      "peak": "Most reactions at {{position}}",
+      "reactions_one": "reaction",
+      "reactions_other": "reactions",
+      "title": "End of the party",
+      "together": "together",
+      "with": "Tonight with {{names}}"
+    },
+    "error": {
+      "generic": "The party didn't open. Try again in a moment.",
+      "guests_not_allowed": "This server doesn't let people without an account join.",
+      "network": "No connection to the server.",
+      "not_allowed": "This party isn't open to you. Ask for the code.",
+      "not_invited": "You weren't invited to this party.",
+      "party_age_limit": "This one isn't for this profile.",
+      "party_disabled": "Plaid Party is turned off on this server.",
+      "party_ended": "This party is over.",
+      "party_not_allowed": "You can't start parties on this server.",
+      "party_not_found": "This party doesn't exist or it's over.",
+      "party_not_started": "This party hasn't started yet.",
+      "profile_required": "Pick a profile first.",
+      "rate_limited": "Too many tries. Wait a little.",
+      "screen_offline": "That Apple TV isn't on. Open PLAID on it and try again.",
+      "too_many_attempts": "Too many wrong codes. Wait a few minutes.",
+      "validation_failed": "Something in there isn't right."
+    },
+    "full": {
+      "hint_one": "{{count, number}} person is already watching, the most on this server. The host knows you're waiting.",
+      "hint_other": "{{count, number}} people are already watching, the most on this server. The host knows you're waiting.",
+      "leave": "Leave the queue",
+      "queue": "You get in as soon as a seat frees up · you're number {{position, number}}",
+      "title": "The party is full."
+    },
+    "guest": {
+      "accountNeeded": "This party needs an account on this server. Sign in to join.",
+      "firstName": "Your first name",
+      "hint": "Your first name is enough, you only see this movie.",
+      "invite": "{{host}} invites you to a Plaid Party",
+      "join": "Join",
+      "signIn": "Have an account? Sign in",
+      "started_one": "Started {{ago}} · {{count, number}} watching",
+      "started_other": "Started {{ago}} · {{count, number}} watching"
+    },
+    "host": {
+      "endAll": "End for everyone",
+      "giveControl": "Give them control",
+      "handTo": "Hand over to {{name}}",
+      "leaveHint": "You're the host. Pick who takes over, or end the party for everyone.",
+      "leaveTitle": "Leaving the party?",
+      "manage": "People",
+      "pickOther": "Pick someone else",
+      "remove": "Remove from the party",
+      "subtitle_one": "You're the host · {{count, number}} person",
+      "subtitle_other": "You're the host · {{count, number}} people",
+      "takeControl": "Take control back",
+      "title": "In the party"
+    },
+    "inBrowser": "Plaid Party · in the browser",
+    "invite": {
+      "codeLabel": "Party code",
+      "copied": "Link copied",
+      "copy": "Copy the code",
+      "go": "Go to the party",
+      "hint": "Send the code or the link. Your friends join from the app or a browser.",
+      "nobody": "Nobody else on this server can join parties yet.",
+      "people": "Invite",
+      "ready": "Your party is ready.",
+      "share": "Share the link",
+      "valid": "Valid for the whole party",
+      "withCode": "Invite · {{code}}"
+    },
+    "join": {
+      "codeLabel": "Code",
+      "cta": "Join",
+      "hint": "The code your friend sent you.",
+      "title": "Join a party"
+    },
+    "leave": "Leave",
+    "leaveTitle": "Leave the party?",
+    "limit": {
+      "hint_one": "{{names}} need a converted version, but your server can only prepare {{count, number}} at a time.",
+      "hint_other": "{{names}} need a converted version, but your server can only prepare {{count, number}} at a time.",
+      "order": "{{name}} first, {{other}} waits",
+      "shared_one": "The same {{quality}} version",
+      "shared_other": "The same {{quality}} version for everyone",
+      "title": "The server is at its limit"
+    },
+    "lobby": {
+      "startNow": "Start now"
+    },
+    "next": {
+      "episode": "S{{season}} E{{episode}}",
+      "ready_one": "{{ready, number}} of {{count, number}} is ready",
+      "ready_other": "{{ready, number}} of {{count, number}} are ready",
+      "startsIn_one": "Starting in {{count, number}} s",
+      "startsIn_other": "Starting in {{count, number}} s",
+      "stop": "Let's stop here",
+      "title": "Plaid Party · next episode together"
+    },
+    "pause": {
+      "asked": "Pause asked",
+      "countdown": "Pause in {{time}}",
+      "hostHint": "You're the host, it's your call.",
+      "in5": "In 5 min",
+      "now": "Pause now",
+      "request": "Ask for a pause",
+      "requested": "{{name}} asks for a pause",
+      "scheduled": "Pause in 5 minutes"
+    },
+    "people": {
+      "away": "Away",
+      "guest": "Guest",
+      "host": "host",
+      "loading": "Loading…",
+      "you": "You"
+    },
+    "pill_one": "Party · {{count, number}}",
+    "pill_other": "Party · {{count, number}}",
+    "react": {
+      "label": "Reactions",
+      "send": "Send {{emoji}}"
+    },
+    "removed": "The host removed you from this party.",
+    "row": {
+      "by": "Hosted by {{name}}",
+      "join_one": "{{name}} and {{count, number}} other · join",
+      "join_other": "{{name}} and {{count, number}} others · join",
+      "live": "Live",
+      "title": "Plaid Parties"
+    },
+    "schedule": {
+      "cta": "Schedule for {{date}} at {{time}}",
+      "done": "Your party is scheduled.",
+      "reminder": "Everyone gets a reminder 15 min before.",
+      "when": "Date and time"
+    },
+    "settings": {
+      "guests": "Guests without an account",
+      "guestsHelp": "They join from the party’s link.",
+      "help": "Watch together, at home or away.",
+      "none": "No party yet.",
+      "noneHelp": "Live and planned parties show up here.",
+      "parties": "Parties",
+      "people": "People per party",
+      "peopleHelp": "host included",
+      "upload": "Your upload speed",
+      "uploadHelp_one": "Enough for {{count, number}} person away from home at 8 Mbps; with {{remote}} away, the others share a lower quality ({{mbps}} Mbps).",
+      "uploadHelp_other": "Enough for {{count, number}} people away from home at 8 Mbps; with {{remote}} away, the others share a lower quality ({{mbps}} Mbps).",
+      "uploadHelpUnknown": "Each person away from home is one stream leaving your connection. Give your upload speed to see how many fit.",
+      "uploadLabel": "Upload speed in Mbps",
+      "uploadUnknown": "Mbps",
+      "upTo": "up to {{n}}"
+    },
+    "start": {
+      "controlHint": "The others can always ask for a pause.",
+      "controlTitle": "Who controls playback",
+      "cta": "Start the party",
+      "now": "Now",
+      "schedule": "Schedule",
+      "thisBrowser": "This browser",
+      "thisDevice": "The movie and the chat here",
+      "tv": "Apple TV · {{name}}",
+      "tvHint": "The movie on the TV, the chat here",
+      "whenLabel": "When",
+      "whereTitle": "Where you watch"
+    },
+    "stay": "Stay",
+    "sync": {
+      "caughtUp": "You were {{seconds}} s behind. We caught you up gently.",
+      "paused": "{{name}} paused",
+      "pauseScheduled": "Pause in 5 minutes",
+      "resumed": "{{name}} pressed play",
+      "resumeWithout": "Resume without {{name}}",
+      "seeked": "{{name}} went to {{position}} · Everyone followed",
+      "waiting": "Waiting for {{name}}",
+      "waitingHint": "The movie is loading for them. Everyone resumes together, at {{position}}."
+    },
     "title": "Plaid Party",
-    "upTo": "up to {{n}}",
-    "who": "Who can start",
-    "whoHelp": "Each group can start, join, or neither.",
-    "whoValue": "set per group"
+    "vote": {
+      "anonymous": "Anonymous votes: you see who voted, never for what.",
+      "by": "by {{name}}",
+      "drawCheck": "The draw can be checked again from the party's history.",
+      "nobodySaw": "Nobody has seen it",
+      "notYet": "hasn't voted yet",
+      "open": "Vote for the movie",
+      "pending": "Movie to be voted",
+      "phase": {
+        "closed": "The vote is closed",
+        "proposals": "Everyone proposes",
+        "ranking": "Rank your top 3"
+      },
+      "points_one": "{{count, number}} pt",
+      "points_other": "{{count, number}} pts",
+      "propose": "Propose",
+      "proposed_one": "{{count, number}} film proposed",
+      "proposed_other": "{{count, number}} films proposed",
+      "proposeHint_one": "Propose {{count, number}} more film · until {{until}}",
+      "proposeHint_other": "Propose up to {{count, number}} films · until {{until}}",
+      "rankHint": "Click in order of preference: 1st = 3 points, 2nd = 2, 3rd = 1. One veto. Until {{until}}.",
+      "reset": "Reset",
+      "search": "Search the library",
+      "submit": "Submit my ranking",
+      "suggests": "Plaid suggests",
+      "tie": "Tie at {{points}} points. Chance decided, for everyone.",
+      "veto": "Veto",
+      "vetoed": "Out by a veto",
+      "voted": "voted",
+      "voters": "Who voted",
+      "withdraw": "Withdraw"
+    }
   },
   "people": {
     "add": "Add a person",
@@ -1721,6 +1967,45 @@
     "loading": "Loading",
     "progress": "Progress",
     "showPassword": "Show password"
+  },
+  "upcoming": {
+    "empty": "Nothing coming up. Follow a show or plan a party.",
+    "episode": {
+      "code": "{{show}} · S{{season}} E{{episode}}",
+      "released_on_server": "On the server",
+      "released_pending_file": "Released · file pending",
+      "upcoming": "Coming up"
+    },
+    "filter": {
+      "all": "All",
+      "episodes": "Episodes",
+      "label": "Show",
+      "parties": "Parties"
+    },
+    "follow": "Follow",
+    "followHint": "Only the shows you follow appear: started, or followed from their page. You're notified when an episode is on the server.",
+    "following": "Following",
+    "hint": "Your shows' releases and your Plaid Parties.",
+    "invitations_one": "{{count, number}} invitation",
+    "invitations_other": "{{count, number}} invitations",
+    "invite": {
+      "from": "{{name}} invites you"
+    },
+    "notified": "You'll be notified",
+    "notifyMe": "Notify me",
+    "party": {
+      "by": "Hosted by {{name}}",
+      "cancel": "Cancel the party",
+      "hosting": "You're hosting",
+      "open": "Open",
+      "scheduled": "Scheduled Plaid Party"
+    },
+    "title": "Upcoming",
+    "view": {
+      "calendar": "Calendar",
+      "label": "View",
+      "list": "List"
+    }
   },
   "welcome": {
     "status": {

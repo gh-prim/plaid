@@ -31,7 +31,10 @@ export class PartySocket {
   readonly clock = new Clock()
   private ws: WebSocket | null = null
   private handlers = new Map<string, Set<Handler>>()
-  private pending = new Map<string, { resolve: (e: Envelope) => void; reject: (e: Error) => void }>()
+  private pending = new Map<
+    string,
+    { resolve: (e: Envelope) => void; reject: (e: Error) => void }
+  >()
   private seq = 0
   private attempt = 0
   private closed = false
@@ -67,7 +70,8 @@ export class PartySocket {
       if (env.id && this.pending.has(env.id)) {
         const p = this.pending.get(env.id)!
         this.pending.delete(env.id)
-        if (env.type === 'error') p.reject(new SocketError((env.data as { code?: string })?.code ?? 'error'))
+        if (env.type === 'error')
+          p.reject(new SocketError((env.data as { code?: string })?.code ?? 'error'))
         else p.resolve(env)
         if (env.type === 'ack') return
       }
@@ -85,7 +89,8 @@ export class PartySocket {
   }
 
   private emit(type: string, data: unknown, env: Envelope = { type }) {
-    for (const h of this.handlers.get(type) ?? []) (h as (d: unknown, e: Envelope) => void)(data, env)
+    for (const h of this.handlers.get(type) ?? [])
+      (h as (d: unknown, e: Envelope) => void)(data, env)
   }
 
   /** Listens to a message type; returns the unsubscribe. */

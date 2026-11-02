@@ -8,6 +8,8 @@ import { HomePage } from './browse/HomePage'
 import { ItemPage } from './browse/ItemPage'
 import { PersonPage } from './browse/PersonPage'
 import { SearchPage } from './browse/SearchPage'
+import { UpcomingPage } from './upcoming/UpcomingPage'
+import { VotePage } from './party/VotePage'
 import { LibraryGrid } from './browse/LibraryGrid'
 import { Shell } from './browse/Shell'
 import { ChangePassword } from './pages/ChangePassword'
@@ -27,6 +29,9 @@ import { Start } from './onboarding/Start'
 const AdminApp = lazy(() => import('./admin/routes'))
 // The player and hls.js are their own chunk too (F008-R33).
 const Player = lazy(() => import('./player/Player'))
+// Plaid Party rides the player's chunk (F010).
+const PartyRoute = lazy(() => import('./party/PartyPlayer'))
+const GuestJoin = lazy(() => import('./party/GuestJoin'))
 
 export function AppRoutes() {
   return (
@@ -121,6 +126,8 @@ export function AppRoutes() {
           <Route path="/item/:itemId" element={<ItemPage />} />
           <Route path="/person/:personId" element={<PersonPage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/upcoming" element={<UpcomingPage />} />
+          <Route path="/party/:partyId/vote" element={<VotePage />} />
         </Route>
         <Route
           path="/watch/:itemId"
@@ -130,6 +137,25 @@ export function AppRoutes() {
                 <Player />
               </Suspense>
             </RequireStep>
+          }
+        />
+        <Route
+          path="/party/:partyId"
+          element={
+            <RequireStep allow={['app']}>
+              <Suspense>
+                <PartyRoute />
+              </Suspense>
+            </RequireStep>
+          }
+        />
+        {/* A party link works signed out: guests join with a first name (F010-R5). */}
+        <Route
+          path="/p/:code"
+          element={
+            <Suspense>
+              <GuestJoin />
+            </Suspense>
           }
         />
         <Route

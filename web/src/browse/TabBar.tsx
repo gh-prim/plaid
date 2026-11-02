@@ -26,6 +26,10 @@ export function TabBar({ libraries }: { libraries?: ShellLibrary[] }) {
           <span className="br-tab__text">{l.name}</span>
         </NavLink>
       ))}
+      <NavLink to="/upcoming" className="br-tab pl-focusable">
+        <Icon name="calendar" size={20} />
+        {t('nav.upcoming')}
+      </NavLink>
       <NavLink to="/search" className="br-tab pl-focusable">
         <Icon name="search" size={20} />
         {t('nav.search')}
