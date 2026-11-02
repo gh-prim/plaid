@@ -1,11 +1,11 @@
 ---
 id: F010
 title: Plaid Party — watch together
-owner: TBD
+owner: gh-prim
 reviewer: TBD
-status: draft
+status: accepted
 phase: 3
-apps: [server, web]
+apps: [server, web, apple]
 created: 2026-10-26
 ---
 
@@ -19,7 +19,14 @@ I start a Plaid Party on a movie and send the link. My friends join from any dev
 
 ## Users and systems affected
 - Host, participants (members, F009 friends, guests via link).
-- Server (rooms, clock, WebSocket); web player in v1, then all apps.
+- Server (rooms, clock, WebSocket, scheduling, votes, reminders).
+- Web player, iPhone/iPad app (F014) and Apple TV app (F011), all in v1. Android follows later.
+
+## Screens
+Claude Design canvas [PLAID first-run onboarding](https://claude.ai/artifact/RnKuX3Lq3HrjwzQ2nH2hTz), page V2:
+- **Step 23, Plaid Party**, boards Party01–Party27: chat on the phone or iPad while the TV plays (01–03), start, schedule, invite, join by code, scheduled party and countdown (04–09), watching on iPhone, iPad and web (10–15, with sync states), end, host managing people, host leaving, transcode limit, invitation received, home row (16–21), Apple TV next episode, start from the TV, remote reactions (22–24), full party (25), admin settings (26–27).
+- **Upcoming tab** (boards PartiesWeb, PartiesPh): episode releases of followed shows and Plaid Parties, as a list or a calendar, with invitations.
+- **Movie vote** (boards VotePh, VoteBig): everyone proposes, ranks and has one veto.
 
 ## Success criteria
 - [ ] Create a room on a media item and join by link or by code.
@@ -29,13 +36,18 @@ I start a Plaid Party on a movie and send the link. My friends join from any dev
 - [ ] Emoji reactions, chat, pause request ("bathroom break").
 - [ ] Presence list: who's here, who's loading.
 - [ ] Each participant has their own playback strategy (F006).
+- [ ] Watch on a TV with the chat on a phone or iPad, or on iPhone, iPad or web with the chat beside the video; reactions from the Apple TV remote.
+- [ ] Schedule a party with invitations (yes / maybe / no), a 15-minute reminder and a waiting room with a countdown.
+- [ ] Movie vote: the host opens it, everyone proposes (2 each), ranks a top 3 (3, 2, 1 points, anonymous) and has one veto; a tie is drawn by lot.
+- [ ] Upcoming tab (web, iPhone, iPad): episode releases of followed shows and Plaid Parties, as a list or a calendar, with "notify me" and "plan a party" on a release.
+- [ ] Series: move to the next episode together. Room limit set by the admin.
 
 ## Constraints
 - Depends on F003, F006 and F009.
 - The protocol must be documented (WebSocket events in `api/`), so it can be ported identically to Apple and Android.
 
 ## Out of scope
-Built-in video / voice (v2?), SharePlay (phase 4 bonus).
+Built-in video / voice (v2?), SharePlay (phase 4 bonus), Android (follows the documented protocol later).
 
 ## Decisions (from the V2 design, 2026-11-01)
 - **Anonymous guests: yes.** A guest joins from the link with a first name only. They see this one movie and nothing else on the server.

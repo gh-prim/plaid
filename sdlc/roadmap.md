@@ -18,6 +18,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [0007](decisions/0007-metadata-provider-keys.md) | Metadata provider keys: injected at release build, admin override | ✅ accepted |
 | [0008](decisions/0008-intro-credits-segments.md) | Intro and credits: TheIntroDB, end credits detected locally | ✅ accepted |
 | [0009](decisions/0009-remote-access-getplaid-direct.md) | Remote access through getplaid.direct | ✅ accepted |
+| [0010](decisions/0010-remote-push-notifications.md) | Remote push notifications through getplaid.direct | 📝 proposed |
 
 ## Features
 
@@ -32,7 +33,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [F007](features/F007-web-onboarding-admin/intent.md) | Web: onboarding and administration | 2 | server, web | gh-prim | ✅ | [✅](features/F007-web-onboarding-admin/spec.md) | [🚧](features/F007-web-onboarding-admin/plan.md) |
 | [F008](features/F008-web-browsing-player/intent.md) | Web: browsing and player | 2 | server, web | gh-prim | ✅ | [✅](features/F008-web-browsing-player/spec.md) | [🚧](features/F008-web-browsing-player/plan.md) |
 | [F009](features/F009-library-sharing/intent.md) | Library sharing | 3 | server, web, apple | gh-prim | 📝 | [📝](features/F009-library-sharing/spec.md) | [🚧](features/F009-library-sharing/plan.md) |
-| [F010](features/F010-plaid-party/intent.md) | Plaid Party (watch together) | 3 | server, web | ? | 📝 | — | — |
+| [F010](features/F010-plaid-party/intent.md) | Plaid Party (watch together) | 3 | server, web, apple | gh-prim | ✅ | [✅](features/F010-plaid-party/spec.md) | [✅](features/F010-plaid-party/plan.md) |
 | [F011](features/F011-tvos-app/intent.md) | Apple TV app | 4 | server, apple | gh-prim | ✅ | [✅](features/F011-tvos-app/spec.md) | [🚧](features/F011-tvos-app/plan.md) |
 | [F012](features/F012-remote-access/intent.md) | Remote access through getplaid.direct | 3 | server, web | gh-prim | ✅ | [✅](features/F012-remote-access/spec.md) | [✔️](features/F012-remote-access/plan.md) |
 | [F013](features/F013-pair-tv-v2/intent.md) | Web: Pair a TV in the V2 look | 4 | web | gh-prim | ✅ | [✅](features/F013-pair-tv-v2/spec.md) | [✔️](features/F013-pair-tv-v2/plan.md) |
