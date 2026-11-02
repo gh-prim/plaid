@@ -6,6 +6,7 @@ import { Devices } from './Devices'
 import { Libraries, LibraryPage } from './Libraries'
 import { People, Person } from './People'
 import { Playing } from './Playing'
+import { ActivityPage, GroupsPage, InvitationsPage, UnmatchedPage } from './Lists'
 import { GroupPage } from './Sharing'
 import { RemoteAccess } from './RemoteAccess'
 import { Review, Unrecognized } from './Review'
@@ -22,6 +23,10 @@ export default function AdminApp() {
         <Route index element={<Dashboard />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="playing" element={<Playing />} />
+        <Route path="activity" element={<ActivityPage />} />
+        <Route path="unmatched" element={<UnmatchedPage />} />
+        <Route path="groups" element={<GroupsPage />} />
+        <Route path="invitations" element={<InvitationsPage />} />
         <Route path="libraries" element={<Libraries />} />
         <Route path="libraries/:id" element={<LibraryPage />} />
         <Route path="libraries/:id/unrecognized" element={<Unrecognized />} />

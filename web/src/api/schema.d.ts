@@ -1674,6 +1674,43 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/server/stats/history': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * The last 24 hours of streams and upload, one sample a minute (admin, step 21)
+     * @description Kept in memory since the server started; a restart starts it again.
+     */
+    get: operations['getServerStatsHistory']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/activity': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** What was watched and added lately, for the admin dashboard and Activity (step 21) */
+    get: operations['getActivity']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/server/capabilities': {
     parameters: {
       query?: never
@@ -2081,6 +2118,8 @@ export interface components {
        * @description The most recent activity of any of its devices, null if it never signed in.
        */
       lastSeenAt: string | null
+      /** @description The device seen last, absent if it never signed in. */
+      lastDevice?: components['schemas']['SessionInfo']
       /** @description The default profile's color. */
       avatarColor: number
       avatar: components['schemas']['Avatar']
@@ -2238,6 +2277,11 @@ export interface components {
       /** @description Files present on disk. */
       files: number
       unrecognized: number
+      /**
+       * Format: int64
+       * @description The size of the files present on disk.
+       */
+      sizeBytes: number
     }
     Library: {
       id: string
@@ -3130,6 +3174,11 @@ export interface components {
       /** Format: int64 */
       positionMs: number
       state?: components['schemas']['PlaybackState']
+      /**
+       * Format: int64
+       * @description What this stream is sent at, in bits per second (step 21).
+       */
+      bitrateBps?: number
       /** @description The client is outside the local networks (R22). */
       remote: boolean
       /**
@@ -3145,6 +3194,49 @@ export interface components {
     ActivePlaybackList: {
       sessions: components['schemas']['ActivePlayback'][]
     }
+    StatsHistory: {
+      samples: components['schemas']['StatsSample'][]
+    }
+    StatsSample: {
+      /** Format: date-time */
+      at: string
+      streams: number
+      transcodes: number
+      /** Format: int64 */
+      uploadBps: number
+    }
+    Activity: {
+      /** @description One entry per day, oldest first, today last. */
+      days: components['schemas']['ActivityDay'][]
+      /** @description The last plays, newest first (50 at most). */
+      recent: components['schemas']['PlayRecord'][]
+      /** @description The last movies and shows added, newest first (10 at most). */
+      recentlyAdded: components['schemas']['ItemSummary'][]
+      /** @description Accounts seen in the period. */
+      activePeople: number
+    }
+    ActivityDay: {
+      /** Format: date */
+      date: string
+      /** @description Hours watched that day, all accounts. */
+      hours: number
+      plays: number
+    }
+    PlayRecord: {
+      itemId: string
+      title: string
+      userId: string
+      displayName: string
+      profileName: string
+      deviceName: string
+      /** @enum {string} */
+      method: 'direct_play' | 'direct_stream' | 'transcode'
+      remote: boolean
+      /** Format: date-time */
+      startedAt: string
+      /** Format: int64 */
+      watchedMs: number
+    }
     ServerStats: {
       /**
        * Format: int64
@@ -3157,6 +3249,13 @@ export interface components {
       cpuPercent?: number
       /** @description The hottest thermal zone. */
       temperatureC?: number
+      /**
+       * Format: int64
+       * @description Memory in use on the machine, when known.
+       */
+      memoryUsedBytes?: number
+      /** Format: int64 */
+      memoryTotalBytes?: number
       /** @description Conversions running now. */
       transcodes: number
       maxTranscodes: number
@@ -5846,6 +5945,53 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['ServerStats']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getServerStatsHistory: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Samples, oldest first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StatsHistory']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getActivity: {
+    parameters: {
+      query?: {
+        /** @description How many days back, today included; defaults to 7. */
+        days?: number
+        /** @description The browser's offset from UTC (JavaScript's getTimezoneOffset), so days are local. */
+        tzOffsetMinutes?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The activity */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Activity']
         }
       }
       default: components['responses']['Error']

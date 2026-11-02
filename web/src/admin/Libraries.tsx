@@ -1,15 +1,24 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
-import { formatNumber, formatRelative, languageName, regionName } from '../lib/format'
+import { usePolling } from '../hooks/usePolling'
+import {
+  formatBytes,
+  formatDuration,
+  formatNumber,
+  formatRelative,
+  formatTime,
+  languageName,
+  regionName,
+} from '../lib/format'
 import { mountCommand, setfaclCommand } from '../lib/shellQuote'
 import { PickerSheet } from '../onboarding/PickerSheet'
 import { useServer } from '../onboarding/Page'
-import { Button, CommandBlock, Dialog, EmptyState, TextField } from '../ui'
-import { useAdmin } from './AdminLayout'
-import { LibrarySharing } from './Sharing'
+import { Button, CommandBlock, Dialog, EmptyState, Icon, TextField } from '../ui'
+import { TopBar, useAdmin } from './AdminLayout'
+import { LibrarySharing, useSharing } from './Sharing'
 import { Group, Loading, Row, Section } from './v2'
 
 type Library = components['schemas']['Library']
@@ -36,20 +45,43 @@ function scanLine(t: ReturnType<typeof useTranslation>['t'], locale: string, l: 
 /** Folders of a library that can't be read right now. */
 const troubled = (l: Library) => l.folders.filter((f) => f.status !== 'ok')
 
-/** Every library, with its count, scan and folder trouble (board TA02, F007 R20). */
+/** Libraries rescan every 15 minutes unless set otherwise (F004-R19). */
+const defaultInterval = 900
+
+/**
+ * Libraries (canvas step 21, board AdmEN02): four numbers, then every
+ * library as a table row with its type, size, folder, last scan and who it
+ * is shared with (F007 R20, F009).
+ */
 export function Libraries() {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const { data, refresh, toast } = useAdmin()
+  const sharing = useSharing()
+  const { data: stats } = usePolling(
+    async () => (await api.GET('/server/stats')).data ?? null,
+    60_000,
+  )
   const [scanning, setScanning] = useState(false)
+  // A next scan already due shows as now: the clock as the page opened.
+  const [now] = useState(() => Date.now())
   const locale = i18n.resolvedLanguage ?? 'en'
-  const n = (v: number) => formatNumber(i18n.language, v)
+  const lng = i18n.language
+  const n = (v: number) => formatNumber(lng, v)
   const libs = data?.libraries ?? []
   const titles = libs.reduce(
     (a, l) => a + (l.type === 'movies' ? l.counts.movies : l.counts.shows),
     0,
   )
-  const files = libs.reduce((a, l) => a + l.counts.files, 0)
-  const gone = libs.reduce((a, l) => a + troubled(l).length, 0)
+  const unmatched = libs.reduce((a, l) => a + l.counts.unrecognized, 0)
+  const next = libs
+    .filter((l) => l.lastScanAt)
+    .map(
+      (l) => new Date(l.lastScanAt!).getTime() + (l.scanIntervalSeconds ?? defaultInterval) * 1000,
+    )
+    .sort((a, b) => a - b)[0]
+  const interval = Math.min(...libs.map((l) => l.scanIntervalSeconds ?? defaultInterval))
+  const drive = stats?.drives.find((d) => d.available && d.freeBytes !== undefined)
 
   async function scanAll() {
     setScanning(true)
@@ -68,57 +100,161 @@ export function Libraries() {
     await refresh()
   }
 
+  /** Who sees a library: household groups, groups sharing it, people on their own. */
+  function sharedWith(l: Library): string {
+    if (!sharing.data) return ''
+    const groups = sharing.data.groups.filter((g) => g.household || g.libraryIds.includes(l.id))
+    const own = sharing.data.users.filter(
+      (u) => u.role !== 'admin' && u.extraLibraryIds.includes(l.id),
+    ).length
+    if (!groups.length && !own) return t('sharing.library.nobody')
+    const [first, ...rest] = groups
+    return [
+      first?.name,
+      rest.length ? t('admin.libraries.moreGroups', { count: rest.length }) : undefined,
+      own ? t('admin.libraries.morePeople', { count: own }) : undefined,
+    ]
+      .filter(Boolean)
+      .join(l.householdOnly ? ' ' : ', ')
+  }
+
   return (
-    <Section
-      title={t('libraries.title')}
-      glyph="libraries"
-      paneTitle={data ? t('admin.libraries.count', { count: libs.length }) : undefined}
-      paneSub={data ? t('admin.libraries.facts', { titles, files }) : undefined}
-      status={
-        gone
-          ? { text: t('admin.libraries.unavailable', { count: gone }), tone: 'warning' }
-          : undefined
-      }
-    >
-      {!data && <Loading />}
-      {data && !libs.length && <EmptyState title={t('libraries.empty')} />}
-      {libs.length > 0 && (
-        <Group>
-          {libs.map((l) => {
-            const trouble = troubled(l)
-            return (
-              <Row
-                key={l.id}
-                to={`/admin/libraries/${l.id}`}
-                label={l.name}
-                value={n(l.type === 'movies' ? l.counts.movies : l.counts.shows)}
-                sub={
-                  trouble.length
-                    ? t('admin.libraries.folderTrouble', {
-                        count: trouble.length,
-                        total: l.folders.length,
-                      })
-                    : [counts(t, l), scanLine(t, locale, l)].filter(Boolean).join(' · ')
-                }
-                subTone={trouble.length ? 'warning' : undefined}
-              />
-            )
-          })}
-        </Group>
-      )}
-      {data && (
-        <Group>
-          <Row to="/setup/libraries" label={t('admin.libraries.add')} />
-          {libs.length > 0 && (
-            <Row
-              label={t('admin.libraries.scanAll')}
-              busy={scanning}
-              onClick={() => void scanAll()}
-            />
-          )}
-        </Group>
-      )}
-    </Section>
+    <>
+      <TopBar title={t('libraries.title')}>
+        {libs.length > 0 && (
+          <Button variant="secondary" size="sm" loading={scanning} onClick={() => void scanAll()}>
+            {t('admin.libraries.scanAll')}
+          </Button>
+        )}
+        <Button size="sm" onClick={() => void navigate('/setup/libraries')}>
+          <Icon name="plus" size={15} />
+          {t('admin.libraries.add')}
+        </Button>
+      </TopBar>
+      <div className="ax-body">
+        {!data && <Loading />}
+        {data && !libs.length && <EmptyState title={t('libraries.empty')} />}
+        {libs.length > 0 && (
+          <>
+            <section className="ax-kpis">
+              <div className="ax-card ax-kpi">
+                <p>{t('admin.libraries.titles')}</p>
+                <strong>{n(titles)}</strong>
+                <span>{t('admin.libraries.inLibraries', { count: libs.length })}</span>
+              </div>
+              <Link to="/admin/unmatched" className="ax-card ax-kpi pl-focusable">
+                <p>{t('admin.nav.unmatched')}</p>
+                <strong>{n(unmatched)}</strong>
+                <span>{t('admin.libraries.toReview')}</span>
+              </Link>
+              <div className="ax-card ax-kpi">
+                <p>{t('admin.libraries.nextScan')}</p>
+                <strong>{next ? formatTime(lng, new Date(Math.max(next, now))) : '—'}</strong>
+                <span>
+                  {t('admin.libraries.every', { duration: formatDuration(lng, interval * 1000) })}
+                </span>
+              </div>
+              <div className="ax-card ax-kpi">
+                <p>{t('admin.libraries.freeSpace')}</p>
+                <strong>{drive ? formatBytes(lng, drive.freeBytes!) : '—'}</strong>
+                <span className="ax-mono" title={drive?.path}>
+                  {drive?.path ?? t('admin.dash.unknown')}
+                </span>
+              </div>
+            </section>
+            <section className="ax-card" aria-labelledby="ax-libs">
+              <header className="ax-card__head">
+                <h2 id="ax-libs">{t('admin.libraries.all')}</h2>
+                <span>{n(libs.length)}</span>
+              </header>
+              <table className="ax-table ax-table--rows">
+                <thead>
+                  <tr>
+                    <th aria-hidden="true" />
+                    <th>{t('admin.libraries.colLibrary')}</th>
+                    <th>{t('admin.libraries.colType')}</th>
+                    <th>{t('admin.libraries.colTitles')}</th>
+                    <th>{t('admin.libraries.colSize')}</th>
+                    <th>{t('admin.libraries.colFolder')}</th>
+                    <th>{t('admin.libraries.colScan')}</th>
+                    <th>{t('admin.libraries.colShared')}</th>
+                    <th aria-hidden="true" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {libs.map((l) => {
+                    const trouble = troubled(l)
+                    const busy = l.scan.state !== 'idle' || l.scan.queued
+                    return (
+                      <tr key={l.id} onClick={() => void navigate(`/admin/libraries/${l.id}`)}>
+                        <td>
+                          <span className="ax-libicon">
+                            <Icon name={l.type === 'movies' ? 'play' : 'tv'} size={14} />
+                          </span>
+                        </td>
+                        <td className="ax-strong">
+                          <Link
+                            to={`/admin/libraries/${l.id}`}
+                            className="pl-focusable"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {l.name}
+                          </Link>
+                        </td>
+                        <td className="ax-dim">
+                          {l.type === 'movies' ? t('library.type.movies') : t('library.type.shows')}
+                        </td>
+                        <td className="ax-strong">
+                          {l.type === 'movies'
+                            ? n(l.counts.movies)
+                            : t('admin.libraries.showsEpisodes', {
+                                shows: n(l.counts.shows),
+                                episodes: n(l.counts.episodes),
+                              })}
+                        </td>
+                        <td className="ax-dim">{formatBytes(lng, l.counts.sizeBytes)}</td>
+                        <td
+                          className={trouble.length ? 'ax-warn' : 'ax-mono'}
+                          title={l.folders.map((f) => f.path).join('\n')}
+                        >
+                          {trouble.length
+                            ? t('admin.libraries.folderTrouble', {
+                                count: trouble.length,
+                                total: l.folders.length,
+                              })
+                            : (l.folders[0]?.path ?? '')}
+                          {!trouble.length && l.folders.length > 1
+                            ? ` +${l.folders.length - 1}`
+                            : ''}
+                        </td>
+                        <td className="ax-dim">
+                          {busy ? (
+                            <span className="ax-scanning">
+                              {t('scan.state.short.scanning')}
+                              <span className="ax-bar ax-bar--thin" aria-hidden="true">
+                                <span className="ax-bar__busy" />
+                              </span>
+                            </span>
+                          ) : l.lastScanAt ? (
+                            formatRelative(locale, new Date(l.lastScanAt))
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                        <td className="ax-dim">{sharedWith(l)}</td>
+                        <td>
+                          <Icon name="chevronRight" size={14} />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </section>
+          </>
+        )}
+      </div>
+    </>
   )
 }
 

@@ -18,8 +18,8 @@ import {
   Mark,
   TextField,
 } from '../ui'
-import { useAdmin } from './AdminLayout'
-import { InvitationsGroup, InviteDialog, NameDialog, PersonSharing, useSharing } from './Sharing'
+import { TopBar, useAdmin } from './AdminLayout'
+import { InviteDialog, NameDialog, PersonSharing, useSharing } from './Sharing'
 import { Group, Loading, Row, Section, Switch } from './v2'
 
 type AdminUser = components['schemas']['AdminUser']
@@ -38,15 +38,17 @@ export function temporaryPassword(
 /** The same party color Avatar gives a name (F003 profile color index 0–7). */
 const partyOf = (name: string) => ((name.codePointAt(0) ?? 0) % 8) + 1
 
-type Filter = 'watching' | 'away' | 'invitations'
+type Filter = 'watching' | 'away'
 
-/** 30 days, for "Not seen in 30 days". */
+/** 30 days, for "Inactive 30 d". */
 const awayMs = 30 * 24 * 3600 * 1000
+/** People per page (board AdmEN03). */
+const pageSize = 10
 
 /**
- * People (canvas step 19, boards Share01 and Share03): the groups as chips
- * over a table of everyone, a search, filters, Invite, and actions on the
- * people selected (F009, F007 R23).
+ * People (canvas step 21, board AdmEN03; F009 step 19): the groups on the
+ * left, filters and pages over a table of everyone, Invite, and actions on
+ * the people selected (F007 R23).
  */
 export function People() {
   const { t, i18n } = useTranslation()
@@ -57,45 +59,62 @@ export function People() {
   const me = state.status === 'ready' ? state.me?.user.id : undefined
   const sharing = useSharing()
   const [group, setGroup] = useState<string>()
-  const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>()
+  const [device, setDevice] = useState('')
+  const [page, setPage] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
   const [dialog, setDialog] = useState<'invite' | 'add' | 'group' | 'move' | 'revoke'>()
   const [moveTo, setMoveTo] = useState<string>()
   const [busy, setBusy] = useState(false)
   const [fail, setFail] = useState<Failure>()
-  // "Not seen in 30 days" counts from when the page opened.
+  // "Inactive 30 d" counts from when the page opened.
   const [now] = useState(() => Date.now())
 
   const data = sharing.data
+  const top = (
+    <TopBar title={t('people.title')}>
+      <Button variant="ghost" size="sm" onClick={() => setDialog('add')}>
+        {t('people.add')}
+      </Button>
+      <Button size="sm" onClick={() => setDialog('invite')}>
+        <Icon name="plus" size={15} />
+        {t('sharing.people.invite')}
+      </Button>
+    </TopBar>
+  )
   if (!data)
     return (
-      <div className="adm-sec sh-people">
-        <PeopleHead />
-        <Loading />
-      </div>
+      <>
+        {top}
+        <div className="ax-body">
+          <Loading />
+        </div>
+      </>
     )
 
   const watching = new Set((admin?.streams ?? []).map((s) => s.userId))
   const groupName = (id: string) => data.groups.find((g) => g.id === id)?.name
-  const libraryNames = (u: AdminUser) =>
+  const access = (u: AdminUser) =>
     u.access.libraryIds == null
       ? t('sharing.people.allLibraries')
       : u.access.libraryIds
           .map((id) => data.libraries.find((l) => l.id === id)?.name)
           .filter(Boolean)
           .join(', ') || t('sharing.group.noLibrary')
-  const q = query.trim().toLocaleLowerCase(locale)
+  const devices = [
+    ...new Set(data.users.map((u) => u.lastDevice?.deviceName).filter((d): d is string => !!d)),
+  ].sort()
   const shown = data.users.filter(
     (u) =>
       (!group || u.groupIds.includes(group)) &&
-      (!q ||
-        u.displayName.toLocaleLowerCase(locale).includes(q) ||
-        u.username.toLocaleLowerCase(locale).includes(q)) &&
       (filter !== 'watching' || watching.has(u.id)) &&
-      (filter !== 'away' || !u.lastSeenAt || now - new Date(u.lastSeenAt).getTime() > awayMs),
+      (filter !== 'away' || !u.lastSeenAt || now - new Date(u.lastSeenAt).getTime() > awayMs) &&
+      (!device || u.lastDevice?.deviceName === device),
   )
-  const selectable = shown.filter((u) => u.id !== me)
+  const pages = Math.max(1, Math.ceil(shown.length / pageSize))
+  const at = Math.min(page, pages - 1)
+  const rows = shown.slice(at * pageSize, at * pageSize + pageSize)
+  const selectable = rows.filter((u) => u.id !== me)
   const picked = data.users.filter((u) => selected.includes(u.id))
   const current = data.groups.find((g) => g.id === group)
 
@@ -126,195 +145,245 @@ export function People() {
   }
 
   return (
-    <div className="adm-sec sh-people">
-      <PeopleHead />
-
-      <div className="sh-chips" role="toolbar" aria-label={t('sharing.groups.title')}>
-        <button
-          type="button"
-          className={`sh-chip pl-focusable${group ? '' : ' is-on'}`}
-          aria-pressed={!group}
-          onClick={() => setGroup(undefined)}
-        >
-          {t('sharing.people.everyone')}
-          <span>{formatCount(locale, data.users.length)}</span>
-        </button>
-        {data.groups.map((g) => (
+    <>
+      {top}
+      <div className="ax-body ax-people">
+        <nav className="ax-groups" aria-label={t('sharing.groups.title')}>
+          <p className="ax-nav__title">{t('sharing.groups.title')}</p>
           <button
-            key={g.id}
             type="button"
-            className={`sh-chip pl-focusable${group === g.id ? ' is-on' : ''}`}
-            aria-pressed={group === g.id}
-            onClick={() => setGroup(group === g.id ? undefined : g.id)}
+            className={`ax-groups__item pl-focusable${group ? '' : ' is-on'}`}
+            aria-pressed={!group}
+            onClick={() => {
+              setGroup(undefined)
+              setPage(0)
+            }}
           >
-            {g.name}
-            <span>{formatCount(locale, g.memberIds.length)}</span>
+            <span>{t('sharing.people.everyone')}</span>
+            <b>{formatCount(locale, data.users.length)}</b>
           </button>
-        ))}
-        <button
-          type="button"
-          className="sh-chip sh-chip--ghost pl-focusable"
-          onClick={() => setDialog('group')}
-        >
-          <Icon name="plus" size={16} />
-          {t('sharing.groups.new')}
-        </button>
-        {current && (
-          <Link
-            className="sh-chip sh-chip--ghost pl-focusable"
-            to={`/admin/people/groups/${current.id}`}
-          >
-            {t('sharing.people.groupSettings', { name: current.name })}
-            <Icon name="chevronRight" size={14} />
-          </Link>
-        )}
-      </div>
-
-      <div className="sh-toolbar">
-        <label className="sh-search">
-          <Icon name="search" size={18} />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('sharing.people.search', { count: data.users.length })}
-            aria-label={t('sharing.people.search', { count: data.users.length })}
-          />
-        </label>
-        {(['watching', 'away', 'invitations'] as const).map((f) => (
-          <button
-            key={f}
-            type="button"
-            className={`sh-filter pl-focusable${filter === f ? ' is-on' : ''}`}
-            aria-pressed={filter === f}
-            onClick={() => setFilter(filter === f ? undefined : f)}
-          >
-            {f === 'watching'
-              ? t('sharing.people.watching')
-              : f === 'away'
-                ? t('sharing.people.away')
-                : t('sharing.invitations.title', { count: data.invitations.length })}
-          </button>
-        ))}
-        <Button variant="ghost" onClick={() => setDialog('add')}>
-          {t('people.add')}
-        </Button>
-        <Button onClick={() => setDialog('invite')}>
-          <Icon name="plus" size={16} />
-          {t('sharing.people.invite')}
-        </Button>
-      </div>
-
-      {filter === 'invitations' ? (
-        <div className="sh-invites">
-          <InvitationsGroup
-            invitations={data.invitations}
-            groups={data.groups}
-            onChange={() => void sharing.reload()}
-          />
-        </div>
-      ) : (
-        <div className="sh-table" role="table" aria-label={t('people.title')}>
-          <div className="sh-tr sh-tr--head" role="row">
-            <span className="sh-td sh-td--check" role="columnheader">
-              <input
-                type="checkbox"
-                aria-label={t('sharing.people.selectAll')}
-                checked={selectable.length > 0 && selectable.every((u) => selected.includes(u.id))}
-                onChange={(e) => setSelected(e.target.checked ? selectable.map((u) => u.id) : [])}
-              />
-            </span>
-            <span className="sh-td sh-td--name" role="columnheader">
-              {t('sharing.people.colName')}
-            </span>
-            <span className="sh-td sh-td--group" role="columnheader">
-              {t('sharing.people.colGroup')}
-            </span>
-            <span className="sh-td sh-td--libs" role="columnheader">
-              {t('sharing.people.colLibraries')}
-            </span>
-            <span className="sh-td sh-td--seen" role="columnheader">
-              {t('sharing.people.colSeen')}
-            </span>
-            <span className="sh-td sh-td--go" aria-hidden="true" />
-          </div>
-          {shown.map((u) => (
-            <div
-              key={u.id}
-              className={`sh-tr${selected.includes(u.id) ? ' is-selected' : ''}${u.disabled ? ' is-muted' : ''}`}
-              role="row"
+          {data.groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              className={`ax-groups__item pl-focusable${group === g.id ? ' is-on' : ''}`}
+              aria-pressed={group === g.id}
+              onClick={() => {
+                setGroup(g.id)
+                setPage(0)
+              }}
             >
-              <span className="sh-td sh-td--check" role="cell">
-                {u.id !== me && (
+              <span>{g.name}</span>
+              <b>{formatCount(locale, g.memberIds.length)}</b>
+            </button>
+          ))}
+          <button
+            type="button"
+            className="ax-groups__item ax-groups__new pl-focusable"
+            onClick={() => setDialog('group')}
+          >
+            <Icon name="plus" size={14} />
+            <span>{t('sharing.groups.new')}</span>
+          </button>
+        </nav>
+
+        <div className="ax-people__main">
+          <div className="ax-filters">
+            {(['watching', 'away'] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                className={`ax-filter pl-focusable${filter === f ? ' is-on' : ''}`}
+                aria-pressed={filter === f}
+                onClick={() => {
+                  setFilter(filter === f ? undefined : f)
+                  setPage(0)
+                }}
+              >
+                {f === 'watching' ? t('sharing.people.watching') : t('sharing.people.inactive')}
+              </button>
+            ))}
+            <select
+              className={`ax-filter${device ? ' is-on' : ''}`}
+              value={device}
+              aria-label={t('sharing.people.device')}
+              onChange={(e) => {
+                setDevice(e.target.value)
+                setPage(0)
+              }}
+            >
+              <option value="">{t('sharing.people.device')}</option>
+              {devices.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <span className="ax-top__fill" />
+            <span className="ax-dim">
+              {shown.length
+                ? t('sharing.people.range', {
+                    from: at * pageSize + 1,
+                    to: at * pageSize + rows.length,
+                    count: shown.length,
+                  })
+                : ''}
+            </span>
+            {pages > 1 && (
+              <>
+                <button
+                  type="button"
+                  className="ax-icon-btn pl-focusable"
+                  aria-label={t('sharing.people.previous')}
+                  disabled={at === 0}
+                  onClick={() => setPage(at - 1)}
+                >
+                  <Icon name="chevronLeft" size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="ax-icon-btn pl-focusable"
+                  aria-label={t('sharing.people.next')}
+                  disabled={at >= pages - 1}
+                  onClick={() => setPage(at + 1)}
+                >
+                  <Icon name="chevronRight" size={14} />
+                </button>
+              </>
+            )}
+          </div>
+
+          <section className="ax-card">
+            <header className="ax-card__head">
+              <h2>{current?.name ?? t('sharing.people.everyone')}</h2>
+              {current ? (
+                <Link className="ax-link pl-focusable" to={`/admin/people/groups/${current.id}`}>
+                  {t('sharing.people.groupSettings', { name: current.name })}
+                </Link>
+              ) : (
+                <span>{formatCount(locale, data.users.length)}</span>
+              )}
+            </header>
+            <div className="sh-table" role="table" aria-label={t('people.title')}>
+              <div className="sh-tr sh-tr--head" role="row">
+                <span className="sh-td sh-td--check" role="columnheader">
                   <input
                     type="checkbox"
-                    aria-label={t('sharing.people.select', { name: u.displayName })}
-                    checked={selected.includes(u.id)}
-                    onChange={() => toggle(u.id)}
+                    aria-label={t('sharing.people.selectAll')}
+                    checked={
+                      selectable.length > 0 && selectable.every((u) => selected.includes(u.id))
+                    }
+                    onChange={(e) =>
+                      setSelected((s) =>
+                        e.target.checked
+                          ? [...new Set([...s, ...selectable.map((u) => u.id)])]
+                          : s.filter((id) => !selectable.some((u) => u.id === id)),
+                      )
+                    }
                   />
-                )}
-              </span>
-              <Link
-                className="sh-td sh-td--name pl-focusable"
-                role="cell"
-                to={`/admin/people/${u.id}`}
-              >
-                <Avatar
-                  name={u.displayName}
-                  color={u.avatarColor + 1}
-                  picture={u.avatar.url}
-                  size={32}
-                />
-                <span className="sh-who">
-                  <b>{u.displayName}</b>
-                  {u.id === me && <small>{t('people.thisIsYou')}</small>}
-                  {u.disabled && <small>{t('people.disabled')}</small>}
                 </span>
-              </Link>
-              <span className="sh-td sh-td--group" role="cell">
-                {u.role === 'admin'
-                  ? t('people.role.admin')
-                  : u.groupIds.map(groupName).filter(Boolean).join(', ') ||
-                    t('sharing.person.noGroups')}
-              </span>
-              <span className="sh-td sh-td--libs" role="cell">
-                {libraryNames(u)}
-              </span>
-              <span className="sh-td sh-td--seen" role="cell">
-                {watching.has(u.id) ? (
-                  <span className="sh-live">
-                    <Icon name="play" size={12} />
-                    {t('sharing.people.watching')}
+                <span className="sh-td sh-td--name" role="columnheader">
+                  {t('sharing.people.colName')}
+                </span>
+                <span className="sh-td sh-td--group" role="columnheader">
+                  {t('sharing.people.colGroup')}
+                </span>
+                <span className="sh-td sh-td--libs" role="columnheader">
+                  {t('sharing.people.colAccess')}
+                </span>
+                <span className="sh-td sh-td--seen" role="columnheader">
+                  {t('sharing.people.colActive')}
+                </span>
+                <span className="sh-td sh-td--device" role="columnheader">
+                  {t('sharing.people.colDevice')}
+                </span>
+                <span className="sh-td sh-td--go" aria-hidden="true" />
+              </div>
+              {rows.map((u) => (
+                <div
+                  key={u.id}
+                  className={`sh-tr${selected.includes(u.id) ? ' is-selected' : ''}${u.disabled ? ' is-muted' : ''}`}
+                  role="row"
+                >
+                  <span className="sh-td sh-td--check" role="cell">
+                    {u.id !== me && (
+                      <input
+                        type="checkbox"
+                        aria-label={t('sharing.people.select', { name: u.displayName })}
+                        checked={selected.includes(u.id)}
+                        onChange={() => toggle(u.id)}
+                      />
+                    )}
                   </span>
-                ) : u.lastSeenAt ? (
-                  formatRelative(locale, new Date(u.lastSeenAt))
-                ) : (
-                  t('sharing.person.neverSeen')
-                )}
-              </span>
-              <button
-                type="button"
-                className="sh-td sh-td--go pl-focusable"
-                aria-label={t('sharing.people.open', { name: u.displayName })}
-                onClick={() => void navigate(`/admin/people/${u.id}`)}
-              >
-                <Icon name="chevronRight" size={16} />
-              </button>
+                  <Link
+                    className="sh-td sh-td--name pl-focusable"
+                    role="cell"
+                    to={`/admin/people/${u.id}`}
+                  >
+                    <Avatar
+                      name={u.displayName}
+                      color={u.avatarColor + 1}
+                      picture={u.avatar.url}
+                      size={26}
+                    />
+                    <span className="sh-who">
+                      <b>{u.displayName}</b>
+                      {u.disabled && <small>{t('people.disabled')}</small>}
+                    </span>
+                  </Link>
+                  <span className="sh-td sh-td--group" role="cell">
+                    {[
+                      u.groupIds.map(groupName).filter(Boolean).join(', ') ||
+                        (u.role === 'admin' ? '' : t('sharing.person.noGroups')),
+                      u.role === 'admin' ? t('sharing.people.admin') : '',
+                    ]
+                      .filter(Boolean)
+                      .join(t('card.separator'))}
+                  </span>
+                  <span className="sh-td sh-td--libs" role="cell">
+                    {access(u)}
+                  </span>
+                  <span className="sh-td sh-td--seen" role="cell">
+                    {watching.has(u.id) ? (
+                      <span className="sh-live">
+                        <i className="ax-dot" aria-hidden="true" />
+                        {t('sharing.people.watchingShort')}
+                      </span>
+                    ) : u.lastSeenAt ? (
+                      formatRelative(locale, new Date(u.lastSeenAt))
+                    ) : (
+                      t('sharing.people.never')
+                    )}
+                  </span>
+                  <span className="sh-td sh-td--device" role="cell">
+                    {u.lastDevice?.deviceName ?? t('sharing.people.noDevice')}
+                  </span>
+                  <button
+                    type="button"
+                    className="sh-td sh-td--go pl-focusable"
+                    aria-label={t('sharing.people.open', { name: u.displayName })}
+                    onClick={() => void navigate(`/admin/people/${u.id}`)}
+                  >
+                    <Icon name="chevronRight" size={14} />
+                  </button>
+                </div>
+              ))}
+              {!rows.length && <p className="sh-empty">{t('sharing.people.none')}</p>}
             </div>
-          ))}
-          {!shown.length && <p className="sh-empty">{t('sharing.people.none')}</p>}
+          </section>
         </div>
-      )}
+      </div>
 
       {selected.length > 0 && (
         <div
-          className="sh-bulk br-glass"
+          className="sh-bulk"
           role="region"
           aria-label={t('sharing.people.selected', { count: selected.length })}
         >
           <span>{t('sharing.people.selected', { count: selected.length })}</span>
           <Button
             variant="secondary"
+            size="sm"
             onClick={() => {
               setMoveTo(data.groups[0]?.id)
               setDialog('move')
@@ -322,10 +391,15 @@ export function People() {
           >
             {t('sharing.people.move')}
           </Button>
-          <Button variant="secondary" className="sh-danger" onClick={() => setDialog('revoke')}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="sh-danger"
+            onClick={() => setDialog('revoke')}
+          >
             {t('sharing.person.suspend')}
           </Button>
-          <Button variant="ghost" onClick={() => setSelected([])}>
+          <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
             {t('common.cancel')}
           </Button>
         </div>
@@ -436,25 +510,7 @@ export function People() {
           )}
         </Dialog>
       )}
-    </div>
-  )
-}
-
-/** The page's head: back to Settings, the title. */
-function PeopleHead() {
-  const { t } = useTranslation()
-  return (
-    <header className="adm-sec__head">
-      <Link
-        to="/admin/settings"
-        className="adm-sec__back br-glass pl-focusable"
-        aria-label={t('admin.backTo', { name: t('admin.tab.settings') })}
-      >
-        <Icon name="chevronLeft" size={18} />
-        <span>{t('admin.tab.settings')}</span>
-      </Link>
-      <h1 className="adm-sec__title">{t('people.title')}</h1>
-    </header>
+    </>
   )
 }
 

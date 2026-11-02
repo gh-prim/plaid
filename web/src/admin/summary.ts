@@ -12,6 +12,8 @@ export type AdminData = {
   libraries: Library[]
   capabilities?: Capabilities
   problems: Problem[]
+  /** Invitations not used yet (step 21 sidebar). */
+  invitations: number
 }
 
 export type Need = { key: string; title: string; body?: string; to: string; tone: Tone }

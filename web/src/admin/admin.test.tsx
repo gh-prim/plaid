@@ -145,16 +145,33 @@ describe('access', () => {
 })
 
 describe('home', () => {
-  it('says all is well on a quiet evening, and Settings lists the sections', async () => {
+  it('says all is well on a quiet evening, with every section in the sidebar', async () => {
     fakeApi(routes())
     await renderApp('/admin')
-    expect(await screen.findByText('All good. Nothing is playing.')).toBeInTheDocument()
-    expect(screen.getByText('Nobody is watching right now')).toBeInTheDocument()
-    expect(screen.getByText('Nothing needs you.')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('link', { name: 'Settings' }))
-    expect(await screen.findByRole('link', { name: /Libraries/ })).toHaveAttribute(
+    expect(await screen.findByText('Nobody is watching right now')).toBeInTheDocument()
+    // The library's 23 files not understood are the one thing to do.
+    const needs = screen.getByRole('region', { name: 'Needs attention' })
+    expect(within(needs).getByText('23 unmatched files')).toBeInTheDocument()
+    expect(within(needs).getByRole('link', { name: 'View' })).toHaveAttribute(
+      'href',
+      '/admin/unmatched',
+    )
+    const nav = screen.getByRole('complementary', { name: 'Admin sections' })
+    expect(within(nav).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(within(nav).getByRole('link', { name: 'Libraries' })).toHaveAttribute(
       'href',
       '/admin/libraries',
+    )
+    expect(within(nav).getByRole('link', { name: 'People' })).toHaveAttribute(
+      'href',
+      '/admin/people',
+    )
+    expect(within(nav).getByRole('link', { name: 'Invitations' })).toHaveAttribute(
+      'href',
+      '/admin/invitations',
     )
   })
 
@@ -178,9 +195,12 @@ describe('home', () => {
       }),
     )
     await renderApp('/admin')
-    const needs = await screen.findByRole('region', { name: 'Needs you' })
+    const needs = await screen.findByRole('region', { name: 'Needs attention' })
     expect(within(needs).getByText('/mnt/nas/Films can’t be reached.')).toBeInTheDocument()
-    expect(screen.getByText('One thing needs you.')).toBeInTheDocument()
+    expect(within(needs).getAllByRole('link', { name: 'View' })[0]).toHaveAttribute(
+      'href',
+      '/admin/libraries/lib1',
+    )
   })
 })
 
@@ -460,10 +480,17 @@ describe('people (F009, step 19)', () => {
     person('u3', 'Camille', ['g2']),
   ]
 
-  it('shows the groups as chips over everyone, and filters by group and search', async () => {
+  it('lists everyone with the groups beside, and filters by group and device', async () => {
     fakeApi(
       routes({
-        'GET /users': { status: 200, body: users },
+        'GET /users': {
+          status: 200,
+          body: users.map((u) =>
+            u.id === 'u3'
+              ? { ...u, lastDevice: { id: 's3', deviceName: 'iPhone', deviceType: 'ios' } }
+              : u,
+          ),
+        },
         'GET /groups': { status: 200, body: groups },
         'GET /invitations': { status: 200, body: [] },
       }),
@@ -472,6 +499,7 @@ describe('people (F009, step 19)', () => {
     const table = await screen.findByRole('table', { name: 'People' })
     expect(within(table).getAllByRole('row')).toHaveLength(4)
     expect(within(table).getByText('All libraries')).toBeInTheDocument()
+    expect(screen.getByText('1 to 3 of 3')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /Close friends/ }))
     expect(within(table).getAllByRole('row')).toHaveLength(2)
     expect(screen.getByRole('link', { name: /Close friends settings/ })).toHaveAttribute(
@@ -479,9 +507,9 @@ describe('people (F009, step 19)', () => {
       '/admin/people/groups/g2',
     )
     await userEvent.click(screen.getByRole('button', { name: /Everyone/ }))
-    await userEvent.type(screen.getByRole('searchbox'), 'sam')
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Device' }), 'iPhone')
     expect(within(table).getAllByRole('row')).toHaveLength(2)
-    expect(within(table).getByText('Sam')).toBeInTheDocument()
+    expect(within(table).getByText('Camille')).toBeInTheDocument()
   })
 
   it('invites into the chosen group, and moves the people selected', async () => {
@@ -790,7 +818,7 @@ describe('section pages (V2)', () => {
     expect(screen.getByText('One thing needs you.')).toBeInTheDocument()
   })
 
-  it('shows the libraries with their trouble, and scans them all', async () => {
+  it('shows the libraries as a table with their trouble, and scans them all', async () => {
     const calls = fakeApi(
       routes({
         'GET /libraries': { status: 200, body: [library(nas)] },
@@ -798,10 +826,9 @@ describe('section pages (V2)', () => {
       }),
     )
     await renderApp('/admin/libraries')
-    const movies = await screen.findByRole('link', { name: /Movies/ })
+    const movies = await screen.findByRole('link', { name: 'Movies' })
     expect(movies).toHaveAttribute('href', '/admin/libraries/lib1')
-    expect(within(movies).getByText('1 of 1 folders unavailable')).toBeInTheDocument()
-    expect(screen.getByText('One folder unavailable')).toBeInTheDocument()
+    expect(screen.getByText('1 of 1 folders unavailable')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Scan all libraries now' }))
     expect(await screen.findByText('Scanning 1 library.')).toBeInTheDocument()
     expect(calls.find((c) => c.path === '/libraries/lib1/scan')?.body).toEqual({ full: false })
@@ -951,17 +978,6 @@ describe('motion (TM25)', () => {
     expect(travel('/admin/settings', '/admin/libraries')).toEqual({ nav: 'push' })
     expect(travel('/admin/libraries/lib1', '/admin/libraries')).toEqual({ nav: 'pop' })
     expect(travel('/admin/people', '/admin/libraries')).toEqual({})
-  })
-
-  it('marks the page with the way it travelled', async () => {
-    fakeApi(routes())
-    await renderApp('/admin/settings')
-    await userEvent.click(await screen.findByRole('link', { name: /Libraries/ }))
-    await screen.findByRole('link', { name: 'Back to Settings' })
-    expect(document.querySelector('.adm__main')).toHaveAttribute('data-nav', 'push')
-    await userEvent.click(screen.getByRole('link', { name: 'Back to Settings' }))
-    await screen.findByRole('link', { name: /Libraries/ })
-    expect(document.querySelector('.adm__main')).toHaveAttribute('data-nav', 'pop')
   })
 
   it('keeps a stream that ended for a moment, flagged as leaving', () => {

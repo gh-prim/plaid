@@ -1,99 +1,127 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
-import { usePolling } from '../hooks/usePolling'
-import { formatBytes, formatDuration, formatMbps, formatNumber } from '../lib/format'
-import { useServer } from '../onboarding/Page'
-import { Avatar, Icon, Spinner } from '../ui'
 import { imageSrc } from '../browse/media'
+import { usePolling } from '../hooks/usePolling'
+import {
+  formatBytes,
+  formatDuration,
+  formatMbps,
+  formatNumber,
+  formatRelative,
+  formatTime,
+} from '../lib/format'
 import { methodLabel } from '../player/labels'
-import { streamArt, summaryEvery, useAdmin } from './AdminLayout'
-import { needs, slow, statusLine } from './summary'
-import { Roll, useLeaving } from './v2'
+import { Avatar, Icon, Spinner } from '../ui'
+import { streamPoster, summaryEvery, TopBar, useAdmin } from './AdminLayout'
+import { needs, slow } from './summary'
 
 type ActivePlayback = components['schemas']['ActivePlayback']
-type ServerStats = components['schemas']['ServerStats']
-type ItemSummary = components['schemas']['ItemSummary']
+type Activity = components['schemas']['Activity']
+type Sample = components['schemas']['StatsSample']
 
-/** Readings kept for the health tiles' small trend lines. */
-const trendLength = 9
-const weekMs = 7 * 24 * 3600 * 1000
-const noStreams: ActivePlayback[] = []
-const streamKey = (s: ActivePlayback) => s.session.id
+/** A drive under this much free space needs the admin (step 21). */
+const lowSpace = 0.1
+
+/** A small trend line through values, scaled to the box. */
+function Spark({ values, area }: { values: number[]; area?: boolean }) {
+  if (values.length < 2) return <svg className="ax-spark" viewBox="0 0 160 36" aria-hidden="true" />
+  const top = Math.max(1, ...values)
+  const pts = values.map((v, i) => [(i * 160) / (values.length - 1), 34 - (v / top) * 30] as const)
+  const d = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ')
+  return (
+    <svg
+      className={`ax-spark${area ? ' ax-spark--area' : ''}`}
+      viewBox="0 0 160 36"
+      aria-hidden="true"
+    >
+      {area && <path className="ax-spark__fill" d={`${d} L160 36 L0 36 Z`} />}
+      <path d={d} />
+    </svg>
+  )
+}
+
+/** Keeps every nth sample, so a day of minutes draws as about 60 points. */
+const thin = (samples: Sample[]) =>
+  samples.filter((_, i) => i % Math.max(1, Math.floor(samples.length / 60)) === 0)
 
 /**
- * The admin dashboard (V2): the server's name and status in words, what's
- * playing as big cards (each with Stop), four health tiles with a small
- * trend, then Needs you, storage per drive and what was added this week.
+ * The dashboard (canvas step 21, board AdmEN01): four numbers with their
+ * trend, what's playing right now, the server's health, what needs you,
+ * the hours watched these 7 days and what was added last.
  */
 export function Dashboard() {
   const { t, i18n } = useTranslation()
   const lng = i18n.language
-  const { serverName, version } = useServer()
   const { data, refresh, toast } = useAdmin()
-  const [history, setHistory] = useState<ServerStats[]>([])
-  const { data: stats } = usePolling(async () => {
-    const { data: s } = await api.GET('/server/stats')
-    if (s) setHistory((h) => [...h, s].slice(-trendLength))
-    return s
-  }, summaryEvery)
-  const [added, setAdded] = useState<{ items: ItemSummary[]; count: number }>()
   const [stopping, setStopping] = useState<string>()
-  // A stream that ends fades before its slot closes (TM25).
-  const shown = useLeaving(data?.streams ?? noStreams, streamKey)
-
-  useEffect(() => {
-    if (!data?.libraries.length) return
-    let cancelled = false
-    void Promise.all(
-      data.libraries.map((l) =>
-        api
-          .GET('/libraries/{libraryId}/items', {
-            params: {
-              path: { libraryId: l.id },
-              query: { sort: 'added', order: 'desc', limit: 30 },
-            },
-          })
-          .then(({ data: page }) => page?.items ?? [])
-          .catch(() => []),
-      ),
-    ).then((lists) => {
-      if (cancelled) return
-      const since = Date.now() - weekMs
-      const all = lists
-        .flat()
-        .filter((i) => i.addedAt && new Date(i.addedAt).getTime() > since)
-        .sort((a, b) => (b.addedAt ?? '').localeCompare(a.addedAt ?? ''))
-      setAdded({ items: all.filter((i) => i.poster).slice(0, 6), count: all.length })
-    })
-    return () => {
-      cancelled = true
-    }
-    // The libraries list, not every poll of it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.libraries.length])
+  const { data: stats } = usePolling(
+    async () => (await api.GET('/server/stats')).data ?? null,
+    summaryEvery,
+  )
+  const { data: history } = usePolling(
+    async () => (await api.GET('/server/stats/history')).data?.samples ?? [],
+    60_000,
+  )
+  const { data: activity } = usePolling(
+    async (): Promise<Activity | null> =>
+      (
+        await api.GET('/activity', {
+          params: { query: { days: 7, tzOffsetMinutes: new Date().getTimezoneOffset() } },
+        })
+      ).data ?? null,
+    60_000,
+  )
+  const { data: people } = usePolling(async () => (await api.GET('/users')).data ?? [], 60_000)
+  const today = new Intl.DateTimeFormat(lng, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date())
 
   if (!data)
     return (
-      <div className="adm__empty" role="status" aria-busy="true">
-        <Spinner size={28} />
-      </div>
+      <>
+        <TopBar title={t('admin.tab.dashboard')} sub={today} />
+        <div className="ax-body" role="status" aria-busy="true">
+          <Spinner size={28} />
+        </div>
+      </>
     )
 
-  const list = needs(t, data)
-  const tone = list.some((n) => n.tone === 'error')
-    ? 'error'
-    : list.length || data.streams.some(slow)
-      ? 'warning'
-      : 'ok'
   const n = (v: number) => formatNumber(lng, v)
-  const facts = [
-    t('welcome.version', { version }),
-    stats ? t('admin.dash.up', { duration: formatDuration(lng, stats.uptimeSeconds * 1000) }) : '',
-    stats?.model ?? '',
-  ].filter(Boolean)
+  const streams = data.streams
+  const transcodes = streams.filter((s) => s.session.method === 'transcode').length
+  const samples = thin(history ?? [])
+  const drives = stats?.drives.filter((d) => d.available && d.totalBytes) ?? []
+  const total = drives.reduce((a, d) => a + (d.totalBytes ?? 0), 0)
+  const free = drives.reduce((a, d) => a + (d.freeBytes ?? 0), 0)
+  const used = total - free
+  const peak = (history ?? []).reduce<Sample | undefined>(
+    (p, s) => (!p || s.uploadBps > p.uploadBps ? s : p),
+    undefined,
+  )
+
+  const list = needs(t, data)
+  const unmatched = data.libraries.reduce((a, l) => a + l.counts.unrecognized, 0)
+  if (unmatched)
+    list.push({
+      key: 'unmatched',
+      title: t('admin.dash.unmatched', { count: unmatched }),
+      to: '/admin/unmatched',
+      tone: 'warning',
+    })
+  for (const d of drives)
+    if (d.freeBytes !== undefined && d.totalBytes && d.freeBytes / d.totalBytes < lowSpace)
+      list.push({
+        key: `disk-${d.path}`,
+        title: t('admin.dash.diskFull'),
+        body: t('admin.dash.left', { size: formatBytes(lng, d.freeBytes), path: d.path }),
+        to: '/admin/libraries',
+        tone: 'warning',
+      })
 
   async function stop(s: ActivePlayback) {
     if (stopping) return
@@ -106,244 +134,307 @@ export function Dashboard() {
     await refresh()
   }
 
-  const trend = (pick: (s: ServerStats) => number | undefined, top: number) => {
-    const values = history.map(pick).filter((v): v is number => v !== undefined)
-    if (values.length < 2) return undefined
-    return values
-      .map((v, i) => {
-        const x = (i * 140) / (values.length - 1)
-        const y = 24 - (Math.min(v, top) / top) * 22
-        return `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`
-      })
-      .join(' ')
-  }
-  const hw = data.capabilities?.hwAccel.active
-  const tiles = [
-    {
-      key: 'cpu',
-      label: t('admin.dash.cpu'),
-      value: stats?.cpuPercent !== undefined ? `${n(Math.round(stats.cpuPercent))} %` : '—',
-      sub:
-        stats?.cpuPercent === undefined
-          ? t('admin.dash.unknown')
-          : stats.cpuPercent > 85
-            ? t('admin.dash.busy')
-            : stats.cpuPercent < 10
-              ? t('admin.dash.idle')
-              : t('admin.dash.normal'),
-      tone: stats?.cpuPercent === undefined ? undefined : stats.cpuPercent > 85 ? 'warning' : 'ok',
-      line: trend((s) => s.cpuPercent, 100),
-    },
-    {
-      key: 'transcodes',
-      label: t('admin.dash.conversions'),
-      value: stats ? t('admin.dash.ofMax', { n: stats.transcodes, max: stats.maxTranscodes }) : '—',
-      sub: hw ? t('admin.dash.gpu', { accel: hw.toUpperCase() }) : t('admin.dash.software'),
-      line: trend((s) => s.transcodes, Math.max(1, stats?.maxTranscodes ?? 1)),
-    },
-    {
-      key: 'upload',
-      label: t('admin.dash.upload'),
-      value: stats ? formatMbps(lng, stats.uploadBps) : '—',
-      sub: t('admin.dash.streams', { count: data.streams.length }),
-      line: trend((s) => s.uploadBps, Math.max(1, ...history.map((s) => s.uploadBps))),
-    },
-    {
-      key: 'temp',
-      label: t('admin.dash.temperature'),
-      value: stats?.temperatureC !== undefined ? `${n(Math.round(stats.temperatureC))} °C` : '—',
-      sub:
-        stats?.temperatureC === undefined
-          ? t('admin.dash.unknown')
-          : stats.temperatureC > 80
-            ? t('admin.dash.hot')
-            : t('admin.dash.fine'),
-      tone:
-        stats?.temperatureC === undefined ? undefined : stats.temperatureC > 80 ? 'warning' : 'ok',
-      line: trend((s) => s.temperatureC, 100),
-    },
-  ]
+  const days = activity?.days ?? []
+  const most = Math.max(1, ...days.map((d) => d.hours))
+  const dayLetter = new Intl.DateTimeFormat(lng, { weekday: 'narrow' })
 
   return (
-    <div className="adm-dash">
-      <section className="adm-dash__head">
-        <h1>{serverName}</h1>
-        <span className={`adm-dash__status is-${tone}`}>
-          <span aria-hidden="true" />
-          {statusLine(t, data, list.length)}
-        </span>
-        <span className="br-filters__fill" />
-        <span className="adm-dash__facts">{facts.join(t('card.separator'))}</span>
-      </section>
-
-      <section className="adm-dash__playing" aria-labelledby="dash-playing">
-        <h2 id="dash-playing" className="adm-dash__h">
-          {t('playing.title')} <span>{n(data.streams.length)}</span>
-        </h2>
-        {shown.length === 0 ? (
-          <div className="adm-dash__quiet br-glass">
-            <strong>{t('admin.dash.nobody')}</strong>
-          </div>
-        ) : (
-          <ul className="adm-dash__streams">
-            {shown.map(({ item: s, leaving }) => {
-              const art = streamArt(s, 'backdrop', 780) ?? streamArt(s, 'still', 780)
-              const p =
-                s.session.durationMs > 0 ? Math.min(1, s.positionMs / s.session.durationMs) : 0
-              const transcoding = s.session.method === 'transcode'
-              return (
-                <li
-                  key={s.session.id}
-                  className={`adm-stream${leaving ? ' is-leaving' : ''}`}
-                  aria-hidden={leaving || undefined}
-                >
-                  {art && <img src={art} alt="" />}
-                  <span className="adm-stream__shade" aria-hidden="true" />
-                  <div className="adm-stream__who">
-                    <Avatar name={s.profileName} size={30} />
-                    <span>
-                      <strong>{s.profileName}</strong>
-                      <span>{s.deviceName}</span>
-                    </span>
-                    <span className="br-filters__fill" />
-                    <button
-                      type="button"
-                      className="br-sheet__pill br-glass pl-focusable"
-                      aria-label={t('admin.dash.stop', { name: s.profileName })}
-                      disabled={stopping === s.session.id}
-                      onClick={() => void stop(s)}
-                    >
-                      {stopping === s.session.id ? (
-                        <Spinner size={12} mono />
-                      ) : (
-                        <Icon name="pause" size={12} />
-                      )}
-                      {t('admin.dash.stopShort')}
-                    </button>
-                  </div>
-                  <div className="adm-stream__what">
-                    <strong>{s.itemTitle}</strong>
-                    <span className="adm-stream__track" aria-hidden="true">
-                      <span style={{ width: `${Math.round(p * 100)}%` }} />
-                    </span>
-                    <span className="adm-stream__how">
-                      <span
-                        className={`adm-chip ${slow(s) ? 'is-error' : transcoding ? 'is-warning' : 'is-ok'}`}
-                      >
-                        <span aria-hidden="true" />
-                        {methodLabel(t, s.session.method)}
-                      </span>
-                      <span>{s.session.quality}</span>
-                    </span>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </section>
-
-      <aside className="adm-dash__health" aria-label={t('admin.dash.health')}>
-        {tiles.map((x) => (
-          <div key={x.key} className="adm-tile br-glass">
-            <p>{x.label}</p>
-            <strong>
-              <Roll value={x.value} />
-            </strong>
-            <span className={x.tone === 'warning' ? 'is-warning' : x.tone === 'ok' ? 'is-ok' : ''}>
-              {x.sub}
+    <>
+      <TopBar title={t('admin.tab.dashboard')} sub={today} />
+      <div className="ax-body ax-dash">
+        <section className="ax-kpis" aria-label={t('admin.dash.health')}>
+          <div className="ax-card ax-kpi">
+            <p>{t('admin.nav.playing')}</p>
+            <strong>{n(streams.length)}</strong>
+            <span>
+              {t('admin.dash.howPlaying', { transcodes, direct: streams.length - transcodes })}
             </span>
-            {x.line && (
-              <svg viewBox="0 0 140 26" aria-hidden="true">
-                <path d={x.line} />
-              </svg>
-            )}
+            <Spark values={samples.map((s) => s.streams)} />
           </div>
-        ))}
-      </aside>
+          <div className="ax-card ax-kpi">
+            <p>{t('admin.dash.activePeople')}</p>
+            <strong>{activity ? n(activity.activePeople) : '—'}</strong>
+            <span>{t('admin.dash.ofPeople', { count: people?.length ?? 0 })}</span>
+            <Spark values={days.map((d) => d.plays)} />
+          </div>
+          <div className="ax-card ax-kpi">
+            <p>{t('admin.dash.storage')}</p>
+            <strong>{total ? formatBytes(lng, used) : '—'}</strong>
+            <span>
+              {total
+                ? t('admin.dash.ofStorage', {
+                    total: formatBytes(lng, total),
+                    percent: Math.round((used / total) * 100),
+                  })
+                : t('admin.dash.unknown')}
+            </span>
+            <span className="ax-bar" aria-hidden="true">
+              <span style={{ width: `${total ? Math.round((used / total) * 100) : 0}%` }} />
+            </span>
+          </div>
+          <div className="ax-card ax-kpi">
+            <p>{t('admin.dash.upload')}</p>
+            <strong>{stats ? formatMbps(lng, stats.uploadBps) : '—'}</strong>
+            <span>
+              {peak && peak.uploadBps > 0
+                ? t('admin.dash.peak', {
+                    rate: formatMbps(lng, peak.uploadBps),
+                    time: formatTime(lng, new Date(peak.at)),
+                  })
+                : t('admin.dash.noPeak')}
+            </span>
+            <Spark area values={samples.map((s) => s.uploadBps)} />
+          </div>
+        </section>
 
-      <section className="adm-dash__needs" aria-labelledby="dash-needs">
-        <h2 id="dash-needs" className="adm-dash__h">
-          {t('admin.needs.title')}
-        </h2>
-        {list.length === 0 ? (
-          <p className="adm-dash__none">{t('admin.home.nothingNeedsYou')}</p>
-        ) : (
-          <ul className="adm-needs">
-            {list.map((x) => (
-              <li key={x.key}>
-                <Link to={x.to} className="adm-need br-glass pl-focusable">
-                  <span className={`adm-need__dot is-${x.tone}`} aria-hidden="true" />
-                  <span className="adm-need__text">
-                    <strong>{x.title}</strong>
-                    {x.body && <span>{x.body}</span>}
-                  </span>
-                  <Icon name="chevronRight" size={16} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        <section className="ax-card ax-now" aria-labelledby="ax-now">
+          <header className="ax-card__head">
+            <h2 id="ax-now">{t('admin.dash.rightNow')}</h2>
+            <span>{t('admin.dash.streams', { count: streams.length })}</span>
+          </header>
+          {streams.length === 0 ? (
+            <p className="ax-none">{t('admin.dash.nobody')}</p>
+          ) : (
+            <table className="ax-table">
+              <thead>
+                <tr>
+                  <th aria-label={t('admin.dash.poster')} />
+                  <th>{t('admin.dash.colTitle')}</th>
+                  <th>{t('admin.dash.colWho')}</th>
+                  <th>{t('admin.dash.colDevice')}</th>
+                  <th>{t('admin.dash.colQuality')}</th>
+                  <th>{t('admin.dash.colProgress')}</th>
+                  <th>{t('admin.dash.colMbps')}</th>
+                  <th aria-label={t('admin.dash.stopShort')} />
+                </tr>
+              </thead>
+              <tbody>
+                {streams.map((s) => {
+                  const p =
+                    s.session.durationMs > 0 ? Math.min(1, s.positionMs / s.session.durationMs) : 0
+                  const transcoding = s.session.method === 'transcode'
+                  const poster = streamPoster(s, 92)
+                  return (
+                    <tr key={s.session.id}>
+                      <td>
+                        {poster ? (
+                          <img className="ax-thumb" src={poster} alt="" />
+                        ) : (
+                          <span className="ax-thumb" />
+                        )}
+                      </td>
+                      <td className="ax-strong">{s.itemTitle}</td>
+                      <td>
+                        <span className="ax-who">
+                          <Avatar name={s.profileName} size={22} />
+                          {s.profileName}
+                        </span>
+                      </td>
+                      <td className="ax-dim">
+                        {s.deviceName}
+                        {t('card.separator')}
+                        {s.remote ? t('admin.dash.remote') : t('admin.dash.local')}
+                      </td>
+                      <td>
+                        {s.session.quality === 'original'
+                          ? t('admin.dash.original')
+                          : s.session.quality}{' '}
+                        <span
+                          className={`ax-chip ${slow(s) ? 'is-error' : transcoding ? 'is-warning' : 'is-ok'}`}
+                        >
+                          {methodLabel(t, s.session.method)}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className="ax-bar ax-bar--thin"
+                          aria-label={`${Math.round(p * 100)} %`}
+                        >
+                          <span style={{ width: `${Math.round(p * 100)}%` }} />
+                        </span>
+                      </td>
+                      <td className="ax-dim">
+                        {s.remote && s.bitrateBps
+                          ? n(Math.round(s.bitrateBps / 1e5) / 10)
+                          : t('admin.dash.local')}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="ax-icon-btn pl-focusable"
+                          aria-label={t('admin.dash.stop', { name: s.profileName })}
+                          disabled={stopping === s.session.id}
+                          onClick={() => void stop(s)}
+                        >
+                          {stopping === s.session.id ? (
+                            <Spinner size={12} mono />
+                          ) : (
+                            <span className="ax-stop" />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+        </section>
 
-      <section className="adm-dash__storage" aria-labelledby="dash-storage">
-        <h2 id="dash-storage" className="adm-dash__h">
-          {t('admin.dash.storage')}
-        </h2>
-        <div className="adm-storage br-glass">
-          {!stats && <Spinner size={20} />}
-          {stats?.drives.map((d) => {
-            const used =
-              d.totalBytes && d.freeBytes !== undefined ? 1 - d.freeBytes / d.totalBytes : 0
-            return (
-              <div key={d.path} className="adm-drive">
-                <div className="adm-drive__line">
-                  <strong>{d.libraries.join(', ')}</strong>
-                  <code>{d.path}</code>
-                  <span className="br-filters__fill" />
-                  <span className={d.available ? '' : 'is-error'}>
-                    {d.available && d.freeBytes !== undefined
-                      ? t('admin.dash.free', { size: formatBytes(lng, d.freeBytes) })
-                      : t('admin.dash.notAnswering')}
-                  </span>
+        <section className="ax-card ax-server" aria-labelledby="ax-server">
+          <header className="ax-card__head">
+            <h2 id="ax-server">{t('admin.dash.server')}</h2>
+            {stats && (
+              <span>
+                {t('admin.dash.up', { duration: formatDuration(lng, stats.uptimeSeconds * 1000) })}
+              </span>
+            )}
+          </header>
+          {!stats ? (
+            <Spinner size={20} />
+          ) : (
+            <dl className="ax-meters">
+              {[
+                {
+                  k: t('admin.dash.cpu'),
+                  v: stats.cpuPercent !== undefined ? `${n(Math.round(stats.cpuPercent))} %` : '—',
+                  p: stats.cpuPercent ?? 0,
+                },
+                {
+                  k: t('admin.dash.memory'),
+                  v:
+                    stats.memoryUsedBytes !== undefined
+                      ? formatBytes(lng, stats.memoryUsedBytes)
+                      : '—',
+                  p: stats.memoryTotalBytes
+                    ? ((stats.memoryUsedBytes ?? 0) / stats.memoryTotalBytes) * 100
+                    : 0,
+                },
+                {
+                  k: t('admin.dash.disk'),
+                  v: total ? `${n(Math.round((used / total) * 100))} %` : '—',
+                  p: total ? (used / total) * 100 : 0,
+                  warm: true,
+                },
+                {
+                  k: t('admin.dash.transcode'),
+                  v: `${n(stats.transcodes)} / ${n(stats.maxTranscodes)}`,
+                  p: stats.maxTranscodes ? (stats.transcodes / stats.maxTranscodes) * 100 : 0,
+                  warm: true,
+                },
+              ].map((m) => (
+                <div key={m.k} className="ax-meter">
+                  <dt>{m.k}</dt>
+                  <dd>
+                    <span
+                      className={`ax-bar ax-bar--thin${m.warm ? ' ax-bar--warm' : ''}`}
+                      aria-hidden="true"
+                    >
+                      <span style={{ width: `${Math.round(Math.min(100, m.p))}%` }} />
+                    </span>
+                    <b>{m.v}</b>
+                  </dd>
                 </div>
-                <span
-                  className={`adm-drive__bar${d.available ? '' : ' is-error'}`}
-                  aria-hidden="true"
-                >
-                  <span style={{ width: `${Math.round(used * 100)}%` }} />
-                </span>
-                {d.available && d.totalBytes !== undefined && d.freeBytes !== undefined && (
-                  <span className="adm-drive__used">
-                    {t('admin.dash.used', {
-                      used: formatBytes(lng, d.totalBytes - d.freeBytes),
-                      total: formatBytes(lng, d.totalBytes),
-                    })}
-                  </span>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </section>
+              ))}
+            </dl>
+          )}
+        </section>
 
-      <section className="adm-dash__added" aria-labelledby="dash-added">
-        <h2 id="dash-added" className="adm-dash__h">
-          {t('admin.dash.added')} {added && <span>{n(added.count)}</span>}
-        </h2>
-        {added && added.items.length === 0 && (
-          <p className="adm-dash__none">{t('admin.dash.addedNone')}</p>
-        )}
-        <ul className="adm-added">
-          {added?.items.map((i) => (
-            <li key={i.id}>
-              <Link to={`/item/${i.id}`} className="pl-focusable" aria-label={i.displayTitle}>
-                <img src={imageSrc(i.poster!.imageId, 185)} alt="" loading="lazy" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
+        <section className="ax-card ax-needs" aria-labelledby="ax-needs">
+          <header className="ax-card__head">
+            <h2 id="ax-needs">{t('admin.dash.needsAttention')}</h2>
+            <span>{n(list.length)}</span>
+          </header>
+          {list.length === 0 ? (
+            <p className="ax-none">{t('admin.home.nothingNeedsYou')}</p>
+          ) : (
+            <ul className="ax-list">
+              {list.map((x) => (
+                <li key={x.key}>
+                  <Icon name={x.tone === 'error' ? 'error' : 'alert'} size={15} />
+                  <span>
+                    <b>{x.title}</b>
+                    {x.body && <small>{x.body}</small>}
+                  </span>
+                  <Link to={x.to} className="ax-link pl-focusable">
+                    {t('admin.dash.view')}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="ax-card ax-activity" aria-labelledby="ax-activity">
+          <header className="ax-card__head">
+            <h2 id="ax-activity">{t('admin.dash.activity')}</h2>
+            <span>{t('admin.dash.hoursPerDay')}</span>
+          </header>
+          {!activity ? (
+            <Spinner size={20} />
+          ) : (
+            <ol className="ax-bars">
+              {days.map((d, i) => (
+                <li
+                  key={d.date}
+                  aria-label={t('admin.dash.dayHours', {
+                    day: d.date,
+                    hours: n(Math.round(d.hours * 10) / 10),
+                  })}
+                >
+                  <span className="ax-bars__v">{n(Math.round(d.hours * 10) / 10)}</span>
+                  <span
+                    className={`ax-bars__bar${i === days.length - 1 ? ' is-today' : ''}`}
+                    style={{ height: `${Math.max(2, (d.hours / most) * 100)}%` }}
+                  />
+                  <span className="ax-bars__d">
+                    {dayLetter.format(new Date(`${d.date}T12:00:00`))}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <section className="ax-card ax-added" aria-labelledby="ax-added">
+          <header className="ax-card__head">
+            <h2 id="ax-added">{t('admin.dash.added')}</h2>
+          </header>
+          {!activity ? (
+            <Spinner size={20} />
+          ) : activity.recentlyAdded.length === 0 ? (
+            <p className="ax-none">{t('admin.dash.addedNone')}</p>
+          ) : (
+            <ul className="ax-list">
+              {activity.recentlyAdded.slice(0, 5).map((i) => (
+                <li key={i.id}>
+                  {i.poster ? (
+                    <img
+                      className="ax-poster"
+                      src={imageSrc(i.poster.imageId, 92)}
+                      alt=""
+                      loading="lazy"
+                    />
+                  ) : (
+                    <i className="ax-poster" aria-hidden="true" />
+                  )}
+                  <Link to={`/item/${i.id}`} className="pl-focusable">
+                    <b>{i.displayTitle}</b>
+                    <small>
+                      {[
+                        data.libraries.find((l) => l.id === i.libraryId)?.name,
+                        i.addedAt ? formatRelative(lng, new Date(i.addedAt)) : undefined,
+                      ]
+                        .filter(Boolean)
+                        .join(t('card.separator'))}
+                    </small>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </>
   )
 }
