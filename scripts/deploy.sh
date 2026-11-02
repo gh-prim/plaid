@@ -11,6 +11,8 @@
 #
 # Like the releases, TMDB_API_KEY and FANART_API_KEY (environment) become
 # the built-in keys; without them the server needs its own key in the admin.
+# MDBLIST_API_KEY (Rotten Tomatoes scores) is built in the same way, but
+# only here: releases never ship one (a free key has a daily quota).
 # A key that looks like a placeholder (contains "…" or "...", or is shorter
 # than 16 characters) stops the deploy.
 #
@@ -28,7 +30,7 @@ bin="$root/server/bin/plaid-linux-$arch"
 
 die() { echo "✖ $*" >&2; exit 1; }
 
-for name in TMDB_API_KEY FANART_API_KEY; do
+for name in TMDB_API_KEY FANART_API_KEY MDBLIST_API_KEY; do
   value="${!name:-}"
   [ -n "$value" ] || continue
   case "$value" in
@@ -51,7 +53,7 @@ make -C "$root" web-build >/dev/null
 
 echo "▸ building plaid $version ($commit) for linux/$arch"
 CGO_ENABLED=0 GOOS=linux GOARCH="$arch" go -C "$root/server" build -trimpath \
-  -ldflags "-s -w -X github.com/gh-prim/plaid/server/internal/buildinfo.Version=$version -X github.com/gh-prim/plaid/server/internal/buildinfo.Commit=$commit -X github.com/gh-prim/plaid/server/internal/metadata.builtinTMDBKey=${TMDB_API_KEY:-} -X github.com/gh-prim/plaid/server/internal/metadata.builtinFanartKey=${FANART_API_KEY:-}" \
+  -ldflags "-s -w -X github.com/gh-prim/plaid/server/internal/buildinfo.Version=$version -X github.com/gh-prim/plaid/server/internal/buildinfo.Commit=$commit -X github.com/gh-prim/plaid/server/internal/metadata.builtinTMDBKey=${TMDB_API_KEY:-} -X github.com/gh-prim/plaid/server/internal/metadata.builtinFanartKey=${FANART_API_KEY:-} -X github.com/gh-prim/plaid/server/internal/metadata.builtinMDBListKey=${MDBLIST_API_KEY:-}" \
   -o "$bin" ./cmd/plaid
 
 [ -n "${TMDB_API_KEY:-}" ] || echo "⚠ no TMDB_API_KEY: this build has no built-in key (set one in Admin ▸ Metadata)"

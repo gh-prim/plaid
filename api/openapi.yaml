@@ -2679,7 +2679,7 @@ components:
       properties:
         provider:
           type: string
-          enum: [tmdb, fanart]
+          enum: [tmdb, fanart, mdblist]
         name:
           type: string
         url:
@@ -4204,7 +4204,7 @@ components:
       properties:
         provider:
           type: string
-          enum: [tmdb, fanart]
+          enum: [tmdb, fanart, mdblist]
         state:
           type: string
           enum: [ok, unreachable, invalid_key, no_api_key, disabled]
@@ -4247,7 +4247,7 @@ components:
           description: Titles already looked up whose scheduled refresh is due, being fetched again (artwork, credits).
     MetadataSettings:
       type: object
-      required: [tmdb, fanart]
+      required: [tmdb, fanart, mdblist]
       properties:
         tmdb:
           type: object
@@ -4265,6 +4265,14 @@ components:
               enum: [custom, env, builtin, none]
             personalKeySet:
               type: boolean
+        mdblist:
+          type: object
+          description: MDBList, for Rotten Tomatoes scores. Release binaries have no built-in key.
+          required: [keySource]
+          properties:
+            keySource:
+              type: string
+              enum: [custom, env, builtin, none]
     MetadataSettingsPatch:
       type: object
       properties:
@@ -4275,6 +4283,9 @@ components:
           type: [string, "null"]
           maxLength: 200
         fanartPersonalKey:
+          type: [string, "null"]
+          maxLength: 200
+        mdblistApiKey:
           type: [string, "null"]
           maxLength: 200
     CollectionSummary:
@@ -4375,6 +4386,16 @@ components:
           type: integer
         ratingCount:
           type: integer
+        criticScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Rotten Tomatoes' Tomatometer, from MDBList; absent when unknown or without an MDBList key.
+        audienceScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Rotten Tomatoes' Popcornmeter (audience score), from MDBList.
         certificationRegion:
           type: string
         studios:

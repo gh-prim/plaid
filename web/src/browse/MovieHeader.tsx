@@ -3,12 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import type { components } from '../api/schema'
 import { formatDuration } from '../lib/format'
-import { minVotes, resolutionName } from './itemFacts'
+import { resolutionName } from './itemFacts'
 import { imageSrc, imageSrcSet } from './media'
 import { Img } from './Img'
 import { useParallax } from './useParallax'
 import { PageLight } from './PageLight'
 import { HeroPreview } from './HeroPreview'
+import { Ratings } from './Ratings'
 
 type ItemDetail = components['schemas']['ItemDetail']
 
@@ -25,10 +26,11 @@ export const hdrNames: Record<string, string> = {
 }
 
 /**
- * The detail header (F008-R17, R21; V2): the page lit by the backdrop,
- * then the backdrop in a frame with the kicker, title, facts, tech tags,
- * three lines of synopsis, the actions (`actions`) and the credits on the
- * right. Fields that fell back to English say so with lang="en".
+ * The detail header (F008-R17, R21; V2.1, canvas step 22): the backdrop
+ * full-bleed under the top bar, with the kicker, title, facts, then the
+ * scores, genres and tech tags on one line, three lines of synopsis, the
+ * actions (`actions`) and the credits on the right. Fields that fell back
+ * to English say so with lang="en".
  */
 export function MovieHeader({
   item,
@@ -68,8 +70,6 @@ export function MovieHeader({
   const runtime = m?.runtimeMinutes ?? (item.kind === 'episode' ? item.runtimeMinutes : undefined)
   if (runtime && item.kind !== 'show') meta.push(formatDuration(lng, runtime * 60000))
   if (item.certification) meta.push(item.certification)
-  if (item.rating && (m?.ratingCount ?? 0) >= minVotes)
-    meta.push(t('item.rating', { rating: item.rating, count: m?.ratingCount ?? 0 }))
 
   const tags: string[] = []
   const res = resolutionName(item.technical.resolution?.width, item.technical.resolution?.height)
@@ -127,29 +127,29 @@ export function MovieHeader({
             <p className="br-detail__orig">{t('item.originalTitle', { title: m.originalTitle })}</p>
           )}
           {meta.length > 0 && <p className="br-detail__meta">{meta.join(t('card.separator'))}</p>}
-          {m && m.genres.length > 0 && (
-            <p className="br-detail__genres">
-              {m.genres.map((g, i) => (
-                <span key={`${g.id}-${g.name}`}>
-                  {i > 0 && ', '}
-                  {g.id > 0 && item.libraryId ? (
-                    <Link to={`/library/${item.libraryId}?genre=${g.id}`}>{g.name}</Link>
-                  ) : (
-                    g.name
-                  )}
-                </span>
-              ))}
-            </p>
-          )}
-          {tags.length > 0 && (
-            <div className="br-detail__tags">
-              {tags.map((x) => (
-                <span key={x} className="br-tag">
-                  {x}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* V2.1: the scores, the genres and the tech tags on one line. */}
+          <div className="br-detail__facts">
+            <Ratings item={item} />
+            {m && m.genres.length > 0 && (
+              <p className="br-detail__genres">
+                {m.genres.map((g, i) => (
+                  <span key={`${g.id}-${g.name}`}>
+                    {i > 0 && ', '}
+                    {g.id > 0 && item.libraryId ? (
+                      <Link to={`/library/${item.libraryId}?genre=${g.id}`}>{g.name}</Link>
+                    ) : (
+                      g.name
+                    )}
+                  </span>
+                ))}
+              </p>
+            )}
+            {tags.map((x) => (
+              <span key={x} className="br-tag">
+                {x}
+              </span>
+            ))}
+          </div>
           {(m?.overview || item.overview) && (
             <p className="br-detail__overview" lang={fallback('overview')}>
               {m?.overview || item.overview}

@@ -4,8 +4,66 @@
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["-C", "web", "dev"],
+      "runtimeArgs": [
+        "-C",
+        "web",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "server-tmdb",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "PLAID_TMDB_API_KEY=\"$(op item get l4io3ylnmezvlq3imkymsjkt5q --fields credential --reveal)\" PLAID_DATA_DIR=/private/tmp/claude-501/-Users-g-hubert-Documents-GitHub-plaid/f5bf9d64-ac0c-4e38-9724-84cbf64d843e/scratchpad/data2 exec go -C server run ./cmd/plaid"
+      ],
+      "port": 32500
+    },
+    {
+      "name": "server-f008",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "PLAID_TMDB_API_KEY=\"$(op item get l4io3ylnmezvlq3imkymsjkt5q --fields credential --reveal)\" PLAID_DATA_DIR=/private/tmp/claude-501/-Users-g-hubert-Documents-GitHub-plaid/49dc6143-7c7d-46f6-88af-723efd5639d9/scratchpad/f008-data exec go -C server run ./cmd/plaid"
+      ],
+      "port": 32500
+    },
+    {
+      "name": "server-pair",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "PLAID_DATA_DIR=/private/tmp/claude-501/-Users-g-hubert-Documents-GitHub-plaid/75d9745a-b99e-4923-b9fc-aedbe6f8340c/scratchpad/pair-data exec go -C server run ./cmd/plaid"
+      ],
+      "port": 32500
+    },
+    {
+      "name": "server-ios",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "PLAID_TMDB_API_KEY=\"$(op item get l4io3ylnmezvlq3imkymsjkt5q --fields credential --reveal)\" PLAID_DATA_DIR=/private/tmp/claude-501/-Users-g-hubert-Documents-GitHub-plaid/13e1cc86-81c3-4169-af5f-6c9b0c054a71/scratchpad/ios-data exec go -C server run ./cmd/plaid"
+      ],
+      "port": 32500
+    },
+    {
+      "name": "server-f009",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "PLAID_DATA_DIR=/private/tmp/claude-501/-Users-g-hubert-Documents-GitHub-plaid/154764e2-a7e3-45b4-9e28-b313235a7972/scratchpad/f009-data exec go -C server run ./cmd/plaid"
+      ],
+      "port": 32500
+    },
+    {
+      "name": "server-ratings",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "PLAID_PORT=32510 PLAID_TLS_PORT=32511 PLAID_TMDB_API_KEY=\"$(op item get l4io3ylnmezvlq3imkymsjkt5q --fields credential --reveal)\" PLAID_MDBLIST_API_KEY=\"$(op read 'op://Private/mdblist API Credentials/credential')\" PLAID_DATA_DIR=/private/tmp/claude-501/-Users-g-hubert-Documents-GitHub-plaid/4a07164c-5c0e-4a81-bfbb-86510bd069de/scratchpad/ratings-data exec server/bin/plaid"
+      ],
+      "port": 32510
     }
   ]
 }

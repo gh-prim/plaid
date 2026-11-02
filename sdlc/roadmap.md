@@ -38,6 +38,7 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [F013](features/F013-pair-tv-v2/intent.md) | Web: Pair a TV in the V2 look | 4 | web | gh-prim | ✅ | [✅](features/F013-pair-tv-v2/spec.md) | [✔️](features/F013-pair-tv-v2/plan.md) |
 | [F014](features/F014-ios-app/intent.md) | iPhone and iPad app | 4 | apple, web | gh-prim | ✅ | [✅](features/F014-ios-app/spec.md) | [🚧](features/F014-ios-app/plan.md) |
 | [F015](features/F015-admin-v2-monitoring/intent.md) | Admin V2 and monitoring | 3 | server, web | gh-prim | 📝 | [📝](features/F015-admin-v2-monitoring/spec.md) | [🚧](features/F015-admin-v2-monitoring/plan.md) |
+| [F016](features/F016-scores/intent.md) | Scores on movie and show pages | 2 | server, web, apple | gh-prim | 📝 | [📝](features/F016-scores/spec.md) | [🚧](features/F016-scores/plan.md) |
 
 ### Later (intents to write)
 - Android + Android TV app: phase 5

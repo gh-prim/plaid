@@ -188,6 +188,9 @@ type Detail struct {
 	Backdrops      []Art
 	// GenreRefs are the genres with their TMDB ids (Summary.Genres has the names).
 	GenreRefs []provider.Genre
+	// CriticScore and AudienceScore are Rotten Tomatoes' Tomatometer and
+	// Popcornmeter, out of 100; nil when unknown.
+	CriticScore, AudienceScore *int
 }
 
 // Trailer is a stored trailer (R22).
@@ -215,6 +218,10 @@ func (s *Store) Detail(ctx context.Context, itemID string) (d Detail, ok bool, e
 	}
 	if d.FieldLanguages == nil {
 		d.FieldLanguages = map[string]string{}
+	}
+	if err := s.db.QueryRowContext(ctx, `SELECT critic_score, audience_score FROM item_metadata WHERE item_id = ?`,
+		itemID).Scan(&d.CriticScore, &d.AudienceScore); err != nil {
+		return d, false, err
 	}
 	for _, v := range r.Trailers {
 		d.Trailers = append(d.Trailers, Trailer{Site: v.Site, Key: v.Key, Name: v.Name, Language: v.Language, Type: v.Type, Official: v.Official})

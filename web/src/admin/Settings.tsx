@@ -487,7 +487,7 @@ export function Metadata() {
   const [settings, setSettings] = useState<components['schemas']['MetadataSettings']>()
   const [status, setStatus] = useState<components['schemas']['MetadataStatus']>()
   const [key, setKey] = useState('')
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState<'tmdb' | 'mdblist'>()
   const [error, setError] = useState<string>()
   useEffect(() => {
     Promise.all([api.GET('/metadata/settings'), api.GET('/metadata/status')]).then(([a, b]) => {
@@ -497,11 +497,11 @@ export function Metadata() {
   }, [])
   const attributions = state.status === 'ready' ? (state.server.attributions ?? []) : []
 
-  const source = (s?: string) =>
+  const source = (s?: string, envVar = 'PLAID_TMDB_API_KEY') =>
     s === 'custom'
       ? t('metadata.source.custom')
       : s === 'env'
-        ? t('metadata.source.env', { var: 'PLAID_TMDB_API_KEY' })
+        ? t('metadata.source.env', { var: envVar })
         : s === 'builtin'
           ? t('metadata.source.builtin')
           : t('metadata.source.none')
@@ -512,21 +512,30 @@ export function Metadata() {
       data,
       error: e,
       response,
-    } = await api.PATCH('/metadata/settings', { body: { tmdbApiKey: key.trim() || null } })
+    } = await api.PATCH('/metadata/settings', {
+      body:
+        editing === 'mdblist'
+          ? { mdblistApiKey: key.trim() || null }
+          : { tmdbApiKey: key.trim() || null },
+    })
     if (e) return setError(errorMessage(t, failure(e, response)))
     setSettings(data)
     setKey('')
-    setEditing(false)
+    setEditing(undefined)
   }
 
-  const providerName = (p: string) => (p === 'tmdb' ? 'TMDB' : 'fanart.tv')
+  const providerName = (p: string) =>
+    p === 'tmdb' ? 'TMDB' : p === 'mdblist' ? 'MDBList' : 'fanart.tv'
+  const editable = (p: string): p is 'tmdb' | 'mdblist' => p === 'tmdb' || p === 'mdblist'
   const stateText = (p: { provider: string; state: string }) =>
     p.state === 'ok'
       ? t('metadata.state.ok')
       : p.state === 'invalid_key'
         ? t('metadata.state.invalid_key', { provider: providerName(p.provider) })
         : p.state === 'no_api_key'
-          ? t('metadata.state.no_api_key', { provider: providerName(p.provider) })
+          ? p.provider === 'mdblist'
+            ? t('metadata.state.noScores')
+            : t('metadata.state.no_api_key', { provider: providerName(p.provider) })
           : t('metadata.state.unreachable', { provider: providerName(p.provider) })
 
   const providers = status?.providers ?? []
@@ -644,24 +653,39 @@ export function Metadata() {
               label={providerName(p.provider)}
               value={p.state === 'ok' ? t('metadata.state.ok') : undefined}
               tone={p.state === 'ok' ? 'ok' : undefined}
-              sub={[source(p.keySource), p.state === 'ok' ? undefined : stateText(p)]
+              sub={[
+                source(p.keySource, p.provider === 'mdblist' ? 'PLAID_MDBLIST_API_KEY' : undefined),
+                p.state === 'ok' ? undefined : stateText(p),
+              ]
                 .filter(Boolean)
                 .join(' · ')}
               subTone={p.state === 'ok' || p.state === 'no_api_key' ? undefined : 'warning'}
               control={
-                p.provider === 'tmdb' && !editing ? (
-                  <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+                editable(p.provider) && editing !== p.provider ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setKey('')
+                      setError(undefined)
+                      setEditing(p.provider as 'tmdb' | 'mdblist')
+                    }}
+                  >
                     {t('metadata.useOwn')}
                   </Button>
                 ) : undefined
               }
             >
-              {p.provider === 'tmdb' && editing && (
+              {editing === p.provider && (
                 <div className="adm__form">
                   <TextField
                     kind="password"
                     label={t('metadata.useOwn')}
-                    help={t('metadata.key.help')}
+                    help={
+                      p.provider === 'mdblist'
+                        ? t('metadata.key.mdblistHelp')
+                        : t('metadata.key.help')
+                    }
                     value={key}
                     onValue={setKey}
                     autoComplete="off"
@@ -669,7 +693,7 @@ export function Metadata() {
                   />
                   <div className="adm__actions">
                     <Button onClick={() => void saveKey()}>{t('common.save')}</Button>
-                    <Button variant="ghost" onClick={() => setEditing(false)}>
+                    <Button variant="ghost" onClick={() => setEditing(undefined)}>
                       {t('common.cancel')}
                     </Button>
                   </div>

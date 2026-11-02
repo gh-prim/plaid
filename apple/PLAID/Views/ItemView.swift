@@ -79,11 +79,8 @@ struct ItemView: View {
                     .lineLimit(2)
                     .minimumScaleFactor(0.6)
                 MetaLine(item: item, runtime: detail?.metadata?.runtimeMinutes, extra: showFacts)
-                if let rating = item.rating, rating > 0 {
-                    Text(verbatim: "★ " + rating.formatted(.number.precision(.fractionLength(1)).locale(AppLanguage.locale)))
-                        .font(Theme.sans(24, .semibold))
-                        .foregroundStyle(Theme.textSecondary)
-                }
+                ScoreBadges(rating: item.rating, metadata: detail?.metadata, size: 34,
+                            font: Theme.sans(26, .bold), color: Theme.textPrimary)
                 if let overview = detail?.metadata?.overview ?? item.overview {
                     Text(verbatim: overview)
                         .font(Theme.sans(28))

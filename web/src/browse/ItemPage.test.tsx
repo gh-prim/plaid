@@ -77,14 +77,20 @@ describe('movie page', () => {
       certification: 'PG-13',
       files: [file('f1')],
       userState: { positionMs: 3_733_000, watched: false, playCount: 0 },
-      metadata: metadata(),
+      metadata: metadata({ criticScore: 92, audienceScore: 45 }),
     })
     await renderApp('/item/m1')
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Dune: Part Two' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Original title: Dune : Deuxième partie')).toBeInTheDocument()
-    expect(screen.getByText('2024 · 2h 46m · PG-13 · TMDB 8.1 · 6,000 votes')).toBeInTheDocument()
+    expect(screen.getByText('2024 · 2h 46m · PG-13')).toBeInTheDocument()
+    const scores = within(screen.getByRole('list', { name: 'Scores' }))
+    expect(scores.getAllByRole('listitem').map((li) => li.title)).toEqual([
+      'TMDB users: 81% · 6,000 votes',
+      'Rotten Tomatoes Tomatometer (critics): 92%',
+      'Rotten Tomatoes Popcornmeter (audience): 45%',
+    ])
     expect(screen.getByRole('link', { name: 'Science Fiction' })).toHaveAttribute(
       'href',
       '/library/lm?genre=878',

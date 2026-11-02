@@ -37,8 +37,14 @@ I start a Plaid Party on a movie and send the link. My friends join from any dev
 ## Out of scope
 Built-in video / voice (v2?), SharePlay (phase 4 bonus).
 
+## Decisions (from the V2 design, 2026-11-01)
+- **Anonymous guests: yes.** A guest joins from the link with a first name only. They see this one movie and nothing else on the server.
+- **Host leaves:** the host chooses, either hand the host role to another participant or end the party for everyone.
+- **Transcode budget:** when the server can't transcode for everyone, the host is asked to choose: one shared quality for everyone who needs a transcode (e.g. 720p), or an order (one participant first, the others wait).
+- **Where people watch:** on a TV with the chat on the phone or tablet, or directly on the iPhone, iPad or web player with the chat beside the video.
+- **Scheduling:** a party can be scheduled for a date and time, with invitations (yes / maybe / no) and a reminder 15 minutes before; a waiting room shows a countdown and who is ready.
+- **Series:** at the end of an episode, the party moves to the next one together once participants are ready, with a short countdown.
+- **Room size:** 8 participants by default, host included. An admin can change the limit in Settings (from 2 to 20). The limit exists because every remote participant is a stream leaving the home connection; when the room is full, the join screen says so and the host can raise the limit if they are an admin.
+
 ## Open questions
-- [ ] Anonymous guest without an account, with access limited to this one movie: yes or no?
-- [ ] Max room size?
-- [ ] If the host leaves: host transfer or end of the room?
-- [ ] Transcode budget: F006 limits simultaneous transcodes per server (F006-R26, 1 by default on a Pi). Four participants needing a transcode can't all start. Share one transcode between participants who need the same quality, or give each room its own budget?
+None for now.

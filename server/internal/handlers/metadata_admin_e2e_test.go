@@ -297,7 +297,7 @@ func TestKeysStatusAttributionAndAdminOnly(t *testing.T) {
 	e.expect(r, http.StatusOK, "")
 	bodies = append(bodies, r.Body.String())
 	r.json(&status)
-	if len(status.Providers) != 2 || status.Providers[0].Provider != "tmdb" || status.Providers[0].State != "ok" {
+	if len(status.Providers) != 3 || status.Providers[2].Provider != "mdblist" || status.Providers[0].Provider != "tmdb" || status.Providers[0].State != "ok" {
 		t.Errorf("status = %+v", status)
 	}
 

@@ -325,6 +325,7 @@ func toItemMetadata(d metadata.Detail) *api.ItemMetadata {
 	out := &api.ItemMetadata{
 		OriginalTitle: optional(d.OriginalTitle), Overview: optional(d.Overview), Tagline: optional(d.Tagline),
 		RuntimeMinutes: optionalInt(d.Runtime), RatingCount: optionalInt(d.RatingCount),
+		CriticScore: d.CriticScore, AudienceScore: d.AudienceScore,
 		CertificationRegion: optional(d.CertRegion), Studios: d.Studios, FieldLanguages: d.FieldLanguages,
 		LockedFields: d.LockedFields, LocalFields: d.LocalFields, DuplicateOf: optional(d.DuplicateOf),
 		Trailers: make([]api.Trailer, 0, len(d.Trailers)), Credits: make([]api.Credit, 0, len(d.Credits)),

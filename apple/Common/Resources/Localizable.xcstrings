@@ -5998,6 +5998,57 @@
           }
         }
       }
+    },
+    "item.ratings.tmdb %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TMDB users: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisateurs TMDB : %@"
+          }
+        }
+      }
+    },
+    "item.ratings.critics %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotten Tomatoes Tomatometer (critics): %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomatometer de Rotten Tomatoes (critiques) : %@"
+          }
+        }
+      }
+    },
+    "item.ratings.audience %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotten Tomatoes Popcornmeter (audience): %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Popcornmeter de Rotten Tomatoes (public) : %@"
+          }
+        }
+      }
     }
   }
 }

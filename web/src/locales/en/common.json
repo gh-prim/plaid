@@ -738,8 +738,13 @@
       "play": "Play the preview",
       "unmute": "Turn the preview’s sound on"
     },
-    "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
-    "rating_other": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} votes",
+    "ratings": {
+      "audience": "Rotten Tomatoes Popcornmeter (audience): {{score}}",
+      "critics": "Rotten Tomatoes Tomatometer (critics): {{score}}",
+      "title": "Scores",
+      "tmdb_one": "TMDB users: {{score}} · {{count, number}} vote",
+      "tmdb_other": "TMDB users: {{score}} · {{count, number}} votes"
+    },
     "resumeEpisode": "Resume S{{season, number}} E{{episode, number}}",
     "season": "Season {{number, number}}",
     "seasonPicker": {
@@ -862,7 +867,8 @@
   "metadata": {
     "attributions": "Sources",
     "key": {
-      "help": "Stored on the server and never shown again."
+      "help": "Stored on the server and never shown again.",
+      "mdblistHelp": "Stored on the server and never shown again. Get a free key at mdblist.com (Preferences ▸ API): it brings Rotten Tomatoes scores."
     },
     "perLibrary": "Per library",
     "progress": "{{matched, number}} matched · {{needsReview, number}} to review · {{unmatched, number}} not found",
@@ -875,6 +881,7 @@
     "state": {
       "invalid_key": "{{provider}} refused this key. Check it, or go back to the built-in one.",
       "no_api_key": "No key: artwork from {{provider}} isn’t fetched.",
+      "noScores": "No key: Rotten Tomatoes scores aren’t fetched.",
       "ok": "Working",
       "unreachable": "Can’t reach {{provider}} right now. PLAID tries again on its own."
     },

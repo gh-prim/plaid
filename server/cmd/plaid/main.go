@@ -85,7 +85,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	// engine's first scans already feed it (F005 R1).
 	meta := metadata.New(metadata.Options{
 		DB: database, Settings: settings.New(database), TMDBKey: cfg.TMDBAPIKey, Log: logger,
-		DataDir: cfg.DataDir, FanartKey: cfg.FanartAPIKey, ArtworkCacheBytes: cfg.ArtworkCacheBytes,
+		DataDir: cfg.DataDir, FanartKey: cfg.FanartAPIKey, MDBListKey: cfg.MDBListAPIKey, ArtworkCacheBytes: cfg.ArtworkCacheBytes,
 		Problems: probs,
 	})
 	meta.Start(ctx)
