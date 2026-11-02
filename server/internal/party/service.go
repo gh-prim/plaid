@@ -898,8 +898,12 @@ func (s *Service) Disconnected(c *realtime.Conn) {
 // Message handles a client message.
 func (s *Service) Message(c *realtime.Conn, env realtime.Envelope) error {
 	ctx := context.Background()
-	if env.Type == "party.join" {
+	switch env.Type {
+	case "party.join":
 		return s.join(ctx, c, env.Data)
+	case "party.screens":
+		c.Send("party.screens", map[string]any{"screens": s.Screens(c.Principal)})
+		return nil
 	}
 	if !strings.HasPrefix(env.Type, "party.") {
 		return &realtime.Error{Code: "unknown_type"}
@@ -1120,7 +1124,18 @@ func (s *Service) join(ctx context.Context, c *realtime.Conn, raw json.RawMessag
 		}
 	}
 	kind := KindScreen
-	if in.Screen == "companion" {
+	switch in.Screen {
+	case "", "this":
+	case "companion":
+		kind = KindCompanion
+	default:
+		// Watch on one of the account's Apple TVs (R22): it opens the
+		// player and joins as the screen; this device is the companion.
+		tv := s.tvConn(p, in.Screen)
+		if tv == nil {
+			return &realtime.Error{Code: "screen_offline"}
+		}
+		tv.Send("tv.cast", map[string]string{"partyId": pt.ID})
 		kind = KindCompanion
 	}
 	l.mu.Lock()
@@ -1130,6 +1145,9 @@ func (s *Service) join(ctx context.Context, c *realtime.Conn, raw json.RawMessag
 		return err
 	}
 	c.Set("party", pt.ID)
+	if kind == KindScreen && c.Device.Type == "tvos" {
+		s.offerCompanion(c, pt.ID)
+	}
 	s.mu.Lock()
 	if s.names[pt.ID] != nil {
 		s.names[pt.ID][who.ID] = who.Name
@@ -1137,4 +1155,59 @@ func (s *Service) join(ctx context.Context, c *realtime.Conn, raw json.RawMessag
 	s.mu.Unlock()
 	s.o.Log.Info("party: joined", "party_id", pt.ID, "guest", p.IsGuest(), "by_code", byCode)
 	return nil
+}
+
+// Screen is an Apple TV of the account with its app open (R22).
+type Screen struct {
+	SessionID string `json:"sessionId"`
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+}
+
+// Screens lists the caller's Apple TVs that are online.
+func (s *Service) Screens(p auth.Principal) []Screen {
+	if p.UserID == "" {
+		return []Screen{}
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := []Screen{}
+	seen := map[string]bool{}
+	for _, c := range s.conns {
+		if c.Principal.UserID == p.UserID && c.Device.Type == "tvos" && !seen[c.Principal.SessionID] {
+			seen[c.Principal.SessionID] = true
+			out = append(out, Screen{SessionID: c.Principal.SessionID, Name: c.Device.Name, Type: c.Device.Type})
+		}
+	}
+	return out
+}
+
+func (s *Service) tvConn(p auth.Principal, sessionID string) *realtime.Conn {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, c := range s.conns {
+		if c.Principal.UserID == p.UserID && p.UserID != "" && c.Principal.SessionID == sessionID && c.Device.Type == "tvos" {
+			return c
+		}
+	}
+	return nil
+}
+
+// offerCompanion asks the same account's iPhone or iPad, app open and not
+// in the party, to join as the TV's companion (R23).
+func (s *Service) offerCompanion(tv *realtime.Conn, partyID string) {
+	s.mu.Lock()
+	var phones []*realtime.Conn
+	for _, c := range s.conns {
+		if c.Principal.UserID == tv.Principal.UserID && c.ID != tv.ID &&
+			(c.Device.Type == "ios" || c.Device.Type == "ipados") {
+			if id, _ := c.Get("party").(string); id != partyID {
+				phones = append(phones, c)
+			}
+		}
+	}
+	s.mu.Unlock()
+	for _, c := range phones {
+		c.Send("party.companion", map[string]string{"partyId": partyID, "screen": tv.Device.Name})
+	}
 }

@@ -264,3 +264,97 @@ func TestScheduledPartyAnswers(t *testing.T) {
 		t.Errorf("cancelled party still listed: %+v", mine)
 	}
 }
+
+// next reads until a message of type typ.
+func (c *wsClient) next(typ string) envelope {
+	c.t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	for {
+		_, b, err := c.ws.Read(ctx)
+		if err != nil {
+			c.t.Fatalf("waiting for %s: %v", typ, err)
+		}
+		var env envelope
+		json.Unmarshal(b, &env)
+		if env.Type == typ {
+			return env
+		}
+	}
+}
+
+func (e *playEnv) loginOn(device map[string]any) authResult {
+	e.t.Helper()
+	r := e.do("POST", "/auth/login", map[string]any{"username": "Ada", "password": adminPassword, "device": device})
+	e.expect(r, http.StatusOK, "")
+	var res authResult
+	r.json(&res)
+	return res
+}
+
+// TestPartyOnTheTV covers R22 and R23: the phone sends the party to an
+// online Apple TV of the same account and becomes its companion; a party
+// started on the TV offers the phone to join as companion.
+func TestPartyOnTheTV(t *testing.T) {
+	e := newPlayEnv(t)
+	srv := httptest.NewServer(e.h)
+	t.Cleanup(srv.Close)
+	tvLogin := e.loginOn(tv)
+	phoneLogin := e.loginOn(map[string]any{"name": "iPhone", "type": "ios"})
+	tvSock := e.socket(srv, tvLogin.Token)
+	phone := e.socket(srv, phoneLogin.Token)
+
+	got, _ := phone.send("party.screens", nil)
+	var screens struct {
+		Screens []struct{ SessionID, Name string } `json:"screens"`
+	}
+	for _, g := range got {
+		if g.Type == "party.screens" {
+			json.Unmarshal(g.Data, &screens)
+		}
+	}
+	if len(screens.Screens) != 1 || screens.Screens[0].SessionID != tvLogin.Session.ID {
+		t.Fatalf("screens = %+v", screens)
+	}
+
+	var pt partyJSON
+	e.do("POST", "/parties", map[string]any{"itemId": e.movie}, bearer(phoneLogin.Token)).json(&pt)
+	if _, code := phone.send("party.join", map[string]any{"partyId": pt.ID, "screen": tvLogin.Session.ID}); code != "" {
+		t.Fatalf("join with the TV: %q", code)
+	}
+	var cast struct{ PartyID string }
+	json.Unmarshal(tvSock.next("tv.cast").Data, &cast)
+	if cast.PartyID != pt.ID {
+		t.Fatalf("tv.cast = %+v", cast)
+	}
+	if _, code := tvSock.send("party.join", map[string]any{"partyId": pt.ID}); code != "" {
+		t.Fatalf("tv join: %q", code)
+	}
+	var pres struct {
+		People []struct {
+			Screen    string `json:"screen"`
+			Companion bool   `json:"companion"`
+		} `json:"people"`
+	}
+	json.Unmarshal(phone.next("party.presence").Data, &pres)
+	if len(pres.People) != 1 || pres.People[0].Screen != "tvos" || !pres.People[0].Companion {
+		t.Errorf("presence = %+v", pres)
+	}
+	if _, code := phone.send("party.join", map[string]any{"partyId": pt.ID, "screen": "nope"}); code != "screen_offline" {
+		t.Errorf("unknown screen: %q", code)
+	}
+
+	// A party started on the TV offers the phone to join (R23).
+	phone.send("party.leave", nil)
+	var other partyJSON
+	e.do("POST", "/parties", map[string]any{"itemId": e.dune}, bearer(tvLogin.Token)).json(&other)
+	tvSock.send("party.leave", nil)
+	if _, code := tvSock.send("party.join", map[string]any{"partyId": other.ID}); code != "" {
+		t.Fatalf("tv join: %q", code)
+	}
+	var offer struct{ PartyID string }
+	json.Unmarshal(phone.next("party.companion").Data, &offer)
+	if offer.PartyID != other.ID {
+		t.Errorf("companion offer = %+v", offer)
+	}
+}
