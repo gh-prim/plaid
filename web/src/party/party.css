@@ -7,7 +7,7 @@
   place-items: center;
   padding: 16px;
   background: var(--bg, #0b0b0c);
-  color: var(--fg);
+  color: var(--party-cream, #f4f0e9);
 }
 
 .pv-party-center {
@@ -26,12 +26,12 @@
 
 .pv-party-title {
   margin: 0;
-  font: 700 19px/1.2 var(--font-display, inherit);
+  font: 700 19px/1.2 var(--font-text, inherit);
 }
 
 .pv-party-display {
   margin: 0;
-  font: 700 40px/1.05 var(--font-display, inherit);
+  font: 700 40px/1.05 var(--font-text, inherit);
   letter-spacing: -0.03em;
 }
 
@@ -39,12 +39,12 @@
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: var(--fg-muted);
+  color: rgb(244 240 233 / 0.62);
 }
 
 .pv-party-muted {
   margin: 0;
-  color: var(--fg-muted);
+  color: rgb(244 240 233 / 0.62);
 }
 
 .pv-party-stack {
@@ -54,14 +54,33 @@
   width: 100%;
 }
 
-/* The panel beside the picture. */
-.pv-party[data-panel] video {
-  inset-inline-end: min(400px, 34vw);
+/* The panel beside the picture: the stage makes room for it. */
+.pv-party[data-panel] > .pv-stage {
+  inset-inline-end: min(412px, 36vw);
+}
+
+/* Frosted glass dense enough to read over any picture (the build drops an
+   unprefixed backdrop-filter, so both are set). */
+.pv-party-panel,
+.pv-party-card,
+.pv-party-remote,
+.pv-party-wait,
+.pv-party-next,
+.pv-party-notices p,
+.pv-party-toggle,
+.up-invite {
+  background: rgb(26 24 22 / 0.86);
+  -webkit-backdrop-filter: blur(40px) saturate(1.6);
+  backdrop-filter: blur(40px) saturate(1.6);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    0 30px 80px -20px rgb(0 0 0 / 0.7);
 }
 
 .pv-party-panel {
   position: absolute;
-  z-index: 6;
+  z-index: 60;
   top: 16px;
   bottom: 16px;
   inset-inline-end: 16px;
@@ -89,13 +108,13 @@
 
 .pv-party-panel__h {
   margin: 4px 0 0;
-  font: 700 17px/1 var(--font-display, inherit);
+  font: 700 17px/1 var(--font-text, inherit);
 }
 
 .pv-party-toggle {
   position: absolute;
-  z-index: 7;
-  top: 20px;
+  z-index: 61;
+  top: 26px;
   inset-inline-start: 50%;
   translate: -50% 0;
   height: 36px;
@@ -140,7 +159,7 @@
 .pv-party-people__how {
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--fg-muted);
+  color: rgb(244 240 233 / 0.62);
 }
 
 .pv-party-manage__acts {
@@ -157,14 +176,14 @@
   border-radius: 999px;
   overflow: hidden;
   color: #111;
-  font: 700 15px/1 var(--font-display, inherit);
+  font: 700 15px/1 var(--font-text, inherit);
   box-shadow: 0 0 0 2px rgb(20 18 16 / 0.9);
 }
 
 .pv-party-avatar.is-host {
   box-shadow:
     0 0 0 2px #1a1816,
-    0 0 0 3.5px var(--fg);
+    0 0 0 3.5px var(--party-cream, #f4f0e9);
 }
 
 .pv-party-avatar img {
@@ -191,7 +210,7 @@
 
 .pv-party-ask span {
   font-size: 12.5px;
-  color: var(--fg-muted);
+  color: rgb(244 240 233 / 0.62);
 }
 
 .pv-party-ask div {
@@ -213,7 +232,7 @@
 .pv-party-chat__system {
   text-align: center;
   font-size: 12.5px;
-  color: var(--fg-muted);
+  color: rgb(244 240 233 / 0.62);
 }
 
 .pv-party-chat__theirs,
@@ -231,7 +250,7 @@
   margin: 0 0 4px 12px;
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--fg-muted);
+  color: rgb(244 240 233 / 0.62);
 }
 
 .pv-party-chat__bubble {
@@ -243,7 +262,7 @@
 
 .pv-party-chat__mine .pv-party-chat__bubble {
   border-radius: 20px 20px 6px 20px;
-  background: var(--fg);
+  background: var(--party-cream, #f4f0e9);
   color: #111;
 }
 
@@ -285,7 +304,7 @@
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: var(--fg);
+  background: var(--party-cream, #f4f0e9);
   color: #111;
   cursor: pointer;
 }
@@ -349,17 +368,18 @@
 }
 
 .pv-party-stats dt {
-  font: 700 28px/1 var(--font-display, inherit);
+  font: 700 28px/1 var(--font-text, inherit);
 }
 
 .pv-party-stats dd {
   margin: 4px 0 0;
-  color: var(--fg-muted);
+  color: rgb(244 240 233 / 0.62);
 }
 
 @media (max-width: 760px) {
-  .pv-party[data-panel] video {
+  .pv-party[data-panel] > .pv-stage {
     inset-inline-end: 0;
+    bottom: 55vh;
   }
 
   .pv-party-panel {
@@ -402,7 +422,7 @@
   margin: 12px 0 4px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--fg-muted);
+  color: rgb(244 240 233 / 0.62);
 }
 
 .pv-party-invitees {
@@ -502,7 +522,7 @@
 }
 
 .pv-party-tile__title {
-  font: 700 19px/1.1 var(--font-display, inherit);
+  font: 700 19px/1.1 var(--font-text, inherit);
 }
 
 .pv-party-tile__line {
@@ -560,7 +580,7 @@
 }
 
 .vt-rank[aria-pressed='true'] .vt-rank__n {
-  background: var(--fg);
+  background: var(--party-cream, #f4f0e9);
   color: #111;
   box-shadow: none;
 }
@@ -569,4 +589,57 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
+}
+
+.pv-party[data-panel] > .pv-party-toggle {
+  inset-inline-start: calc(50% - min(206px, 18vw));
+}
+
+/* Reactions float up over the picture (Party03, Party13). */
+.pv-party-reactions {
+  position: absolute;
+  z-index: 5;
+  inset-inline-start: 48px;
+  bottom: 140px;
+  pointer-events: none;
+}
+
+.pv-party-reactions span {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 44px;
+  animation: pv-float 3s var(--ease-standard, ease-out) forwards;
+}
+
+.pv-party-reactions small {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(26 24 22 / 0.7);
+  color: #f4f0e9;
+}
+
+@keyframes pv-float {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-260px) scale(0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-party-reactions span {
+    animation: none;
+  }
 }

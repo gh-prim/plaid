@@ -226,3 +226,18 @@ func TestGuestReachesOnlyGuestRoutes(t *testing.T) {
 		t.Errorf("unknown guest token: status %d", rec.Code)
 	}
 }
+
+// TestGuestCookieUnderAStaleSession: a session cookie that doesn't work
+// (another server on the same host) doesn't hide the guest cookie.
+func TestGuestCookieUnderAStaleSession(t *testing.T) {
+	const tok = GuestTokenPrefix + "abc"
+	next := &echo{}
+	rec := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/ws", nil)
+	r.AddCookie(&http.Cookie{Name: CookieName, Value: "stale"})
+	r.AddCookie(&http.Cookie{Name: GuestCookieName, Value: tok})
+	Authenticate(fakeSessions{token: "good", p: member}, next, fakeGuests{token: tok}).ServeHTTP(rec, r)
+	if !next.called || !next.p.IsGuest() {
+		t.Fatalf("status %d, principal %+v", rec.Code, next.p)
+	}
+}

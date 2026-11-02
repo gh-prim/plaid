@@ -9,7 +9,7 @@ import { Button, Spinner } from '../ui'
 import { EndSummary } from './EndSummary'
 import { HostSheet, LeaveSheet, LimitSheet } from './HostSheets'
 import { PartyPanel } from './PartyPanel'
-import { Notices, NextCard, WaitingCard } from './Notices'
+import { FloatingReactions, Notices, NextCard, WaitingCard } from './Notices'
 import './party.css'
 import { targetAt } from './sync'
 import { useParty, type JoinTarget } from './useParty'
@@ -185,6 +185,7 @@ export function PartyPlayer({ target, onLeave }: { target: JoinTarget; onLeave: 
     overlay: (
       <>
         <Notices room={room} serverNow={serverNow} refused={refused} />
+        <FloatingReactions room={room} />
         <WaitingCard
           room={room}
           serverNow={serverNow}
@@ -196,23 +197,6 @@ export function PartyPlayer({ target, onLeave }: { target: JoinTarget; onLeave: 
             serverNow={serverNow}
             host={room.me === room.host}
             onStop={() => void send('party.next.stop').catch(() => {})}
-          />
-        )}
-        <button
-          type="button"
-          className={`pv-party-toggle pv-glass pl-focusable${panel ? ' is-open' : ''}`}
-          aria-expanded={panel}
-          onClick={() => setPanel((v) => !v)}
-        >
-          {t('party.pill', { count: room.people.length })}
-        </button>
-        {panel && (
-          <PartyPanel
-            party={party}
-            code={party$?.code}
-            title={party$?.item?.title}
-            onPeople={() => setSheet('people')}
-            onClose={() => setPanel(false)}
           />
         )}
         {sheet === 'people' && <HostSheet party={party} onClose={() => setSheet(null)} />}
@@ -249,6 +233,23 @@ export function PartyPlayer({ target, onLeave }: { target: JoinTarget; onLeave: 
         onBack={() => setSheet('leave')}
         party={bridge}
       />
+      <button
+        type="button"
+        className={`pv-party-toggle pv-glass pl-focusable${panel ? ' is-open' : ''}`}
+        aria-expanded={panel}
+        onClick={() => setPanel((v) => !v)}
+      >
+        {t('party.pill', { count: room.people.length })}
+      </button>
+      {panel && (
+        <PartyPanel
+          party={party}
+          code={party$?.code}
+          title={party$?.item?.title}
+          onPeople={() => setSheet('people')}
+          onClose={() => setPanel(false)}
+        />
+      )}
     </div>
   )
 }

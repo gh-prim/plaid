@@ -150,33 +150,43 @@ func Authenticate(sessions SessionLookup, next http.Handler, guests ...GuestLook
 			return
 		}
 		token, viaCookie := tokenFrom(r)
-		if guestLookup != nil && (strings.HasPrefix(token, GuestTokenPrefix) || token == "") {
-			gtoken, gcookie := token, viaCookie
-			if gtoken == "" {
-				if c, err := r.Cookie(GuestCookieName); err == nil {
-					gtoken, gcookie = c.Value, true
-				}
-			}
-			if gtoken != "" {
-				p, err := guestLookup.LookupGuest(ctx, gtoken)
-				if err != nil || !matches(guestOnly, r) {
-					apierr.Write(w, apierr.Unauthorized())
-					return
-				}
-				if gcookie && !isSafeMethod(r.Method) && (!IsWebClient(ctx) || (!sameOrigin(r) && !fromApp(r))) {
-					apierr.Write(w, apierr.CSRF())
-					return
-				}
-				ctx = context.WithValue(ctx, viaCookieKey{}, gcookie)
-				next.ServeHTTP(w, r.WithContext(WithPrincipal(ctx, p)))
+		// A party guest: a guest bearer token, or the guest cookie when no
+		// session cookie works (a stale one from another server on the same
+		// host must not hide it).
+		serveGuest := func(gtoken string, gcookie bool) {
+			p, err := guestLookup.LookupGuest(ctx, gtoken)
+			if err != nil || !matches(guestOnly, r) {
+				apierr.Write(w, apierr.Unauthorized())
 				return
 			}
+			if gcookie && !isSafeMethod(r.Method) && (!IsWebClient(ctx) || (!sameOrigin(r) && !fromApp(r))) {
+				apierr.Write(w, apierr.CSRF())
+				return
+			}
+			ctx := context.WithValue(ctx, viaCookieKey{}, gcookie)
+			next.ServeHTTP(w, r.WithContext(WithPrincipal(ctx, p)))
+		}
+		guestCookie := ""
+		if c, err := r.Cookie(GuestCookieName); err == nil && guestLookup != nil {
+			guestCookie = c.Value
+		}
+		if guestLookup != nil && strings.HasPrefix(token, GuestTokenPrefix) {
+			serveGuest(token, viaCookie)
+			return
+		}
+		if token == "" && guestCookie != "" {
+			serveGuest(guestCookie, true)
+			return
 		}
 		if token == "" {
 			apierr.Write(w, apierr.Unauthorized())
 			return
 		}
 		p, err := sessions.Lookup(ctx, token)
+		if err != nil && viaCookie && guestCookie != "" {
+			serveGuest(guestCookie, true)
+			return
+		}
 		if err != nil {
 			// Lookup errors other than ErrNoSession (database down) are
 			// still a refusal: never let a request through unauthenticated.

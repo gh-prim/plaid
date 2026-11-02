@@ -112,3 +112,17 @@ export function NextCard({
     </div>
   )
 }
+
+/** The reactions floating up over the picture (Party03, Party13). */
+export function FloatingReactions({ room }: { room: Room }) {
+  return (
+    <div className="pv-party-reactions" aria-hidden="true">
+      {room.reactions.map((r, i) => (
+        <span key={r.key} style={{ insetInlineStart: `${(i % 4) * 36}px` }}>
+          {r.emoji}
+          <small>{r.name}</small>
+        </span>
+      ))}
+    </div>
+  )
+}
