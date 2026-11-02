@@ -274,6 +274,9 @@ struct ItemMetadata: Decodable, Hashable {
     let showStatus: String?
     let collection: CollectionRef?
     let ratingCount: Int?
+    /// Rotten Tomatoes' Tomatometer and Popcornmeter, out of 100.
+    let criticScore: Int?
+    let audienceScore: Int?
 }
 
 struct CollectionRef: Decodable, Hashable {

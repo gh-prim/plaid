@@ -2204,6 +2204,27 @@
 .br-detail__genres a {
   color: inherit;
 }
+.br-ratings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.br-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 15px/22px var(--font-text);
+  font-variant-numeric: tabular-nums;
+  color: oklch(0.95 0.009 80);
+}
+.br-rating svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
 .br-detail__tags {
   display: flex;
   flex-wrap: wrap;

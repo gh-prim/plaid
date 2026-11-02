@@ -98,6 +98,9 @@ struct ItemView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(verbatim: item.name).displayTitle(wide ? 52 : 44).lineLimit(3).minimumScaleFactor(0.6)
                 Text(verbatim: factsLine).font(Theme.sans(13, .semibold)).foregroundStyle(Theme.textSecondary).padding(.top, 10)
+                ScoreBadges(rating: item.rating, metadata: detail?.metadata, size: 20,
+                            font: Theme.sans(14, .bold), color: Theme.textPrimary)
+                    .padding(.top, 10)
                 if !badges.isEmpty {
                     HStack(spacing: 6) {
                         ForEach(badges, id: \.self) { b in

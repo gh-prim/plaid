@@ -13,6 +13,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/metadata/artwork"
 	"github.com/gh-prim/plaid/server/internal/metadata/fanart"
 	"github.com/gh-prim/plaid/server/internal/metadata/httpx"
+	"github.com/gh-prim/plaid/server/internal/metadata/mdblist"
 	"github.com/gh-prim/plaid/server/internal/metadata/provider"
 	"github.com/gh-prim/plaid/server/internal/metadata/tmdb"
 	"github.com/gh-prim/plaid/server/internal/problems"
@@ -23,6 +24,7 @@ import (
 const (
 	tmdbRPS        = 20
 	fanartRPS      = 5
+	mdblistRPS     = 2
 	imageDownloads = 8
 )
 
@@ -50,6 +52,11 @@ type Options struct {
 	DataDir string
 	// FanartKey is PLAID_FANART_API_KEY.
 	FanartKey string
+	// MDBListKey is PLAID_MDBLIST_API_KEY. Without a key, Rotten
+	// Tomatoes scores aren't fetched.
+	MDBListKey string
+	// MDBList replaces MDBList in tests.
+	MDBList *mdblist.Client
 	// ArtworkCacheBytes caps resized variants (R20); 0 means 2 GiB.
 	ArtworkCacheBytes int64
 	// Fanart and ImageHTTP replace fanart.tv and image downloads in tests,
@@ -57,7 +64,7 @@ type Options struct {
 	Fanart     *fanart.Client
 	ImageHTTP  *httpx.Client
 	ImageHosts map[string]string
-	// CheckKey validates a key ("tmdb" or "fanart") before it's saved;
+	// CheckKey validates a key ("tmdb", "fanart" or "mdblist") before it's saved;
 	// nil asks the provider. Tests replace it.
 	CheckKey func(ctx context.Context, provider, key string) error
 	// Problems records a refused TMDB key for the admin (F007 R29); nil
@@ -78,6 +85,8 @@ type Service struct {
 	keySource string
 	fan       *fanart.Client
 	fanHTTP   *httpx.Client
+	mdb       *mdblist.Client
+	mdbHTTP   *httpx.Client
 	art       *artwork.Store
 	hub       counterHub
 	matched   matchedHub
@@ -184,7 +193,7 @@ func (s *Service) resume(ctx context.Context) {
 func (s *Service) ReloadKeys(ctx context.Context) error {
 	if s.o.Provider != nil {
 		s.mu.Lock()
-		s.prov, s.keySource, s.fan = s.o.Provider, KeyCustom, s.o.Fanart
+		s.prov, s.keySource, s.fan, s.mdb = s.o.Provider, KeyCustom, s.o.Fanart, s.o.MDBList
 		s.mu.Unlock()
 		return nil
 	}
@@ -201,6 +210,17 @@ func (s *Service) ReloadKeys(ctx context.Context) error {
 	if fanKey != "" {
 		s.fanHTTP = httpx.New(httpx.Options{Name: "fanart", Hosts: fanart.Hosts, RPS: fanartRPS, Burst: 1, Log: s.log})
 		s.fan = fanart.New(s.fanHTTP, fanart.BaseURL, fanKey, personal)
+	}
+	s.mu.Unlock()
+	mdbKey, _, err := resolveKey(ctx, s.o.Settings, settings.MDBListAPIKey, s.o.MDBListKey, builtinMDBListKey)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	s.mdb, s.mdbHTTP = nil, nil
+	if mdbKey != "" {
+		s.mdbHTTP = httpx.New(httpx.Options{Name: "mdblist", Hosts: mdblist.Hosts, RPS: mdblistRPS, Burst: 1, Log: s.log})
+		s.mdb = mdblist.New(s.mdbHTTP, mdblist.BaseURL, mdbKey)
 	}
 	s.mu.Unlock()
 	key, source, err := resolveKey(ctx, s.o.Settings, settings.TMDBAPIKey, s.o.TMDBKey, builtinTMDBKey)
@@ -248,6 +268,12 @@ func (s *Service) fanart() *fanart.Client {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.fan
+}
+
+func (s *Service) mdblist() *mdblist.Client {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.mdb
 }
 
 // Artwork is the image store; nil without a data directory.

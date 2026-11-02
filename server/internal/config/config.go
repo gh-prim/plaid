@@ -37,6 +37,8 @@ type Config struct {
 	TMDBAPIKey string
 	// FanartAPIKey is the admin's fanart.tv project key (F005 R34).
 	FanartAPIKey string
+	// MDBListAPIKey is the admin's MDBList key, for Rotten Tomatoes scores.
+	MDBListAPIKey string
 	// ArtworkCacheBytes caps resized artwork (F005 R20); 0 = 2 GiB.
 	ArtworkCacheBytes int64
 	// TLSPort is the HTTPS port remote access forwards to (F012); 0 turns
@@ -129,6 +131,7 @@ func Load(getenv func(string) string) (Config, error) {
 	cfg.TranscodeDir = getenv("PLAID_TRANSCODE_DIR")
 	cfg.TMDBAPIKey = strings.TrimSpace(getenv("PLAID_TMDB_API_KEY"))
 	cfg.FanartAPIKey = strings.TrimSpace(getenv("PLAID_FANART_API_KEY"))
+	cfg.MDBListAPIKey = strings.TrimSpace(getenv("PLAID_MDBLIST_API_KEY"))
 	if v := getenv("PLAID_ARTWORK_CACHE_MAX_MB"); v != "" {
 		mb, err := strconv.Atoi(v)
 		if err != nil || mb < 64 {

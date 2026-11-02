@@ -15,6 +15,7 @@ import (
 
 	"github.com/gh-prim/plaid/server/internal/metadata/certs"
 	"github.com/gh-prim/plaid/server/internal/metadata/match"
+	"github.com/gh-prim/plaid/server/internal/metadata/mdblist"
 	"github.com/gh-prim/plaid/server/internal/metadata/nfo"
 	"github.com/gh-prim/plaid/server/internal/metadata/provider"
 )
@@ -157,11 +158,17 @@ func (s *Service) processMovie(ctx context.Context, p parsed) error {
 			collectionID = ""
 		}
 	}
+	scores, scored := s.fetchRatings(ctx, p.ID, mdblist.Movie, d.TMDBID)
 	if err := s.store.inTx(ctx, func(tx *sql.Tx) error {
 		r := build(p, cur, d, doc, res, certs.Movie)
 		r.CollectionID = collectionID
 		if err := s.store.writeRow(ctx, tx, p.ID, r, refreshAt(s.o.Now(), d)); err != nil {
 			return err
+		}
+		if scored {
+			if err := s.store.writeRatings(ctx, tx, p.ID, scores); err != nil {
+				return err
+			}
 		}
 		if err := s.store.writeCredits(ctx, tx, p.ID, d.Cast, d.Crew); err != nil {
 			return err
@@ -174,6 +181,36 @@ func (s *Service) processMovie(ctx context.Context, p parsed) error {
 	// fetched never undoes a match.
 	s.artworkAfter(ctx, p, func() error { return s.movieArtwork(ctx, p, d) }, d.Cast, d.Crew)
 	return nil
+}
+
+// fetchRatings gets the Rotten Tomatoes scores before the metadata is
+// written, so they go in the same transaction (and are retried with it).
+// ok is false without an MDBList key or when MDBList fails: a failure
+// never holds up a match, and the scores already stored stay.
+func (s *Service) fetchRatings(ctx context.Context, itemID, kind string, tmdbID int) (r mdblist.Ratings, ok bool) {
+	m := s.mdblist()
+	if m == nil {
+		return r, false
+	}
+	r, err := m.Ratings(ctx, kind, tmdbID)
+	if err != nil {
+		s.log.Warn("Rotten Tomatoes scores not fetched", "item", itemID, "tmdb", tmdbID, "err", err)
+		return r, false
+	}
+	return r, true
+}
+
+// writeRatings stores an item's Rotten Tomatoes scores.
+func (s *Store) writeRatings(ctx context.Context, tx *sql.Tx, itemID string, r mdblist.Ratings) error {
+	n := func(v *int) any {
+		if v == nil {
+			return nil
+		}
+		return *v
+	}
+	_, err := tx.ExecContext(ctx, `UPDATE item_metadata SET critic_score = ?, audience_score = ? WHERE item_id = ?`,
+		n(r.Critics), n(r.Audience), itemID)
+	return err
 }
 
 // artworkRetry is how soon an item whose artwork or portraits couldn't be
@@ -268,9 +305,15 @@ func (s *Service) processShow(ctx context.Context, p parsed) error {
 			return err
 		}
 	}
+	scores, scored := s.fetchRatings(ctx, p.ID, mdblist.Show, d.TMDBID)
 	if err := s.store.inTx(ctx, func(tx *sql.Tx) error {
 		if err := s.store.writeRow(ctx, tx, p.ID, r, refreshAt(s.o.Now(), d)); err != nil {
 			return err
+		}
+		if scored {
+			if err := s.store.writeRatings(ctx, tx, p.ID, scores); err != nil {
+				return err
+			}
 		}
 		if err := s.store.writeCredits(ctx, tx, p.ID, d.Cast, d.Crew); err != nil {
 			return err

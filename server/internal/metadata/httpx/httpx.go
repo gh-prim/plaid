@@ -341,7 +341,7 @@ func (c *Client) Status() Status {
 }
 
 // secretParams are query parameters that carry keys.
-var secretParams = []string{"api_key", "client_key"}
+var secretParams = []string{"api_key", "client_key", "apikey"}
 
 // Redact replaces API keys in a URL's query with REDACTED.
 func Redact(rawURL string) string {

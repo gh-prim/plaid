@@ -786,9 +786,14 @@
       "play": "Lire l’aperçu",
       "unmute": "Activer le son de l’aperçu"
     },
-    "rating_one": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} vote",
-    "rating_many": "",
-    "rating_other": "TMDB {{rating, number(maximumFractionDigits: 1)}} · {{count, number}} votes",
+    "ratings": {
+      "audience": "Popcornmeter de Rotten Tomatoes (public) : {{score}}",
+      "critics": "Tomatometer de Rotten Tomatoes (critiques) : {{score}}",
+      "title": "Notes",
+      "tmdb_one": "Utilisateurs TMDB : {{score}} · {{count, number}} vote",
+      "tmdb_many": "Utilisateurs TMDB : {{score}} · {{count, number}} votes",
+      "tmdb_other": "Utilisateurs TMDB : {{score}} · {{count, number}} votes"
+    },
     "resumeEpisode": "Reprendre S{{season, number}} É{{episode, number}}",
     "season": "Saison {{number, number}}",
     "seasonPicker": {
@@ -917,7 +922,8 @@
   "metadata": {
     "attributions": "Sources",
     "key": {
-      "help": "Enregistrée sur le serveur et plus jamais affichée."
+      "help": "Enregistrée sur le serveur et plus jamais affichée.",
+      "mdblistHelp": "Enregistrée sur le serveur et jamais réaffichée. Clé gratuite sur mdblist.com (Preferences ▸ API) : elle apporte les notes Rotten Tomatoes."
     },
     "perLibrary": "Par bibliothèque",
     "progress": "{{matched, number}} identifiés · {{needsReview, number}} à vérifier · {{unmatched, number}} introuvables",
@@ -930,6 +936,7 @@
     "state": {
       "invalid_key": "{{provider}} a refusé cette clé. Vérifie-la, ou reviens à la clé intégrée.",
       "no_api_key": "Aucune clé : les images de {{provider}} ne sont pas récupérées.",
+      "noScores": "Pas de clé : les notes Rotten Tomatoes ne sont pas récupérées.",
       "ok": "Fonctionne",
       "unreachable": "Impossible de joindre {{provider}} pour l’instant. PLAID réessaie tout seul."
     },

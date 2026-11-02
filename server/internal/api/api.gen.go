@@ -115,14 +115,17 @@ func (e ArtworkKind) Valid() bool {
 
 // Defines values for AttributionProvider.
 const (
-	AttributionProviderFanart AttributionProvider = "fanart"
-	AttributionProviderTmdb   AttributionProvider = "tmdb"
+	AttributionProviderFanart  AttributionProvider = "fanart"
+	AttributionProviderMdblist AttributionProvider = "mdblist"
+	AttributionProviderTmdb    AttributionProvider = "tmdb"
 )
 
 // Valid indicates whether the value is a known member of the AttributionProvider enum.
 func (e AttributionProvider) Valid() bool {
 	switch e {
 	case AttributionProviderFanart:
+		return true
+	case AttributionProviderMdblist:
 		return true
 	case AttributionProviderTmdb:
 		return true
@@ -803,6 +806,30 @@ func (e MetadataSettingsFanartKeySource) Valid() bool {
 	}
 }
 
+// Defines values for MetadataSettingsMdblistKeySource.
+const (
+	MetadataSettingsMdblistKeySourceBuiltin MetadataSettingsMdblistKeySource = "builtin"
+	MetadataSettingsMdblistKeySourceCustom  MetadataSettingsMdblistKeySource = "custom"
+	MetadataSettingsMdblistKeySourceEnv     MetadataSettingsMdblistKeySource = "env"
+	MetadataSettingsMdblistKeySourceNone    MetadataSettingsMdblistKeySource = "none"
+)
+
+// Valid indicates whether the value is a known member of the MetadataSettingsMdblistKeySource enum.
+func (e MetadataSettingsMdblistKeySource) Valid() bool {
+	switch e {
+	case MetadataSettingsMdblistKeySourceBuiltin:
+		return true
+	case MetadataSettingsMdblistKeySourceCustom:
+		return true
+	case MetadataSettingsMdblistKeySourceEnv:
+		return true
+	case MetadataSettingsMdblistKeySourceNone:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MetadataSettingsTmdbKeySource.
 const (
 	MetadataSettingsTmdbKeySourceBuiltin MetadataSettingsTmdbKeySource = "builtin"
@@ -1075,14 +1102,17 @@ func (e ProviderStatusKeySource) Valid() bool {
 
 // Defines values for ProviderStatusProvider.
 const (
-	ProviderStatusProviderFanart ProviderStatusProvider = "fanart"
-	ProviderStatusProviderTmdb   ProviderStatusProvider = "tmdb"
+	ProviderStatusProviderFanart  ProviderStatusProvider = "fanart"
+	ProviderStatusProviderMdblist ProviderStatusProvider = "mdblist"
+	ProviderStatusProviderTmdb    ProviderStatusProvider = "tmdb"
 )
 
 // Valid indicates whether the value is a known member of the ProviderStatusProvider enum.
 func (e ProviderStatusProvider) Valid() bool {
 	switch e {
 	case ProviderStatusProviderFanart:
+		return true
+	case ProviderStatusProviderMdblist:
 		return true
 	case ProviderStatusProviderTmdb:
 		return true
@@ -2464,6 +2494,9 @@ type ItemKind string
 
 // ItemMetadata What F005 knows about an item, beyond the summary (R7, R8, R22, R23).
 type ItemMetadata struct {
+	// AudienceScore Rotten Tomatoes' Popcornmeter (audience score), from MDBList.
+	AudienceScore *int `json:"audienceScore,omitempty"`
+
 	// Backdrops Up to 3 backdrops, best first (R15).
 	Backdrops           []Artwork `json:"backdrops"`
 	CertificationRegion *string   `json:"certificationRegion,omitempty"`
@@ -2473,6 +2506,9 @@ type ItemMetadata struct {
 	Collection *CollectionRef `json:"collection,omitempty"`
 	Confidence *float32       `json:"confidence,omitempty"`
 	Credits    []Credit       `json:"credits"`
+
+	// CriticScore Rotten Tomatoes' Tomatometer, from MDBList; absent when unknown or without an MDBList key.
+	CriticScore *int `json:"criticScore,omitempty"`
 
 	// DuplicateOf The older item of the library matched to the same title (R38).
 	DuplicateOf *string `json:"duplicateOf,omitempty"`
@@ -2895,6 +2931,11 @@ type MetadataSettings struct {
 		KeySource      MetadataSettingsFanartKeySource `json:"keySource"`
 		PersonalKeySet bool                            `json:"personalKeySet"`
 	} `json:"fanart"`
+
+	// Mdblist MDBList, for Rotten Tomatoes scores. Release binaries have no built-in key.
+	Mdblist struct {
+		KeySource MetadataSettingsMdblistKeySource `json:"keySource"`
+	} `json:"mdblist"`
 	Tmdb struct {
 		KeySource MetadataSettingsTmdbKeySource `json:"keySource"`
 	} `json:"tmdb"`
@@ -2903,6 +2944,9 @@ type MetadataSettings struct {
 // MetadataSettingsFanartKeySource defines model for MetadataSettings.Fanart.KeySource.
 type MetadataSettingsFanartKeySource string
 
+// MetadataSettingsMdblistKeySource defines model for MetadataSettings.Mdblist.KeySource.
+type MetadataSettingsMdblistKeySource string
+
 // MetadataSettingsTmdbKeySource defines model for MetadataSettings.Tmdb.KeySource.
 type MetadataSettingsTmdbKeySource string
 
@@ -2910,6 +2954,7 @@ type MetadataSettingsTmdbKeySource string
 type MetadataSettingsPatch struct {
 	FanartApiKey      nullable.Nullable[string] `json:"fanartApiKey,omitempty"`
 	FanartPersonalKey nullable.Nullable[string] `json:"fanartPersonalKey,omitempty"`
+	MdblistApiKey     nullable.Nullable[string] `json:"mdblistApiKey,omitempty"`
 	TmdbApiKey        nullable.Nullable[string] `json:"tmdbApiKey,omitempty"`
 }
 

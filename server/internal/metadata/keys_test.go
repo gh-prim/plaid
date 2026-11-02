@@ -45,13 +45,13 @@ func TestCheckKeyAgainstTheProvider(t *testing.T) {
 	e := newApplyEnv(t, "movies", "en", "US", true)
 	h := e.srv.HTTP()
 	ctx := context.Background()
-	if err := checkKeyWith(ctx, h, e.srv.URL, e.srv.URL+"/v3", "tmdb", "test-key-0000"); err != nil {
+	if err := checkKeyWith(ctx, h, e.srv.URL, e.srv.URL+"/v3", e.srv.URL, "tmdb", "test-key-0000"); err != nil {
 		t.Errorf("good TMDB key: %v", err)
 	}
-	if err := checkKeyWith(ctx, e.srv.HTTP(), e.srv.URL, e.srv.URL+"/v3", "tmdb", "wrong"); !errors.Is(err, ErrInvalidAPIKey) {
+	if err := checkKeyWith(ctx, e.srv.HTTP(), e.srv.URL, e.srv.URL+"/v3", e.srv.URL, "tmdb", "wrong"); !errors.Is(err, ErrInvalidAPIKey) {
 		t.Errorf("bad TMDB key: %v", err)
 	}
-	if err := checkKeyWith(ctx, e.srv.HTTP(), e.srv.URL, e.srv.URL+"/v3", "fanart", "wrong"); !errors.Is(err, ErrInvalidAPIKey) {
+	if err := checkKeyWith(ctx, e.srv.HTTP(), e.srv.URL, e.srv.URL+"/v3", e.srv.URL, "fanart", "wrong"); !errors.Is(err, ErrInvalidAPIKey) {
 		t.Errorf("bad fanart.tv key: %v", err)
 	}
 }

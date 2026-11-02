@@ -16,6 +16,7 @@ const (
 	TMDBAPIKey        = "metadata.tmdb.api_key"
 	FanartAPIKey      = "metadata.fanart.api_key"
 	FanartPersonalKey = "metadata.fanart.personal_key"
+	MDBListAPIKey     = "metadata.mdblist.api_key"
 )
 
 // Remote access through getplaid.direct (F012).

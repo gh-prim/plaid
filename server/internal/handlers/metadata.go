@@ -389,6 +389,7 @@ func (h *Handlers) metadataSettings(ctx context.Context, svc *metadata.Service) 
 	out.Tmdb.KeySource = api.MetadataSettingsTmdbKeySource(keySource(ks.TMDBSource))
 	out.Fanart.KeySource = api.MetadataSettingsFanartKeySource(keySource(ks.FanartSource))
 	out.Fanart.PersonalKeySet = ks.FanartPersonalKeySet
+	out.Mdblist.KeySource = api.MetadataSettingsMdblistKeySource(keySource(ks.MDBListSource))
 	return out, nil
 }
 
@@ -438,11 +439,16 @@ func (h *Handlers) UpdateMetadataSettings(ctx context.Context, req api.UpdateMet
 		return &s
 	}
 	ch.TMDB, ch.Fanart, ch.FanartPersonal = pick(b.TmdbApiKey), pick(b.FanartApiKey), pick(b.FanartPersonalKey)
+	ch.MDBList = pick(b.MdblistApiKey)
 	if err := svc.UpdateKeys(ctx, ch); err != nil {
 		if errors.Is(err, metadata.ErrInvalidAPIKey) {
 			field := "tmdbApiKey"
-			if ch.TMDB == nil || *ch.TMDB == "" {
+			switch {
+			case ch.TMDB != nil && *ch.TMDB != "":
+			case ch.Fanart != nil && *ch.Fanart != "":
 				field = "fanartApiKey"
+			default:
+				field = "mdblistApiKey"
 			}
 			return nil, apierr.InvalidAPIKey(field)
 		}

@@ -18,6 +18,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/metadata/fanart"
 	"github.com/gh-prim/plaid/server/internal/metadata/httpx"
 	"github.com/gh-prim/plaid/server/internal/metadata/match"
+	"github.com/gh-prim/plaid/server/internal/metadata/mdblist"
 	"github.com/gh-prim/plaid/server/internal/metadata/provider"
 	"github.com/gh-prim/plaid/server/internal/metadata/tmdb"
 	"github.com/gh-prim/plaid/server/internal/settings"
@@ -674,8 +675,8 @@ func (s *Service) UnlockArtwork(ctx context.Context, itemID, kind string) error 
 
 // KeySettings say which key each provider uses, never the keys.
 type KeySettings struct {
-	TMDBSource, FanartSource string
-	FanartPersonalKeySet     bool
+	TMDBSource, FanartSource, MDBListSource string
+	FanartPersonalKeySet                    bool
 }
 
 // Settings returns where each provider's key comes from.
@@ -688,6 +689,9 @@ func (s *Service) Settings(ctx context.Context) (KeySettings, error) {
 	if _, out.FanartSource, err = resolveKey(ctx, s.o.Settings, settings.FanartAPIKey, s.o.FanartKey, builtinFanartKey); err != nil {
 		return out, err
 	}
+	if _, out.MDBListSource, err = resolveKey(ctx, s.o.Settings, settings.MDBListAPIKey, s.o.MDBListKey, builtinMDBListKey); err != nil {
+		return out, err
+	}
 	if s.o.Settings != nil {
 		_, out.FanartPersonalKeySet, err = s.o.Settings.Get(ctx, settings.FanartPersonalKey)
 	}
@@ -696,7 +700,7 @@ func (s *Service) Settings(ctx context.Context) (KeySettings, error) {
 
 // KeyChange sets (non-empty), clears (empty) or leaves (nil) a key.
 type KeyChange struct {
-	TMDB, Fanart, FanartPersonal *string
+	TMDB, Fanart, FanartPersonal, MDBList *string
 }
 
 // UpdateKeys checks new keys against their provider, saves them and
@@ -719,10 +723,15 @@ func (s *Service) UpdateKeys(ctx context.Context, ch KeyChange) error {
 			return err
 		}
 	}
+	if ch.MDBList != nil && *ch.MDBList != "" {
+		if err := check(ctx, "mdblist", *ch.MDBList); err != nil {
+			return err
+		}
+	}
 	for _, c := range []struct {
 		name string
 		v    *string
-	}{{settings.TMDBAPIKey, ch.TMDB}, {settings.FanartAPIKey, ch.Fanart}, {settings.FanartPersonalKey, ch.FanartPersonal}} {
+	}{{settings.TMDBAPIKey, ch.TMDB}, {settings.FanartAPIKey, ch.Fanart}, {settings.FanartPersonalKey, ch.FanartPersonal}, {settings.MDBListAPIKey, ch.MDBList}} {
 		var err error
 		switch {
 		case c.v == nil:
@@ -745,16 +754,19 @@ func (s *Service) UpdateKeys(ctx context.Context, ch KeyChange) error {
 }
 
 // checkKey asks the provider whether a key works: TMDB's /configuration,
-// fanart.tv's images of The Matrix.
+// fanart.tv's images of The Matrix, MDBList's scores for it.
 func checkKey(ctx context.Context, name, key string) error {
-	h := httpx.New(httpx.Options{Name: name + "-check", Hosts: append(slices.Clone(tmdb.Hosts), fanart.Hosts...)})
-	return checkKeyWith(ctx, h, tmdb.BaseURL, fanart.BaseURL, name, key)
+	h := httpx.New(httpx.Options{Name: name + "-check", Hosts: slices.Concat(tmdb.Hosts, fanart.Hosts, mdblist.Hosts)})
+	return checkKeyWith(ctx, h, tmdb.BaseURL, fanart.BaseURL, mdblist.BaseURL, name, key)
 }
 
-func checkKeyWith(ctx context.Context, h *httpx.Client, tmdbBase, fanartBase, name, key string) error {
+func checkKeyWith(ctx context.Context, h *httpx.Client, tmdbBase, fanartBase, mdblistBase, name, key string) error {
 	u := tmdbBase + "/configuration?api_key=" + url.QueryEscape(key)
-	if name == "fanart" {
+	switch name {
+	case "fanart":
 		u = fanartBase + "/movies/603?api_key=" + url.QueryEscape(key)
+	case "mdblist":
+		u = mdblistBase + "/tmdb/movie/603?apikey=" + url.QueryEscape(key)
 	}
 	_, err := h.Get(ctx, u, nil)
 	switch {
@@ -779,7 +791,7 @@ func (s *Service) Status(ctx context.Context) ([]ProviderState, error) {
 		return nil, err
 	}
 	s.mu.Lock()
-	tmdbHTTP, fan, fanHTTP := s.http, s.fan, s.fanHTTP
+	tmdbHTTP, fan, fanHTTP, mdb, mdbHTTP := s.http, s.fan, s.fanHTTP, s.mdb, s.mdbHTTP
 	s.mu.Unlock()
 	state := func(name, source string, h *httpx.Client, present bool) ProviderState {
 		ps := ProviderState{Provider: name, KeySource: source, State: "no_api_key"}
@@ -798,6 +810,7 @@ func (s *Service) Status(ctx context.Context) ([]ProviderState, error) {
 	return []ProviderState{
 		state("tmdb", keys.TMDBSource, tmdbHTTP, s.provider() != nil),
 		state("fanart", keys.FanartSource, fanHTTP, fan != nil),
+		state("mdblist", keys.MDBListSource, mdbHTTP, mdb != nil),
 	}, nil
 }
 
@@ -816,6 +829,10 @@ func (s *Service) Attributions() []Attribution {
 	if s.fanart() != nil {
 		out = append(out, Attribution{Provider: "fanart", Name: "fanart.tv", URL: "https://fanart.tv",
 			Notice: "Logos, clearart and some backdrops are provided by fanart.tv."})
+	}
+	if s.mdblist() != nil {
+		out = append(out, Attribution{Provider: "mdblist", Name: "MDBList", URL: "https://mdblist.com",
+			Notice: "Rotten Tomatoes scores are provided by MDBList."})
 	}
 	return out
 }

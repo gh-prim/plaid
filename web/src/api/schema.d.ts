@@ -1950,7 +1950,7 @@ export interface components {
     }
     Attribution: {
       /** @enum {string} */
-      provider: 'tmdb' | 'fanart'
+      provider: 'tmdb' | 'fanart' | 'mdblist'
       name: string
       url: string
       /** @description English text; clients use the i18n key about.attribution.<provider>. */
@@ -2782,7 +2782,7 @@ export interface components {
     }
     ProviderStatus: {
       /** @enum {string} */
-      provider: 'tmdb' | 'fanart'
+      provider: 'tmdb' | 'fanart' | 'mdblist'
       /** @enum {string} */
       state: 'ok' | 'unreachable' | 'invalid_key' | 'no_api_key' | 'disabled'
       /** @enum {string} */
@@ -2814,11 +2814,17 @@ export interface components {
         keySource: 'custom' | 'env' | 'builtin' | 'none'
         personalKeySet: boolean
       }
+      /** @description MDBList, for Rotten Tomatoes scores. Release binaries have no built-in key. */
+      mdblist: {
+        /** @enum {string} */
+        keySource: 'custom' | 'env' | 'builtin' | 'none'
+      }
     }
     MetadataSettingsPatch: {
       tmdbApiKey?: string | null
       fanartApiKey?: string | null
       fanartPersonalKey?: string | null
+      mdblistApiKey?: string | null
     }
     CollectionSummary: {
       id: string
@@ -2871,6 +2877,10 @@ export interface components {
       showStatus?: 'returning' | 'ended' | 'canceled' | 'in_production'
       runtimeMinutes?: number
       ratingCount?: number
+      /** @description Rotten Tomatoes' Tomatometer, from MDBList; absent when unknown or without an MDBList key. */
+      criticScore?: number
+      /** @description Rotten Tomatoes' Popcornmeter (audience score), from MDBList. */
+      audienceScore?: number
       certificationRegion?: string
       /** @description Studios, or networks for a show. */
       studios: string[]
