@@ -6,6 +6,7 @@ import { Devices } from './Devices'
 import { Libraries, LibraryPage } from './Libraries'
 import { People, Person } from './People'
 import { Playing } from './Playing'
+import { GroupPage } from './Sharing'
 import { RemoteAccess } from './RemoteAccess'
 import { Review, Unrecognized } from './Review'
 import { Metadata, Problems, Transcoding } from './Settings'
@@ -26,6 +27,7 @@ export default function AdminApp() {
         <Route path="libraries/:id/unrecognized" element={<Unrecognized />} />
         <Route path="libraries/:id/review" element={<Review />} />
         <Route path="people" element={<People />} />
+        <Route path="people/groups/:id" element={<GroupPage />} />
         <Route path="people/:id" element={<Person />} />
         <Route path="devices" element={<Devices />} />
         <Route path="transcoding" element={<Transcoding />} />

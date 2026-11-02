@@ -226,6 +226,49 @@
     "signOut": "Se déconnecter",
     "username": "Nom d'utilisateur"
   },
+  "avatar": {
+    "build": "Créer mon avatar",
+    "builder": {
+      "background": "Fond",
+      "color": "Couleur",
+      "loading": "On dessine ton avatar",
+      "none": "Aucun",
+      "ok": "OK",
+      "random": "Au hasard",
+      "skin": "Peau",
+      "tab": {
+        "background": "Fond",
+        "beard": "Barbe",
+        "earrings": "Boucles",
+        "eyebrows": "Sourcils",
+        "eyes": "Yeux",
+        "freckles": "Taches de rousseur",
+        "glasses": "Lunettes",
+        "hair": "Cheveux",
+        "head": "Visage",
+        "mouth": "Bouche",
+        "nose": "Nez"
+      },
+      "title": "Ton avatar",
+      "variant": "Choix {{n, number}}"
+    },
+    "buildHelp": "Visage, cheveux, lunettes, couleurs",
+    "change": "Changer l’image",
+    "crop": {
+      "choose": "En choisir une autre",
+      "error": "Ce fichier n’est pas une photo que PLAID sait lire. Essaie un JPEG ou un PNG.",
+      "help": "Glisse pour cadrer, zoome avec le curseur",
+      "title": "Ta photo",
+      "use": "Utiliser",
+      "zoom": "Zoom"
+    },
+    "initial": "Juste mon initiale",
+    "initialHelp": "Sur la couleur de ton choix",
+    "lead": "On la voit sur « Qui regarde ? » et dans les parties.",
+    "photo": "Une photo",
+    "photoHelp": "Prendre ou choisir dans tes photos",
+    "title": "Ta tête dans PLAID"
+  },
   "card": {
     "episode": "S{{season, number}} É{{episode, number}} · {{title}}",
     "episodeShort": "S{{season, number}} É{{episode, number}}",
@@ -248,6 +291,7 @@
     "close": "Fermer",
     "copied": "Copié",
     "copy": "Copier",
+    "done": "Terminé",
     "loading": "Chargement",
     "retry": "Réessayer",
     "save": "Enregistrer",
@@ -268,6 +312,8 @@
     "generic": "Une erreur s'est produite. Réessaie.",
     "invalid_credentials": "Nom d'utilisateur ou mot de passe incorrect.",
     "invalid_pin": "Code PIN incorrect. Réessaie.",
+    "invitation_expired": "Ce lien d’invitation ne marche plus.",
+    "invitation_not_found": "Ce lien d’invitation n’existe pas. Vérifie que tu l’as copié en entier.",
     "last_admin": "Tu es le dernier admin. Nomme d’abord quelqu’un d’autre admin.",
     "last_profile": "Un compte a besoin d'au moins un profil.",
     "not_playable": "Ce fichier ne peut pas être lu.",
@@ -279,6 +325,7 @@
     "profile_required": "Choisis d’abord un profil.",
     "setup_code_required": "Ce code ne correspond pas. Copie le plus récent depuis le journal.",
     "setup_complete": "Ce serveur est déjà configuré. Connecte-toi.",
+    "stream_limit_reached": "Tu regardes déjà autant de vidéos à la fois que tu en as le droit. Arrête-en une d’abord.",
     "too_many_attempts": "Trop de tentatives. Réessaie dans {{minutes, number}} min.",
     "transcode_limit_reached": "Le serveur convertit déjà d’autres vidéos. Réessaie dans un instant, ou choisis une qualité plus basse.",
     "transcode_storage_full": "Le serveur n’a plus de place pour convertir la vidéo. Demande à l’admin d’en libérer.",
@@ -428,6 +475,34 @@
     "unreachable": {
       "body": "Il est peut-être éteint, ou son propriétaire a coupé l’accès à distance. Réessaie dans un instant.",
       "title": "Impossible de joindre ce serveur"
+    }
+  },
+  "invite": {
+    "account": {
+      "lead": "Sur {{serverName}}, rien que pour toi.",
+      "title": "Crée ton compte"
+    },
+    "expired": {
+      "body": "Il a déjà servi, ou il a expiré. Demande-en un nouveau à la personne qui t’a invité.",
+      "title": "Ce lien ne marche plus"
+    },
+    "haveAccount": "J’ai déjà un compte",
+    "lead": "Crée ton compte pour regarder ses films et séries. Ça prend une minute.",
+    "next": "Continuer",
+    "openApp": "Ouvrir dans l’app PLAID",
+    "pin": {
+      "confirm": "Retape-le",
+      "label": "Code, 4 chiffres",
+      "lead": "4 chiffres pour ouvrir ton profil. Personne d’autre sur la TV ne pourra l’utiliser.",
+      "mismatch": "Les deux codes ne sont pas pareils. Choisis-le à nouveau.",
+      "title": "Choisis ton code"
+    },
+    "start": "Créer mon compte",
+    "title": "{{invitedBy}} t’invite sur {{serverName}}",
+    "welcome": {
+      "go": "Commencer à regarder",
+      "lead": "Tout ce que {{serverName}} partage avec toi est prêt.",
+      "title": "Bienvenue, {{name}}"
     }
   },
   "item": {
@@ -777,10 +852,8 @@
       "empty": "Connecté sur aucun appareil.",
       "label": "Appareils connectés"
     },
-    "disable": "Désactiver",
     "disabled": "Désactivé : ne peut pas se connecter",
     "empty": "Toi seul pour l’instant. Ajoute des personnes pour que chacune ait ses profils et son historique.",
-    "enable": "Réactiver",
     "mustChange": "Choisira un nouveau mot de passe à la prochaine connexion",
     "pair": "Associer une TV",
     "resetPassword": "Réinitialiser le mot de passe",
@@ -1059,6 +1132,7 @@
     "hdr_not_supported": "Cet écran n’affiche pas le HDR : les couleurs sont converties en SDR.",
     "keyframe_index_missing": "Ce fichier n’a pas d’index (souvent un vieux AVI ou TS) : il est converti pour pouvoir avancer.",
     "other": "Converti pour cet appareil.",
+    "quality_capped": "Au-dessus de la meilleure qualité autorisée : le serveur la convertit plus bas.",
     "resolution_too_high": "La vidéo est plus grande que ce que l’appareil affiche : elle est réduite.",
     "subtitle_burn_in": "Ces sous-titres sont des images, ils sont donc incrustés dans la vidéo.",
     "video_codec_not_supported": "Cet appareil ne lit pas ce format vidéo : il est converti.",
@@ -1264,6 +1338,122 @@
     "watch": {
       "limit": "La limite de surveillance de fichiers de Linux est atteinte : {{path}} est vérifié toutes les {{minutes, number}} minutes au lieu d’en direct. Pour l’augmenter :",
       "network": "{{path}} est sur un partage réseau : les nouveaux fichiers n’apparaissent pas tout de suite. PLAID le vérifie toutes les {{minutes, number}} minutes."
+    }
+  },
+  "sharing": {
+    "downloads": "Téléchargements hors ligne",
+    "fromGroup": "{{value}} (du groupe)",
+    "group": {
+      "delete": "Supprimer le groupe",
+      "deleteConfirm": "Supprimer le groupe {{name}} ? Ses membres perdent tout de suite ce que seul ce groupe leur donnait.",
+      "deleted": "Le groupe {{name}} est supprimé.",
+      "deleteFoot": "Ses membres gardent leurs autres groupes et leurs exceptions.",
+      "everything": "Tout",
+      "exceptions_one": "{{count, number}} personne de ce groupe a ses propres exceptions.",
+      "exceptions_many": "{{count, number}} personnes de ce groupe ont leurs propres exceptions.",
+      "exceptions_other": "{{count, number}} personnes de ce groupe ont leurs propres exceptions.",
+      "gone": "Ce groupe n’existe plus.",
+      "household": "Foyer",
+      "householdFoot": "Un groupe du foyer voit tout. Désactive-le pour choisir les bibliothèques.",
+      "householdHelp": "Voit toutes les bibliothèques, vidéos de famille et futures bibliothèques comprises",
+      "invite": "Inviter dans ce groupe",
+      "lead_one": "Tout le monde dans ce groupe a le même accès. Change-le ici, ça change pour {{count, number}} personne d’un coup.",
+      "lead_many": "Tout le monde dans ce groupe a le même accès. Change-le ici, ça change pour les {{count, number}} d’un coup.",
+      "lead_other": "Tout le monde dans ce groupe a le même accès. Change-le ici, ça change pour les {{count, number}} d’un coup.",
+      "name": "Nom du groupe",
+      "nameTaken": "Un autre groupe porte déjà ce nom.",
+      "noLibrary": "Aucune bibliothèque",
+      "rename": "Renommer"
+    },
+    "groups": {
+      "foot": "Un groupe règle l’accès de tous ceux qui y sont. Une personne peut être dans plusieurs groupes : elle a le meilleur de chacun.",
+      "new": "Nouveau groupe",
+      "title": "Groupes"
+    },
+    "invitations": {
+      "cancel": "Annuler",
+      "expires": "expire le {{date}}",
+      "foot": "Un lien ne marche qu’une fois. La personne y crée son propre compte.",
+      "title_zero": "Invitations",
+      "title_one": "Invitations · {{count, number}}",
+      "title_many": "Invitations · {{count, number}}",
+      "title_other": "Invitations · {{count, number}}"
+    },
+    "invite": {
+      "copied": "Copié",
+      "copy": "Copier le lien",
+      "create": "Créer le lien",
+      "days_one": "{{count, number}} jour",
+      "days_many": "{{count, number}} jours",
+      "days_other": "{{count, number}} jours",
+      "expires": "Le lien expire dans",
+      "groups": "La mettre dans des groupes",
+      "lead": "La personne crée son propre compte depuis le lien. Le lien ne marche qu’une fois.",
+      "name": "Son nom, pour toi",
+      "once_one": "Envoie-le comme tu veux. Il marche une fois, pendant {{count, number}} jour.",
+      "once_many": "Envoie-le comme tu veux. Il marche une fois, pendant {{count, number}} jours.",
+      "once_other": "Envoie-le comme tu veux. Il marche une fois, pendant {{count, number}} jours.",
+      "ready": "Le lien pour {{name}}",
+      "title": "Inviter quelqu’un"
+    },
+    "libraries": {
+      "title": "Bibliothèques"
+    },
+    "library": {
+      "adminsFoot": "Les admins voient toujours toutes les bibliothèques.",
+      "householdOnly": "Jamais partagée hors du foyer",
+      "householdOnlyFoot": "Vidéos de famille et autres : seuls les admins et les groupes du foyer la voient, quoi qu’on règle ailleurs.",
+      "householdOnlyLabel": "Foyer uniquement",
+      "movies_one": "{{count, number}} titre",
+      "movies_many": "{{count, number}} titres",
+      "movies_other": "{{count, number}} titres",
+      "nobody": "Seulement les admins",
+      "onTop": "En plus de {{groups}}",
+      "shows_one": "{{count, number}} série",
+      "shows_many": "{{count, number}} séries",
+      "shows_other": "{{count, number}} séries",
+      "who": "Qui peut la voir"
+    },
+    "more": "+{{n, number}}",
+    "party": {
+      "join": "Peut rejoindre, pas lancer",
+      "label": "Plaid Party",
+      "none": "Ne peut pas rejoindre",
+      "start": "Peut rejoindre et lancer"
+    },
+    "person": {
+      "groups": "Groupes",
+      "groupsFoot": "Son accès est le meilleur de ses groupes, plus ce qui suit.",
+      "just": "Rien que pour {{name}}",
+      "justFoot": "Les exceptions ne font qu’ajouter à ce que donnent ses groupes.",
+      "neverSeen": "jamais connecté",
+      "noGroups": "Pas encore de groupe",
+      "restore": "Rendre l’accès",
+      "suspend": "Retirer l’accès",
+      "suspendHelp": "Arrête ce qu’il ou elle regarde et le ou la déconnecte partout. Le compte reste.",
+      "viaGroup": "Par un groupe"
+    },
+    "profiles": "Peut ajouter des profils",
+    "profilesHelp": "Ses propres profils pour les gens avec qui il ou elle vit",
+    "quality": {
+      "1080p": "1080p",
+      "2160p": "4K",
+      "480p": "480p",
+      "720p": "720p",
+      "label": "Meilleure qualité",
+      "original": "Originale"
+    },
+    "rights": {
+      "title": "Ce qu’ils peuvent faire"
+    },
+    "soon": "Enregistré dès maintenant, utilisé quand les apps téléchargeront",
+    "streams": {
+      "count_one": "{{count, number}} lecture",
+      "count_many": "{{count, number}} lectures",
+      "count_other": "{{count, number}} lectures",
+      "help": "Par personne",
+      "label": "Lectures en même temps",
+      "unlimited": "Sans limite"
     }
   },
   "signIn": {

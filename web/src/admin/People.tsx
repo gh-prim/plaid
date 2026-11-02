@@ -7,8 +7,9 @@ import { useAuth } from '../auth/AuthProvider'
 import { errorMessage, failure, fieldCodes, fieldMessage, type Failure } from '../auth/errors'
 import { formatRelative } from '../lib/format'
 import { checkAccount } from '../onboarding/Account'
-import { Avatar, Button, ChoiceRow, Dialog, EmptyState, Mark, TextField } from '../ui'
+import { Avatar, avatarSrc, Button, ChoiceRow, Dialog, EmptyState, Mark, TextField } from '../ui'
 import { useAdmin } from './AdminLayout'
+import { GroupsGroup, InvitationsGroup, PersonSharing, useSharing } from './Sharing'
 import { Group, Loading, Row, Section, Switch } from './v2'
 
 type AdminUser = components['schemas']['AdminUser']
@@ -32,12 +33,17 @@ export function People() {
   const { t } = useTranslation()
   const { state } = useAuth()
   const me = state.status === 'ready' ? state.me?.user.id : undefined
-  const [users, setUsers] = useState<AdminUser[]>()
+  const { i18n } = useTranslation()
+  const locale = i18n.resolvedLanguage ?? 'en'
+  const sharing = useSharing()
+  const users = sharing.data?.users
+  const load = sharing.reload
   const [adding, setAdding] = useState(false)
-  const load = useCallback(() => api.GET('/users').then(({ data }) => setUsers(data ?? [])), [])
-  useEffect(() => {
-    api.GET('/users').then(({ data }) => setUsers(data ?? []))
-  }, [])
+  const groupNames = (u: AdminUser) =>
+    u.groupIds
+      .map((id) => sharing.data?.groups.find((g) => g.id === id)?.name)
+      .filter(Boolean)
+      .join(', ')
   const admins = (users ?? []).filter((u) => u.role === 'admin' && !u.disabled).length
 
   return (
@@ -54,11 +60,23 @@ export function People() {
             <Row
               key={u.id}
               to={`/admin/people/${u.id}`}
-              avatar={<Avatar name={u.displayName} size={40} />}
+              avatar={
+                <Avatar
+                  name={u.displayName}
+                  color={u.avatarColor + 1}
+                  picture={u.avatar.url}
+                  size={40}
+                />
+              }
               label={u.displayName}
-              value={u.role === 'admin' ? t('people.role.admin') : undefined}
+              value={u.role === 'admin' ? t('people.role.admin') : groupNames(u) || undefined}
               sub={[
                 u.username,
+                u.lastSeenAt
+                  ? t('people.device.lastSeen', {
+                      time: formatRelative(locale, new Date(u.lastSeenAt)),
+                    })
+                  : t('sharing.person.neverSeen'),
                 u.id === me ? t('people.thisIsYou') : undefined,
                 u.disabled ? t('people.disabled') : undefined,
                 u.mustChangePassword ? t('people.mustChange') : undefined,
@@ -71,11 +89,27 @@ export function People() {
         </Group>
       )}
       {users && users.length <= 1 && !adding && <EmptyState title={t('people.empty')} />}
+      {sharing.data && (
+        <GroupsGroup
+          groups={sharing.data.groups}
+          users={sharing.data.users}
+          libraries={sharing.data.libraries}
+          onChange={() => void load()}
+        />
+      )}
+      {sharing.data && (
+        <InvitationsGroup
+          invitations={sharing.data.invitations}
+          groups={sharing.data.groups}
+          onChange={() => void load()}
+        />
+      )}
       {users && (
         <Group foot={t('admin.people.foot')}>
           {adding ? (
             <Row label={t('people.add')}>
               <AddPerson
+                groups={sharing.data?.groups ?? []}
                 onDone={() => {
                   setAdding(false)
                   void load()
@@ -92,13 +126,26 @@ export function People() {
   )
 }
 
-function AddPerson({ onDone }: { onDone: () => void }) {
+function AddPerson({
+  groups,
+  onDone,
+}: {
+  groups: components['schemas']['Group'][]
+  onDone: () => void
+}) {
   const { t, i18n } = useTranslation()
   const [form, setForm] = useState({
     displayName: '',
     username: '',
     role: 'member' as 'member' | 'admin',
   })
+  // A new person starts in the household group, like members always did.
+  const [groupIds, setGroupIds] = useState<string[]>(() =>
+    groups
+      .filter((g) => g.household)
+      .map((g) => g.id)
+      .slice(0, 1),
+  )
   const [password] = useState(() => temporaryPassword())
   const [checked, setChecked] = useState(false)
   const [fail, setFail] = useState<Failure>()
@@ -118,6 +165,7 @@ function AddPerson({ onDone }: { onDone: () => void }) {
         temporaryPassword: password,
         role: form.role,
         locale: i18n.resolvedLanguage,
+        groupIds: form.role === 'member' ? groupIds : [],
       },
     })
     setSaving(false)
@@ -166,6 +214,29 @@ function AddPerson({ onDone }: { onDone: () => void }) {
           />
         </div>
       </fieldset>
+      {form.role === 'member' && groups.length > 0 && (
+        <fieldset className="ob__fieldset">
+          <legend className="ob__legend">{t('sharing.invite.groups')}</legend>
+          <ul className="sh__checks">
+            {groups.map((g) => (
+              <li key={g.id}>
+                <label className="sh__check">
+                  <input
+                    type="checkbox"
+                    checked={groupIds.includes(g.id)}
+                    onChange={(e) =>
+                      setGroupIds((p) =>
+                        e.target.checked ? [...p, g.id] : p.filter((x) => x !== g.id),
+                      )
+                    }
+                  />
+                  <span>{g.name}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      )}
       {fail && !['username_taken', 'validation_failed'].includes(fail.error?.code ?? '') && (
         <p role="alert" className="ob__folder-error">
           {errorMessage(t, fail)}
@@ -263,11 +334,15 @@ export function Person() {
       title={user.displayName}
       back={back}
       tile={
-        <span className="adm-sec__initial">
-          {user.displayName.trim().charAt(0).toLocaleUpperCase()}
-        </span>
+        user.avatar.url ? (
+          <img className="sh__tile-img" src={avatarSrc(user.avatar.url, 160)} alt="" />
+        ) : (
+          <span className="adm-sec__initial">
+            {user.displayName.trim().charAt(0).toLocaleUpperCase()}
+          </span>
+        )
       }
-      tileBg={`var(--party-${party})`}
+      tileBg={`var(--party-${user.avatar.url ? user.avatarColor + 1 : party})`}
       paneTitle={user.displayName}
       paneSub={[
         user.role === 'admin' ? t('people.role.admin') : t('people.role.user'),
@@ -300,12 +375,14 @@ export function Person() {
           }
         />
         <Row
-          label={user.disabled ? t('people.enable') : t('people.disable')}
-          sub={user.disabled ? t('people.disabled') : undefined}
+          label={user.disabled ? t('sharing.person.restore') : t('sharing.person.suspend')}
+          sub={user.disabled ? t('people.disabled') : t('sharing.person.suspendHelp')}
+          danger={!user.disabled}
           busy={busy === 'disabled'}
           onClick={() => void update('disabled', { disabled: !user.disabled })}
         />
       </Group>
+      <PersonSharing user={user} onChange={load} />
       {fail && (
         <p role="alert" className="adm__text pl-tone--error adm-sec__alert">
           <Mark tone="error" />

@@ -196,6 +196,106 @@ export interface paths {
     patch: operations['updateMyProfile']
     trace?: never
   }
+  '/me/profiles/{profileId}/avatar': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    get?: never
+    /** Show the initial, or an avatar made in the builder (F009) */
+    put: operations['setMyProfileAvatar']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/profiles/{profileId}/avatar/photo': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Use a photo, already cropped square by the client (F009)
+     * @description JPEG, PNG or WebP up to 8 MB. The server keeps a 512 px square JPEG, without the photo's metadata.
+     */
+    put: operations['setMyProfilePhoto']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/avatars/{profileId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    /**
+     * A profile's avatar or photo, square (F009)
+     * @description Any signed-in account can see any profile's picture (a party shows everyone's). A profile showing its initial has no picture: 404. `Profile.avatar.url` changes when the picture changes, so responses are immutable.
+     */
+    get: operations['getAvatar']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/avatar-builder': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * The parts and colors of the avatar builder (F009)
+     * @description The "Lorelei" style by Lisa Wischofsky, CC0 1.0, drawn with DiceBear's definition.
+     */
+    get: operations['getAvatarBuilder']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/avatar-builder/render': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Draw an avatar from options, for the builder's previews (F009) */
+    get: operations['renderAvatar']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/session/profile': {
     parameters: {
       query?: never
@@ -350,6 +450,127 @@ export interface paths {
     post?: never
     /** Sign out one device of an account (admin) */
     delete: operations['revokeUserSession']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/groups': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Sharing groups (admin, F009) */
+    get: operations['listGroups']
+    put?: never
+    /** Create a sharing group (admin, F009) */
+    post: operations['createGroup']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/groups/{groupId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        groupId: components['parameters']['GroupId']
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Delete a group; its members keep their other groups (admin, F009) */
+    delete: operations['deleteGroup']
+    options?: never
+    head?: never
+    /**
+     * Change a group's name, libraries or rights (admin, F009)
+     * @description The change applies at once to everyone in the group. A playback of a title that is no longer visible ends. A household-only library can only go to a household group (`422 household_only`).
+     */
+    patch: operations['updateGroup']
+    trace?: never
+  }
+  '/invitations': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Invitations not used yet and not expired (admin, F009) */
+    get: operations['listInvitations']
+    put?: never
+    /**
+     * Create a single-use invitation link (admin, F009)
+     * @description The token is returned once, here. The link is `/invite/{token}` on the server's address.
+     */
+    post: operations['createInvitation']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/invitations/{invitationId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        invitationId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Cancel an invitation that wasn't used (admin, F009) */
+    delete: operations['revokeInvitation']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/invite/check': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * What an invitation link is for, before creating the account (F009)
+     * @description A used, cancelled or expired link answers `410 invitation_expired`, an unknown one `404 invitation_not_found`. Repeated unknown tokens from one address return `429 too_many_attempts`.
+     */
+    post: operations['checkInvitation']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/invite/accept': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Create an account from an invitation and sign in (F009)
+     * @description The account is a member in the invitation's groups. Its first profile gets the 4-digit PIN, which is required. Web clients (`X-Plaid-Client: web`) get the session as a cookie, others get the token in the body.
+     */
+    post: operations['acceptInvitation']
+    delete?: never
     options?: never
     head?: never
     patch?: never
@@ -1689,6 +1910,161 @@ export interface components {
       locale: string
       mustChangePassword: boolean
     }
+    /**
+     * @description The best picture a person may get. Above it, playback transcodes down.
+     * @enum {string}
+     */
+    MaxQuality: 'original' | '2160p' | '1080p' | '720p' | '480p'
+    /**
+     * @description What a person may do with Plaid Party (F010).
+     * @enum {string}
+     */
+    PartyRight: 'none' | 'join' | 'start'
+    Rights: {
+      maxQuality: components['schemas']['MaxQuality']
+      /** @description Streams at the same time per person; null for no limit. */
+      maxStreams: number | null
+      /** @description Downloads for offline viewing (stored now, used by the apps once they download). */
+      downloads: boolean
+      party: components['schemas']['PartyRight']
+      canCreateProfiles: boolean
+    }
+    /** @description Rights given to one person on top of their groups. They only add; null takes the groups' value. */
+    RightsOverride: {
+      maxQuality?: components['schemas']['MaxQuality'] | null
+      maxStreams?: number | null
+      unlimitedStreams?: boolean | null
+      downloads?: boolean | null
+      party?: components['schemas']['PartyRight'] | null
+      canCreateProfiles?: boolean | null
+    }
+    /** @description What an account gets from its role, groups and exceptions together. */
+    EffectiveAccess: {
+      /** @description The libraries it sees; null for all of them (admins and household groups). */
+      libraryIds: string[] | null
+      rights: components['schemas']['Rights']
+    }
+    Group: {
+      id: string
+      name: string
+      /** @description Sees every library, present and future, household-only ones included. */
+      household: boolean
+      /** @description Shared libraries; ignored for a household group. */
+      libraryIds: string[]
+      rights: components['schemas']['Rights']
+      memberIds: string[]
+    }
+    CreateGroupRequest: {
+      name: string
+      household?: boolean
+      libraryIds?: string[]
+      rights?: components['schemas']['Rights']
+    }
+    /** @description Absent fields are unchanged. */
+    UpdateGroupRequest: {
+      name?: string
+      household?: boolean
+      libraryIds?: string[]
+      rights?: components['schemas']['Rights']
+    }
+    Invitation: {
+      id: string
+      /** @description Who it is for, as the admin wrote it. */
+      name: string
+      groupIds: string[]
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      expiresAt: string
+    }
+    CreateInvitationRequest: {
+      name: string
+      /** @description At least one group, so the new account sees something. */
+      groupIds: string[]
+      /** @description Defaults to 7. */
+      expiresInDays?: number
+    }
+    CreatedInvitation: {
+      invitation: components['schemas']['Invitation']
+      /** @description Shown once; the link is `/invite/{token}`. */
+      token: string
+    }
+    InvitationTokenRequest: {
+      token: string
+    }
+    InvitationPreview: {
+      serverName: string
+      /** @description The name the admin gave; a suggestion for the display name. */
+      name: string
+      /** @description The display name of the admin who invited. */
+      invitedBy: string
+      /** Format: date-time */
+      expiresAt: string
+    }
+    AcceptInvitationRequest: {
+      token: string
+      displayName: string
+      username: string
+      password: string
+      /** @description 4 digits, required. It protects the first profile. */
+      pin: string
+      locale?: string
+      device?: components['schemas']['Device']
+    }
+    /** @enum {string} */
+    AvatarKind: 'initial' | 'builder' | 'photo'
+    Avatar: {
+      kind: components['schemas']['AvatarKind']
+      /** @description The picture (`/avatars/{profileId}?v=…`), absent for the initial. */
+      url?: string
+      options?: components['schemas']['AvatarOptions']
+    }
+    /** @description A built avatar: one variant per part, as listed by `GET /avatar-builder`. An optional part is absent or null for none. */
+    AvatarOptions: {
+      head: string
+      hair: string
+      eyes: string
+      eyebrows: string
+      mouth: string
+      nose: string
+      glasses?: string | null
+      beard?: string | null
+      earrings?: string | null
+      freckles?: string | null
+      /** @example #5b3a26 */
+      hairColor: string
+      /** @example #d9a07a */
+      skinColor: string
+    }
+    AvatarUpdate: {
+      /** @enum {string} */
+      kind: 'initial' | 'builder'
+      options?: components['schemas']['AvatarOptions']
+    }
+    AvatarPart: {
+      /** @enum {string} */
+      name:
+        | 'head'
+        | 'hair'
+        | 'eyes'
+        | 'eyebrows'
+        | 'mouth'
+        | 'nose'
+        | 'glasses'
+        | 'beard'
+        | 'earrings'
+        | 'freckles'
+      optional: boolean
+      variants: string[]
+    }
+    AvatarBuilder: {
+      parts: components['schemas']['AvatarPart'][]
+      hairColors: string[]
+      skinColors: string[]
+      defaults: components['schemas']['AvatarOptions']
+      /** @description Credit line for the style, shown in About. */
+      license: string
+    }
     AdminUser: {
       id: string
       username: string
@@ -1696,15 +2072,30 @@ export interface components {
       role: components['schemas']['Role']
       locale: string
       mustChangePassword: boolean
+      /** @description Suspended. A suspended account can't sign in; its account and history are kept. */
       disabled: boolean
       /** Format: date-time */
       createdAt: string
+      /**
+       * Format: date-time
+       * @description The most recent activity of any of its devices, null if it never signed in.
+       */
+      lastSeenAt: string | null
+      /** @description The default profile's color. */
+      avatarColor: number
+      avatar: components['schemas']['Avatar']
+      groupIds: string[]
+      /** @description Libraries given to this person on top of their groups (F009). */
+      extraLibraryIds: string[]
+      extraRights: components['schemas']['RightsOverride']
+      access: components['schemas']['EffectiveAccess']
     }
     Profile: {
       id: string
       name: string
-      /** @description Index of the `party-*` design token. */
+      /** @description Index of the `party-*` design token. The background of the initial and of a built avatar. */
       avatarColor: number
+      avatar: components['schemas']['Avatar']
       hasPin: boolean
       /** @description Age limit, one of 0, 7, 10, 12, 13, 16 or 18; null means no limit. Enforced by the browsing and playback features. */
       maxAge: number | null
@@ -1719,6 +2110,7 @@ export interface components {
       user: components['schemas']['User']
       profiles: components['schemas']['Profile'][]
       activeProfile?: components['schemas']['Profile']
+      access: components['schemas']['EffectiveAccess']
     }
     UpdateMeRequest: {
       displayName?: string
@@ -1776,12 +2168,20 @@ export interface components {
       temporaryPassword: string
       role: components['schemas']['Role']
       locale?: string
+      /** @description The member's groups (F009). Without any, a member sees no library. */
+      groupIds?: string[]
     }
     UpdateUserRequest: {
       displayName?: string
       role?: components['schemas']['Role']
       locale?: string
+      /** @description Suspend (true) or restore (false). Suspending ends every session and playback of the account at once. */
       disabled?: boolean
+      /** @description Replaces the account's groups (F009). */
+      groupIds?: string[]
+      /** @description Replaces the libraries given on top of the groups (F009). */
+      extraLibraryIds?: string[]
+      extraRights?: components['schemas']['RightsOverride']
     }
     ResetPasswordRequest: {
       temporaryPassword: string
@@ -1852,6 +2252,8 @@ export interface components {
       folders: components['schemas']['LibraryFolder'][]
       counts: components['schemas']['LibraryCounts']
       scan: components['schemas']['ScanProgress']
+      /** @description Never shared outside the household (F009). Only admins and household groups see it. */
+      householdOnly: boolean
     }
     CreateLibraryRequest: {
       name: string
@@ -1871,6 +2273,8 @@ export interface components {
       scanIntervalSeconds?: number | null
       metadataLanguage?: components['schemas']['MetadataLanguage']
       metadataRegion?: components['schemas']['MetadataRegion']
+      /** @description Making a library household-only removes it from every non-household group and person (F009). */
+      householdOnly?: boolean
     }
     /**
      * @description ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
@@ -2865,6 +3269,9 @@ export interface components {
     Cursor: string
     Limit: number
     ProfileId: string
+    GroupId: string
+    /** @description Side in pixels, defaults to 256. */
+    AvatarSize: number
     SessionId: string
     UserId: string
     PlaybackSessionId: string
@@ -3188,6 +3595,140 @@ export interface operations {
       default: components['responses']['Error']
     }
   }
+  setMyProfileAvatar: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AvatarUpdate']
+      }
+    }
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Profile']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  setMyProfilePhoto: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'image/*': string
+      }
+    }
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Profile']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getAvatar: {
+    parameters: {
+      query?: {
+        /** @description Side in pixels, defaults to 256. */
+        size?: components['parameters']['AvatarSize']
+      }
+      header?: never
+      path: {
+        profileId: components['parameters']['ProfileId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The picture */
+      200: {
+        headers: {
+          'Cache-Control'?: string
+          'X-Content-Type-Options'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'image/png': string
+          'image/jpeg': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getAvatarBuilder: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The builder */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AvatarBuilder']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  renderAvatar: {
+    parameters: {
+      query: {
+        /** @description AvatarOptions as JSON. */
+        options: string
+        /** @description Background, an avatar color index; none for transparent. */
+        color?: number
+        /** @description Side in pixels, defaults to 256. */
+        size?: components['parameters']['AvatarSize']
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The avatar */
+      200: {
+        headers: {
+          'Cache-Control'?: string
+          'X-Content-Type-Options'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'image/png': string
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
   selectProfile: {
     parameters: {
       query?: never
@@ -3434,6 +3975,217 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listGroups: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Groups, by name */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Group'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  createGroup: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateGroupRequest']
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Group']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  deleteGroup: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        groupId: components['parameters']['GroupId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Deleted */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateGroup: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        groupId: components['parameters']['GroupId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateGroupRequest']
+      }
+    }
+    responses: {
+      /** @description Updated */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Group']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listInvitations: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Pending invitations, newest first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Invitation'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  createInvitation: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateInvitationRequest']
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['CreatedInvitation']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  revokeInvitation: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        invitationId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Cancelled */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  checkInvitation: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['InvitationTokenRequest']
+      }
+    }
+    responses: {
+      /** @description The invitation */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['InvitationPreview']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  acceptInvitation: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AcceptInvitationRequest']
+      }
+    }
+    responses: {
+      /** @description Account created and signed in */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AuthResult']
+        }
       }
       default: components['responses']['Error']
     }

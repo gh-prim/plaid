@@ -41,6 +41,12 @@ export function errorMessage(t: TFunction, f: Failure): string {
       return t('errors.pairing_expired')
     case 'pairing_not_found':
       return t('errors.pairing_not_found')
+    case 'invitation_expired':
+      return t('errors.invitation_expired')
+    case 'invitation_not_found':
+      return t('errors.invitation_not_found')
+    case 'stream_limit_reached':
+      return t('errors.stream_limit_reached')
     case 'validation_failed':
       return t('errors.validation_failed')
     case 'unauthorized':

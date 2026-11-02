@@ -202,6 +202,49 @@
     "signOut": "Sign out",
     "username": "Username"
   },
+  "avatar": {
+    "build": "Create my avatar",
+    "builder": {
+      "background": "Background",
+      "color": "Color",
+      "loading": "Drawing your avatar",
+      "none": "None",
+      "ok": "OK",
+      "random": "Surprise me",
+      "skin": "Skin",
+      "tab": {
+        "background": "Background",
+        "beard": "Beard",
+        "earrings": "Earrings",
+        "eyebrows": "Eyebrows",
+        "eyes": "Eyes",
+        "freckles": "Freckles",
+        "glasses": "Glasses",
+        "hair": "Hair",
+        "head": "Face",
+        "mouth": "Mouth",
+        "nose": "Nose"
+      },
+      "title": "Your avatar",
+      "variant": "Option {{n, number}}"
+    },
+    "buildHelp": "Face, hair, glasses, colors",
+    "change": "Change the picture",
+    "crop": {
+      "choose": "Choose another",
+      "error": "This file isn’t a photo PLAID can read. Try a JPEG or PNG.",
+      "help": "Drag to frame it, zoom with the slider",
+      "title": "Your photo",
+      "use": "Use",
+      "zoom": "Zoom"
+    },
+    "initial": "Just my initial",
+    "initialHelp": "On the color of your choice",
+    "lead": "It shows on “Who’s watching?” and in parties.",
+    "photo": "A photo",
+    "photoHelp": "Take one or choose one",
+    "title": "Your face in PLAID"
+  },
   "card": {
     "episode": "S{{season, number}} E{{episode, number}} · {{title}}",
     "episodeShort": "S{{season, number}} E{{episode, number}}",
@@ -223,6 +266,7 @@
     "close": "Close",
     "copied": "Copied",
     "copy": "Copy",
+    "done": "Done",
     "loading": "Loading",
     "retry": "Try again",
     "save": "Save",
@@ -243,6 +287,8 @@
     "generic": "Something went wrong. Try again.",
     "invalid_credentials": "Wrong username or password.",
     "invalid_pin": "Wrong PIN. Try again.",
+    "invitation_expired": "This invitation link no longer works.",
+    "invitation_not_found": "This invitation link doesn’t exist. Check you copied all of it.",
     "last_admin": "You’re the last admin. Make someone else an admin first.",
     "last_profile": "An account needs at least one profile.",
     "not_playable": "This file can’t be played.",
@@ -254,6 +300,7 @@
     "profile_required": "Pick a profile first.",
     "setup_code_required": "This code doesn’t match. Copy the latest one from the log.",
     "setup_complete": "This server is already set up. Sign in instead.",
+    "stream_limit_reached": "You’re already watching as many videos at once as you’re allowed to. Stop one first.",
     "too_many_attempts": "Too many attempts. Try again in {{minutes, number}} min.",
     "transcode_limit_reached": "The server is busy converting other videos. Try again in a moment, or pick a lower quality.",
     "transcode_storage_full": "The server is out of space for video conversion. Ask the admin to free some up.",
@@ -398,6 +445,34 @@
     "unreachable": {
       "body": "It may be switched off, or its owner turned remote access off. Try again in a moment.",
       "title": "Can't reach this server"
+    }
+  },
+  "invite": {
+    "account": {
+      "lead": "On {{serverName}}, just for you.",
+      "title": "Create your account"
+    },
+    "expired": {
+      "body": "It was already used, or it expired. Ask whoever invited you for a new one.",
+      "title": "This link no longer works"
+    },
+    "haveAccount": "I already have an account",
+    "lead": "Create your account to watch their films and shows. It takes a minute.",
+    "next": "Continue",
+    "openApp": "Open in the PLAID app",
+    "pin": {
+      "confirm": "Type it again",
+      "label": "Code, 4 digits",
+      "lead": "4 digits to open your profile. Nobody else on the TV can then use it.",
+      "mismatch": "The two codes don’t match. Choose it again.",
+      "title": "Choose your code"
+    },
+    "start": "Create my account",
+    "title": "{{invitedBy}} invites you to {{serverName}}",
+    "welcome": {
+      "go": "Start watching",
+      "lead": "Everything {{serverName}} shares with you is ready.",
+      "title": "Welcome, {{name}}"
     }
   },
   "item": {
@@ -737,10 +812,8 @@
       "empty": "Not signed in on any device.",
       "label": "Signed-in devices"
     },
-    "disable": "Disable",
     "disabled": "Disabled: can’t sign in",
     "empty": "Only you so far. Add people so each gets their own profiles and watch history.",
-    "enable": "Enable",
     "mustChange": "Chooses a new password at next sign-in",
     "pair": "Pair a TV",
     "resetPassword": "Reset password",
@@ -1015,6 +1088,7 @@
     "hdr_not_supported": "This screen doesn’t show HDR, so colors are converted to SDR.",
     "keyframe_index_missing": "This file has no index (often an old AVI or TS), so it’s converted to allow seeking.",
     "other": "Converted for this device.",
+    "quality_capped": "Above the best quality you’re allowed: the server converts it down.",
     "resolution_too_high": "The video is bigger than this device can show, so it’s scaled down.",
     "subtitle_burn_in": "These subtitles are images, so they’re drawn into the video.",
     "video_codec_not_supported": "This device can’t play this video format, so it’s converted.",
@@ -1210,6 +1284,114 @@
     "watch": {
       "limit": "Linux’s file watch limit is reached, so {{path}} is checked every {{minutes, number}} minutes instead of live. To raise the limit:",
       "network": "{{path}} is on a network share, so new files aren’t seen right away. PLAID checks it every {{minutes, number}} minutes."
+    }
+  },
+  "sharing": {
+    "downloads": "Downloads for offline",
+    "fromGroup": "{{value}} (from the group)",
+    "group": {
+      "delete": "Delete group",
+      "deleteConfirm": "Delete the group {{name}}? Its members lose what only this group gave them, at once.",
+      "deleted": "The group {{name}} is deleted.",
+      "deleteFoot": "People in it keep their other groups and their exceptions.",
+      "everything": "Everything",
+      "exceptions_one": "{{count, number}} person in this group has their own exceptions.",
+      "exceptions_other": "{{count, number}} people in this group have their own exceptions.",
+      "gone": "This group no longer exists.",
+      "household": "Household",
+      "householdFoot": "A household group sees everything. Turn it off to choose libraries.",
+      "householdHelp": "Sees every library, home videos and future libraries included",
+      "invite": "Invite to this group",
+      "lead_one": "Everyone in this group gets the same access. Change it here, it changes for {{count, number}} person at once.",
+      "lead_other": "Everyone in this group gets the same access. Change it here, it changes for all {{count, number}} at once.",
+      "name": "Group name",
+      "nameTaken": "Another group already has this name.",
+      "noLibrary": "No library",
+      "rename": "Rename"
+    },
+    "groups": {
+      "foot": "A group sets the access of everyone in it. A person can be in several groups: they get the best of each.",
+      "new": "New group",
+      "title": "Groups"
+    },
+    "invitations": {
+      "cancel": "Cancel",
+      "expires": "expires {{date}}",
+      "foot": "A link works once. The person creates their own account from it.",
+      "title_zero": "Invitations",
+      "title_one": "Invitations · {{count, number}}",
+      "title_other": "Invitations · {{count, number}}"
+    },
+    "invite": {
+      "copied": "Copied",
+      "copy": "Copy the link",
+      "create": "Create the link",
+      "days_one": "{{count, number}} day",
+      "days_other": "{{count, number}} days",
+      "expires": "Link expires in",
+      "groups": "Put them in groups",
+      "lead": "They create their own account from the link. The link works once.",
+      "name": "Their name, for you",
+      "once_one": "Send it however you like. It works once, for {{count, number}} day.",
+      "once_other": "Send it however you like. It works once, for {{count, number}} days.",
+      "ready": "The link for {{name}}",
+      "title": "Invite someone"
+    },
+    "libraries": {
+      "title": "Libraries"
+    },
+    "library": {
+      "adminsFoot": "Admins always see every library.",
+      "householdOnly": "Never shared outside the household",
+      "householdOnlyFoot": "Home videos and the like: only admins and household groups ever see it, whatever else is set.",
+      "householdOnlyLabel": "Household only",
+      "movies_one": "{{count, number}} title",
+      "movies_other": "{{count, number}} titles",
+      "nobody": "Only admins",
+      "onTop": "Added on top of {{groups}}",
+      "shows_one": "{{count, number}} show",
+      "shows_other": "{{count, number}} shows",
+      "who": "Who can see it"
+    },
+    "more": "+{{n, number}}",
+    "party": {
+      "join": "Can join, can’t start",
+      "label": "Plaid Party",
+      "none": "Can’t join",
+      "start": "Can join and start"
+    },
+    "person": {
+      "groups": "Groups",
+      "groupsFoot": "Their access is the best of their groups, plus what’s below.",
+      "just": "Just for {{name}}",
+      "justFoot": "Exceptions only add to what their groups give.",
+      "neverSeen": "never signed in",
+      "noGroups": "No group yet",
+      "restore": "Give access back",
+      "suspend": "Revoke access",
+      "suspendHelp": "Stops what they’re watching now and signs them out everywhere. Their account stays.",
+      "viaGroup": "From a group"
+    },
+    "profiles": "Can add profiles",
+    "profilesHelp": "Their own profiles for the people they live with",
+    "quality": {
+      "1080p": "1080p",
+      "2160p": "4K",
+      "480p": "480p",
+      "720p": "720p",
+      "label": "Best quality",
+      "original": "Original"
+    },
+    "rights": {
+      "title": "What they can do"
+    },
+    "soon": "Saved now, used once the apps download",
+    "streams": {
+      "count_one": "{{count, number}} stream",
+      "count_other": "{{count, number}} streams",
+      "help": "Per person",
+      "label": "Streams at the same time",
+      "unlimited": "No limit"
     }
   },
   "signIn": {

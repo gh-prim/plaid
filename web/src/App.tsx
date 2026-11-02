@@ -11,6 +11,8 @@ import { SearchPage } from './browse/SearchPage'
 import { LibraryGrid } from './browse/LibraryGrid'
 import { Shell } from './browse/Shell'
 import { ChangePassword } from './pages/ChangePassword'
+import { Invite } from './pages/Invite'
+import { MyAvatar } from './pages/MyAvatar'
 import { Pair } from './pages/Pair'
 import { ProfilePicker } from './pages/ProfilePicker'
 import { SignIn } from './pages/SignIn'
@@ -81,6 +83,16 @@ export function AppRoutes() {
           element={
             <RequireStep allow={['profiles', 'app']}>
               <ProfilePicker />
+            </RequireStep>
+          }
+        />
+        {/* An invitation link works signed in or not (F009). */}
+        <Route path="/invite/:token" element={<Invite />} />
+        <Route
+          path="/me/avatar"
+          element={
+            <RequireStep allow={['app']}>
+              <MyAvatar />
             </RequireStep>
           }
         />

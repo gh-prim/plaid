@@ -44,6 +44,7 @@ export const profile = (id: string, name: string, extra: Record<string, unknown>
   id,
   name,
   avatarColor: 0,
+  avatar: { kind: 'initial' },
   hasPin: false,
   maxAge: null,
   allowUnrated: true,
@@ -61,6 +62,26 @@ export const user = (extra: Record<string, unknown> = {}) => ({
   mustChangePassword: false,
   ...extra,
 })
+
+/** What F009 adds to every account in GET /users. */
+export const sharing = {
+  lastSeenAt: null,
+  avatarColor: 0,
+  avatar: { kind: 'initial' },
+  groupIds: [],
+  extraLibraryIds: [],
+  extraRights: {},
+  access: {
+    libraryIds: null,
+    rights: {
+      maxQuality: 'original',
+      maxStreams: null,
+      downloads: true,
+      party: 'start',
+      canCreateProfiles: true,
+    },
+  },
+}
 
 export const server = (setupComplete: boolean): Reply => ({
   status: 200,

@@ -9,6 +9,7 @@ import { PickerSheet } from '../onboarding/PickerSheet'
 import { useServer } from '../onboarding/Page'
 import { Button, CommandBlock, Dialog, EmptyState, TextField } from '../ui'
 import { useAdmin } from './AdminLayout'
+import { LibrarySharing } from './Sharing'
 import { Group, Loading, Row, Section } from './v2'
 
 type Library = components['schemas']['Library']
@@ -337,6 +338,8 @@ export function LibraryPage() {
           onClick={() => void act('full', () => scan(true))}
         />
       </Group>
+
+      <LibrarySharing library={lib} onChange={() => void refresh()} />
 
       <Group>
         <Row danger label={t('libraries.delete.label')} onClick={() => setDeleting(true)} />

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { createInstance } from 'i18next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import en from '../locales/en/common.json'
-import { apiError, fakeApi, profile, server, user } from '../test/fakeApi'
+import { apiError, fakeApi, profile, server, sharing, user } from '../test/fakeApi'
 import { renderApp } from '../test/renderApp'
 import { depth, travel } from './AdminLayout'
 import { reasonCodes, reasonText } from './reasons'
@@ -431,6 +431,7 @@ describe('people', () => {
       mustChangePassword: false,
       disabled: false,
       createdAt: '2026-10-01T00:00:00Z',
+      ...sharing,
     },
   ]
   it('explains the last admin', async () => {
@@ -442,7 +443,7 @@ describe('people', () => {
       }),
     )
     await renderApp('/admin/people/u1')
-    await userEvent.click(await screen.findByRole('button', { name: 'Disable' }))
+    await userEvent.click(await screen.findByRole('button', { name: /Revoke access/ }))
     expect(
       await screen.findByText('You’re the last admin. Make someone else an admin first.'),
     ).toBeInTheDocument()
@@ -460,6 +461,7 @@ describe('people', () => {
               deviceName: 'Living-room TV',
               deviceType: 'tv',
               createdAt: '2026-10-01T00:00:00Z',
+              ...sharing,
               lastSeenAt: '2026-10-29T10:00:00Z',
               current: false,
             },
@@ -631,6 +633,7 @@ describe('section pages (V2)', () => {
       mustChangePassword: false,
       disabled: false,
       createdAt: '2026-10-01T00:00:00Z',
+      ...sharing,
     },
     {
       id: 'u2',
@@ -641,6 +644,7 @@ describe('section pages (V2)', () => {
       mustChangePassword: false,
       disabled: false,
       createdAt: '2026-10-02T00:00:00Z',
+      ...sharing,
     },
   ]
   const session = (id: string, deviceName: string, deviceType: string, lastSeenAt: string) => ({
