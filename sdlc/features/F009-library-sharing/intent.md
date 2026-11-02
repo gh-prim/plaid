@@ -1,9 +1,9 @@
 ---
 id: F009
 title: Library sharing
-owner: TBD
+owner: gh-prim
 reviewer: TBD
-status: draft
+status: draft            # written with the code; accepted in PR 77's review
 phase: 3
 apps: [server, web]
 created: 2026-10-26
@@ -23,7 +23,7 @@ The admin invites a friend by link. The friend creates an account on the server 
 
 ## Success criteria
 - [ ] Single-use, time-limited invitation link.
-- [ ] Sharing per library or per collection.
+- [ ] Sharing per library (per collection was dropped, see Decisions).
 - [ ] Permissions: max quality, downloads allowed or not, number of simultaneous streams.
 - [ ] Immediate revocation, including active streams.
 - [ ] The friend never sees non-shared libraries, neither in the API nor in search.
