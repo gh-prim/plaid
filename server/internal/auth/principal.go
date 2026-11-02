@@ -25,10 +25,18 @@ type Principal struct {
 	ProfileID          string
 	Role               Role
 	MustChangePassword bool
+	// GuestID and PartyID are set for a Plaid Party guest (F010-R5): someone
+	// without an account who joined one party from its link. UserID,
+	// SessionID and ProfileID are empty then.
+	GuestID string
+	PartyID string
 }
 
 // IsAdmin reports whether p can use admin-only routes.
 func (p Principal) IsAdmin() bool { return p.Role == RoleAdmin }
+
+// IsGuest reports whether p is a Plaid Party guest.
+func (p Principal) IsGuest() bool { return p.GuestID != "" }
 
 type ctxKey struct{}
 

@@ -157,3 +157,72 @@ func TestRequireAdmin(t *testing.T) {
 func isCode(err error, code string) bool {
 	return err != nil && strings.HasPrefix(err.Error(), code+":")
 }
+
+// fakeGuests knows one guest token.
+type fakeGuests struct{ token string }
+
+func (f fakeGuests) LookupGuest(_ context.Context, token string) (Principal, error) {
+	if token == f.token {
+		return Principal{GuestID: "g1", PartyID: "party1"}, nil
+	}
+	return Principal{}, ErrNoSession
+}
+
+// TestGuestReachesOnlyGuestRoutes covers F010-R5: a guest token opens the
+// party routes and nothing else, and never falls through to sessions.
+func TestGuestReachesOnlyGuestRoutes(t *testing.T) {
+	const tok = GuestTokenPrefix + "abc"
+	serveGuest := func(r *http.Request) (*httptest.ResponseRecorder, *echo) {
+		next := &echo{}
+		rec := httptest.NewRecorder()
+		Authenticate(fakeSessions{token: tok, p: member}, next, fakeGuests{token: tok}).ServeHTTP(rec, r)
+		return rec, next
+	}
+	for _, tc := range []struct {
+		method, path string
+		ok           bool
+	}{
+		{http.MethodGet, "/api/v1/ws", true},
+		{http.MethodGet, "/api/v1/parties/party1", true},
+		{http.MethodPost, "/api/v1/items/nosferatu/playback", true},
+		{http.MethodPost, "/api/v1/playback/p1/progress", true},
+		{http.MethodGet, "/api/v1/me", false},
+		{http.MethodGet, "/api/v1/libraries", false},
+		{http.MethodGet, "/api/v1/items/nosferatu", false},
+		{http.MethodGet, "/api/v1/search", false},
+		{http.MethodGet, "/api/v1/settings/party", false},
+	} {
+		r := httptest.NewRequest(tc.method, tc.path, nil)
+		r.Header.Set("Authorization", "Bearer "+tok)
+		rec, next := serveGuest(r)
+		if next.called != tc.ok {
+			t.Errorf("%s %s: status %d, reached=%v, want %v", tc.method, tc.path, rec.Code, next.called, tc.ok)
+			continue
+		}
+		if tc.ok && (!next.p.IsGuest() || next.p.PartyID != "party1" || next.p.UserID != "") {
+			t.Errorf("%s %s: principal %+v", tc.method, tc.path, next.p)
+		}
+		if !tc.ok && rec.Code != http.StatusUnauthorized {
+			t.Errorf("%s %s: status %d, want 401", tc.method, tc.path, rec.Code)
+		}
+	}
+
+	// The web guest cookie works the same, with CSRF rules on writes.
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/ws", nil)
+	r.AddCookie(&http.Cookie{Name: GuestCookieName, Value: tok})
+	if _, next := serveGuest(r); !next.called || !next.p.IsGuest() {
+		t.Error("guest cookie refused on /ws")
+	}
+	r = httptest.NewRequest(http.MethodPost, "/api/v1/playback/p1/progress", nil)
+	r.AddCookie(&http.Cookie{Name: GuestCookieName, Value: tok})
+	if rec, next := serveGuest(r); next.called || rec.Code != http.StatusForbidden {
+		t.Errorf("cookie write without web headers: status %d", rec.Code)
+	}
+
+	// An unknown guest token is 401, not a session lookup.
+	r = httptest.NewRequest(http.MethodGet, "/api/v1/ws", nil)
+	r.Header.Set("Authorization", "Bearer "+GuestTokenPrefix+"nope")
+	if rec, next := serveGuest(r); next.called || rec.Code != http.StatusUnauthorized {
+		t.Errorf("unknown guest token: status %d", rec.Code)
+	}
+}

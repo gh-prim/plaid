@@ -24,6 +24,18 @@ type SessionLookup interface {
 	Lookup(ctx context.Context, token string) (Principal, error)
 }
 
+// GuestCookieName is a Plaid Party guest's cookie on the web (F010-R5).
+const GuestCookieName = "plaid_guest"
+
+// GuestTokenPrefix starts every guest token, so a bearer token tells which
+// lookup it needs.
+const GuestTokenPrefix = "g_"
+
+// GuestLookup resolves a guest token into its Principal (GuestID, PartyID).
+type GuestLookup interface {
+	LookupGuest(ctx context.Context, token string) (Principal, error)
+}
+
 // NoSessions knows no session: every protected route is refused. It stands in
 // until accounts exist.
 type NoSessions struct{}
@@ -61,6 +73,22 @@ var publicRoutes = []string{
 	"GET /stream/{token}/artwork/{kind}",
 }
 
+// guestRoutes are the only operations a Plaid Party guest reaches: their
+// party, its WebSocket, and its item's playback and artwork. Handlers check
+// that the party and the item are the guest's own (F010-R5).
+var guestRoutes = []string{
+	"GET /ws",
+	"GET /me/party",
+	"GET /parties/{partyId}",
+	"POST /items/{itemId}/playback",
+	"GET /items/{itemId}/artwork/{kind}",
+	"GET /items/{itemId}/segments",
+	"GET /playback/{sessionId}",
+	"PATCH /playback/{sessionId}",
+	"DELETE /playback/{sessionId}",
+	"POST /playback/{sessionId}/progress",
+}
+
 // passwordChangeRoutes stay usable while an account has a temporary
 // password; everything else is 403 password_change_required (F003-R15).
 var passwordChangeRoutes = []string{
@@ -75,13 +103,25 @@ const ClientHeader = "X-Plaid-Client"
 // PublicRoutes returns a copy of the public route list.
 func PublicRoutes() []string { return append([]string(nil), publicRoutes...) }
 
+// GuestRoutes returns a copy of the routes a party guest may use.
+func GuestRoutes() []string { return append([]string(nil), guestRoutes...) }
+
 // Authenticate guards every /api/ path: public routes pass through, anything
 // else needs a valid bearer token or session cookie, or gets 401. Other paths
 // (the web app) are never guarded. It also enforces CSRF rules on cookie
 // sessions (F003-R10) and the temporary-password gate (F003-R15).
-func Authenticate(sessions SessionLookup, next http.Handler) http.Handler {
+//
+// guests, when not nil, resolves Plaid Party guest tokens (bearer tokens
+// starting with GuestTokenPrefix, or the plaid_guest cookie); a guest only
+// reaches guestRoutes, anything else is 401 as if they had no session.
+func Authenticate(sessions SessionLookup, next http.Handler, guests ...GuestLookup) http.Handler {
 	public := routeMatcher(publicRoutes)
 	passwordChange := routeMatcher(passwordChangeRoutes)
+	guestOnly := routeMatcher(guestRoutes)
+	var guestLookup GuestLookup
+	if len(guests) > 0 {
+		guestLookup = guests[0]
+	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), webKey{}, r.Header.Get(ClientHeader) == "web")
@@ -105,6 +145,28 @@ func Authenticate(sessions SessionLookup, next http.Handler) http.Handler {
 			return
 		}
 		token, viaCookie := tokenFrom(r)
+		if guestLookup != nil && (strings.HasPrefix(token, GuestTokenPrefix) || token == "") {
+			gtoken, gcookie := token, viaCookie
+			if gtoken == "" {
+				if c, err := r.Cookie(GuestCookieName); err == nil {
+					gtoken, gcookie = c.Value, true
+				}
+			}
+			if gtoken != "" {
+				p, err := guestLookup.LookupGuest(ctx, gtoken)
+				if err != nil || !matches(guestOnly, r) {
+					apierr.Write(w, apierr.Unauthorized())
+					return
+				}
+				if gcookie && !isSafeMethod(r.Method) && (!IsWebClient(ctx) || (!sameOrigin(r) && !fromApp(r))) {
+					apierr.Write(w, apierr.CSRF())
+					return
+				}
+				ctx = context.WithValue(ctx, viaCookieKey{}, gcookie)
+				next.ServeHTTP(w, r.WithContext(WithPrincipal(ctx, p)))
+				return
+			}
+		}
 		if token == "" {
 			apierr.Write(w, apierr.Unauthorized())
 			return

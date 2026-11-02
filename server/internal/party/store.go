@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gh-prim/plaid/server/internal/auth"
 	"github.com/google/uuid"
 )
 
@@ -171,11 +172,12 @@ func FormatCode(code string) string {
 	return code[:3] + "-" + code[3:]
 }
 
-// NewToken returns a guest token and its hash (32 random bytes, base64url).
+// NewToken returns a guest token and its hash: 32 random bytes, base64url,
+// behind auth.GuestTokenPrefix so the middleware knows which lookup it needs.
 func NewToken() (token string, hash []byte) {
 	b := make([]byte, 32)
 	rand.Read(b)
-	token = base64.RawURLEncoding.EncodeToString(b)
+	token = auth.GuestTokenPrefix + base64.RawURLEncoding.EncodeToString(b)
 	return token, HashToken(token)
 }
 
@@ -431,6 +433,15 @@ func (s *Store) Remove(ctx context.Context, partyID, userID, guestID string, at 
 		}
 	}
 	return tx.Commit()
+}
+
+// LookupGuest resolves a guest token for auth.Authenticate.
+func (s *Store) LookupGuest(ctx context.Context, token string) (auth.Principal, error) {
+	g, err := s.GuestByToken(ctx, token)
+	if err != nil {
+		return auth.Principal{}, auth.ErrNoSession
+	}
+	return auth.Principal{GuestID: g.ID, PartyID: g.PartyID}, nil
 }
 
 // IsRemoved reports whether userID was removed from partyID.

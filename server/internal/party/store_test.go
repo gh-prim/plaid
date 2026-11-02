@@ -118,7 +118,7 @@ func TestStoreGuestsAndRemoval(t *testing.T) {
 		t.Fatal(err)
 	}
 	g, token, err := s.AddGuest(ctx, Guest{PartyID: p.ID, FirstName: "Camille", AvatarColor: 3, CreatedAt: t0})
-	if err != nil || len(token) != 43 {
+	if err != nil || len(token) != 45 {
 		t.Fatalf("AddGuest = %q, %v", token, err)
 	}
 	got, err := s.GuestByToken(ctx, token)
