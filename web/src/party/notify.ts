@@ -35,3 +35,20 @@ export function useNotify(): number {
   }, [])
   return tick
 }
+
+/** How many party invitations wait for an answer (the Upcoming badge, R39). */
+export function useInvitationCount(): number {
+  const tick = useNotify()
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    let alive = true
+    void import('../api/client')
+      .then(({ api }) => api.GET('/upcoming', { params: { query: { kind: 'parties' } } }))
+      .then(({ data }) => alive && setCount(data?.invitations.length ?? 0))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [tick])
+  return count
+}

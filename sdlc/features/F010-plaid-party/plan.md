@@ -125,7 +125,7 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 - [ ] Manual check: Apple TV simulator + iPhone simulator + two browsers in one party, play / pause / seek / buffer / host leaves / guest join / next episode.
 
 ## Log
-- 2026-11-03, steps 16–22: a party lets its people read its title (`GET /items/{itemId}`, guests included): the player needs the files and tracks. The admin's existing `party.*` i18n keys moved under `party.settings.*` (they clashed with the room's keys). Dynamic keys from server values are kept by `preservePatterns` in `i18next.config.ts`. The invitations badge on the Upcoming tab (R39) isn't drawn yet.
+- 2026-11-03, steps 16–22: a party lets its people read its title (`GET /items/{itemId}`, guests included): the player needs the files and tracks. The admin's existing `party.*` i18n keys moved under `party.settings.*` (they clashed with the room's keys). Dynamic keys from server values are kept by `preservePatterns` in `i18next.config.ts`.
 - 2026-11-03, step 9: the public code routes are `/party-codes/{code}` and `/party-codes/{code}/guest`, not `/parties/code/…`: Go's mux rejects `/parties/code/{code}` next to `/parties/{partyId}/vote`.
 - 2026-11-03, step 14: release dates come from the existing `Show` and `Season` provider calls (latest two seasons) instead of new TMDB endpoints, so no new recordings; tests use a fake provider. Alerts are keyed by show, season and episode (`/shows/{showId}/alerts/{season}/{episode}`), matching how a future-episode party is stored.
 - 2026-11-03, step 8: R27 (upload budget) isn't enforced yet; the setting is stored and shown (Party26). Tracked as a follow-up.
