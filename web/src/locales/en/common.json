@@ -121,11 +121,8 @@
       "title": "Needs you"
     },
     "people": {
-      "admins_one": "{{count, number}} admin",
-      "admins_other": "{{count, number}} admins",
       "count_one": "{{count, number}} person",
-      "count_other": "{{count, number}} people",
-      "foot": "Each person signs in with their own account and keeps their own profiles and watch history."
+      "count_other": "{{count, number}} people"
     },
     "person": {
       "access": "Access",
@@ -815,7 +812,6 @@
     "disabled": "Disabled: can’t sign in",
     "empty": "Only you so far. Add people so each gets their own profiles and watch history.",
     "mustChange": "Chooses a new password at next sign-in",
-    "pair": "Pair a TV",
     "resetPassword": "Reset password",
     "role": {
       "admin": "Admin",
@@ -1359,6 +1355,36 @@
       "label": "Plaid Party",
       "none": "Can’t join",
       "start": "Can join and start"
+    },
+    "people": {
+      "allLibraries": "All libraries",
+      "away": "Not seen in 30 days",
+      "colGroup": "Group",
+      "colLibraries": "Libraries",
+      "colName": "Name",
+      "colSeen": "Last seen",
+      "everyone": "Everyone",
+      "groupSettings": "{{name}} settings",
+      "invite": "Invite",
+      "move": "Move to group",
+      "moved_one": "{{count, number}} person moved to {{group}}.",
+      "moved_other": "{{count, number}} people moved to {{group}}.",
+      "moveHelp": "They leave their other groups and get this one’s access. Their own exceptions stay.",
+      "moveTitle_one": "Move {{count, number}} person to a group",
+      "moveTitle_other": "Move {{count, number}} people to a group",
+      "none": "Nobody matches.",
+      "open": "Open {{name}}",
+      "revoked_one": "Access revoked for {{count, number}} person.",
+      "revoked_other": "Access revoked for {{count, number}} people.",
+      "revokeTitle_one": "Revoke access for {{count, number}} person?",
+      "revokeTitle_other": "Revoke access for {{count, number}} people?",
+      "search_one": "Search {{count, number}} person",
+      "search_other": "Search {{count, number}} people",
+      "select": "Select {{name}}",
+      "selectAll": "Select everyone shown",
+      "selected_one": "{{count, number}} selected",
+      "selected_other": "{{count, number}} selected",
+      "watching": "Watching now"
     },
     "person": {
       "groups": "Groups",

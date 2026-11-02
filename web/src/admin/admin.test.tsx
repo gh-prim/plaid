@@ -420,6 +420,122 @@ describe('libraries', () => {
   })
 })
 
+describe('people (F009, step 19)', () => {
+  const rights = {
+    maxQuality: '1080p',
+    maxStreams: 2,
+    downloads: false,
+    party: 'join',
+    canCreateProfiles: false,
+  }
+  const groups = [
+    { id: 'g1', name: 'Family', household: true, libraryIds: [], rights, memberIds: ['u2'] },
+    {
+      id: 'g2',
+      name: 'Close friends',
+      household: false,
+      libraryIds: ['l1'],
+      rights,
+      memberIds: ['u3'],
+    },
+  ]
+  const person = (id: string, name: string, groupIds: string[], extra = {}) => ({
+    id,
+    username: name.toLowerCase(),
+    displayName: name,
+    role: 'member',
+    locale: 'en',
+    mustChangePassword: false,
+    disabled: false,
+    createdAt: '2026-10-01T00:00:00Z',
+    ...sharing,
+    groupIds,
+    lastSeenAt: '2026-11-01T00:00:00Z',
+    access: { libraryIds: groupIds.includes('g1') ? null : ['l1'], rights },
+    ...extra,
+  })
+  const users = [
+    person('u1', 'Ada', [], { role: 'admin' }),
+    person('u2', 'Sam', ['g1']),
+    person('u3', 'Camille', ['g2']),
+  ]
+
+  it('shows the groups as chips over everyone, and filters by group and search', async () => {
+    fakeApi(
+      routes({
+        'GET /users': { status: 200, body: users },
+        'GET /groups': { status: 200, body: groups },
+        'GET /invitations': { status: 200, body: [] },
+      }),
+    )
+    await renderApp('/admin/people')
+    const table = await screen.findByRole('table', { name: 'People' })
+    expect(within(table).getAllByRole('row')).toHaveLength(4)
+    expect(within(table).getByText('All libraries')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Close friends/ }))
+    expect(within(table).getAllByRole('row')).toHaveLength(2)
+    expect(screen.getByRole('link', { name: /Close friends settings/ })).toHaveAttribute(
+      'href',
+      '/admin/people/groups/g2',
+    )
+    await userEvent.click(screen.getByRole('button', { name: /Everyone/ }))
+    await userEvent.type(screen.getByRole('searchbox'), 'sam')
+    expect(within(table).getAllByRole('row')).toHaveLength(2)
+    expect(within(table).getByText('Sam')).toBeInTheDocument()
+  })
+
+  it('invites into the chosen group, and moves the people selected', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /users': { status: 200, body: users },
+        'GET /groups': { status: 200, body: groups },
+        'GET /invitations': { status: 200, body: [] },
+        'POST /invitations': {
+          status: 201,
+          body: {
+            token: 'tok',
+            invitation: {
+              id: 'i1',
+              name: 'Lucie',
+              groupIds: ['g2'],
+              createdAt: '2026-11-02T00:00:00Z',
+              expiresAt: '2026-11-09T00:00:00Z',
+            },
+          },
+        },
+        'PATCH /users/u2': { status: 200, body: users[1] },
+      }),
+    )
+    await renderApp('/admin/people')
+    await userEvent.click(await screen.findByRole('button', { name: /Close friends/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Invite' }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('checkbox', { name: 'Close friends' })).toBeChecked()
+    await userEvent.type(within(dialog).getByLabelText('Their name, for you'), 'Lucie')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Create the link' }))
+    expect(await screen.findByText(/\/invite\/tok$/)).toBeInTheDocument()
+    expect(calls.find((c) => c.method === 'POST' && c.path === '/invitations')?.body).toMatchObject(
+      {
+        name: 'Lucie',
+        groupIds: ['g2'],
+      },
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+
+    await userEvent.click(screen.getByRole('button', { name: /Everyone/ }))
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Sam' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Move to group' }))
+    const move = await screen.findByRole('dialog')
+    await userEvent.click(within(move).getByRole('radio', { name: 'Close friends' }))
+    await userEvent.click(within(move).getByRole('button', { name: 'Move to group' }))
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === 'PATCH' && c.path === '/users/u2')?.body).toEqual({
+        groupIds: ['g2'],
+      }),
+    )
+  })
+})
+
 describe('people', () => {
   const users = [
     {

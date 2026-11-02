@@ -2000,3 +2000,255 @@ button.adm-row:is(:not(:disabled):hover, :focus-visible) :is(.adm-row__sub, .adm
     scale: none;
   }
 }
+
+/* ---------- F009: People, canvas step 19 (boards Share01, Share03) ---------- */
+.sh-people {
+  padding-bottom: 120px;
+}
+.sh-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.sh-chip {
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: 600 15px/1 var(--font-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.sh-chip span {
+  font-size: 13px;
+  opacity: 0.6;
+}
+.sh-chip.is-on {
+  background: var(--text-primary);
+  color: var(--bg-base);
+}
+.sh-chip--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.sh-toolbar {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.sh-search {
+  flex: 1 1 260px;
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  color: var(--text-tertiary);
+}
+.sh-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: 500 16px/1 var(--font-text);
+  outline: none;
+}
+.sh-filter {
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: 600 15px/1 var(--font-text);
+  cursor: pointer;
+}
+.sh-filter.is-on {
+  background: var(--text-primary);
+  color: var(--bg-base);
+}
+.sh-table {
+  margin-top: 18px;
+}
+.sh-tr {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border-top: 1px solid var(--border-subtle);
+  font: 500 15.5px/1.2 var(--font-text);
+  color: var(--text-secondary);
+}
+.sh-tr--head {
+  min-height: 40px;
+  border-top: 0;
+  font: 600 13px/1 var(--font-text);
+  color: var(--text-tertiary);
+}
+.sh-tr.is-selected {
+  background: var(--surface-hover);
+}
+.sh-tr.is-muted {
+  opacity: 0.55;
+}
+.sh-td--check {
+  width: 22px;
+  display: flex;
+}
+.sh-td--check input,
+.sh-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--text-primary);
+}
+.sh-td--name {
+  flex: 1.4;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.sh-who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sh-td--name b {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sh-td--name small {
+  font: 500 12.5px/1.2 var(--font-text);
+  color: var(--text-tertiary);
+}
+.sh-td--group {
+  flex: 1;
+  min-width: 0;
+}
+.sh-td--libs {
+  flex: 1.2;
+  min-width: 0;
+}
+.sh-td--seen {
+  flex: 0.9;
+  min-width: 0;
+}
+.sh-td--go {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-tertiary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.sh-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary);
+}
+.sh-empty {
+  padding: 32px 20px;
+  color: var(--text-secondary);
+  font: 500 15px/1.4 var(--font-text);
+}
+.sh-invites {
+  margin-top: 18px;
+  max-width: 720px;
+}
+.sh-bulk {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 22px;
+  border-radius: 999px;
+  font: 600 15px/1 var(--font-text);
+  color: var(--text-primary);
+}
+.sh-danger {
+  color: var(--status-error);
+}
+.sh-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sh-check,
+.sh__check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 500 15px/1.3 var(--font-text);
+}
+.sh__checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sh__inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font: 500 15px/1.3 var(--font-text);
+}
+.sh__link {
+  display: block;
+  word-break: break-all;
+}
+.sh__tile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+@media (max-width: 760px) {
+  .sh-td--libs,
+  .sh-tr--head .sh-td--libs {
+    display: none;
+  }
+  .sh-tr {
+    padding: 0 10px;
+    gap: 10px;
+  }
+  .sh-bulk {
+    left: 16px;
+    right: 16px;
+    transform: none;
+    flex-wrap: wrap;
+    border-radius: 24px;
+  }
+}

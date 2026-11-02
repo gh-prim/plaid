@@ -137,13 +137,9 @@
       "title": "À traiter"
     },
     "people": {
-      "admins_one": "{{count, number}} admin",
-      "admins_many": "{{count, number}} admins",
-      "admins_other": "{{count, number}} admins",
       "count_one": "{{count, number}} personne",
       "count_many": "{{count, number}} personnes",
-      "count_other": "{{count, number}} personnes",
-      "foot": "Chaque personne se connecte avec son propre compte et garde ses profils et son historique."
+      "count_other": "{{count, number}} personnes"
     },
     "person": {
       "access": "Accès",
@@ -855,7 +851,6 @@
     "disabled": "Désactivé : ne peut pas se connecter",
     "empty": "Toi seul pour l’instant. Ajoute des personnes pour que chacune ait ses profils et son historique.",
     "mustChange": "Choisira un nouveau mot de passe à la prochaine connexion",
-    "pair": "Associer une TV",
     "resetPassword": "Réinitialiser le mot de passe",
     "role": {
       "admin": "Admin",
@@ -1420,6 +1415,42 @@
       "label": "Plaid Party",
       "none": "Ne peut pas rejoindre",
       "start": "Peut rejoindre et lancer"
+    },
+    "people": {
+      "allLibraries": "Toutes les bibliothèques",
+      "away": "Pas vu depuis 30 jours",
+      "colGroup": "Groupe",
+      "colLibraries": "Bibliothèques",
+      "colName": "Nom",
+      "colSeen": "Dernière visite",
+      "everyone": "Tout le monde",
+      "groupSettings": "Réglages de {{name}}",
+      "invite": "Inviter",
+      "move": "Déplacer vers un groupe",
+      "moved_one": "{{count, number}} personne déplacée vers {{group}}.",
+      "moved_many": "{{count, number}} personnes déplacées vers {{group}}.",
+      "moved_other": "{{count, number}} personnes déplacées vers {{group}}.",
+      "moveHelp": "Elles quittent leurs autres groupes et prennent l’accès de celui-ci. Leurs propres exceptions restent.",
+      "moveTitle_one": "Déplacer {{count, number}} personne vers un groupe",
+      "moveTitle_many": "Déplacer {{count, number}} personnes vers un groupe",
+      "moveTitle_other": "Déplacer {{count, number}} personnes vers un groupe",
+      "none": "Personne ne correspond.",
+      "open": "Ouvrir {{name}}",
+      "revoked_one": "Accès retiré à {{count, number}} personne.",
+      "revoked_many": "Accès retiré à {{count, number}} personnes.",
+      "revoked_other": "Accès retiré à {{count, number}} personnes.",
+      "revokeTitle_one": "Retirer l’accès à {{count, number}} personne ?",
+      "revokeTitle_many": "Retirer l’accès à {{count, number}} personnes ?",
+      "revokeTitle_other": "Retirer l’accès à {{count, number}} personnes ?",
+      "search_one": "Chercher parmi {{count, number}} personne",
+      "search_many": "Chercher parmi {{count, number}} personnes",
+      "search_other": "Chercher parmi {{count, number}} personnes",
+      "select": "Sélectionner {{name}}",
+      "selectAll": "Sélectionner tout le monde affiché",
+      "selected_one": "{{count, number}} sélectionnée",
+      "selected_many": "{{count, number}} sélectionnées",
+      "selected_other": "{{count, number}} sélectionnées",
+      "watching": "En train de regarder"
     },
     "person": {
       "groups": "Groupes",

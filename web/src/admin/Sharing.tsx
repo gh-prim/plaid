@@ -55,7 +55,7 @@ export function useSharing() {
 }
 
 /** The faces of a group, three at most then "+n" (board Share02). */
-function Faces({ ids, users }: { ids: string[]; users: AdminUser[] }) {
+export function Faces({ ids, users }: { ids: string[]; users: AdminUser[] }) {
   const { t } = useTranslation()
   const people = ids.map((id) => users.find((u) => u.id === id)).filter((u) => u !== undefined)
   return (
@@ -141,7 +141,7 @@ export function GroupsGroup({
   )
 }
 
-function NameDialog({
+export function NameDialog({
   title,
   initial = '',
   onClose,
