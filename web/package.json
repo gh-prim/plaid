@@ -33,7 +33,7 @@
     "d3-geo": "3.1.1",
     "hls.js": "1.7.4",
     "i18next": "^26.5.11",
-    "i18next-browser-languagedetector": "^8.2.3",
+    "i18next-browser-languagedetector": "^8.2.4",
     "openapi-fetch": "^0.17.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
