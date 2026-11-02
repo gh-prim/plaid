@@ -76,7 +76,7 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 12. [x] `party/vote.go` + routes: proposals (2 each, items every account invitee can see), ballots (top 3 + veto, editable until the deadline), anonymity (handlers never serialize ballots; test that no response holds another voter's ranking), tally, seed from `crypto/rand` stored before the draw, deterministic draw from it; host picks when nothing is left; suggestions R34. R31–R34.
 13. [x] Scheduler: reminders at −15 min (`notify` to yes/maybe), lobby, start at the time for ready screens, cancel at +3 h, vote deadlines, missing-file warning for future-episode parties. Restart test: ticks missed while down run once. R29, R33, R38, R41.
 14. [x] Upcoming: `show_follows` routes, daily TMDB fetch for followed shows (recorded fixtures, `scripts/record-metadata-fixtures.sh` extended), `GET /upcoming`, alerts fired from the scan hook. Tests. R35–R38.
-15. [ ] `api/events.md`: every message with an example; a test parses the file and replays each client example against the hub, checking the server examples' shape. `slog` events without chat, codes or tokens (R45). R44.
+15. [x] `api/events.md`: every message with an example; a test parses the file and replays each client example against the hub, checking the server examples' shape. `slog` events without chat, codes or tokens (R45). R44.
 
 **Web**
 16. [ ] `party/socket.ts`, `clock.ts`, `sync.ts`: reconnect with backoff (1 → 30 s), snapshot on reconnect, offset estimate, R10 on the engine (`playbackRate` 0.95/1.05, seek past 3 s). Fake-timer tests; check Safari's native HLS honours `playbackRate`.

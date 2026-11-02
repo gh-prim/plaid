@@ -81,8 +81,8 @@ func (c *wsClient) send(typ string, data any) (got []envelope, err string) {
 		}
 		var env envelope
 		json.Unmarshal(b, &env)
-		if env.ID == id && env.Type == "ack" {
-			return got, ""
+		if env.ID == id && env.Type != "error" { // an ack, or a reply like sync.pong
+			return append(got, env), ""
 		}
 		if env.ID == id && env.Type == "error" {
 			var x struct{ Code string }
