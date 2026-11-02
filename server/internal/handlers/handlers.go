@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"context"
+	"github.com/gh-prim/plaid/server/internal/party"
 
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/api"
@@ -39,6 +40,8 @@ type Deps struct {
 	Segments *segments.Service
 	// Remote is F012's remote access; nil makes its routes answer 409.
 	Remote *remoteaccess.Service
+	// Party is F010's Plaid Party; nil makes its routes answer 501.
+	Party *party.Service
 	// Streams is cancelled when the server shuts down, which ends
 	// long-lived responses such as server-sent events. Nil never ends them.
 	Streams context.Context
@@ -56,6 +59,7 @@ type Handlers struct {
 	catalog    *catalog.Catalog
 	segments   *segments.Service
 	remote     *remoteaccess.Service
+	party      *party.Service
 	streams    context.Context
 }
 
@@ -63,5 +67,5 @@ var _ api.StrictServerInterface = (*Handlers)(nil)
 
 // New returns the API handlers.
 func New(d Deps) *Handlers {
-	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, problems: d.Problems, catalog: d.Catalog, segments: d.Segments, remote: d.Remote, streams: d.Streams}
+	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, problems: d.Problems, catalog: d.Catalog, segments: d.Segments, remote: d.Remote, party: d.Party, streams: d.Streams}
 }

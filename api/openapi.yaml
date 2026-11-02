@@ -1873,6 +1873,351 @@ paths:
                 $ref: "#/components/schemas/PlaybackSettings"
         default:
           $ref: "#/components/responses/Error"
+  /parties:
+    get:
+      operationId: listParties
+      summary: My Plaid Parties (F010-R37, R40)
+      description: >-
+        Parties not over that the caller organizes or is invited to, soonest first. An admin with `all=true` gets every
+        party not over (R43).
+      tags: [party]
+      parameters:
+        - name: all
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: The parties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Party"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createParty
+      summary: Start or schedule a Plaid Party (F010-R1, R2, R28, R31)
+      description: >-
+        Needs the `start` party right (F009). Without `scheduledAt` the party is live at once; with it, it's scheduled
+        (15 min to 60 days ahead); with `vote`, the group picks the title first. `showId` + numbers plan a party on an
+        episode not on the server yet (R38).
+      tags: [party]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartyCreate"
+      responses:
+        "201":
+          description: The party, with its code and link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Party"
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/people:
+    get:
+      operationId: listPartyPeople
+      summary: People the caller can invite (F010-R28)
+      description: Accounts with the `join` or `start` party right, other than the caller. Display names and pictures only.
+      tags: [party]
+      responses:
+        "200":
+          description: The people
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PartyPerson"
+        default:
+          $ref: "#/components/responses/Error"
+  /party-codes/{code}:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: lookupPartyCode
+      summary: What a party code leads to (F010-R3, Party14)
+      description: Public, rate-limited per address like invitation links. 404 for an unknown code or a party that's over.
+      tags: [party]
+      security: []
+      responses:
+        "200":
+          description: The party's preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartyPreview"
+        default:
+          $ref: "#/components/responses/Error"
+  /party-codes/{code}/guest:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: joinPartyAsGuest
+      summary: Join a party without an account (F010-R5)
+      description: >-
+        Only when the admin allows guests. Returns a guest token scoped to that party (the web gets it as the `plaid_guest`
+        cookie): its socket, its item's playback and artwork. Public, rate-limited per address.
+      tags: [party]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName]
+              properties:
+                firstName:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+      responses:
+        "201":
+          description: The guest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartyGuestSession"
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/{partyId}:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getParty
+      summary: One party (F010)
+      description: For its organizer, its invitees, the people in its room, its guests and admins; 404 for anyone else.
+      tags: [party]
+      responses:
+        "200":
+          description: The party
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Party"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updateParty
+      summary: Change a party (organizer)
+      tags: [party]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartyUpdate"
+      responses:
+        "200":
+          description: The party
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Party"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: cancelParty
+      summary: Cancel a party, or end a live one for everyone (organizer, admin)
+      tags: [party]
+      responses:
+        "204":
+          description: Cancelled or ended
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/{partyId}/invites:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: inviteToParty
+      summary: Invite more people, also during a live party (F010-R3)
+      tags: [party]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userIds]
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "204":
+          description: Invited; they get a notification
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/{partyId}/answer:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: answerParty
+      summary: Answer an invitation (F010-R28)
+      tags: [party]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answer]
+              properties:
+                answer:
+                  type: string
+                  enum: [yes, maybe, "no"]
+      responses:
+        "204":
+          description: Recorded
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/{partyId}/vote:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPartyVote
+      summary: A party's vote (F010-R31–R33)
+      description: Proposals, who voted (never for what), the caller's own ballot, and the result once closed.
+      tags: [party]
+      responses:
+        "200":
+          description: The vote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartyVote"
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/{partyId}/vote/proposals/{itemId}:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: proposeForParty
+      summary: Propose a title (2 each, until the proposal deadline, R31)
+      tags: [party]
+      responses:
+        "200":
+          description: The vote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartyVote"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: withdrawPartyProposal
+      summary: Withdraw one's own proposal
+      tags: [party]
+      responses:
+        "200":
+          description: The vote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartyVote"
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/{partyId}/vote/ballot:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: castPartyBallot
+      summary: Rank a top 3 and maybe veto one (R32)
+      description: Anonymous; can be changed until the ranking deadline.
+      tags: [party]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ranking]
+              properties:
+                ranking:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  items:
+                    type: string
+                veto:
+                  type: [string, "null"]
+      responses:
+        "200":
+          description: The vote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartyVote"
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/{partyId}/vote/suggestions:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: partyVoteSuggestions
+      summary: Titles nobody invited has watched (R34)
+      tags: [party]
+      responses:
+        "200":
+          description: Up to 12 item ids
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PartyItem"
+        default:
+          $ref: "#/components/responses/Error"
   /settings/party:
     get:
       operationId: getPartySettings
@@ -4727,6 +5072,11 @@ components:
           type: integer
           format: int64
           minimum: 1
+        partyId:
+          type: string
+          description: >-
+            Play as a screen of this Plaid Party (F010-R12): the party opens its title even outside the person's libraries
+            (R6, the age limit still applies, 403 `party_age_limit`); guests always play their own party's title.
         quality:
           $ref: "#/components/schemas/Quality"
         burnSubtitles:
@@ -4971,6 +5321,316 @@ components:
           description: The render node set by the admin; absent for the default (the first /dev/dri/renderD*).
         hardware:
           $ref: "#/components/schemas/HardwareStatus"
+    PartyItem:
+      type: object
+      description: A party's title. Episodes carry their show and numbers.
+      required: [id, kind, title]
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [movie, episode]
+        title:
+          type: string
+        year:
+          type: integer
+        showId:
+          type: string
+        showTitle:
+          type: string
+        season:
+          type: integer
+        episode:
+          type: integer
+        runtimeMs:
+          type: integer
+          format: int64
+    PartyPerson:
+      type: object
+      required: [userId, name, avatarColor, avatar]
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+        avatarColor:
+          type: integer
+        avatar:
+          $ref: "#/components/schemas/Avatar"
+    PartyInvite:
+      type: object
+      required: [person, answer]
+      properties:
+        person:
+          $ref: "#/components/schemas/PartyPerson"
+        answer:
+          type: string
+          enum: [pending, yes, maybe, "no"]
+    PartySummary:
+      type: object
+      description: The end screen (F010-R21).
+      required: [people, togetherMs, reactions, pauseRequests]
+      properties:
+        people:
+          type: array
+          items:
+            type: string
+        togetherMs:
+          type: integer
+          format: int64
+        reactions:
+          type: integer
+        pauseRequests:
+          type: integer
+        peakPositionMs:
+          type: integer
+          format: int64
+        peakEmoji:
+          type: string
+    Party:
+      type: object
+      required: [id, code, link, status, controlMode, organizer, invites, createdAt]
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+          description: Shown as XXX-XXX. For last-minute joiners; invitees join by id (F010-R3).
+          example: K7P-4QX
+        link:
+          type: string
+          description: The join link, `<public base>/p/<code>` (R2).
+        status:
+          type: string
+          enum: [scheduled, voting, lobby, live, ended, cancelled]
+        item:
+          $ref: "#/components/schemas/PartyItem"
+        futureEpisode:
+          type: object
+          description: An episode not on the server yet (R38).
+          required: [showId, season, episode]
+          properties:
+            showId:
+              type: string
+            season:
+              type: integer
+            episode:
+              type: integer
+        organizer:
+          $ref: "#/components/schemas/PartyPerson"
+        controlMode:
+          type: string
+          enum: [host, everyone]
+        scheduledAt:
+          type: string
+          format: date-time
+        note:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+        invites:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartyInvite"
+        myAnswer:
+          type: string
+          enum: [pending, yes, maybe, "no"]
+          description: The caller's answer, when invited.
+        live:
+          type: object
+          description: The room, while it's open.
+          required: [count, max, state, positionMs]
+          properties:
+            count:
+              type: integer
+            max:
+              type: integer
+            state:
+              type: string
+              description: playing, paused or waiting.
+            positionMs:
+              type: integer
+              format: int64
+        vote:
+          type: object
+          required: [proposalsUntil, rankingUntil, closed]
+          properties:
+            proposalsUntil:
+              type: string
+              format: date-time
+            rankingUntil:
+              type: string
+              format: date-time
+            closed:
+              type: boolean
+        summary:
+          $ref: "#/components/schemas/PartySummary"
+    PartyCreate:
+      type: object
+      properties:
+        itemId:
+          type: string
+        controlMode:
+          type: string
+          enum: [host, everyone]
+          default: host
+        scheduledAt:
+          type: string
+          format: date-time
+        note:
+          type: string
+          maxLength: 140
+        invite:
+          type: array
+          items:
+            type: string
+        vote:
+          type: object
+          required: [proposalsUntil, rankingUntil]
+          properties:
+            proposalsUntil:
+              type: string
+              format: date-time
+            rankingUntil:
+              type: string
+              format: date-time
+        showId:
+          type: string
+        season:
+          type: integer
+        episode:
+          type: integer
+    PartyUpdate:
+      type: object
+      properties:
+        scheduledAt:
+          type: string
+          format: date-time
+        note:
+          type: string
+          maxLength: 140
+        itemId:
+          type: string
+        controlMode:
+          type: string
+          enum: [host, everyone]
+    PartyPreview:
+      type: object
+      description: What the public join page shows (Party14, Party25).
+      required: [code, hostName, watching, full, guests, status]
+      properties:
+        code:
+          type: string
+        status:
+          type: string
+          enum: [scheduled, voting, lobby, live]
+        hostName:
+          type: string
+        item:
+          $ref: "#/components/schemas/PartyItem"
+        startedAt:
+          type: string
+          format: date-time
+        scheduledAt:
+          type: string
+          format: date-time
+        watching:
+          type: integer
+        full:
+          type: boolean
+        guests:
+          type: boolean
+          description: Whether someone without an account may join.
+    PartyGuestSession:
+      type: object
+      required: [partyId, guestId, firstName]
+      properties:
+        partyId:
+          type: string
+        guestId:
+          type: string
+        firstName:
+          type: string
+        token:
+          type: string
+          description: Native apps only; the web gets the `plaid_guest` cookie.
+    PartyVote:
+      type: object
+      required: [proposalsUntil, rankingUntil, phase, proposals, voters, myRanking]
+      properties:
+        proposalsUntil:
+          type: string
+          format: date-time
+        rankingUntil:
+          type: string
+          format: date-time
+        phase:
+          type: string
+          enum: [proposals, ranking, closed]
+        proposals:
+          type: array
+          items:
+            type: object
+            required: [item, proposedBy, mine]
+            properties:
+              item:
+                $ref: "#/components/schemas/PartyItem"
+              proposedBy:
+                type: string
+                description: The proposer's display name.
+              mine:
+                type: boolean
+        voters:
+          type: array
+          description: Who voted, never what (R32).
+          items:
+            type: object
+            required: [name, voted]
+            properties:
+              name:
+                type: string
+              voted:
+                type: boolean
+        myRanking:
+          type: array
+          items:
+            type: string
+        myVeto:
+          type: string
+        result:
+          type: object
+          description: Once closed.
+          required: [scores]
+          properties:
+            scores:
+              type: array
+              items:
+                type: object
+                required: [itemId, points, vetoed]
+                properties:
+                  itemId:
+                    type: string
+                  points:
+                    type: integer
+                  vetoed:
+                    type: boolean
+            tied:
+              type: array
+              items:
+                type: string
+            winner:
+              type: string
+            seed:
+              type: string
+              description: The tie draw's seed; the draw is Draw(tied, seed) and can be checked again (R33).
     PartySettings:
       type: object
       required: [enabled, maxPeople, guests, uploadMbps]

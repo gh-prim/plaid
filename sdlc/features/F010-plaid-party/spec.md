@@ -137,8 +137,8 @@ REST, carried into `api/openapi.yaml`:
 | POST | `/parties/{id}/invites` | `{userIds}` |
 | PUT | `/parties/{id}/answer` | `{answer: yes|maybe|no}` |
 | GET | `/parties/people` | People I can invite: id, display name, avatar. No usernames |
-| GET | `/parties/code/{code}` | Public, rate-limited: host first name, item title and poster, started ago, people watching, full or not, guests allowed. `404` otherwise |
-| POST | `/parties/code/{code}/guest` | Public, rate-limited: `{firstName}` → guest token (web: `HttpOnly` cookie `plaid_guest`) |
+| GET | `/party-codes/{code}` | Public, rate-limited: host first name, item title and poster, started ago, people watching, full or not, guests allowed. `404` otherwise |
+| POST | `/party-codes/{code}/guest` | Public, rate-limited: `{firstName}` → guest token (web: `HttpOnly` cookie `plaid_guest`) |
 | GET | `/parties/{id}/vote` | Proposals, who voted, my ballot, results once closed |
 | POST / DELETE | `/parties/{id}/vote/proposals/{itemId}` | Propose / withdraw |
 | PUT | `/parties/{id}/vote/ballot` | `{ranking: [id, id, id], veto?: id}` |

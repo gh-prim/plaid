@@ -21,6 +21,8 @@ type Info struct {
 	// The request may come through a proxy we don't know about, so IP may be
 	// the proxy's, not the client's (F003 setup locality check).
 	UntrustedForward bool
+	// Host is the Host the client used, for links it will share (F010-R2).
+	Host string
 }
 
 type ctxKey struct{}
@@ -47,7 +49,7 @@ func Middleware(trusted []netip.Prefix, next http.Handler) http.Handler {
 // Resolve computes the Info of r.
 func Resolve(r *http.Request, trusted []netip.Prefix) Info {
 	peer := parseAddr(r.RemoteAddr)
-	info := Info{IP: peer, HTTPS: r.TLS != nil}
+	info := Info{IP: peer, HTTPS: r.TLS != nil, Host: r.Host}
 
 	forwardedFor := headerList(r.Header.Values("X-Forwarded-For"))
 	if !isTrusted(peer, trusted) {

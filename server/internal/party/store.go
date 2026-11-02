@@ -451,3 +451,129 @@ func (s *Store) IsRemoved(ctx context.Context, partyID, userID string) (bool, er
 		partyID, userID).Scan(&n)
 	return n > 0, err
 }
+
+// GuestActive reports whether a guest can still use their token: not
+// removed, party not over.
+func (s *Store) GuestActive(ctx context.Context, guestID string) (bool, error) {
+	var n int
+	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM party_guests g JOIN parties p ON p.id = g.party_id
+		WHERE g.id = ? AND g.removed_at IS NULL AND p.status NOT IN ('ended','cancelled')`, guestID).Scan(&n)
+	return n > 0, err
+}
+
+// Item is what a party shows of its title.
+type Item struct {
+	ID        string
+	Kind      string
+	Title     string
+	Year      int
+	LibraryID string
+	AgeRating *int
+	// Episodes: their show, season and number.
+	ShowID    string
+	ShowTitle string
+	Season    int
+	Episode   int
+	RuntimeMs int64
+}
+
+// Item returns an item with its matched title, or ErrNotFound.
+func (s *Store) Item(ctx context.Context, id string) (Item, error) {
+	var it Item
+	var year, season, episode, runtime sql.NullInt64
+	var age sql.NullInt64
+	var show, showTitle sql.NullString
+	err := s.db.QueryRowContext(ctx, `
+		SELECT i.id, i.kind, COALESCE(m.title, i.title, ''), COALESCE(CAST(substr(m.release_date, 1, 4) AS INTEGER), i.year), i.library_id, m.age_rating,
+		       sh.id, COALESCE(shm.title, sh.title), se.season_number, i.episode_number, m.runtime_minutes
+		FROM items i
+		LEFT JOIN item_metadata m ON m.item_id = i.id
+		LEFT JOIN items se ON i.kind = 'episode' AND se.id = i.parent_id
+		LEFT JOIN items sh ON sh.id = se.parent_id
+		LEFT JOIN item_metadata shm ON shm.item_id = sh.id
+		WHERE i.id = ?`, id).Scan(&it.ID, &it.Kind, &it.Title, &year, &it.LibraryID, &age,
+		&show, &showTitle, &season, &episode, &runtime)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Item{}, ErrNotFound
+	}
+	if err != nil {
+		return Item{}, err
+	}
+	it.Year, it.Season, it.Episode = int(year.Int64), int(season.Int64), int(episode.Int64)
+	it.ShowID, it.ShowTitle = show.String, showTitle.String
+	it.RuntimeMs = runtime.Int64 * 60_000
+	if age.Valid {
+		a := int(age.Int64)
+		it.AgeRating = &a
+	}
+	return it, nil
+}
+
+// NextEpisode returns the episode after itemID in its show (next number in
+// the season, else the first of the next season), "" when none.
+func (s *Store) NextEpisode(ctx context.Context, itemID string) (string, error) {
+	var next string
+	err := s.db.QueryRowContext(ctx, `
+		SELECT n.id FROM items cur
+		JOIN items cs ON cs.id = cur.parent_id
+		JOIN items ns ON ns.parent_id = cs.parent_id AND ns.kind = 'season' AND ns.hidden = 0
+		JOIN items n ON n.parent_id = ns.id AND n.kind = 'episode' AND n.hidden = 0
+		WHERE cur.id = ? AND cur.kind = 'episode'
+		  AND (ns.season_number > cs.season_number
+		       OR (ns.season_number = cs.season_number AND n.episode_number > cur.episode_number))
+		  AND ns.season_number > 0
+		ORDER BY ns.season_number, n.episode_number LIMIT 1`, itemID).Scan(&next)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	return next, err
+}
+
+// Guest returns a guest by id.
+func (s *Store) Guest(ctx context.Context, id string) (Guest, error) {
+	var g Guest
+	var created string
+	var removed sql.NullString
+	err := s.db.QueryRowContext(ctx, `SELECT id, party_id, first_name, avatar_color, created_at, removed_at
+		FROM party_guests WHERE id = ?`, id).Scan(&g.ID, &g.PartyID, &g.FirstName, &g.AvatarColor, &created, &removed)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Guest{}, ErrNotFound
+	}
+	g.CreatedAt, g.RemovedAt = parseTS(created), optTS(removed)
+	return g, err
+}
+
+func isUnique(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed")
+}
+
+// Unwatched returns movies none of users' profiles has watched or started,
+// newest first.
+func (s *Store) Unwatched(ctx context.Context, users []string, limit int) ([]string, error) {
+	if len(users) == 0 {
+		return nil, nil
+	}
+	args := make([]any, 0, len(users)+1)
+	for _, u := range users {
+		args = append(args, u)
+	}
+	args = append(args, limit)
+	rows, err := s.db.QueryContext(ctx, `SELECT i.id FROM items i WHERE i.kind = 'movie' AND i.hidden = 0
+		AND NOT EXISTS (SELECT 1 FROM watch_state w JOIN profiles pr ON pr.id = w.profile_id
+			WHERE w.item_id = i.id AND (w.watched = 1 OR w.position_ms > 0)
+			AND pr.user_id IN (?`+strings.Repeat(",?", len(users)-1)+`))
+		ORDER BY i.created_at DESC LIMIT ?`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out = append(out, id)
+	}
+	return out, rows.Err()
+}

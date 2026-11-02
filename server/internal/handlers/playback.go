@@ -397,6 +397,8 @@ func playbackErr(err error) error {
 		return apierr.FileUnavailable()
 	case errors.Is(err, playback.ErrFileNotAnalyzed):
 		return apierr.FileNotAnalyzed()
+	case errors.Is(err, playback.ErrPartyAgeLimit):
+		return apierr.New(403, "party_age_limit", "this title isn't for this profile")
 	case errors.Is(err, playback.ErrFFmpegMissing):
 		return apierr.FFmpegMissing()
 	case errors.Is(err, playback.ErrHWAccelUnavailable):
@@ -419,7 +421,7 @@ func playbackErr(err error) error {
 // can't (R1, R2).
 func toStartRequest(b api.PlaybackRequest) (playback.StartRequest, error) {
 	var p problems
-	r := playback.StartRequest{Profile: toCapabilityProfile(b.Profile)}
+	r := playback.StartRequest{Profile: toCapabilityProfile(b.Profile), PartyID: deref(b.PartyId)}
 	r.FileID = deref(b.FileId)
 	r.AudioIndex = b.AudioStreamIndex
 	if set, v := fromNullable(b.SubtitleStreamIndex); set {

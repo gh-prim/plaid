@@ -71,6 +71,10 @@ var publicRoutes = []string{
 	"GET /stream/{token}/subtitles/{index}.ass",
 	"GET /stream/{token}/subtitles/{index}.sup",
 	"GET /stream/{token}/artwork/{kind}",
+	// Plaid Party (F010-R3, R5): what a code leads to, and a guest joining
+	// with a first name. Rate-limited per address.
+	"GET /party-codes/{code}",
+	"POST /party-codes/{code}/guest",
 }
 
 // guestRoutes are the only operations a Plaid Party guest reaches: their

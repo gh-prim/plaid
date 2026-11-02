@@ -535,22 +535,22 @@ func (e ItemMetadataMatchSource) Valid() bool {
 
 // Defines values for ItemMetadataShowStatus.
 const (
-	Canceled     ItemMetadataShowStatus = "canceled"
-	Ended        ItemMetadataShowStatus = "ended"
-	InProduction ItemMetadataShowStatus = "in_production"
-	Returning    ItemMetadataShowStatus = "returning"
+	ItemMetadataShowStatusCanceled     ItemMetadataShowStatus = "canceled"
+	ItemMetadataShowStatusEnded        ItemMetadataShowStatus = "ended"
+	ItemMetadataShowStatusInProduction ItemMetadataShowStatus = "in_production"
+	ItemMetadataShowStatusReturning    ItemMetadataShowStatus = "returning"
 )
 
 // Valid indicates whether the value is a known member of the ItemMetadataShowStatus enum.
 func (e ItemMetadataShowStatus) Valid() bool {
 	switch e {
-	case Canceled:
+	case ItemMetadataShowStatusCanceled:
 		return true
-	case Ended:
+	case ItemMetadataShowStatusEnded:
 		return true
-	case InProduction:
+	case ItemMetadataShowStatusInProduction:
 		return true
-	case Returning:
+	case ItemMetadataShowStatusReturning:
 		return true
 	default:
 		return false
@@ -869,6 +869,162 @@ func (e PairingPendingStatus) Valid() bool {
 	}
 }
 
+// Defines values for PartyControlMode.
+const (
+	PartyControlModeEveryone PartyControlMode = "everyone"
+	PartyControlModeHost     PartyControlMode = "host"
+)
+
+// Valid indicates whether the value is a known member of the PartyControlMode enum.
+func (e PartyControlMode) Valid() bool {
+	switch e {
+	case PartyControlModeEveryone:
+		return true
+	case PartyControlModeHost:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyMyAnswer.
+const (
+	PartyMyAnswerMaybe   PartyMyAnswer = "maybe"
+	PartyMyAnswerNo      PartyMyAnswer = "no"
+	PartyMyAnswerPending PartyMyAnswer = "pending"
+	PartyMyAnswerYes     PartyMyAnswer = "yes"
+)
+
+// Valid indicates whether the value is a known member of the PartyMyAnswer enum.
+func (e PartyMyAnswer) Valid() bool {
+	switch e {
+	case PartyMyAnswerMaybe:
+		return true
+	case PartyMyAnswerNo:
+		return true
+	case PartyMyAnswerPending:
+		return true
+	case PartyMyAnswerYes:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyStatus.
+const (
+	PartyStatusCancelled PartyStatus = "cancelled"
+	PartyStatusEnded     PartyStatus = "ended"
+	PartyStatusLive      PartyStatus = "live"
+	PartyStatusLobby     PartyStatus = "lobby"
+	PartyStatusScheduled PartyStatus = "scheduled"
+	PartyStatusVoting    PartyStatus = "voting"
+)
+
+// Valid indicates whether the value is a known member of the PartyStatus enum.
+func (e PartyStatus) Valid() bool {
+	switch e {
+	case PartyStatusCancelled:
+		return true
+	case PartyStatusEnded:
+		return true
+	case PartyStatusLive:
+		return true
+	case PartyStatusLobby:
+		return true
+	case PartyStatusScheduled:
+		return true
+	case PartyStatusVoting:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyCreateControlMode.
+const (
+	PartyCreateControlModeEveryone PartyCreateControlMode = "everyone"
+	PartyCreateControlModeHost     PartyCreateControlMode = "host"
+)
+
+// Valid indicates whether the value is a known member of the PartyCreateControlMode enum.
+func (e PartyCreateControlMode) Valid() bool {
+	switch e {
+	case PartyCreateControlModeEveryone:
+		return true
+	case PartyCreateControlModeHost:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyInviteAnswer.
+const (
+	PartyInviteAnswerMaybe   PartyInviteAnswer = "maybe"
+	PartyInviteAnswerNo      PartyInviteAnswer = "no"
+	PartyInviteAnswerPending PartyInviteAnswer = "pending"
+	PartyInviteAnswerYes     PartyInviteAnswer = "yes"
+)
+
+// Valid indicates whether the value is a known member of the PartyInviteAnswer enum.
+func (e PartyInviteAnswer) Valid() bool {
+	switch e {
+	case PartyInviteAnswerMaybe:
+		return true
+	case PartyInviteAnswerNo:
+		return true
+	case PartyInviteAnswerPending:
+		return true
+	case PartyInviteAnswerYes:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyItemKind.
+const (
+	PartyItemKindEpisode PartyItemKind = "episode"
+	PartyItemKindMovie   PartyItemKind = "movie"
+)
+
+// Valid indicates whether the value is a known member of the PartyItemKind enum.
+func (e PartyItemKind) Valid() bool {
+	switch e {
+	case PartyItemKindEpisode:
+		return true
+	case PartyItemKindMovie:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyPreviewStatus.
+const (
+	PartyPreviewStatusLive      PartyPreviewStatus = "live"
+	PartyPreviewStatusLobby     PartyPreviewStatus = "lobby"
+	PartyPreviewStatusScheduled PartyPreviewStatus = "scheduled"
+	PartyPreviewStatusVoting    PartyPreviewStatus = "voting"
+)
+
+// Valid indicates whether the value is a known member of the PartyPreviewStatus enum.
+func (e PartyPreviewStatus) Valid() bool {
+	switch e {
+	case PartyPreviewStatusLive:
+		return true
+	case PartyPreviewStatusLobby:
+		return true
+	case PartyPreviewStatusScheduled:
+		return true
+	case PartyPreviewStatusVoting:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PartyRight.
 const (
 	PartyRightJoin  PartyRight = "join"
@@ -884,6 +1040,45 @@ func (e PartyRight) Valid() bool {
 	case PartyRightNone:
 		return true
 	case PartyRightStart:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyUpdateControlMode.
+const (
+	PartyUpdateControlModeEveryone PartyUpdateControlMode = "everyone"
+	PartyUpdateControlModeHost     PartyUpdateControlMode = "host"
+)
+
+// Valid indicates whether the value is a known member of the PartyUpdateControlMode enum.
+func (e PartyUpdateControlMode) Valid() bool {
+	switch e {
+	case PartyUpdateControlModeEveryone:
+		return true
+	case PartyUpdateControlModeHost:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyVotePhase.
+const (
+	Closed    PartyVotePhase = "closed"
+	Proposals PartyVotePhase = "proposals"
+	Ranking   PartyVotePhase = "ranking"
+)
+
+// Valid indicates whether the value is a known member of the PartyVotePhase enum.
+func (e PartyVotePhase) Valid() bool {
+	switch e {
+	case Closed:
+		return true
+	case Proposals:
+		return true
+	case Ranking:
 		return true
 	default:
 		return false
@@ -1664,6 +1859,27 @@ func (e SearchMetadataParamsKind) Valid() bool {
 	case SearchMetadataParamsKindMovie:
 		return true
 	case SearchMetadataParamsKindShow:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AnswerPartyJSONBodyAnswer.
+const (
+	AnswerPartyJSONBodyAnswerMaybe AnswerPartyJSONBodyAnswer = "maybe"
+	AnswerPartyJSONBodyAnswerNo    AnswerPartyJSONBodyAnswer = "no"
+	AnswerPartyJSONBodyAnswerYes   AnswerPartyJSONBodyAnswer = "yes"
+)
+
+// Valid indicates whether the value is a known member of the AnswerPartyJSONBodyAnswer enum.
+func (e AnswerPartyJSONBodyAnswer) Valid() bool {
+	switch e {
+	case AnswerPartyJSONBodyAnswerMaybe:
+		return true
+	case AnswerPartyJSONBodyAnswerNo:
+		return true
+	case AnswerPartyJSONBodyAnswerYes:
 		return true
 	default:
 		return false
@@ -3034,6 +3250,147 @@ type PairingStarted struct {
 	PollSecret string    `json:"pollSecret"`
 }
 
+// Party defines model for Party.
+type Party struct {
+	// Code Shown as XXX-XXX. For last-minute joiners; invitees join by id (F010-R3).
+	Code        string           `json:"code"`
+	ControlMode PartyControlMode `json:"controlMode"`
+	CreatedAt   time.Time        `json:"createdAt"`
+	EndedAt     *time.Time       `json:"endedAt,omitempty"`
+
+	// FutureEpisode An episode not on the server yet (R38).
+	FutureEpisode *struct {
+		Episode int    `json:"episode"`
+		Season  int    `json:"season"`
+		ShowId  string `json:"showId"`
+	} `json:"futureEpisode,omitempty"`
+	Id      string        `json:"id"`
+	Invites []PartyInvite `json:"invites"`
+
+	// Item A party's title. Episodes carry their show and numbers.
+	Item *PartyItem `json:"item,omitempty"`
+
+	// Link The join link, `<public base>/p/<code>` (R2).
+	Link string `json:"link"`
+
+	// Live The room, while it's open.
+	Live *struct {
+		Count      int   `json:"count"`
+		Max        int   `json:"max"`
+		PositionMs int64 `json:"positionMs"`
+
+		// State playing, paused or waiting.
+		State string `json:"state"`
+	} `json:"live,omitempty"`
+
+	// MyAnswer The caller's answer, when invited.
+	MyAnswer    *PartyMyAnswer `json:"myAnswer,omitempty"`
+	Note        *string        `json:"note,omitempty"`
+	Organizer   PartyPerson    `json:"organizer"`
+	ScheduledAt *time.Time     `json:"scheduledAt,omitempty"`
+	StartedAt   *time.Time     `json:"startedAt,omitempty"`
+	Status      PartyStatus    `json:"status"`
+
+	// Summary The end screen (F010-R21).
+	Summary *PartySummary `json:"summary,omitempty"`
+	Vote    *struct {
+		Closed         bool      `json:"closed"`
+		ProposalsUntil time.Time `json:"proposalsUntil"`
+		RankingUntil   time.Time `json:"rankingUntil"`
+	} `json:"vote,omitempty"`
+}
+
+// PartyControlMode defines model for Party.ControlMode.
+type PartyControlMode string
+
+// PartyMyAnswer The caller's answer, when invited.
+type PartyMyAnswer string
+
+// PartyStatus defines model for Party.Status.
+type PartyStatus string
+
+// PartyCreate defines model for PartyCreate.
+type PartyCreate struct {
+	ControlMode *PartyCreateControlMode `json:"controlMode,omitempty"`
+	Episode     *int                    `json:"episode,omitempty"`
+	Invite      *[]string               `json:"invite,omitempty"`
+	ItemId      *string                 `json:"itemId,omitempty"`
+	Note        *string                 `json:"note,omitempty"`
+	ScheduledAt *time.Time              `json:"scheduledAt,omitempty"`
+	Season      *int                    `json:"season,omitempty"`
+	ShowId      *string                 `json:"showId,omitempty"`
+	Vote        *struct {
+		ProposalsUntil time.Time `json:"proposalsUntil"`
+		RankingUntil   time.Time `json:"rankingUntil"`
+	} `json:"vote,omitempty"`
+}
+
+// PartyCreateControlMode defines model for PartyCreate.ControlMode.
+type PartyCreateControlMode string
+
+// PartyGuestSession defines model for PartyGuestSession.
+type PartyGuestSession struct {
+	FirstName string `json:"firstName"`
+	GuestId   string `json:"guestId"`
+	PartyId   string `json:"partyId"`
+
+	// Token Native apps only; the web gets the `plaid_guest` cookie.
+	Token *string `json:"token,omitempty"`
+}
+
+// PartyInvite defines model for PartyInvite.
+type PartyInvite struct {
+	Answer PartyInviteAnswer `json:"answer"`
+	Person PartyPerson       `json:"person"`
+}
+
+// PartyInviteAnswer defines model for PartyInvite.Answer.
+type PartyInviteAnswer string
+
+// PartyItem A party's title. Episodes carry their show and numbers.
+type PartyItem struct {
+	Episode   *int          `json:"episode,omitempty"`
+	Id        string        `json:"id"`
+	Kind      PartyItemKind `json:"kind"`
+	RuntimeMs *int64        `json:"runtimeMs,omitempty"`
+	Season    *int          `json:"season,omitempty"`
+	ShowId    *string       `json:"showId,omitempty"`
+	ShowTitle *string       `json:"showTitle,omitempty"`
+	Title     string        `json:"title"`
+	Year      *int          `json:"year,omitempty"`
+}
+
+// PartyItemKind defines model for PartyItem.Kind.
+type PartyItemKind string
+
+// PartyPerson defines model for PartyPerson.
+type PartyPerson struct {
+	Avatar      Avatar `json:"avatar"`
+	AvatarColor int    `json:"avatarColor"`
+	Name        string `json:"name"`
+	UserId      string `json:"userId"`
+}
+
+// PartyPreview What the public join page shows (Party14, Party25).
+type PartyPreview struct {
+	Code string `json:"code"`
+	Full bool   `json:"full"`
+
+	// Guests Whether someone without an account may join.
+	Guests   bool   `json:"guests"`
+	HostName string `json:"hostName"`
+
+	// Item A party's title. Episodes carry their show and numbers.
+	Item        *PartyItem         `json:"item,omitempty"`
+	ScheduledAt *time.Time         `json:"scheduledAt,omitempty"`
+	StartedAt   *time.Time         `json:"startedAt,omitempty"`
+	Status      PartyPreviewStatus `json:"status"`
+	Watching    int                `json:"watching"`
+}
+
+// PartyPreviewStatus defines model for PartyPreview.Status.
+type PartyPreviewStatus string
+
 // PartyRight What a person may do with Plaid Party (F010).
 type PartyRight string
 
@@ -3061,6 +3418,67 @@ type PartySettingsUpdate struct {
 	// UploadMbps 0 forgets the value.
 	UploadMbps *int `json:"uploadMbps,omitempty"`
 }
+
+// PartySummary The end screen (F010-R21).
+type PartySummary struct {
+	PauseRequests  int      `json:"pauseRequests"`
+	PeakEmoji      *string  `json:"peakEmoji,omitempty"`
+	PeakPositionMs *int64   `json:"peakPositionMs,omitempty"`
+	People         []string `json:"people"`
+	Reactions      int      `json:"reactions"`
+	TogetherMs     int64    `json:"togetherMs"`
+}
+
+// PartyUpdate defines model for PartyUpdate.
+type PartyUpdate struct {
+	ControlMode *PartyUpdateControlMode `json:"controlMode,omitempty"`
+	ItemId      *string                 `json:"itemId,omitempty"`
+	Note        *string                 `json:"note,omitempty"`
+	ScheduledAt *time.Time              `json:"scheduledAt,omitempty"`
+}
+
+// PartyUpdateControlMode defines model for PartyUpdate.ControlMode.
+type PartyUpdateControlMode string
+
+// PartyVote defines model for PartyVote.
+type PartyVote struct {
+	MyRanking []string       `json:"myRanking"`
+	MyVeto    *string        `json:"myVeto,omitempty"`
+	Phase     PartyVotePhase `json:"phase"`
+	Proposals []struct {
+		// Item A party's title. Episodes carry their show and numbers.
+		Item PartyItem `json:"item"`
+		Mine bool      `json:"mine"`
+
+		// ProposedBy The proposer's display name.
+		ProposedBy string `json:"proposedBy"`
+	} `json:"proposals"`
+	ProposalsUntil time.Time `json:"proposalsUntil"`
+	RankingUntil   time.Time `json:"rankingUntil"`
+
+	// Result Once closed.
+	Result *struct {
+		Scores []struct {
+			ItemId string `json:"itemId"`
+			Points int    `json:"points"`
+			Vetoed bool   `json:"vetoed"`
+		} `json:"scores"`
+
+		// Seed The tie draw's seed; the draw is Draw(tied, seed) and can be checked again (R33).
+		Seed   *string   `json:"seed,omitempty"`
+		Tied   *[]string `json:"tied,omitempty"`
+		Winner *string   `json:"winner,omitempty"`
+	} `json:"result,omitempty"`
+
+	// Voters Who voted, never what (R32).
+	Voters []struct {
+		Name  string `json:"name"`
+		Voted bool   `json:"voted"`
+	} `json:"voters"`
+}
+
+// PartyVotePhase defines model for PartyVote.Phase.
+type PartyVotePhase string
 
 // Person defines model for Person.
 type Person struct {
@@ -3143,6 +3561,9 @@ type PlaybackRequest struct {
 	// ForceMethod For debugging.
 	ForceMethod *PlaybackRequestForceMethod `json:"forceMethod,omitempty"`
 	MaxBitrate  *int64                      `json:"maxBitrate,omitempty"`
+
+	// PartyId Play as a screen of this Plaid Party (F010-R12): the party opens its title even outside the person's libraries (R6, the age limit still applies, 403 `party_age_limit`); guests always play their own party's title.
+	PartyId *string `json:"partyId,omitempty"`
 
 	// Profile What the client can play (F006 R2). Sent with each playback request, never stored. `preset: external` means "plays everything over HTTP" (VLC, mpv) and ignores the other fields. Unknown codec names are ignored.
 	Profile         CapabilityProfile `json:"profile"`
@@ -4108,6 +4529,35 @@ type PollPairingParams struct {
 	XPairingSecret string `json:"X-Pairing-Secret"`
 }
 
+// ListPartiesParams defines parameters for ListParties.
+type ListPartiesParams struct {
+	All *bool `form:"all,omitempty" json:"all,omitempty"`
+}
+
+// AnswerPartyJSONBody defines parameters for AnswerParty.
+type AnswerPartyJSONBody struct {
+	Answer AnswerPartyJSONBodyAnswer `json:"answer"`
+}
+
+// AnswerPartyJSONBodyAnswer defines parameters for AnswerParty.
+type AnswerPartyJSONBodyAnswer string
+
+// InviteToPartyJSONBody defines parameters for InviteToParty.
+type InviteToPartyJSONBody struct {
+	UserIds []string `json:"userIds"`
+}
+
+// CastPartyBallotJSONBody defines parameters for CastPartyBallot.
+type CastPartyBallotJSONBody struct {
+	Ranking []string                  `json:"ranking"`
+	Veto    nullable.Nullable[string] `json:"veto,omitempty"`
+}
+
+// JoinPartyAsGuestJSONBody defines parameters for JoinPartyAsGuest.
+type JoinPartyAsGuestJSONBody struct {
+	FirstName string `json:"firstName"`
+}
+
 // SearchParams defines parameters for Search.
 type SearchParams struct {
 	Q string `form:"q" json:"q"`
@@ -4187,6 +4637,24 @@ type StartPairingJSONRequestBody = StartPairingRequest
 
 // ClaimPairingJSONRequestBody defines body for ClaimPairing for application/json ContentType.
 type ClaimPairingJSONRequestBody = ClaimPairingRequest
+
+// CreatePartyJSONRequestBody defines body for CreateParty for application/json ContentType.
+type CreatePartyJSONRequestBody = PartyCreate
+
+// UpdatePartyJSONRequestBody defines body for UpdateParty for application/json ContentType.
+type UpdatePartyJSONRequestBody = PartyUpdate
+
+// AnswerPartyJSONRequestBody defines body for AnswerParty for application/json ContentType.
+type AnswerPartyJSONRequestBody AnswerPartyJSONBody
+
+// InviteToPartyJSONRequestBody defines body for InviteToParty for application/json ContentType.
+type InviteToPartyJSONRequestBody InviteToPartyJSONBody
+
+// CastPartyBallotJSONRequestBody defines body for CastPartyBallot for application/json ContentType.
+type CastPartyBallotJSONRequestBody CastPartyBallotJSONBody
+
+// JoinPartyAsGuestJSONRequestBody defines body for JoinPartyAsGuest for application/json ContentType.
+type JoinPartyAsGuestJSONRequestBody JoinPartyAsGuestJSONBody
 
 // StopPlaybackJSONRequestBody defines body for StopPlayback for application/json ContentType.
 type StopPlaybackJSONRequestBody = PlaybackStop
@@ -4439,6 +4907,51 @@ type ServerInterface interface {
 	// PollPairing Poll a pairing until it is claimed
 	// (GET /pairing/{pairingId})
 	PollPairing(w http.ResponseWriter, r *http.Request, pairingId string, params PollPairingParams)
+	// ListParties My Plaid Parties (F010-R37, R40)
+	// (GET /parties)
+	ListParties(w http.ResponseWriter, r *http.Request, params ListPartiesParams)
+	// CreateParty Start or schedule a Plaid Party (F010-R1, R2, R28, R31)
+	// (POST /parties)
+	CreateParty(w http.ResponseWriter, r *http.Request)
+	// ListPartyPeople People the caller can invite (F010-R28)
+	// (GET /parties/people)
+	ListPartyPeople(w http.ResponseWriter, r *http.Request)
+	// CancelParty Cancel a party, or end a live one for everyone (organizer, admin)
+	// (DELETE /parties/{partyId})
+	CancelParty(w http.ResponseWriter, r *http.Request, partyId string)
+	// GetParty One party (F010)
+	// (GET /parties/{partyId})
+	GetParty(w http.ResponseWriter, r *http.Request, partyId string)
+	// UpdateParty Change a party (organizer)
+	// (PATCH /parties/{partyId})
+	UpdateParty(w http.ResponseWriter, r *http.Request, partyId string)
+	// AnswerParty Answer an invitation (F010-R28)
+	// (PUT /parties/{partyId}/answer)
+	AnswerParty(w http.ResponseWriter, r *http.Request, partyId string)
+	// InviteToParty Invite more people, also during a live party (F010-R3)
+	// (POST /parties/{partyId}/invites)
+	InviteToParty(w http.ResponseWriter, r *http.Request, partyId string)
+	// GetPartyVote A party's vote (F010-R31–R33)
+	// (GET /parties/{partyId}/vote)
+	GetPartyVote(w http.ResponseWriter, r *http.Request, partyId string)
+	// CastPartyBallot Rank a top 3 and maybe veto one (R32)
+	// (PUT /parties/{partyId}/vote/ballot)
+	CastPartyBallot(w http.ResponseWriter, r *http.Request, partyId string)
+	// WithdrawPartyProposal Withdraw one's own proposal
+	// (DELETE /parties/{partyId}/vote/proposals/{itemId})
+	WithdrawPartyProposal(w http.ResponseWriter, r *http.Request, partyId string, itemId string)
+	// ProposeForParty Propose a title (2 each, until the proposal deadline, R31)
+	// (PUT /parties/{partyId}/vote/proposals/{itemId})
+	ProposeForParty(w http.ResponseWriter, r *http.Request, partyId string, itemId string)
+	// PartyVoteSuggestions Titles nobody invited has watched (R34)
+	// (GET /parties/{partyId}/vote/suggestions)
+	PartyVoteSuggestions(w http.ResponseWriter, r *http.Request, partyId string)
+	// LookupPartyCode What a party code leads to (F010-R3, Party14)
+	// (GET /party-codes/{code})
+	LookupPartyCode(w http.ResponseWriter, r *http.Request, code string)
+	// JoinPartyAsGuest Join a party without an account (F010-R5)
+	// (POST /party-codes/{code}/guest)
+	JoinPartyAsGuest(w http.ResponseWriter, r *http.Request, code string)
 	// GetPerson A person and what they're in, on this server (F005 R8)
 	// (GET /people/{personId})
 	GetPerson(w http.ResponseWriter, r *http.Request, personId string)
@@ -6763,6 +7276,397 @@ func (siw *ServerInterfaceWrapper) PollPairing(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
+// ListParties operation middleware
+func (siw *ServerInterfaceWrapper) ListParties(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListPartiesParams
+
+	// ------------- Optional query parameter "all" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "all", r.URL.Query(), &params.All, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "all"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "all", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListParties(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateParty operation middleware
+func (siw *ServerInterfaceWrapper) CreateParty(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateParty(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListPartyPeople operation middleware
+func (siw *ServerInterfaceWrapper) ListPartyPeople(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListPartyPeople(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CancelParty operation middleware
+func (siw *ServerInterfaceWrapper) CancelParty(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CancelParty(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetParty operation middleware
+func (siw *ServerInterfaceWrapper) GetParty(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetParty(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateParty operation middleware
+func (siw *ServerInterfaceWrapper) UpdateParty(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateParty(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AnswerParty operation middleware
+func (siw *ServerInterfaceWrapper) AnswerParty(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AnswerParty(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// InviteToParty operation middleware
+func (siw *ServerInterfaceWrapper) InviteToParty(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.InviteToParty(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPartyVote operation middleware
+func (siw *ServerInterfaceWrapper) GetPartyVote(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPartyVote(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CastPartyBallot operation middleware
+func (siw *ServerInterfaceWrapper) CastPartyBallot(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CastPartyBallot(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// WithdrawPartyProposal operation middleware
+func (siw *ServerInterfaceWrapper) WithdrawPartyProposal(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.WithdrawPartyProposal(w, r, partyId, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ProposeForParty operation middleware
+func (siw *ServerInterfaceWrapper) ProposeForParty(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ProposeForParty(w, r, partyId, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PartyVoteSuggestions operation middleware
+func (siw *ServerInterfaceWrapper) PartyVoteSuggestions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PartyVoteSuggestions(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// LookupPartyCode operation middleware
+func (siw *ServerInterfaceWrapper) LookupPartyCode(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "code" -------------
+	var code string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "code", r.PathValue("code"), &code, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.LookupPartyCode(w, r, code)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// JoinPartyAsGuest operation middleware
+func (siw *ServerInterfaceWrapper) JoinPartyAsGuest(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "code" -------------
+	var code string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "code", r.PathValue("code"), &code, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.JoinPartyAsGuest(w, r, code)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetPerson operation middleware
 func (siw *ServerInterfaceWrapper) GetPerson(w http.ResponseWriter, r *http.Request) {
 
@@ -7552,6 +8456,21 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/playback/{sessionId}/progress", wrapper.ReportPlaybackProgress)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/settings/playback", wrapper.GetPlaybackSettings)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/playback", wrapper.UpdatePlaybackSettings)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/parties", wrapper.ListParties)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/parties", wrapper.CreateParty)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/parties/people", wrapper.ListPartyPeople)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/party-codes/{code}", wrapper.LookupPartyCode)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/party-codes/{code}/guest", wrapper.JoinPartyAsGuest)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/parties/{partyId}", wrapper.CancelParty)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/parties/{partyId}", wrapper.GetParty)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/parties/{partyId}", wrapper.UpdateParty)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/parties/{partyId}/invites", wrapper.InviteToParty)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/parties/{partyId}/answer", wrapper.AnswerParty)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/parties/{partyId}/vote", wrapper.GetPartyVote)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/parties/{partyId}/vote/proposals/{itemId}", wrapper.WithdrawPartyProposal)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/parties/{partyId}/vote/proposals/{itemId}", wrapper.ProposeForParty)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/parties/{partyId}/vote/ballot", wrapper.CastPartyBallot)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/parties/{partyId}/vote/suggestions", wrapper.PartyVoteSuggestions)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/settings/party", wrapper.GetPartySettings)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/party", wrapper.UpdatePartySettings)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
@@ -10492,6 +11411,579 @@ func (response PollPairingdefaultJSONResponse) VisitPollPairingResponse(w http.R
 	return err
 }
 
+type ListPartiesRequestObject struct {
+	Params ListPartiesParams
+}
+
+type ListPartiesResponseObject interface {
+	VisitListPartiesResponse(w http.ResponseWriter) error
+}
+
+type ListParties200JSONResponse []Party
+
+func (response ListParties200JSONResponse) VisitListPartiesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPartiesdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListPartiesdefaultJSONResponse) VisitListPartiesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartyRequestObject struct {
+	Body *CreatePartyJSONRequestBody
+}
+
+type CreatePartyResponseObject interface {
+	VisitCreatePartyResponse(w http.ResponseWriter) error
+}
+
+type CreateParty201JSONResponse Party
+
+func (response CreateParty201JSONResponse) VisitCreatePartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CreatePartydefaultJSONResponse) VisitCreatePartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPartyPeopleRequestObject struct {
+}
+
+type ListPartyPeopleResponseObject interface {
+	VisitListPartyPeopleResponse(w http.ResponseWriter) error
+}
+
+type ListPartyPeople200JSONResponse []PartyPerson
+
+func (response ListPartyPeople200JSONResponse) VisitListPartyPeopleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPartyPeopledefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListPartyPeopledefaultJSONResponse) VisitListPartyPeopleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CancelPartyRequestObject struct {
+	PartyId string `json:"partyId"`
+}
+
+type CancelPartyResponseObject interface {
+	VisitCancelPartyResponse(w http.ResponseWriter) error
+}
+
+type CancelParty204Response struct {
+}
+
+func (response CancelParty204Response) VisitCancelPartyResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type CancelPartydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CancelPartydefaultJSONResponse) VisitCancelPartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPartyRequestObject struct {
+	PartyId string `json:"partyId"`
+}
+
+type GetPartyResponseObject interface {
+	VisitGetPartyResponse(w http.ResponseWriter) error
+}
+
+type GetParty200JSONResponse Party
+
+func (response GetParty200JSONResponse) VisitGetPartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPartydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetPartydefaultJSONResponse) VisitGetPartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartyRequestObject struct {
+	PartyId string `json:"partyId"`
+	Body    *UpdatePartyJSONRequestBody
+}
+
+type UpdatePartyResponseObject interface {
+	VisitUpdatePartyResponse(w http.ResponseWriter) error
+}
+
+type UpdateParty200JSONResponse Party
+
+func (response UpdateParty200JSONResponse) VisitUpdatePartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdatePartydefaultJSONResponse) VisitUpdatePartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AnswerPartyRequestObject struct {
+	PartyId string `json:"partyId"`
+	Body    *AnswerPartyJSONRequestBody
+}
+
+type AnswerPartyResponseObject interface {
+	VisitAnswerPartyResponse(w http.ResponseWriter) error
+}
+
+type AnswerParty204Response struct {
+}
+
+func (response AnswerParty204Response) VisitAnswerPartyResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AnswerPartydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response AnswerPartydefaultJSONResponse) VisitAnswerPartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type InviteToPartyRequestObject struct {
+	PartyId string `json:"partyId"`
+	Body    *InviteToPartyJSONRequestBody
+}
+
+type InviteToPartyResponseObject interface {
+	VisitInviteToPartyResponse(w http.ResponseWriter) error
+}
+
+type InviteToParty204Response struct {
+}
+
+func (response InviteToParty204Response) VisitInviteToPartyResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type InviteToPartydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response InviteToPartydefaultJSONResponse) VisitInviteToPartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPartyVoteRequestObject struct {
+	PartyId string `json:"partyId"`
+}
+
+type GetPartyVoteResponseObject interface {
+	VisitGetPartyVoteResponse(w http.ResponseWriter) error
+}
+
+type GetPartyVote200JSONResponse PartyVote
+
+func (response GetPartyVote200JSONResponse) VisitGetPartyVoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPartyVotedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetPartyVotedefaultJSONResponse) VisitGetPartyVoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CastPartyBallotRequestObject struct {
+	PartyId string `json:"partyId"`
+	Body    *CastPartyBallotJSONRequestBody
+}
+
+type CastPartyBallotResponseObject interface {
+	VisitCastPartyBallotResponse(w http.ResponseWriter) error
+}
+
+type CastPartyBallot200JSONResponse PartyVote
+
+func (response CastPartyBallot200JSONResponse) VisitCastPartyBallotResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CastPartyBallotdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CastPartyBallotdefaultJSONResponse) VisitCastPartyBallotResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type WithdrawPartyProposalRequestObject struct {
+	PartyId string `json:"partyId"`
+	ItemId  string `json:"itemId"`
+}
+
+type WithdrawPartyProposalResponseObject interface {
+	VisitWithdrawPartyProposalResponse(w http.ResponseWriter) error
+}
+
+type WithdrawPartyProposal200JSONResponse PartyVote
+
+func (response WithdrawPartyProposal200JSONResponse) VisitWithdrawPartyProposalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type WithdrawPartyProposaldefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response WithdrawPartyProposaldefaultJSONResponse) VisitWithdrawPartyProposalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeForPartyRequestObject struct {
+	PartyId string `json:"partyId"`
+	ItemId  string `json:"itemId"`
+}
+
+type ProposeForPartyResponseObject interface {
+	VisitProposeForPartyResponse(w http.ResponseWriter) error
+}
+
+type ProposeForParty200JSONResponse PartyVote
+
+func (response ProposeForParty200JSONResponse) VisitProposeForPartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeForPartydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ProposeForPartydefaultJSONResponse) VisitProposeForPartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PartyVoteSuggestionsRequestObject struct {
+	PartyId string `json:"partyId"`
+}
+
+type PartyVoteSuggestionsResponseObject interface {
+	VisitPartyVoteSuggestionsResponse(w http.ResponseWriter) error
+}
+
+type PartyVoteSuggestions200JSONResponse []PartyItem
+
+func (response PartyVoteSuggestions200JSONResponse) VisitPartyVoteSuggestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PartyVoteSuggestionsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response PartyVoteSuggestionsdefaultJSONResponse) VisitPartyVoteSuggestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type LookupPartyCodeRequestObject struct {
+	Code string `json:"code"`
+}
+
+type LookupPartyCodeResponseObject interface {
+	VisitLookupPartyCodeResponse(w http.ResponseWriter) error
+}
+
+type LookupPartyCode200JSONResponse PartyPreview
+
+func (response LookupPartyCode200JSONResponse) VisitLookupPartyCodeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type LookupPartyCodedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response LookupPartyCodedefaultJSONResponse) VisitLookupPartyCodeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type JoinPartyAsGuestRequestObject struct {
+	Code string `json:"code"`
+	Body *JoinPartyAsGuestJSONRequestBody
+}
+
+type JoinPartyAsGuestResponseObject interface {
+	VisitJoinPartyAsGuestResponse(w http.ResponseWriter) error
+}
+
+type JoinPartyAsGuest201JSONResponse PartyGuestSession
+
+func (response JoinPartyAsGuest201JSONResponse) VisitJoinPartyAsGuestResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type JoinPartyAsGuestdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response JoinPartyAsGuestdefaultJSONResponse) VisitJoinPartyAsGuestResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetPersonRequestObject struct {
 	PersonId string `json:"personId"`
 }
@@ -11843,6 +13335,51 @@ type StrictServerInterface interface {
 	// PollPairing Poll a pairing until it is claimed
 	// (GET /pairing/{pairingId})
 	PollPairing(ctx context.Context, request PollPairingRequestObject) (PollPairingResponseObject, error)
+	// ListParties My Plaid Parties (F010-R37, R40)
+	// (GET /parties)
+	ListParties(ctx context.Context, request ListPartiesRequestObject) (ListPartiesResponseObject, error)
+	// CreateParty Start or schedule a Plaid Party (F010-R1, R2, R28, R31)
+	// (POST /parties)
+	CreateParty(ctx context.Context, request CreatePartyRequestObject) (CreatePartyResponseObject, error)
+	// ListPartyPeople People the caller can invite (F010-R28)
+	// (GET /parties/people)
+	ListPartyPeople(ctx context.Context, request ListPartyPeopleRequestObject) (ListPartyPeopleResponseObject, error)
+	// CancelParty Cancel a party, or end a live one for everyone (organizer, admin)
+	// (DELETE /parties/{partyId})
+	CancelParty(ctx context.Context, request CancelPartyRequestObject) (CancelPartyResponseObject, error)
+	// GetParty One party (F010)
+	// (GET /parties/{partyId})
+	GetParty(ctx context.Context, request GetPartyRequestObject) (GetPartyResponseObject, error)
+	// UpdateParty Change a party (organizer)
+	// (PATCH /parties/{partyId})
+	UpdateParty(ctx context.Context, request UpdatePartyRequestObject) (UpdatePartyResponseObject, error)
+	// AnswerParty Answer an invitation (F010-R28)
+	// (PUT /parties/{partyId}/answer)
+	AnswerParty(ctx context.Context, request AnswerPartyRequestObject) (AnswerPartyResponseObject, error)
+	// InviteToParty Invite more people, also during a live party (F010-R3)
+	// (POST /parties/{partyId}/invites)
+	InviteToParty(ctx context.Context, request InviteToPartyRequestObject) (InviteToPartyResponseObject, error)
+	// GetPartyVote A party's vote (F010-R31–R33)
+	// (GET /parties/{partyId}/vote)
+	GetPartyVote(ctx context.Context, request GetPartyVoteRequestObject) (GetPartyVoteResponseObject, error)
+	// CastPartyBallot Rank a top 3 and maybe veto one (R32)
+	// (PUT /parties/{partyId}/vote/ballot)
+	CastPartyBallot(ctx context.Context, request CastPartyBallotRequestObject) (CastPartyBallotResponseObject, error)
+	// WithdrawPartyProposal Withdraw one's own proposal
+	// (DELETE /parties/{partyId}/vote/proposals/{itemId})
+	WithdrawPartyProposal(ctx context.Context, request WithdrawPartyProposalRequestObject) (WithdrawPartyProposalResponseObject, error)
+	// ProposeForParty Propose a title (2 each, until the proposal deadline, R31)
+	// (PUT /parties/{partyId}/vote/proposals/{itemId})
+	ProposeForParty(ctx context.Context, request ProposeForPartyRequestObject) (ProposeForPartyResponseObject, error)
+	// PartyVoteSuggestions Titles nobody invited has watched (R34)
+	// (GET /parties/{partyId}/vote/suggestions)
+	PartyVoteSuggestions(ctx context.Context, request PartyVoteSuggestionsRequestObject) (PartyVoteSuggestionsResponseObject, error)
+	// LookupPartyCode What a party code leads to (F010-R3, Party14)
+	// (GET /party-codes/{code})
+	LookupPartyCode(ctx context.Context, request LookupPartyCodeRequestObject) (LookupPartyCodeResponseObject, error)
+	// JoinPartyAsGuest Join a party without an account (F010-R5)
+	// (POST /party-codes/{code}/guest)
+	JoinPartyAsGuest(ctx context.Context, request JoinPartyAsGuestRequestObject) (JoinPartyAsGuestResponseObject, error)
 	// GetPerson A person and what they're in, on this server (F005 R8)
 	// (GET /people/{personId})
 	GetPerson(ctx context.Context, request GetPersonRequestObject) (GetPersonResponseObject, error)
@@ -13979,6 +15516,436 @@ func (sh *strictHandler) PollPairing(w http.ResponseWriter, r *http.Request, pai
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PollPairingResponseObject); ok {
 		if err := validResponse.VisitPollPairingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListParties operation middleware
+func (sh *strictHandler) ListParties(w http.ResponseWriter, r *http.Request, params ListPartiesParams) {
+	var request ListPartiesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListParties(ctx, request.(ListPartiesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListParties")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListPartiesResponseObject); ok {
+		if err := validResponse.VisitListPartiesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateParty operation middleware
+func (sh *strictHandler) CreateParty(w http.ResponseWriter, r *http.Request) {
+	var request CreatePartyRequestObject
+
+	var body CreatePartyJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateParty(ctx, request.(CreatePartyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateParty")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreatePartyResponseObject); ok {
+		if err := validResponse.VisitCreatePartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListPartyPeople operation middleware
+func (sh *strictHandler) ListPartyPeople(w http.ResponseWriter, r *http.Request) {
+	var request ListPartyPeopleRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListPartyPeople(ctx, request.(ListPartyPeopleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListPartyPeople")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListPartyPeopleResponseObject); ok {
+		if err := validResponse.VisitListPartyPeopleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CancelParty operation middleware
+func (sh *strictHandler) CancelParty(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request CancelPartyRequestObject
+
+	request.PartyId = partyId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CancelParty(ctx, request.(CancelPartyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CancelParty")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CancelPartyResponseObject); ok {
+		if err := validResponse.VisitCancelPartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetParty operation middleware
+func (sh *strictHandler) GetParty(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request GetPartyRequestObject
+
+	request.PartyId = partyId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetParty(ctx, request.(GetPartyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetParty")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPartyResponseObject); ok {
+		if err := validResponse.VisitGetPartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateParty operation middleware
+func (sh *strictHandler) UpdateParty(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request UpdatePartyRequestObject
+
+	request.PartyId = partyId
+
+	var body UpdatePartyJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateParty(ctx, request.(UpdatePartyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateParty")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdatePartyResponseObject); ok {
+		if err := validResponse.VisitUpdatePartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AnswerParty operation middleware
+func (sh *strictHandler) AnswerParty(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request AnswerPartyRequestObject
+
+	request.PartyId = partyId
+
+	var body AnswerPartyJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AnswerParty(ctx, request.(AnswerPartyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AnswerParty")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AnswerPartyResponseObject); ok {
+		if err := validResponse.VisitAnswerPartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// InviteToParty operation middleware
+func (sh *strictHandler) InviteToParty(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request InviteToPartyRequestObject
+
+	request.PartyId = partyId
+
+	var body InviteToPartyJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.InviteToParty(ctx, request.(InviteToPartyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "InviteToParty")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(InviteToPartyResponseObject); ok {
+		if err := validResponse.VisitInviteToPartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetPartyVote operation middleware
+func (sh *strictHandler) GetPartyVote(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request GetPartyVoteRequestObject
+
+	request.PartyId = partyId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPartyVote(ctx, request.(GetPartyVoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPartyVote")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPartyVoteResponseObject); ok {
+		if err := validResponse.VisitGetPartyVoteResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CastPartyBallot operation middleware
+func (sh *strictHandler) CastPartyBallot(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request CastPartyBallotRequestObject
+
+	request.PartyId = partyId
+
+	var body CastPartyBallotJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CastPartyBallot(ctx, request.(CastPartyBallotRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CastPartyBallot")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CastPartyBallotResponseObject); ok {
+		if err := validResponse.VisitCastPartyBallotResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// WithdrawPartyProposal operation middleware
+func (sh *strictHandler) WithdrawPartyProposal(w http.ResponseWriter, r *http.Request, partyId string, itemId string) {
+	var request WithdrawPartyProposalRequestObject
+
+	request.PartyId = partyId
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.WithdrawPartyProposal(ctx, request.(WithdrawPartyProposalRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "WithdrawPartyProposal")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(WithdrawPartyProposalResponseObject); ok {
+		if err := validResponse.VisitWithdrawPartyProposalResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ProposeForParty operation middleware
+func (sh *strictHandler) ProposeForParty(w http.ResponseWriter, r *http.Request, partyId string, itemId string) {
+	var request ProposeForPartyRequestObject
+
+	request.PartyId = partyId
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ProposeForParty(ctx, request.(ProposeForPartyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ProposeForParty")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ProposeForPartyResponseObject); ok {
+		if err := validResponse.VisitProposeForPartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PartyVoteSuggestions operation middleware
+func (sh *strictHandler) PartyVoteSuggestions(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request PartyVoteSuggestionsRequestObject
+
+	request.PartyId = partyId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PartyVoteSuggestions(ctx, request.(PartyVoteSuggestionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PartyVoteSuggestions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PartyVoteSuggestionsResponseObject); ok {
+		if err := validResponse.VisitPartyVoteSuggestionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// LookupPartyCode operation middleware
+func (sh *strictHandler) LookupPartyCode(w http.ResponseWriter, r *http.Request, code string) {
+	var request LookupPartyCodeRequestObject
+
+	request.Code = code
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.LookupPartyCode(ctx, request.(LookupPartyCodeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "LookupPartyCode")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(LookupPartyCodeResponseObject); ok {
+		if err := validResponse.VisitLookupPartyCodeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// JoinPartyAsGuest operation middleware
+func (sh *strictHandler) JoinPartyAsGuest(w http.ResponseWriter, r *http.Request, code string) {
+	var request JoinPartyAsGuestRequestObject
+
+	request.Code = code
+
+	var body JoinPartyAsGuestJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.JoinPartyAsGuest(ctx, request.(JoinPartyAsGuestRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "JoinPartyAsGuest")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(JoinPartyAsGuestResponseObject); ok {
+		if err := validResponse.VisitJoinPartyAsGuestResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
