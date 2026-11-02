@@ -327,7 +327,7 @@ func toLibrary(v library.View) api.Library {
 		Folders:             make([]api.LibraryFolder, 0, len(v.Folders)),
 		Counts: api.LibraryCounts{
 			Movies: v.Counts.Movies, Shows: v.Counts.Shows, Episodes: v.Counts.Episodes,
-			Files: v.Counts.Files, Unrecognized: v.Counts.Unrecognized,
+			Files: v.Counts.Files, Unrecognized: v.Counts.Unrecognized, SizeBytes: v.Counts.SizeBytes,
 		},
 		Scan:          toScanProgress(v.Scan),
 		HouseholdOnly: v.HouseholdOnly,

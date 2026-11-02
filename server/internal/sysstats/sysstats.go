@@ -130,3 +130,33 @@ func DriveOf(path string) (Drive, bool) {
 		FreeBytes:  int64(fs.Bavail) * bs, //nolint:gosec // block counts fit
 	}, true
 }
+
+// Memory is the machine's memory in use and in all, from /proc/meminfo
+// (MemTotal less MemAvailable); ok is false where it isn't there.
+func Memory() (used, total int64, ok bool) {
+	b, err := os.ReadFile("/proc/meminfo")
+	if err != nil {
+		return 0, 0, false
+	}
+	var avail int64 = -1
+	for _, line := range strings.Split(string(b), "\n") {
+		f := strings.Fields(line)
+		if len(f) < 2 {
+			continue
+		}
+		kb, err := strconv.ParseInt(f[1], 10, 64)
+		if err != nil {
+			continue
+		}
+		switch f[0] {
+		case "MemTotal:":
+			total = kb * 1024
+		case "MemAvailable:":
+			avail = kb * 1024
+		}
+	}
+	if total == 0 || avail < 0 {
+		return 0, 0, false
+	}
+	return total - avail, total, true
+}

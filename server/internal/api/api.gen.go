@@ -866,6 +866,27 @@ func (e PersonCreditRole) Valid() bool {
 	}
 }
 
+// Defines values for PlayRecordMethod.
+const (
+	PlayRecordMethodDirectPlay   PlayRecordMethod = "direct_play"
+	PlayRecordMethodDirectStream PlayRecordMethod = "direct_stream"
+	PlayRecordMethodTranscode    PlayRecordMethod = "transcode"
+)
+
+// Valid indicates whether the value is a known member of the PlayRecordMethod enum.
+func (e PlayRecordMethod) Valid() bool {
+	switch e {
+	case PlayRecordMethodDirectPlay:
+		return true
+	case PlayRecordMethodDirectStream:
+		return true
+	case PlayRecordMethodTranscode:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PlaybackMethod.
 const (
 	PlaybackMethodDirectPlay   PlaybackMethod = "direct_play"
@@ -1541,6 +1562,8 @@ type AcceptInvitationRequest struct {
 
 // ActivePlayback defines model for ActivePlayback.
 type ActivePlayback struct {
+	// BitrateBps What this stream is sent at, in bits per second (step 21).
+	BitrateBps     *int64    `json:"bitrateBps,omitempty"`
 	DeviceName     string    `json:"deviceName"`
 	ItemTitle      string    `json:"itemTitle"`
 	LastActivityAt time.Time `json:"lastActivityAt"`
@@ -1565,6 +1588,30 @@ type ActivePlaybackList struct {
 	Sessions []ActivePlayback `json:"sessions"`
 }
 
+// Activity defines model for Activity.
+type Activity struct {
+	// ActivePeople Accounts seen in the period.
+	ActivePeople int `json:"activePeople"`
+
+	// Days One entry per day, oldest first, today last.
+	Days []ActivityDay `json:"days"`
+
+	// Recent The last plays, newest first (50 at most).
+	Recent []PlayRecord `json:"recent"`
+
+	// RecentlyAdded The last movies and shows added, newest first (10 at most).
+	RecentlyAdded []ItemSummary `json:"recentlyAdded"`
+}
+
+// ActivityDay defines model for ActivityDay.
+type ActivityDay struct {
+	Date openapi_types.Date `json:"date"`
+
+	// Hours Hours watched that day, all accounts.
+	Hours float32 `json:"hours"`
+	Plays int     `json:"plays"`
+}
+
 // AdminUser defines model for AdminUser.
 type AdminUser struct {
 	// Access What an account gets from its role, groups and exceptions together.
@@ -1586,6 +1633,9 @@ type AdminUser struct {
 	ExtraRights RightsOverride `json:"extraRights"`
 	GroupIds    []string       `json:"groupIds"`
 	Id          string         `json:"id"`
+
+	// LastDevice The device seen last, absent if it never signed in.
+	LastDevice *SessionInfo `json:"lastDevice,omitempty"`
 
 	// LastSeenAt The most recent activity of any of its devices, null if it never signed in.
 	LastSeenAt         nullable.Nullable[time.Time] `json:"lastSeenAt"`
@@ -2444,10 +2494,13 @@ type LibraryCounts struct {
 	Episodes int `json:"episodes"`
 
 	// Files Files present on disk.
-	Files        int `json:"files"`
-	Movies       int `json:"movies"`
-	Shows        int `json:"shows"`
-	Unrecognized int `json:"unrecognized"`
+	Files  int `json:"files"`
+	Movies int `json:"movies"`
+	Shows  int `json:"shows"`
+
+	// SizeBytes The size of the files present on disk.
+	SizeBytes    int64 `json:"sizeBytes"`
+	Unrecognized int   `json:"unrecognized"`
 }
 
 // LibraryFacets defines model for LibraryFacets.
@@ -2732,6 +2785,23 @@ type PersonRef struct {
 	// Portrait An image; fetch it with GET /images/{imageId}?w=.
 	Portrait *Artwork `json:"portrait,omitempty"`
 }
+
+// PlayRecord defines model for PlayRecord.
+type PlayRecord struct {
+	DeviceName  string           `json:"deviceName"`
+	DisplayName string           `json:"displayName"`
+	ItemId      string           `json:"itemId"`
+	Method      PlayRecordMethod `json:"method"`
+	ProfileName string           `json:"profileName"`
+	Remote      bool             `json:"remote"`
+	StartedAt   time.Time        `json:"startedAt"`
+	Title       string           `json:"title"`
+	UserId      string           `json:"userId"`
+	WatchedMs   int64            `json:"watchedMs"`
+}
+
+// PlayRecordMethod defines model for PlayRecord.Method.
+type PlayRecordMethod string
 
 // PlaybackAudioTrack defines model for PlaybackAudioTrack.
 type PlaybackAudioTrack struct {
@@ -3226,8 +3296,12 @@ type ServerStats struct {
 	CpuPercent *float32 `json:"cpuPercent,omitempty"`
 
 	// Drives The drives holding library folders, one per device.
-	Drives        []DriveStats `json:"drives"`
-	MaxTranscodes int          `json:"maxTranscodes"`
+	Drives           []DriveStats `json:"drives"`
+	MaxTranscodes    int          `json:"maxTranscodes"`
+	MemoryTotalBytes *int64       `json:"memoryTotalBytes,omitempty"`
+
+	// MemoryUsedBytes Memory in use on the machine, when known.
+	MemoryUsedBytes *int64 `json:"memoryUsedBytes,omitempty"`
 
 	// Model The machine (a Raspberry Pi's board, a PC's product), when known.
 	Model *string `json:"model,omitempty"`
@@ -3300,6 +3374,19 @@ type SortOrder string
 // StartPairingRequest defines model for StartPairingRequest.
 type StartPairingRequest struct {
 	Device Device `json:"device"`
+}
+
+// StatsHistory defines model for StatsHistory.
+type StatsHistory struct {
+	Samples []StatsSample `json:"samples"`
+}
+
+// StatsSample defines model for StatsSample.
+type StatsSample struct {
+	At         time.Time `json:"at"`
+	Streams    int       `json:"streams"`
+	Transcodes int       `json:"transcodes"`
+	UploadBps  int64     `json:"uploadBps"`
 }
 
 // SubtitleCapability defines model for SubtitleCapability.
@@ -3546,6 +3633,15 @@ type SubtitleIndex = int
 // UserId defines model for UserId.
 type UserId = string
 
+// GetActivityParams defines parameters for GetActivity.
+type GetActivityParams struct {
+	// Days How many days back, today included; defaults to 7.
+	Days *int `form:"days,omitempty" json:"days,omitempty"`
+
+	// TzOffsetMinutes The browser's offset from UTC (JavaScript's getTimezoneOffset), so days are local.
+	TzOffsetMinutes *int `form:"tzOffsetMinutes,omitempty" json:"tzOffsetMinutes,omitempty"`
+}
+
 // RenderAvatarParams defines parameters for RenderAvatar.
 type RenderAvatarParams struct {
 	// Options AvatarOptions as JSON.
@@ -3782,6 +3878,9 @@ type ResetUserPasswordJSONRequestBody = ResetPasswordRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// GetActivity What was watched and added lately, for the admin dashboard and Activity (step 21)
+	// (GET /activity)
+	GetActivity(w http.ResponseWriter, r *http.Request, params GetActivityParams)
 	// Login Sign in with username and password
 	// (POST /auth/login)
 	Login(w http.ResponseWriter, r *http.Request)
@@ -4034,6 +4133,9 @@ type ServerInterface interface {
 	// GetServerStats What the machine is doing, for the admin dashboard (V2)
 	// (GET /server/stats)
 	GetServerStats(w http.ResponseWriter, r *http.Request)
+	// GetServerStatsHistory The last 24 hours of streams and upload, one sample a minute (admin, step 21)
+	// (GET /server/stats/history)
+	GetServerStatsHistory(w http.ResponseWriter, r *http.Request)
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(w http.ResponseWriter, r *http.Request)
@@ -4080,6 +4182,52 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetActivity operation middleware
+func (siw *ServerInterfaceWrapper) GetActivity(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetActivityParams
+
+	// ------------- Optional query parameter "days" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "days", r.URL.Query(), &params.Days, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "days"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "days", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "tzOffsetMinutes" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "tzOffsetMinutes", r.URL.Query(), &params.TzOffsetMinutes, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "tzOffsetMinutes"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "tzOffsetMinutes", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetActivity(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // Login operation middleware
 func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request) {
@@ -6390,6 +6538,20 @@ func (siw *ServerInterfaceWrapper) GetServerStats(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
+// GetServerStatsHistory operation middleware
+func (siw *ServerInterfaceWrapper) GetServerStatsHistory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetServerStatsHistory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // SelectProfile operation middleware
 func (siw *ServerInterfaceWrapper) SelectProfile(w http.ResponseWriter, r *http.Request) {
 
@@ -6837,6 +6999,8 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/playback", wrapper.UpdatePlaybackSettings)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/stats", wrapper.GetServerStats)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/stats/history", wrapper.GetServerStatsHistory)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/activity", wrapper.GetActivity)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/server/capabilities/hardware-test", wrapper.TestServerHardware)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/remote-access", wrapper.GetRemoteAccess)
@@ -6848,6 +7012,45 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 }
 
 type ErrorJSONResponse Error
+
+type GetActivityRequestObject struct {
+	Params GetActivityParams
+}
+
+type GetActivityResponseObject interface {
+	VisitGetActivityResponse(w http.ResponseWriter) error
+}
+
+type GetActivity200JSONResponse Activity
+
+func (response GetActivity200JSONResponse) VisitGetActivityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetActivitydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetActivitydefaultJSONResponse) VisitGetActivityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type LoginRequestObject struct {
 	Body *LoginJSONRequestBody
@@ -10220,6 +10423,44 @@ func (response GetServerStatsdefaultJSONResponse) VisitGetServerStatsResponse(w 
 	return err
 }
 
+type GetServerStatsHistoryRequestObject struct {
+}
+
+type GetServerStatsHistoryResponseObject interface {
+	VisitGetServerStatsHistoryResponse(w http.ResponseWriter) error
+}
+
+type GetServerStatsHistory200JSONResponse StatsHistory
+
+func (response GetServerStatsHistory200JSONResponse) VisitGetServerStatsHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServerStatsHistorydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetServerStatsHistorydefaultJSONResponse) VisitGetServerStatsHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type SelectProfileRequestObject struct {
 	Body *SelectProfileJSONRequestBody
 }
@@ -10672,6 +10913,9 @@ func (response RevokeUserSessiondefaultJSONResponse) VisitRevokeUserSessionRespo
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// GetActivity What was watched and added lately, for the admin dashboard and Activity (step 21)
+	// (GET /activity)
+	GetActivity(ctx context.Context, request GetActivityRequestObject) (GetActivityResponseObject, error)
 	// Login Sign in with username and password
 	// (POST /auth/login)
 	Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error)
@@ -10924,6 +11168,9 @@ type StrictServerInterface interface {
 	// GetServerStats What the machine is doing, for the admin dashboard (V2)
 	// (GET /server/stats)
 	GetServerStats(ctx context.Context, request GetServerStatsRequestObject) (GetServerStatsResponseObject, error)
+	// GetServerStatsHistory The last 24 hours of streams and upload, one sample a minute (admin, step 21)
+	// (GET /server/stats/history)
+	GetServerStatsHistory(ctx context.Context, request GetServerStatsHistoryRequestObject) (GetServerStatsHistoryResponseObject, error)
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(ctx context.Context, request SelectProfileRequestObject) (SelectProfileResponseObject, error)
@@ -10999,6 +11246,32 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// GetActivity operation middleware
+func (sh *strictHandler) GetActivity(w http.ResponseWriter, r *http.Request, params GetActivityParams) {
+	var request GetActivityRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetActivity(ctx, request.(GetActivityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetActivity")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetActivityResponseObject); ok {
+		if err := validResponse.VisitGetActivityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // Login operation middleware
@@ -13331,6 +13604,30 @@ func (sh *strictHandler) GetServerStats(w http.ResponseWriter, r *http.Request) 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetServerStatsResponseObject); ok {
 		if err := validResponse.VisitGetServerStatsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetServerStatsHistory operation middleware
+func (sh *strictHandler) GetServerStatsHistory(w http.ResponseWriter, r *http.Request) {
+	var request GetServerStatsHistoryRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetServerStatsHistory(ctx, request.(GetServerStatsHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetServerStatsHistory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetServerStatsHistoryResponseObject); ok {
+		if err := validResponse.VisitGetServerStatsHistoryResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

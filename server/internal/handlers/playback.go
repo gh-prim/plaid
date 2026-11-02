@@ -239,6 +239,9 @@ func (h *Handlers) ListPlaybackSessions(ctx context.Context, _ api.ListPlaybackS
 			ItemTitle: s.ItemTitle, PositionMs: s.PositionMs, Remote: s.Remote,
 			StartedAt: s.CreatedAt, LastActivityAt: s.LastActivity,
 		}
+		if bps := s.BitrateBps(); bps > 0 {
+			a.BitrateBps = &bps
+		}
 		if s.State != "" {
 			st := api.PlaybackState(s.State)
 			a.State = &st

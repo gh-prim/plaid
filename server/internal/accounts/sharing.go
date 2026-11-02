@@ -614,21 +614,34 @@ func (s *Service) Access(ctx context.Context, userID string) (Access, error) {
 	return Access{LibraryIDs: libs, Rights: rights}, rows.Err()
 }
 
-// LastSeen returns, by user id, when each account's most recent session
-// was last used.
-func (s *Service) LastSeen(ctx context.Context) (map[string]string, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT user_id, MAX(last_seen_at) FROM sessions GROUP BY user_id`)
+// Seen is an account's most recently used device.
+type Seen struct {
+	At         string
+	SessionID  string
+	DeviceName string
+	DeviceType string
+}
+
+// LastSeen returns, by user id, the account's most recently used session.
+func (s *Service) LastSeen(ctx context.Context) (map[string]Seen, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT user_id, last_seen_at, id, device_name, device_type FROM (
+		SELECT user_id, last_seen_at, id, device_name, device_type,
+			ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY last_seen_at DESC, id DESC) AS rn FROM sessions
+	) WHERE rn = 1`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	out := map[string]string{}
+	out := map[string]Seen{}
 	for rows.Next() {
-		var id, at string
-		if err := rows.Scan(&id, &at); err != nil {
+		var (
+			id string
+			v  Seen
+		)
+		if err := rows.Scan(&id, &v.At, &v.SessionID, &v.DeviceName, &v.DeviceType); err != nil {
 			return nil, err
 		}
-		out[id] = at
+		out[id] = v
 	}
 	return out, rows.Err()
 }

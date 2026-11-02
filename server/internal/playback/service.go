@@ -91,6 +91,7 @@ type Service struct {
 	o         Options
 	t         Timings
 	manager   *Manager
+	hist      history // the last day of samples (step 21)
 	watch     *WatchStore
 	keyframes *keyframes.Store
 	storage   *Storage
@@ -177,6 +178,7 @@ func (s *Service) Start(ctx context.Context) {
 		}()
 	}
 	go s.manager.Run(ctx)
+	go s.runHistory(ctx)
 	if s.previews != nil && s.o.FFmpeg != nil {
 		go s.runPreviews(ctx)
 	}
@@ -748,6 +750,7 @@ func genOf(dir string) int {
 func (s *Service) onEnd(sess Session) {
 	s.closeStream(sess.ID, false)
 	s.saveFinal(sess)
+	s.logPlay(sess)
 }
 
 // Session returns a session p may see.
@@ -761,15 +764,22 @@ func (s *Service) Sessions() []Session { return s.manager.List() }
 // out to the players (what each stream is sent at, not measured).
 func (s *Service) Load() (transcodes, limit int, uploadBps int64) {
 	for _, sess := range s.manager.List() {
-		d := sess.Decision
-		if d.Method == Transcode {
+		if sess.Decision.Method == Transcode {
 			transcodes++
-			uploadBps += d.VideoBitrate + audioBitrate(d)
-			continue
 		}
-		uploadBps += d.Media.Bitrate
+		uploadBps += sess.BitrateBps()
 	}
 	return transcodes, s.maxTranscodes(), uploadBps
+}
+
+// BitrateBps is what the session is sent at: the transcode's target, else
+// the file's own bitrate.
+func (sess Session) BitrateBps() int64 {
+	d := sess.Decision
+	if d.Method == Transcode {
+		return d.VideoBitrate + audioBitrate(d)
+	}
+	return d.Media.Bitrate
 }
 
 // Progress records a client's position and state (R32), writing watch

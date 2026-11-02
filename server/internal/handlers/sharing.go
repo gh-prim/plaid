@@ -203,10 +203,11 @@ func (h *Handlers) adminUsers(ctx context.Context, users []accounts.User) ([]api
 		}
 		a.GroupIds, a.ExtraLibraryIds, a.ExtraRights = sh.GroupIDs, sh.ExtraLibraryIDs, toOverride(sh.ExtraRights)
 		a.LastSeenAt = nullable.NewNullNullable[time.Time]()
-		if at, ok := seen[u.ID]; ok {
-			if t, err := time.Parse("2006-01-02T15:04:05.000Z", at); err == nil {
+		if v, ok := seen[u.ID]; ok {
+			if t, err := time.Parse("2006-01-02T15:04:05.000Z", v.At); err == nil {
 				a.LastSeenAt.Set(t)
 			}
+			a.LastDevice = &api.SessionInfo{Id: v.SessionID, DeviceName: v.DeviceName, DeviceType: api.DeviceType(v.DeviceType)}
 		}
 		if pr, ok := defaults[u.ID]; ok {
 			a.AvatarColor, a.Avatar = pr.AvatarColor, toAvatar(pr)

@@ -2161,6 +2161,50 @@ paths:
                 $ref: "#/components/schemas/ServerStats"
         default:
           $ref: "#/components/responses/Error"
+  /server/stats/history:
+    get:
+      operationId: getServerStatsHistory
+      summary: The last 24 hours of streams and upload, one sample a minute (admin, step 21)
+      description: Kept in memory since the server started; a restart starts it again.
+      tags: [server]
+      responses:
+        "200":
+          description: Samples, oldest first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsHistory"
+        default:
+          $ref: "#/components/responses/Error"
+  /activity:
+    get:
+      operationId: getActivity
+      summary: What was watched and added lately, for the admin dashboard and Activity (step 21)
+      tags: [server]
+      parameters:
+        - name: days
+          in: query
+          description: How many days back, today included; defaults to 7.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+        - name: tzOffsetMinutes
+          in: query
+          description: The browser's offset from UTC (JavaScript's getTimezoneOffset), so days are local.
+          schema:
+            type: integer
+            minimum: -840
+            maximum: 840
+      responses:
+        "200":
+          description: The activity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+        default:
+          $ref: "#/components/responses/Error"
   /server/capabilities:
     get:
       operationId: getServerCapabilities
@@ -2940,6 +2984,9 @@ components:
           type: [string, "null"]
           format: date-time
           description: The most recent activity of any of its devices, null if it never signed in.
+        lastDevice:
+          $ref: "#/components/schemas/SessionInfo"
+          description: The device seen last, absent if it never signed in.
         avatarColor:
           type: integer
           description: The default profile's color.
@@ -3205,7 +3252,7 @@ components:
           enum: [ok, unavailable, unreadable]
     LibraryCounts:
       type: object
-      required: [movies, shows, episodes, files, unrecognized]
+      required: [movies, shows, episodes, files, unrecognized, sizeBytes]
       properties:
         movies:
           type: integer
@@ -3218,6 +3265,10 @@ components:
           description: Files present on disk.
         unrecognized:
           type: integer
+        sizeBytes:
+          type: integer
+          format: int64
+          description: The size of the files present on disk.
     Library:
       type: object
       required: [id, name, type, scanIntervalSeconds, metadataLanguage, metadataRegion, folders, counts, scan, householdOnly]
@@ -4813,6 +4864,10 @@ components:
           format: int64
         state:
           $ref: "#/components/schemas/PlaybackState"
+        bitrateBps:
+          type: integer
+          format: int64
+          description: What this stream is sent at, in bits per second (step 21).
         remote:
           type: boolean
           description: The client is outside the local networks (R22).
@@ -4836,6 +4891,89 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ActivePlayback"
+    StatsHistory:
+      type: object
+      required: [samples]
+      properties:
+        samples:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatsSample"
+    StatsSample:
+      type: object
+      required: [at, streams, transcodes, uploadBps]
+      properties:
+        at:
+          type: string
+          format: date-time
+        streams:
+          type: integer
+        transcodes:
+          type: integer
+        uploadBps:
+          type: integer
+          format: int64
+    Activity:
+      type: object
+      required: [days, recent, recentlyAdded, activePeople]
+      properties:
+        days:
+          type: array
+          description: One entry per day, oldest first, today last.
+          items:
+            $ref: "#/components/schemas/ActivityDay"
+        recent:
+          type: array
+          description: The last plays, newest first (50 at most).
+          items:
+            $ref: "#/components/schemas/PlayRecord"
+        recentlyAdded:
+          type: array
+          description: The last movies and shows added, newest first (10 at most).
+          items:
+            $ref: "#/components/schemas/ItemSummary"
+        activePeople:
+          type: integer
+          description: Accounts seen in the period.
+    ActivityDay:
+      type: object
+      required: [date, hours, plays]
+      properties:
+        date:
+          type: string
+          format: date
+        hours:
+          type: number
+          description: Hours watched that day, all accounts.
+        plays:
+          type: integer
+    PlayRecord:
+      type: object
+      required: [itemId, title, userId, displayName, profileName, deviceName, method, remote, startedAt, watchedMs]
+      properties:
+        itemId:
+          type: string
+        title:
+          type: string
+        userId:
+          type: string
+        displayName:
+          type: string
+        profileName:
+          type: string
+        deviceName:
+          type: string
+        method:
+          type: string
+          enum: [direct_play, direct_stream, transcode]
+        remote:
+          type: boolean
+        startedAt:
+          type: string
+          format: date-time
+        watchedMs:
+          type: integer
+          format: int64
     ServerStats:
       type: object
       required: [uptimeSeconds, transcodes, maxTranscodes, uploadBps, drives]
@@ -4853,6 +4991,13 @@ components:
         temperatureC:
           type: number
           description: The hottest thermal zone.
+        memoryUsedBytes:
+          type: integer
+          format: int64
+          description: Memory in use on the machine, when known.
+        memoryTotalBytes:
+          type: integer
+          format: int64
         transcodes:
           type: integer
           description: Conversions running now.
