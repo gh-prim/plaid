@@ -4,6 +4,9 @@ import SwiftUI
 struct PLAIDApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var app: AppState
+    /// The realtime socket and the party this device is in (F010).
+    @State private var party = PartyCenter()
+    @State private var partyNav = PartyNav()
 
     init() {
         #if DEBUG
@@ -16,6 +19,8 @@ struct PLAIDApp: App {
         WindowGroup {
             RootView()
                 .environment(app)
+                .environment(party)
+                .environment(partyNav)
                 .preferredColorScheme(.dark)
                 .tint(Theme.textPrimary)
                 .foregroundStyle(Theme.textPrimary)

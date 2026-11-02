@@ -3,12 +3,17 @@ import SwiftUI
 @main
 struct PLAIDApp: App {
     @State private var app = AppState()
+    /// The realtime socket and the party this TV plays (F010).
+    @State private var party = PartyCenter()
+    @State private var partyNav = TVPartyNav()
 
     var body: some Scene {
         WindowGroup {
             ZStack {
                 RootView()
                     .environment(app)
+                    .environment(party)
+                    .environment(partyNav)
                     // Nothing behind the intro takes focus or remote presses.
                     .disabled(app.splashing)
                 if app.splashing {

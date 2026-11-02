@@ -71,6 +71,13 @@ targets:
     sources:
       - path: iOS
       - path: Common
+    # Plaid Party links (F010-R2) open the app: <server>.getplaid.direct/p/<code>
+    # when remote access is on (ADR 0009). Other addresses go through the web
+    # join page, which hands over plaid://party?code=….
+    entitlements:
+      path: iOS/PLAID.entitlements
+      properties:
+        com.apple.developer.associated-domains: ["applinks:getplaid.direct", "applinks:*.getplaid.direct"]
     settings:
       base:
         # The same App Store Connect app as the TV ("Plaid Media Server"),

@@ -88,10 +88,10 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 22. [x] Catalogs `en` and `fr`, `make check-i18n`; German-length check on the launch sheet and host sheets.
 
 **Apple**
-23. [ ] Common: `PartySocket` (URLSessionWebSocketTask, same reconnect and clock rules), models, `PartySync` driving `AVPlayer.rate` and seeks; the REST calls.
-24. [ ] iOS: launch and schedule (Party04, 05), invite with the share sheet (06), join with a code (07), companion (01, 02), watching on iPhone and iPad with the party panel (10–12), host sheets (17–19), end (16), invitation (20), home row (21), Upcoming (PartiesPh), vote (VotePh), "Follow". Universal link `/p/:code`. Local reminder notifications (`UNUserNotificationCenter`) for parties answered yes or maybe.
-25. [ ] tvOS: start from the TV with the code (23), overlay on the player (03), reactions with the remote (24), next episode (22), winner reveal (VoteBig), `tv.cast` opens the player.
-26. [ ] String Catalogs `en` and `fr`.
+23. [x] Common: `PartySocket` (URLSessionWebSocketTask, same reconnect and clock rules), models, `PartySync` driving `AVPlayer.rate` and seeks; the REST calls.
+24. [x] iOS: launch and schedule (Party04, 05), invite with the share sheet (06), join with a code (07), companion (01, 02), watching on iPhone and iPad with the party panel (10–12), host sheets (17–19), end (16), invitation (20), home row (21), Upcoming (PartiesPh), vote (VotePh), "Follow". Universal link `/p/:code`. Local reminder notifications (`UNUserNotificationCenter`) for parties answered yes or maybe.
+25. [x] tvOS: start from the TV with the code (23), overlay on the player (03), reactions with the remote (24), next episode (22), winner reveal (VoteBig), `tv.cast` opens the player.
+26. [x] String Catalogs `en` and `fr`.
 
 **Wrap-up**
 27. [ ] Roadmap and plan status, `make test`, evidence below.
@@ -125,6 +125,7 @@ One PR from `feat/F010-plaid-party`, cut from `main`. Every step below is a comm
 - [ ] Manual check: Apple TV simulator + iPhone simulator + two browsers in one party, play / pause / seek / buffer / host leaves / guest join / next episode.
 
 ## Log
+- 2026-11-03, steps 23–26: iOS has its own `PartyPlayerScreen` and tvOS a custom `AVPlayerLayer` player (to catch the long press on play). "Start now" on a scheduled party moves `scheduledAt` to a minute ahead (no REST route to start early). Vote deadlines are computed (ranking closes 3 h before, proposals halfway). Ranking is tap-in-order with a veto per row. iOS gets its first entitlements file (associated domains for `/p/` links); the `apple-app-site-association` file on getplaid.direct isn't part of this.
 - 2026-11-03, steps 16–22: a party lets its people read its title (`GET /items/{itemId}`, guests included): the player needs the files and tracks. The admin's existing `party.*` i18n keys moved under `party.settings.*` (they clashed with the room's keys). Dynamic keys from server values are kept by `preservePatterns` in `i18next.config.ts`.
 - 2026-11-03, step 9: the public code routes are `/party-codes/{code}` and `/party-codes/{code}/guest`, not `/parties/code/…`: Go's mux rejects `/parties/code/{code}` next to `/parties/{partyId}/vote`.
 - 2026-11-03, step 14: release dates come from the existing `Show` and `Season` provider calls (latest two seasons) instead of new TMDB endpoints, so no new recordings; tests use a fake provider. Alerts are keyed by show, season and episode (`/shows/{showId}/alerts/{season}/{episode}`), matching how a future-episode party is stored.

@@ -535,6 +535,9 @@ struct PlaybackRequest: Encodable {
     let startPositionMs: Int64
     var fileId: String?
     var quality: String?
+    /// Plays as a screen of this Plaid Party (F010-R12): the server starts it
+    /// at the room's position.
+    var partyId: String?
 }
 
 struct PlaybackSession: Decodable {

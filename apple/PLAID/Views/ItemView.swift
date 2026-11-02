@@ -19,6 +19,8 @@ struct ItemView: View {
     /// The version picked when a movie has several files.
     @State private var fileId: String?
     @Environment(\.previewsActive) private var previewsActive
+    @Environment(TVPartyNav.self) private var partyNav
+    @State private var partyFailure: String?
 
     private var item: ItemSummary { detail?.summary ?? summary }
     private var hasEpisodes: Bool { item.kind == .show || item.kind == .season }
@@ -61,6 +63,11 @@ struct ItemView: View {
         .onChange(of: pageFocusTick) { mainFocused = true }
         .ignoresSafeArea(edges: [.horizontal, .top])
         .task { await load() }
+        .alert(Text("party.title"), isPresented: Binding(get: { partyFailure != nil }, set: { if !$0 { partyFailure = nil } })) {
+            Button("common.close", role: .cancel) {}
+        } message: {
+            Text(verbatim: partyFailure ?? "")
+        }
     }
 
     private var hero: some View {
@@ -147,6 +154,13 @@ struct ItemView: View {
                 .buttonStyle(PillButtonStyle(primary: false))
             }
             if let trailer = bestTrailer { TrailerButton(trailer: trailer) }
+            // Watch it together, started from the TV (F010, Party23).
+            if let target = item.kind == .movie || item.kind == .episode ? item : upNext {
+                Button { Task { await startParty(target) } } label: {
+                    Label("party.title", systemImage: "party.popper")
+                }
+                .buttonStyle(PillButtonStyle(primary: false))
+            }
             if item.kind == .movie || item.kind == .show, app.previewsOn { PreviewSoundButton() }
             let isWatched = watched ?? item.userState?.watched ?? false
             Button { Task { await toggleWatched(isWatched) } } label: {
@@ -286,6 +300,20 @@ struct ItemView: View {
             .init(name: "parentId", value: s.id), .init(name: "limit", value: "200"),
         ])
         if season?.id == s.id { episodes = page?.items ?? [] }
+    }
+
+    /// Opens a party on this title, live, this TV as its screen (R22, R23):
+    /// the code shows until the host starts it.
+    private func startParty(_ target: ItemSummary) async {
+        guard let client = app.client else { return }
+        do {
+            let p = try await client.createParty(PartyCreate(itemId: target.id))
+            partyNav.open = .init(partyId: p.id)
+        } catch let e as APIError {
+            partyFailure = partyError(e.code)
+        } catch {
+            partyFailure = partyError("generic")
+        }
     }
 
     private func toggleWatched(_ isWatched: Bool) async {

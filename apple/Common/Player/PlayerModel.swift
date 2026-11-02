@@ -21,6 +21,14 @@ final class PlayerModel {
     var toast: String?
     /// Where playback was when it failed, to try again from there.
     private var lastPositionMs: Int64 = 0
+    /// Plaid Party (F010): the party this screen plays for. The room drives
+    /// play, pause, seeks and the next episode (PartySync), not this model.
+    var partyId: String?
+    /// A party screen the server couldn't convert for (503): the host
+    /// decides (R26) and the room tells it to try again.
+    private(set) var blocked = false
+    /// A party screen reached the end of its title.
+    private(set) var ended = false
 
     private var client: APIClient?
     private var profileId = "default"
@@ -55,12 +63,61 @@ final class PlayerModel {
         await load(item, from: startMs, fileId: fileId)
     }
 
+    /// A party screen (F010): the title is known by its id only.
+    func start(itemId: String, partyId: String, client: APIClient, profileId: String,
+               onEnd: @escaping @MainActor () -> Void) async {
+        self.partyId = partyId
+        self.client = client
+        self.profileId = profileId
+        self.onEnd = onEnd
+        await switchItem(to: itemId)
+    }
+
+    /// The party moved to another title (next episode, vote winner): a new
+    /// session on it, started where the room is.
+    func switchItem(to itemId: String) async {
+        guard let client else { return }
+        guard let d: ItemDetail = try? await client.get("/items/\(itemId)") else {
+            error = "error.playback"
+            return
+        }
+        if session != nil { endSession() }
+        await load(d.summary, from: 0)
+    }
+
+    /// The host chose (R26): try again, at the shared quality when given;
+    /// a screen already converting moves to it too.
+    func partyRetry(quality: String?) async {
+        guard let item else { return }
+        if blocked {
+            blocked = false
+            await load(item, from: lastPositionMs, quality: quality)
+        } else if let quality, session?.method == "transcode", session?.quality != quality {
+            await setQuality(quality)
+        }
+    }
+
+    /// Where the player is in the title, in ms.
+    var currentMs: Int64 { positionMs }
+
+    /// Where the end credits start, in seconds: the known credits in the
+    /// second half, else the last 30 s (R30).
+    var creditsStart: Double? {
+        let length = player?.currentItem.map(\.duration.seconds).flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
+            ?? Double(session?.durationMs ?? 0) / 1000
+        guard length > 0 else { return nil }
+        let credits = segments.last { $0.kind == "credits" && Double($0.startMs ?? 0) / 1000 > length / 2 }
+        return credits.flatMap(\.startMs).map { Double($0) / 1000 } ?? length - Self.offerNextAt
+    }
+
     // MARK: Loading a title
 
     private func load(_ item: ItemSummary, from startMs: Int64, fileId: String? = nil, quality: String? = nil) async {
         guard let client else { return }
         self.item = item
         next = nil
+        ended = false
+        blocked = false
         nextCancelled = false
         contextualActions = []
         segments = []
@@ -70,7 +127,8 @@ final class PlayerModel {
         do {
             var s: PlaybackSession = try await client.post(
                 "/items/\(item.id)/playback",
-                PlaybackRequest(profile: Capabilities.profile, startPositionMs: startMs, fileId: fileId, quality: quality)
+                PlaybackRequest(profile: Capabilities.profile, startPositionMs: startMs, fileId: fileId, quality: quality,
+                                partyId: partyId)
             )
             // The profile's audio language, when the file has it and the
             // server picked another track.
@@ -97,10 +155,14 @@ final class PlayerModel {
             }
             observeItem(playerItem)
             buildAudioMenu()
-            p.play()
+            // A party screen waits for the room to say play (PartySync).
+            if partyId == nil { p.play() }
             async let segs = fetchSegments(item)
-            if item.kind == .episode { next = await upNext(after: item) }
+            if item.kind == .episode, partyId == nil { next = await upNext(after: item) }
             segments = await segs
+        } catch let e as APIError where partyId != nil && e.code == "transcode_limit_reached" {
+            lastPositionMs = startMs
+            blocked = true
         } catch let e as APIError {
             error = "playback.error.\(e.code)"
             if Bundle.main.localizedString(forKey: error!, value: "?", table: nil) == "?" { error = "error.playback" }
@@ -179,8 +241,9 @@ final class PlayerModel {
         if !contextualActions.isEmpty { contextualActions = [] }
 
         // The next episode's card: from the credits (the last ones in the
-        // second half), or in the last 30 s when they're not known.
-        guard let next, autoplayOn, !nextCancelled else { return }
+        // second half), or in the last 30 s when they're not known. A party
+        // moves on together instead (R30).
+        guard partyId == nil, let next, autoplayOn, !nextCancelled else { return }
         let credits = segments.last { $0.kind == "credits" && Double($0.startMs ?? 0) / 1000 > length / 2 }
         let offerAt = credits.flatMap { $0.startMs }.map { Double($0) / 1000 } ?? length - Self.offerNextAt
         if now >= offerAt, card == nil {
@@ -206,6 +269,10 @@ final class PlayerModel {
     }
 
     private func reachedEnd() {
+        if partyId != nil {
+            ended = true
+            return
+        }
         guard let next, autoplayOn, !nextCancelled else {
             if item?.kind == .episode, self.next == nil, item?.show != nil { endOfShow = true } else { onEnd() }
             return

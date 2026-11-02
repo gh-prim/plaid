@@ -23,6 +23,8 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 hero
+                // Live and upcoming Plaid Parties, only when there are some (F010-R40).
+                HomePartiesRow()
                 if let home {
                     ForEach(home.rows) { row in
                         if !row.items.isEmpty { HomeRowView(row: row).padding(.top, 26) }
