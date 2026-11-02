@@ -18,36 +18,78 @@
     "watching": "{{name}} is watching {{title}}"
   },
   "admin": {
+    "activity": {
+      "directHelp": "sent as is, no conversion",
+      "directPlay": "Direct Play",
+      "everyone": "Everyone",
+      "hoursWeek": "Hours watched, last 7 days",
+      "how": "How",
+      "length": "Length",
+      "month": "30 days",
+      "most": "Most watched",
+      "none": "Nothing watched in this period.",
+      "people": "People",
+      "peopleCount_one": "{{count, number}} person",
+      "peopleCount_other": "{{count, number}} people",
+      "period": "Period",
+      "person": "Person",
+      "plays_one": "{{count, number}} play",
+      "plays_other": "{{count, number}} plays",
+      "recent": "Last plays",
+      "watched": "Watched",
+      "week": "7 days",
+      "when": "When",
+      "year": "1 year"
+    },
     "back": "Back to the library",
     "backTo": "Back to {{name}}",
-    "backToWatching": "Back to watching",
+    "backToApp": "Back to the app",
     "dash": {
-      "added": "Added this week",
+      "activePeople": "Active people",
+      "activity": "Activity, 7 days",
+      "added": "Recently added",
       "addedNone": "Nothing new this week.",
-      "busy": "Busy",
-      "conversions": "Conversions",
+      "colDevice": "Device",
+      "colMbps": "Mbps",
+      "colProgress": "Progress",
+      "colQuality": "Quality",
+      "colTitle": "Title",
+      "colWho": "Who",
       "cpu": "Processor",
-      "fine": "Fine",
-      "free": "{{size}} free",
-      "gpu": "Graphics card, {{accel}}",
+      "dayHours": "{{day}}: {{hours}} hours",
+      "disk": "Disk",
+      "diskFull": "Disk almost full",
       "health": "Server health",
-      "hot": "Running hot",
-      "idle": "Idle",
+      "hoursPerDay": "hours watched per day",
+      "howPlaying": "{{transcodes, number}} transcode · {{direct, number}} Direct Play",
+      "left": "{{size}} left on {{path}}",
+      "local": "local",
+      "memory": "Memory",
+      "needsAttention": "Needs attention",
       "nobody": "Nobody is watching right now",
-      "normal": "Normal",
-      "notAnswering": "Not answering",
-      "ofMax": "{{n, number}} of {{max, number}}",
+      "noPeak": "no stream today",
+      "ofPeople_one": "of {{count, number}} · last 7 days",
+      "ofPeople_other": "of {{count, number}} · last 7 days",
+      "ofStorage": "of {{total}} · {{percent, number}}%",
+      "original": "Original",
+      "peak": "peak {{rate}} at {{time}}",
+      "poster": "Poster",
+      "remote": "remote",
+      "rightNow": "Right now",
+      "server": "Server",
       "software": "Software",
       "stop": "Stop {{name}}’s stream",
       "stopShort": "Stop",
       "storage": "Storage",
       "streams_one": "{{count, number}} stream",
       "streams_other": "{{count, number}} streams",
-      "temperature": "Temperature",
+      "transcode": "Transcode",
       "unknown": "Not available here",
+      "unmatched_one": "{{count, number}} unmatched file",
+      "unmatched_other": "{{count, number}} unmatched files",
       "up": "up {{duration}}",
       "upload": "Upload",
-      "used": "{{used}} used of {{total}}"
+      "view": "View"
     },
     "devices": {
       "count_one": "{{count, number}} device",
@@ -55,14 +97,24 @@
       "empty": "No device is signed in.",
       "foot": "Signing a device out ends that session only; nothing else is deleted.",
       "otherGroup": "Browsers and phones",
+      "pair": "Pair",
+      "paired": "{{device}} is signed in.",
       "pairHelp": "Type the code the TV shows",
       "signedOut": "{{device}} is signed out.",
       "signOut": "Sign out {{device}}",
-      "tvGroup": "TVs",
-      "tvs_one": "{{count, number}} TV",
-      "tvs_other": "{{count, number}} TVs"
+      "tvGroup": "TVs"
     },
-    "done": "Done",
+    "groups": {
+      "canCreate": "can create",
+      "cannot": "can’t create",
+      "exception_one": "{{count, number}} more library",
+      "exception_other": "{{count, number}} more libraries",
+      "group": "Group",
+      "limits": "Limits",
+      "members": "Members",
+      "noMembers": "Nobody in this group yet.",
+      "profiles": "Profiles"
+    },
     "home": {
       "nothingNeedsYou": "Nothing needs you.",
       "status": {
@@ -75,18 +127,50 @@
         "slow_other": "{{count, number}} people are watching. One stream can’t keep up."
       }
     },
+    "invitations": {
+      "accepted": "Accepted",
+      "cancelFor": "Cancel {{name}}’s invitation",
+      "copy": "Copy link",
+      "copyFor": "Copy {{name}}’s link",
+      "expired": "Expired",
+      "expires": "Expires",
+      "for": "For",
+      "inDays_one": "in {{count, number}} d",
+      "inDays_other": "in {{count, number}} d",
+      "none": "No invitation waiting. Invite someone to share your libraries.",
+      "pending_one": "{{count, number}} pending",
+      "pending_other": "{{count, number}} pending",
+      "resend": "Resend",
+      "resendFor": "New link for {{name}}",
+      "sent": "Sent"
+    },
     "libraries": {
       "add": "Add a library…",
-      "count_one": "{{count, number}} library",
-      "count_other": "{{count, number}} libraries",
-      "facts": "{{titles, number}} titles · {{files, number}} files",
+      "all": "All libraries",
+      "colFolder": "Folder",
+      "colLibrary": "Library",
+      "colScan": "Last scan",
+      "colShared": "Shared with",
+      "colSize": "Size",
+      "colTitles": "Titles",
+      "colType": "Type",
+      "every": "every {{duration}}",
       "folderTrouble_one": "{{count, number}} of {{total, number}} folders unavailable",
       "folderTrouble_other": "{{count, number}} of {{total, number}} folders unavailable",
+      "freeSpace": "Free space",
+      "inLibraries_one": "in {{count, number}} library",
+      "inLibraries_other": "in {{count, number}} libraries",
+      "moreGroups_one": "{{count, number}} group",
+      "moreGroups_other": "{{count, number}} groups",
+      "morePeople_one": "+ {{count, number}} person",
+      "morePeople_other": "+ {{count, number}} people",
+      "nextScan": "Next scan",
       "scanAll": "Scan all libraries now",
       "scanStarted_one": "Scanning {{count, number}} library.",
       "scanStarted_other": "Scanning {{count, number}} libraries.",
-      "unavailable_one": "One folder unavailable",
-      "unavailable_other": "{{count, number}} folders unavailable"
+      "showsEpisodes": "{{shows}} · {{episodes}} ep.",
+      "titles": "Titles",
+      "toReview": "to review"
     },
     "library": {
       "addFolder": "Add a folder…",
@@ -100,18 +184,60 @@
       "credits": "Credits",
       "down_one": "One source isn’t answering",
       "down_other": "{{count, number}} sources aren’t answering",
-      "matched": "{{matched, number}} of {{total, number}} titles matched",
-      "sources": "TMDB and fanart.tv"
+      "matchedKpi": "Matched",
+      "ofTitles_one": "of {{count, number}} title",
+      "ofTitles_other": "of {{count, number}} titles",
+      "refreshAll": "Refresh all",
+      "refreshing": "Refreshing every library’s details.",
+      "seeUnmatched": "See what’s left",
+      "sourcesCard": "Sources"
+    },
+    "monitoring": {
+      "byPerson": "Who uses the most",
+      "codecs": "Codec problems",
+      "credit": "IP geolocation by DB-IP",
+      "devicesOf_one": "of {{count, number}} device",
+      "devicesOf_other": "of {{count, number}} devices",
+      "downloading": "The location database is downloading; remote plays will be placed once it’s there.",
+      "health": "Device health",
+      "healthHelp": "Direct play, transcodes and codecs it can’t read; worst first",
+      "lastSeen": "Last play",
+      "localNever": "Plays at home are never placed; only a city is kept, never the address.",
+      "map": "Where remote plays come from",
+      "noPlace": "No remote play yet.",
+      "perDay": "Data sent per day",
+      "places": "Places",
+      "placeSub": "{{people}} · {{when}}",
+      "remote": "Remote plays",
+      "remotePlays_one": "{{count, number}} remote play",
+      "remotePlays_other": "{{count, number}} remote plays",
+      "remoteShare": "{{share}} of plays",
+      "score": "Health",
+      "sent": "Data sent",
+      "toCheck": "Devices to check",
+      "transcodes": "Transcodes",
+      "unplaced_one": "{{count, number}} remote play couldn’t be placed.",
+      "unplaced_other": "{{count, number}} remote plays couldn’t be placed.",
+      "where": "Places"
     },
     "nav": {
+      "access": "Access",
+      "activity": "Activity",
+      "content": "Content",
       "devices": "Devices",
+      "invitations": "Invitations",
       "libraries": "Libraries",
       "metadata": "Metadata",
+      "monitoring": "Monitoring",
+      "overview": "Overview",
       "people": "People",
-      "playing": "Playing now",
+      "playing": "Now playing",
       "problems": "Problems",
       "remoteAccess": "Remote access",
-      "transcoding": "Transcoding"
+      "report": "Library report",
+      "server": "Server",
+      "transcoding": "Transcoding",
+      "unmatched": "Unmatched"
     },
     "needs": {
       "hwFallback": "The GPU failed and PLAID switched to software.",
@@ -121,20 +247,19 @@
       "title": "Needs you"
     },
     "people": {
-      "admins_one": "{{count, number}} admin",
-      "admins_other": "{{count, number}} admins",
       "count_one": "{{count, number}} person",
-      "count_other": "{{count, number}} people",
-      "foot": "Each person signs in with their own account and keeps their own profiles and watch history."
+      "count_other": "{{count, number}} people"
     },
     "person": {
       "access": "Access",
-      "cantDelete": "Not possible while {{name}} is the only admin",
-      "onlyAdmin": "{{name}} is the only admin. Make someone else an admin before turning this off."
+      "now": "Right now",
+      "onlyAdmin": "{{name}} is the only admin. Make someone else an admin before turning this off.",
+      "recent": "Recent plays"
     },
     "playing": {
-      "keepUp": "All streams keep up",
-      "slow": "One stream can’t keep up"
+      "lastTwo": "last 2 min",
+      "stopFor": "Stop {{title}} for {{user}}",
+      "stutter": "Stuttering"
     },
     "prefs": {
       "hideAdvanced": "Hide advanced",
@@ -142,15 +267,51 @@
       "showAdvanced": "Show advanced"
     },
     "problems": {
-      "allClear": "All clear",
+      "fixedIn": "{{when}} · fixed in {{took}}",
+      "for": "for {{took}}",
       "goingOn": "Going on",
       "open_one": "{{count, number}} going on",
       "open_other": "{{count, number}} going on",
       "solved": "Solved",
-      "week_one": "{{count, number}} this week",
-      "week_other": "{{count, number}} this week"
+      "solvedWeek_one": "{{count, number}} this week",
+      "solvedWeek_other": "{{count, number}} this week"
     },
+    "remote": {
+      "byGroup": "set per group",
+      "checkedOutside": "Checked from outside {{when}}",
+      "checkNow": "Check now",
+      "limits": "Limits",
+      "perStream": "Limit per stream",
+      "reachable": "Reachable from anywhere",
+      "who": "Who can watch remotely"
+    },
+    "report": {
+      "allLibraries": "All libraries",
+      "anyGenre": "Any genre",
+      "anyQuality": "Any quality",
+      "byAdded": "Newest first",
+      "byPlays": "Most played",
+      "bySize": "Biggest first",
+      "byTitle": "By title",
+      "count_one": "{{count, number}} title",
+      "count_other": "{{count, number}} titles",
+      "duplicates": "Several files",
+      "dupTag": "2+ files",
+      "genre": "Genre",
+      "more_one": "Show {{count, number}} more",
+      "more_other": "Show {{count, number}} more",
+      "never": "never watched",
+      "none": "Nothing matches these filters.",
+      "quality": "Quality",
+      "sort": "Sort",
+      "stale": "Not watched for a year",
+      "titles": "Titles",
+      "unwatched": "Never watched"
+    },
+    "search": "Search",
+    "searchKey": "⌘K",
     "sections": "Admin sections",
+    "serverOnline": "PLAID {{version}} · online",
     "settings": {
       "group": {
         "library": "Library",
@@ -158,12 +319,16 @@
         "playback": "Playback",
         "server": "Server"
       },
+      "inviteDays_one": "valid for {{count, number}} day",
+      "inviteDays_other": "valid for {{count, number}} days",
       "libraries_one": "{{count, number}} library",
       "libraries_other": "{{count, number}} libraries",
       "none": "None",
+      "serverName": "Server name",
       "things_one": "{{count, number}} thing",
       "things_other": "{{count, number}} things",
-      "unrecognized": "Not recognized"
+      "unrecognized": "Not recognized",
+      "version": "Version"
     },
     "summary": {
       "playing_one": "{{count, number}} stream",
@@ -175,10 +340,34 @@
     },
     "transcoding": {
       "advanced": "Advanced",
+      "cpu": "CPU",
+      "gpu": "GPU",
       "hardware": "Hardware, {{accelerator}}",
+      "noneRunning": "Nothing converting right now.",
+      "ofPlays_one": "of {{count, number}} play",
+      "ofPlays_other": "of {{count, number}} plays",
       "prefs": "When converting",
+      "running": "Running",
       "software": "Software",
+      "speed": "{{speed}}× realtime",
+      "transcoded": "Transcoded",
+      "week": "This week",
       "working": "Working"
+    },
+    "unmatched": {
+      "byLibrary": "By library",
+      "files": "Files not understood",
+      "filesCount_one": "{{count, number}} file",
+      "filesCount_other": "{{count, number}} files",
+      "filesHelp": "PLAID couldn’t tell what they are",
+      "matched": "Matched",
+      "matchedOf_one": "of {{count, number}} title",
+      "matchedOf_other": "of {{count, number}} titles",
+      "noneShort": "None",
+      "review": "Titles to check",
+      "reviewHelp": "a match to confirm",
+      "titlesCount_one": "{{count, number}} title",
+      "titlesCount_other": "{{count, number}} titles"
     },
     "unrecognized": {
       "files_one": "{{count, number}} file",
@@ -202,6 +391,49 @@
     "signOut": "Sign out",
     "username": "Username"
   },
+  "avatar": {
+    "build": "Create my avatar",
+    "builder": {
+      "background": "Background",
+      "color": "Color",
+      "loading": "Drawing your avatar",
+      "none": "None",
+      "ok": "OK",
+      "random": "Surprise me",
+      "skin": "Skin",
+      "tab": {
+        "background": "Background",
+        "beard": "Beard",
+        "earrings": "Earrings",
+        "eyebrows": "Eyebrows",
+        "eyes": "Eyes",
+        "freckles": "Freckles",
+        "glasses": "Glasses",
+        "hair": "Hair",
+        "head": "Face",
+        "mouth": "Mouth",
+        "nose": "Nose"
+      },
+      "title": "Your avatar",
+      "variant": "Option {{n, number}}"
+    },
+    "buildHelp": "Face, hair, glasses, colors",
+    "change": "Change the picture",
+    "crop": {
+      "choose": "Choose another",
+      "error": "This file isn’t a photo PLAID can read. Try a JPEG or PNG.",
+      "help": "Drag to frame it, zoom with the slider",
+      "title": "Your photo",
+      "use": "Use",
+      "zoom": "Zoom"
+    },
+    "initial": "Just my initial",
+    "initialHelp": "On the color of your choice",
+    "lead": "It shows on “Who’s watching?” and in parties.",
+    "photo": "A photo",
+    "photoHelp": "Take one or choose one",
+    "title": "Your face in PLAID"
+  },
   "card": {
     "episode": "S{{season, number}} E{{episode, number}} · {{title}}",
     "episodeShort": "S{{season, number}} E{{episode, number}}",
@@ -223,6 +455,7 @@
     "close": "Close",
     "copied": "Copied",
     "copy": "Copy",
+    "done": "Done",
     "loading": "Loading",
     "retry": "Try again",
     "save": "Save",
@@ -243,6 +476,8 @@
     "generic": "Something went wrong. Try again.",
     "invalid_credentials": "Wrong username or password.",
     "invalid_pin": "Wrong PIN. Try again.",
+    "invitation_expired": "This invitation link no longer works.",
+    "invitation_not_found": "This invitation link doesn’t exist. Check you copied all of it.",
     "last_admin": "You’re the last admin. Make someone else an admin first.",
     "last_profile": "An account needs at least one profile.",
     "not_playable": "This file can’t be played.",
@@ -254,6 +489,7 @@
     "profile_required": "Pick a profile first.",
     "setup_code_required": "This code doesn’t match. Copy the latest one from the log.",
     "setup_complete": "This server is already set up. Sign in instead.",
+    "stream_limit_reached": "You’re already watching as many videos at once as you’re allowed to. Stop one first.",
     "too_many_attempts": "Too many attempts. Try again in {{minutes, number}} min.",
     "transcode_limit_reached": "The server is busy converting other videos. Try again in a moment, or pick a lower quality.",
     "transcode_storage_full": "The server is out of space for video conversion. Ask the admin to free some up.",
@@ -398,6 +634,34 @@
     "unreachable": {
       "body": "It may be switched off, or its owner turned remote access off. Try again in a moment.",
       "title": "Can't reach this server"
+    }
+  },
+  "invite": {
+    "account": {
+      "lead": "On {{serverName}}, just for you.",
+      "title": "Create your account"
+    },
+    "expired": {
+      "body": "It was already used, or it expired. Ask whoever invited you for a new one.",
+      "title": "This link no longer works"
+    },
+    "haveAccount": "I already have an account",
+    "lead": "Create your account to watch their films and shows. It takes a minute.",
+    "next": "Continue",
+    "openApp": "Open in the PLAID app",
+    "pin": {
+      "confirm": "Type it again",
+      "label": "Code, 4 digits",
+      "lead": "4 digits to open your profile. Nobody else on the TV can then use it.",
+      "mismatch": "The two codes don’t match. Choose it again.",
+      "title": "Choose your code"
+    },
+    "start": "Create my account",
+    "title": "{{invitedBy}} invites you to {{serverName}}",
+    "welcome": {
+      "go": "Start watching",
+      "lead": "Everything {{serverName}} shares with you is ready.",
+      "title": "Welcome, {{name}}"
     }
   },
   "item": {
@@ -581,6 +845,15 @@
       "body": "Type what you think it is. Results come from TMDB.",
       "title": "The name didn’t say enough"
     },
+    "episode": {
+      "back": "Another show",
+      "episodes": "Episode",
+      "help": "Several in one file: 1-2 or 1,2",
+      "invalid": "A number, a range like 1-2, or a list like 1,2",
+      "season": "Season",
+      "title": "Which episode of {{show}}?",
+      "use": "Associate"
+    },
     "file": "The file",
     "in": "In {{folder}}",
     "note": "Once matched, the file joins the library with its artwork.",
@@ -721,6 +994,21 @@
     "startProfile": "It will open on",
     "title": "Pair a TV"
   },
+  "party": {
+    "guests": "Guests without an account",
+    "guestsHelp": "They join from the party’s link.",
+    "help": "Watch together, at home or away.",
+    "none": "No party yet.",
+    "noneHelp": "Live and planned parties show up here.",
+    "parties": "Parties",
+    "people": "People per party",
+    "peopleHelp": "host included",
+    "title": "Plaid Party",
+    "upTo": "up to {{n}}",
+    "who": "Who can start",
+    "whoHelp": "Each group can start, join, or neither.",
+    "whoValue": "set per group"
+  },
   "people": {
     "add": "Add a person",
     "delete": {
@@ -737,12 +1025,9 @@
       "empty": "Not signed in on any device.",
       "label": "Signed-in devices"
     },
-    "disable": "Disable",
     "disabled": "Disabled: can’t sign in",
     "empty": "Only you so far. Add people so each gets their own profiles and watch history.",
-    "enable": "Enable",
     "mustChange": "Chooses a new password at next sign-in",
-    "pair": "Pair a TV",
     "resetPassword": "Reset password",
     "role": {
       "admin": "Admin",
@@ -943,7 +1228,6 @@
       "transcode": "Converted (Transcode)"
     },
     "position": "{{position}} of {{duration}}",
-    "row": "{{user}} · {{profile}} on {{device}}",
     "slow": {
       "advice": {
         "software": "This server can’t convert this file in real time. Ask {{user}} to pick a lower quality, or to watch on a device that plays the file as it is."
@@ -1015,6 +1299,7 @@
     "hdr_not_supported": "This screen doesn’t show HDR, so colors are converted to SDR.",
     "keyframe_index_missing": "This file has no index (often an old AVI or TS), so it’s converted to allow seeking.",
     "other": "Converted for this device.",
+    "quality_capped": "Above the best quality you’re allowed: the server converts it down.",
     "resolution_too_high": "The video is bigger than this device can show, so it’s scaled down.",
     "subtitle_burn_in": "These subtitles are images, so they’re drawn into the video.",
     "video_codec_not_supported": "This device can’t play this video format, so it’s converted.",
@@ -1043,8 +1328,6 @@
     },
     "fullUrl": "Full address",
     "ip": "Public IP",
-    "pane": "Reach PLAID from anywhere",
-    "paneSub": "Through getplaid.direct",
     "port": {
       "auto": "Automatic (UPnP or NAT-PMP)",
       "autoHelp": "PLAID asks your router to open a port.",
@@ -1079,8 +1362,6 @@
       "pending": "In progress…"
     },
     "steps": "Status",
-    "test": "Check again",
-    "testing": "Checking…",
     "title": "Remote access"
   },
   "remoteSignIn": {
@@ -1210,6 +1491,151 @@
     "watch": {
       "limit": "Linux’s file watch limit is reached, so {{path}} is checked every {{minutes, number}} minutes instead of live. To raise the limit:",
       "network": "{{path}} is on a network share, so new files aren’t seen right away. PLAID checks it every {{minutes, number}} minutes."
+    }
+  },
+  "sharing": {
+    "downloads": "Downloads for offline",
+    "fromGroup": "{{value}} (from the group)",
+    "group": {
+      "delete": "Delete group",
+      "deleteConfirm": "Delete the group {{name}}? Its members lose what only this group gave them, at once.",
+      "deleted": "The group {{name}} is deleted.",
+      "deleteFoot": "People in it keep their other groups and their exceptions.",
+      "everything": "Everything",
+      "exceptions_one": "{{count, number}} person in this group has their own exceptions.",
+      "exceptions_other": "{{count, number}} people in this group have their own exceptions.",
+      "gone": "This group no longer exists.",
+      "household": "Household",
+      "householdFoot": "A household group sees everything. Turn it off to choose libraries.",
+      "householdHelp": "Sees every library, home videos and future libraries included",
+      "invite": "Invite to this group",
+      "lead_one": "Everyone in this group gets the same access. Change it here, it changes for {{count, number}} person at once.",
+      "lead_other": "Everyone in this group gets the same access. Change it here, it changes for all {{count, number}} at once.",
+      "name": "Group name",
+      "nameTaken": "Another group already has this name.",
+      "noLibrary": "No library",
+      "rename": "Rename"
+    },
+    "groups": {
+      "foot": "A group sets the access of everyone in it. A person can be in several groups: they get the best of each.",
+      "new": "New group",
+      "title": "Groups"
+    },
+    "invitations": {
+      "cancel": "Cancel",
+      "expires": "expires {{date}}",
+      "foot": "A link works once. The person creates their own account from it.",
+      "title_zero": "Invitations",
+      "title_one": "Invitations · {{count, number}}",
+      "title_other": "Invitations · {{count, number}}"
+    },
+    "invite": {
+      "copied": "Copied",
+      "copy": "Copy the link",
+      "create": "Create the link",
+      "days_one": "{{count, number}} day",
+      "days_other": "{{count, number}} days",
+      "expires": "Link expires in",
+      "groups": "Put them in groups",
+      "lead": "They create their own account from the link. The link works once.",
+      "name": "Their name, for you",
+      "once_one": "Send it however you like. It works once, for {{count, number}} day.",
+      "once_other": "Send it however you like. It works once, for {{count, number}} days.",
+      "ready": "The link for {{name}}",
+      "title": "Invite someone"
+    },
+    "libraries": {
+      "title": "Libraries"
+    },
+    "library": {
+      "adminsFoot": "Admins always see every library.",
+      "householdOnly": "Never shared outside the household",
+      "householdOnlyFoot": "Home videos and the like: only admins and household groups ever see it, whatever else is set.",
+      "householdOnlyLabel": "Household only",
+      "movies_one": "{{count, number}} title",
+      "movies_other": "{{count, number}} titles",
+      "nobody": "Only admins",
+      "onTop": "Added on top of {{groups}}",
+      "shows_one": "{{count, number}} show",
+      "shows_other": "{{count, number}} shows",
+      "who": "Who can see it"
+    },
+    "more": "+{{n, number}}",
+    "party": {
+      "join": "Can join, can’t start",
+      "label": "Plaid Party",
+      "none": "Can’t join",
+      "start": "Can join and start"
+    },
+    "people": {
+      "admin": "admin",
+      "allLibraries": "All libraries",
+      "colAccess": "Access",
+      "colActive": "Last active",
+      "colDevice": "Device",
+      "colGroup": "Group",
+      "colName": "Name",
+      "device": "Device",
+      "everyone": "Everyone",
+      "groupSettings": "{{name}} settings",
+      "inactive": "Inactive 30 d",
+      "invite": "Invite",
+      "move": "Move to group",
+      "moved_one": "{{count, number}} person moved to {{group}}.",
+      "moved_other": "{{count, number}} people moved to {{group}}.",
+      "moveHelp": "They leave their other groups and get this one’s access. Their own exceptions stay.",
+      "moveTitle_one": "Move {{count, number}} person to a group",
+      "moveTitle_other": "Move {{count, number}} people to a group",
+      "never": "never",
+      "next": "Next page",
+      "noDevice": "none",
+      "none": "Nobody matches.",
+      "open": "Open {{name}}",
+      "previous": "Previous page",
+      "range_one": "{{from, number}} to {{to, number}} of {{count, number}}",
+      "range_other": "{{from, number}} to {{to, number}} of {{count, number}}",
+      "revoked_one": "Access revoked for {{count, number}} person.",
+      "revoked_other": "Access revoked for {{count, number}} people.",
+      "revokeTitle_one": "Revoke access for {{count, number}} person?",
+      "revokeTitle_other": "Revoke access for {{count, number}} people?",
+      "select": "Select {{name}}",
+      "selectAll": "Select everyone shown",
+      "selected_one": "{{count, number}} selected",
+      "selected_other": "{{count, number}} selected",
+      "watching": "Watching now",
+      "watchingShort": "Watching"
+    },
+    "person": {
+      "groups": "Groups",
+      "groupsFoot": "Their access is the best of their groups, plus what’s below.",
+      "just": "Just for {{name}}",
+      "justFoot": "Exceptions only add to what their groups give.",
+      "noGroups": "No group yet",
+      "restore": "Give access back",
+      "suspend": "Revoke access",
+      "suspendHelp": "Stops what they’re watching now and signs them out everywhere. Their account stays.",
+      "viaGroup": "From a group"
+    },
+    "profiles": "Can add profiles",
+    "profilesHelp": "Their own profiles for the people they live with",
+    "quality": {
+      "1080p": "1080p",
+      "2160p": "4K",
+      "480p": "480p",
+      "720p": "720p",
+      "label": "Best quality",
+      "original": "Original"
+    },
+    "rights": {
+      "title": "What they can do"
+    },
+    "soon": "Saved now, used once the apps download",
+    "streams": {
+      "count_one": "{{count, number}} stream",
+      "count_other": "{{count, number}} streams",
+      "help": "Per person",
+      "label": "Streams at the same time",
+      "unlimited": "No limit"
     }
   },
   "signIn": {

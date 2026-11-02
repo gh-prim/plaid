@@ -652,8 +652,12 @@ func (s *Service) Image(ctx context.Context, id string, want int, limit access.L
 		return artwork.Variant{}, err
 	}
 	if im.OwnerTyp == "item" && !limit.Unrestricted() {
-		var age sql.NullInt64
-		err := s.store.db.QueryRowContext(ctx, `SELECT age_rating FROM item_metadata WHERE item_id = ?`, im.OwnerID).Scan(&age)
+		var (
+			age       sql.NullInt64
+			libraryID string
+		)
+		err := s.store.db.QueryRowContext(ctx, `SELECT i.library_id, m.age_rating FROM items i LEFT JOIN item_metadata m ON m.item_id = i.id
+			WHERE i.id = ?`, im.OwnerID).Scan(&libraryID, &age)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return artwork.Variant{}, err
 		}
@@ -662,7 +666,7 @@ func (s *Service) Image(ctx context.Context, id string, want int, limit access.L
 			n := int(age.Int64)
 			rating = &n
 		}
-		if !limit.Allows(rating) {
+		if !limit.Allows(libraryID, rating) {
 			return artwork.Variant{}, ErrImageNotFound
 		}
 	}

@@ -63,7 +63,7 @@ func toAdminUser(u accounts.User) api.AdminUser {
 
 func toProfile(p accounts.Profile) api.Profile {
 	out := api.Profile{
-		Id: p.ID, Name: p.Name, AvatarColor: p.AvatarColor, HasPin: p.HasPIN,
+		Id: p.ID, Name: p.Name, AvatarColor: p.AvatarColor, Avatar: toAvatar(p), HasPin: p.HasPIN,
 		AllowUnrated: p.AllowUnrated, IsDefault: p.IsDefault,
 		// Nullable fields are always set: unset ones would marshal as zero values.
 		MaxAge: nullable.NewNullNullable[int](),

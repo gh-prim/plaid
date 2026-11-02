@@ -5,7 +5,7 @@ import { api, type Profile } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { markProfilePicked } from '../auth/profileSession'
 import { formatNumber } from '../lib/format'
-import { Button, Dialog, Icon, SegmentedControl, Spinner } from '../ui'
+import { Button, Dialog, Icon, SegmentedControl, Spinner, avatarSrc } from '../ui'
 import { loadAutoplay, rememberAutoplay } from '../player/trackMemory'
 import { setPreviewsOn, usePreviewsOn } from './previewPref'
 import { useTheme, type Theme } from './theme'
@@ -13,7 +13,7 @@ import { useTheme, type Theme } from './theme'
 /** How many other profiles fit next to "Manage" before it says the rest. */
 const shown = 4
 
-/** A profile's circle: its party color with a soft top light, its initial. */
+/** A profile's circle: its picture (F009), else its party color with a soft top light and its initial. */
 function Face({ profile, size }: { profile: Profile; size: number }) {
   return (
     <span
@@ -26,7 +26,11 @@ function Face({ profile, size }: { profile: Profile; size: number }) {
       }
       aria-hidden="true"
     >
-      {profile.name.trim().charAt(0).toLocaleUpperCase()}
+      {profile.avatar.url ? (
+        <img className="pf__img" src={avatarSrc(profile.avatar.url, size)} alt="" />
+      ) : (
+        profile.name.trim().charAt(0).toLocaleUpperCase()
+      )}
     </span>
   )
 }
@@ -179,6 +183,16 @@ export function ProfileMenu({
           <Icon name="chevronRight" size={14} />
         </Link>
       )}
+      <Link
+        to="/me/avatar"
+        role="menuitem"
+        className="br-pmenu__row pl-focusable"
+        onClick={onClose}
+      >
+        <Icon name="users" size={20} />
+        <span>{t('avatar.change')}</span>
+        <Icon name="chevronRight" size={14} />
+      </Link>
       <Link to="/pair" role="menuitem" className="br-pmenu__row pl-focusable" onClick={onClose}>
         <Icon name="tv" size={20} />
         <span>{t('pairing.title')}</span>

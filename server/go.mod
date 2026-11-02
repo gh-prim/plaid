@@ -14,9 +14,13 @@ require (
 	github.com/jackpal/gateway v1.2.0
 	github.com/jackpal/go-nat-pmp v1.0.2
 	github.com/libp2p/zeroconf/v2 v2.2.0
+	github.com/maxmind/mmdbwriter v1.0.0
 	github.com/oapi-codegen/nullable v1.2.0
 	github.com/oapi-codegen/runtime v1.8.0
+	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
+	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c
+	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/crypto v0.58.0
 	golang.org/x/image v0.47.0
@@ -63,6 +67,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
+	go4.org/netipx v0.0.0-20220812043211-3cc044ffd68d // indirect
 	golang.org/x/mod v0.42.0 // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect

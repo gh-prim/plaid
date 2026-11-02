@@ -32,12 +32,12 @@ type episode struct {
 // Episodes hidden or above the age limit don't count.
 func (c *Catalog) UpNext(ctx context.Context, itemID, profileID string, lim access.Limit) (string, error) {
 	var (
-		kind, parent string
-		age          sql.NullInt64
-		hidden       bool
+		kind, parent, libraryID string
+		age                     sql.NullInt64
+		hidden                  bool
 	)
-	err := c.db.QueryRowContext(ctx, `SELECT i.kind, COALESCE(i.parent_id, ''), m.age_rating, i.hidden
-		FROM items i LEFT JOIN item_metadata m ON m.item_id = i.id WHERE i.id = ?`, itemID).Scan(&kind, &parent, &age, &hidden)
+	err := c.db.QueryRowContext(ctx, `SELECT i.kind, COALESCE(i.parent_id, ''), m.age_rating, i.hidden, i.library_id
+		FROM items i LEFT JOIN item_metadata m ON m.item_id = i.id WHERE i.id = ?`, itemID).Scan(&kind, &parent, &age, &hidden, &libraryID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", ErrNotFound
 	}
@@ -49,7 +49,7 @@ func (c *Catalog) UpNext(ctx context.Context, itemID, profileID string, lim acce
 		n := int(age.Int64)
 		rating = &n
 	}
-	if hidden || !lim.Allows(rating) {
+	if hidden || !lim.Allows(libraryID, rating) {
 		return "", ErrNotFound
 	}
 
@@ -145,7 +145,7 @@ func (c *Catalog) episodes(ctx context.Context, where, arg, profileID string, li
 		LEFT JOIN watch_state w ON w.item_id = e.id AND w.profile_id = ?
 		WHERE s.kind = 'season' AND ` + where
 	args := []any{profileID, arg}
-	if cond, a := lim.SQL("m"); cond != "" {
+	if cond, a := lim.SQL("e", "m"); cond != "" {
 		q += " AND " + cond
 		args = append(args, a...)
 	}

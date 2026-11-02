@@ -222,10 +222,16 @@ func (w *WatchStore) ContinueWatching(ctx context.Context, profileID string, lim
 	if limit <= 0 {
 		limit = 50
 	}
-	cond, condArgs := lim.SQL("m")
+	cond, condArgs := lim.SQL("i", "m")
 	visible := ""
 	if cond != "" {
 		visible = " AND " + cond
+	}
+	// The next-up query names its episodes e.
+	condE, _ := lim.SQL("e", "m")
+	visibleE := ""
+	if condE != "" {
+		visibleE = " AND " + condE
 	}
 
 	type entry struct {
@@ -269,7 +275,7 @@ func (w *WatchStore) ContinueWatching(ctx context.Context, profileID string, lim
 			LEFT JOIN watch_state w ON w.item_id = e.id AND w.profile_id = ?
 			LEFT JOIN item_metadata m ON m.item_id = e.id
 			WHERE l.rn = 1 AND e.kind = 'episode' AND e.hidden = 0 AND `+order+` > l.pos
-			  AND COALESCE(w.watched, 0) = 0`+visible+`
+			  AND COALESCE(w.watched, 0) = 0`+visibleE+`
 		)
 		SELECT id, at FROM candidates WHERE rn = 1`, append([]any{profileID, profileID}, condArgs...)...)
 	if err != nil {

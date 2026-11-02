@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { createInstance } from 'i18next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import en from '../locales/en/common.json'
-import { apiError, fakeApi, profile, server, user } from '../test/fakeApi'
+import { apiError, fakeApi, profile, server, sharing, user } from '../test/fakeApi'
 import { renderApp } from '../test/renderApp'
 import { depth, travel } from './AdminLayout'
 import { reasonCodes, reasonText } from './reasons'
@@ -145,16 +145,33 @@ describe('access', () => {
 })
 
 describe('home', () => {
-  it('says all is well on a quiet evening, and Settings lists the sections', async () => {
+  it('says all is well on a quiet evening, with every section in the sidebar', async () => {
     fakeApi(routes())
     await renderApp('/admin')
-    expect(await screen.findByText('All good. Nothing is playing.')).toBeInTheDocument()
-    expect(screen.getByText('Nobody is watching right now')).toBeInTheDocument()
-    expect(screen.getByText('Nothing needs you.')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('link', { name: 'Settings' }))
-    expect(await screen.findByRole('link', { name: /Libraries/ })).toHaveAttribute(
+    expect(await screen.findByText('Nobody is watching right now')).toBeInTheDocument()
+    // The library's 23 files not understood are the one thing to do.
+    const needs = screen.getByRole('region', { name: 'Needs attention' })
+    expect(within(needs).getByText('23 unmatched files')).toBeInTheDocument()
+    expect(within(needs).getByRole('link', { name: 'View' })).toHaveAttribute(
+      'href',
+      '/admin/unmatched',
+    )
+    const nav = screen.getByRole('complementary', { name: 'Admin sections' })
+    expect(within(nav).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(within(nav).getByRole('link', { name: 'Libraries' })).toHaveAttribute(
       'href',
       '/admin/libraries',
+    )
+    expect(within(nav).getByRole('link', { name: 'People' })).toHaveAttribute(
+      'href',
+      '/admin/people',
+    )
+    expect(within(nav).getByRole('link', { name: 'Invitations' })).toHaveAttribute(
+      'href',
+      '/admin/invitations',
     )
   })
 
@@ -178,9 +195,12 @@ describe('home', () => {
       }),
     )
     await renderApp('/admin')
-    const needs = await screen.findByRole('region', { name: 'Needs you' })
+    const needs = await screen.findByRole('region', { name: 'Needs attention' })
     expect(within(needs).getByText('/mnt/nas/Films can’t be reached.')).toBeInTheDocument()
-    expect(screen.getByText('One thing needs you.')).toBeInTheDocument()
+    expect(within(needs).getAllByRole('link', { name: 'View' })[0]).toHaveAttribute(
+      'href',
+      '/admin/libraries/lib1',
+    )
   })
 })
 
@@ -232,7 +252,7 @@ describe('playing now', () => {
       }),
     )
     await renderApp('/admin/playing')
-    await userEvent.click(await screen.findByRole('button', { name: 'Stop' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Stop Movie b for Sam' }))
     const dialog = screen.getByRole('dialog', { name: 'Stop Movie b for Sam?' })
     await userEvent.click(within(dialog).getByRole('button', { name: 'Stop stream' }))
     expect(await screen.findByText('Stopped Movie b for Sam.')).toBeInTheDocument()
@@ -375,6 +395,52 @@ describe('libraries', () => {
     expect(await screen.findByText('The Office is matched and locked.')).toBeInTheDocument()
   })
 
+  it('asks the season and episode when a show is picked for a file', async () => {
+    const path =
+      '/truenas/SERIES/Game of Thrones/Game.Of.Thrones.Saison.1.MULTI.1080p/01 - L Hiver Vient.mkv'
+    const calls = fakeApi(
+      routes({
+        'GET /libraries': { status: 200, body: [{ ...library(), name: 'Séries', type: 'shows' }] },
+        'GET /libraries/lib1/unrecognized': {
+          status: 200,
+          body: { files: [{ id: 'mf1', path, size: 1, probeStatus: 'ok' }] },
+        },
+        'GET /metadata/search': {
+          status: 200,
+          body: { candidates: [{ tmdbId: 1399, title: 'Game of Thrones', year: 2011 }] },
+        },
+        'POST /media-files/mf1/identify': { status: 200, body: {} },
+      }),
+    )
+    await renderApp('/admin/libraries/lib1/unrecognized')
+    await userEvent.click(await screen.findByRole('button', { name: 'Identify' }))
+    const sheet = screen.getByRole('dialog', { name: 'Match this file' })
+    await userEvent.type(
+      within(sheet).getByRole('searchbox', { name: 'Search TMDB' }),
+      'game of thrones',
+    )
+    await userEvent.click(
+      await within(sheet).findByRole(
+        'button',
+        { name: 'Use Game of Thrones (2011)' },
+        { timeout: 2000 },
+      ),
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Which episode of Game of Thrones?' })
+    expect(within(dialog).getByLabelText('Season')).toHaveValue('1')
+    const episode = within(dialog).getByLabelText('Episode')
+    expect(episode).toHaveValue('1')
+    await userEvent.clear(episode)
+    await userEvent.type(episode, '1-2')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Associate' }))
+    expect(await screen.findByText('Identified')).toBeInTheDocument()
+    expect(calls.find((c) => c.path === '/media-files/mf1/identify')?.body).toEqual({
+      tmdbId: 1399,
+      seasonNumber: 1,
+      episodeNumbers: [1, 2],
+    })
+  })
+
   it('identifies an unrecognized file through a TMDB search', async () => {
     const calls = fakeApi(
       routes({
@@ -420,6 +486,207 @@ describe('libraries', () => {
   })
 })
 
+describe('people (F009, step 19)', () => {
+  const rights = {
+    maxQuality: '1080p',
+    maxStreams: 2,
+    downloads: false,
+    party: 'join',
+    canCreateProfiles: false,
+  }
+  const groups = [
+    { id: 'g1', name: 'Family', household: true, libraryIds: [], rights, memberIds: ['u2'] },
+    {
+      id: 'g2',
+      name: 'Close friends',
+      household: false,
+      libraryIds: ['l1'],
+      rights,
+      memberIds: ['u3'],
+    },
+  ]
+  const person = (id: string, name: string, groupIds: string[], extra = {}) => ({
+    id,
+    username: name.toLowerCase(),
+    displayName: name,
+    role: 'member',
+    locale: 'en',
+    mustChangePassword: false,
+    disabled: false,
+    createdAt: '2026-10-01T00:00:00Z',
+    ...sharing,
+    groupIds,
+    lastSeenAt: '2026-11-01T00:00:00Z',
+    access: { libraryIds: groupIds.includes('g1') ? null : ['l1'], rights },
+    ...extra,
+  })
+  const users = [
+    person('u1', 'Ada', [], { role: 'admin' }),
+    person('u2', 'Sam', ['g1']),
+    person('u3', 'Camille', ['g2']),
+  ]
+
+  it('lists everyone with the groups beside, and filters by group and device', async () => {
+    fakeApi(
+      routes({
+        'GET /users': {
+          status: 200,
+          body: users.map((u) =>
+            u.id === 'u3'
+              ? { ...u, lastDevice: { id: 's3', deviceName: 'iPhone', deviceType: 'ios' } }
+              : u,
+          ),
+        },
+        'GET /groups': { status: 200, body: groups },
+        'GET /invitations': { status: 200, body: [] },
+      }),
+    )
+    await renderApp('/admin/people')
+    const table = await screen.findByRole('table', { name: 'People' })
+    expect(within(table).getAllByRole('row')).toHaveLength(4)
+    expect(within(table).getByText('All libraries')).toBeInTheDocument()
+    expect(screen.getByText('1 to 3 of 3')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Close friends/ }))
+    expect(within(table).getAllByRole('row')).toHaveLength(2)
+    expect(screen.getByRole('link', { name: /Close friends settings/ })).toHaveAttribute(
+      'href',
+      '/admin/people/groups/g2',
+    )
+    await userEvent.click(screen.getByRole('button', { name: /Everyone/ }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Device' }), 'iPhone')
+    expect(within(table).getAllByRole('row')).toHaveLength(2)
+    expect(within(table).getByText('Camille')).toBeInTheDocument()
+  })
+
+  it('lists invitations: copies a pending link, shows accepted ones, resends an expired one', async () => {
+    const soon = new Date(Date.now() + 1.5 * 864e5).toISOString()
+    const invitation = (id: string, name: string, status: string, extra = {}) => ({
+      id,
+      name,
+      status,
+      groupIds: ['g2'],
+      createdAt: '2026-10-20T00:00:00Z',
+      expiresAt: soon,
+      ...extra,
+    })
+    const writeText = vi.fn(() => Promise.resolve())
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    const calls = fakeApi(
+      routes({
+        'GET /users': { status: 200, body: users },
+        'GET /groups': { status: 200, body: groups },
+        'GET /invitations': {
+          status: 200,
+          body: [
+            invitation('i1', 'Romain', 'pending', { token: 'tok1' }),
+            invitation('i2', 'Camille', 'accepted', { userId: 'u3' }),
+            invitation('i3', 'Bruno', 'expired'),
+          ],
+        },
+        'POST /invitations': {
+          status: 201,
+          body: { token: 'tok4', invitation: invitation('i4', 'Bruno', 'pending') },
+        },
+      }),
+    )
+    await renderApp('/admin/invitations')
+    expect(await screen.findByText('1 pending')).toBeInTheDocument()
+    expect(screen.getByText('in 2 d')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Copy Romain’s link' }))
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/invite/tok1`)
+    expect(screen.getByRole('link', { name: 'Camille' })).toHaveAttribute(
+      'href',
+      '/admin/people/u3',
+    )
+    expect(screen.getAllByText('Accepted').length).toBeGreaterThan(0)
+    await userEvent.click(screen.getByRole('button', { name: 'New link for Bruno' }))
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === 'POST' && c.path === '/invitations')?.body).toEqual({
+        name: 'Bruno',
+        groupIds: ['g2'],
+      }),
+    )
+    expect(writeText).toHaveBeenLastCalledWith(`${window.location.origin}/invite/tok4`)
+  })
+
+  it('turns Plaid Party settings on and off', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /settings/party': {
+          status: 200,
+          body: { enabled: true, maxPeople: 8, guests: false },
+        },
+        'PATCH /settings/party': {
+          status: 200,
+          body: { enabled: true, maxPeople: 8, guests: true },
+        },
+      }),
+    )
+    await renderApp('/admin/party')
+    const guests = await screen.findByRole('switch', { name: 'Guests without an account' })
+    expect(guests).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByRole('combobox', { name: 'People per party' })).toHaveValue('8')
+    await userEvent.click(guests)
+    await waitFor(() => expect(guests).toHaveAttribute('aria-checked', 'true'))
+    expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ guests: true })
+    expect(screen.getByRole('link', { name: /Who can start/ })).toHaveAttribute(
+      'href',
+      '/admin/groups',
+    )
+  })
+
+  it('invites into the chosen group, and moves the people selected', async () => {
+    const calls = fakeApi(
+      routes({
+        'GET /users': { status: 200, body: users },
+        'GET /groups': { status: 200, body: groups },
+        'GET /invitations': { status: 200, body: [] },
+        'POST /invitations': {
+          status: 201,
+          body: {
+            token: 'tok',
+            invitation: {
+              id: 'i1',
+              name: 'Lucie',
+              groupIds: ['g2'],
+              createdAt: '2026-11-02T00:00:00Z',
+              expiresAt: '2026-11-09T00:00:00Z',
+            },
+          },
+        },
+        'PATCH /users/u2': { status: 200, body: users[1] },
+      }),
+    )
+    await renderApp('/admin/people')
+    await userEvent.click(await screen.findByRole('button', { name: /Close friends/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Invite' }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('checkbox', { name: 'Close friends' })).toBeChecked()
+    await userEvent.type(within(dialog).getByLabelText('Their name, for you'), 'Lucie')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Create the link' }))
+    expect(await screen.findByText(/\/invite\/tok$/)).toBeInTheDocument()
+    expect(calls.find((c) => c.method === 'POST' && c.path === '/invitations')?.body).toMatchObject(
+      {
+        name: 'Lucie',
+        groupIds: ['g2'],
+      },
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+
+    await userEvent.click(screen.getByRole('button', { name: /Everyone/ }))
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Sam' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Move to group' }))
+    const move = await screen.findByRole('dialog')
+    await userEvent.click(within(move).getByRole('radio', { name: 'Close friends' }))
+    await userEvent.click(within(move).getByRole('button', { name: 'Move to group' }))
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === 'PATCH' && c.path === '/users/u2')?.body).toEqual({
+        groupIds: ['g2'],
+      }),
+    )
+  })
+})
+
 describe('people', () => {
   const users = [
     {
@@ -431,6 +698,7 @@ describe('people', () => {
       mustChangePassword: false,
       disabled: false,
       createdAt: '2026-10-01T00:00:00Z',
+      ...sharing,
     },
   ]
   it('explains the last admin', async () => {
@@ -442,7 +710,7 @@ describe('people', () => {
       }),
     )
     await renderApp('/admin/people/u1')
-    await userEvent.click(await screen.findByRole('button', { name: 'Disable' }))
+    await userEvent.click(await screen.findByRole('button', { name: /Revoke access/ }))
     expect(
       await screen.findByText('You’re the last admin. Make someone else an admin first.'),
     ).toBeInTheDocument()
@@ -460,6 +728,7 @@ describe('people', () => {
               deviceName: 'Living-room TV',
               deviceType: 'tv',
               createdAt: '2026-10-01T00:00:00Z',
+              ...sharing,
               lastSeenAt: '2026-10-29T10:00:00Z',
               current: false,
             },
@@ -631,6 +900,7 @@ describe('section pages (V2)', () => {
       mustChangePassword: false,
       disabled: false,
       createdAt: '2026-10-01T00:00:00Z',
+      ...sharing,
     },
     {
       id: 'u2',
@@ -641,6 +911,7 @@ describe('section pages (V2)', () => {
       mustChangePassword: false,
       disabled: false,
       createdAt: '2026-10-02T00:00:00Z',
+      ...sharing,
     },
   ]
   const session = (id: string, deviceName: string, deviceType: string, lastSeenAt: string) => ({
@@ -666,11 +937,11 @@ describe('section pages (V2)', () => {
         name: /Devices/,
       }),
     ).toHaveAttribute('href', '/admin/devices')
-    // The tile says where you are: the server and its state in words.
-    expect(screen.getByText('One thing needs you.')).toBeInTheDocument()
+    // The server card names the server, the side column holds playback and people.
+    expect(screen.getByText('Server name')).toBeInTheDocument()
   })
 
-  it('shows the libraries with their trouble, and scans them all', async () => {
+  it('shows the libraries as a table with their trouble, and scans them all', async () => {
     const calls = fakeApi(
       routes({
         'GET /libraries': { status: 200, body: [library(nas)] },
@@ -678,13 +949,153 @@ describe('section pages (V2)', () => {
       }),
     )
     await renderApp('/admin/libraries')
-    const movies = await screen.findByRole('link', { name: /Movies/ })
+    const movies = await screen.findByRole('link', { name: 'Movies' })
     expect(movies).toHaveAttribute('href', '/admin/libraries/lib1')
-    expect(within(movies).getByText('1 of 1 folders unavailable')).toBeInTheDocument()
-    expect(screen.getByText('One folder unavailable')).toBeInTheDocument()
+    expect(screen.getByText('1 of 1 folders unavailable')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Scan all libraries now' }))
     expect(await screen.findByText('Scanning 1 library.')).toBeInTheDocument()
     expect(calls.find((c) => c.path === '/libraries/lib1/scan')?.body).toEqual({ full: false })
+  })
+
+  it('opens a library’s unrecognized files from anywhere on its Unmatched row', async () => {
+    fakeApi(
+      routes({
+        'GET /libraries': { status: 200, body: [library(nas)] },
+        'GET /libraries/lib1/unrecognized': { status: 200, body: { files: [] } },
+      }),
+    )
+    await renderApp('/admin/unmatched')
+    const row = (await screen.findByRole('link', { name: '23 files' })).closest('tr')!
+    await userEvent.click(within(row).getAllByRole('cell')[2]!)
+    expect(await screen.findByRole('link', { name: 'Back to Movies' })).toHaveAttribute(
+      'href',
+      '/admin/libraries/lib1',
+    )
+  })
+
+  it('shows monitoring: data sent, places on the map, the worst device first', async () => {
+    fakeApi(
+      routes({
+        'GET /monitoring': {
+          status: 200,
+          body: {
+            days: [
+              { date: '2026-11-01', bytes: 2e9 },
+              { date: '2026-11-02', bytes: 8.8e9 },
+            ],
+            people: [
+              { userId: 'u2', displayName: 'Bob', bytes: 10.8e9, plays: 3, watchedMs: 10_800_000 },
+            ],
+            places: [
+              {
+                country: 'FR',
+                city: 'Lyon',
+                lat: 45.75,
+                lon: 4.85,
+                plays: 2,
+                people: 1,
+                lastAt: '2026-11-02T10:00:00Z',
+              },
+            ],
+            devices: [
+              {
+                deviceName: 'Living room TV',
+                displayName: 'Bob',
+                plays: 3,
+                directPlay: 1,
+                directStream: 0,
+                transcoded: 2,
+                codecIssues: 2,
+                score: 33,
+                lastAt: '2026-11-02T10:00:00Z',
+              },
+            ],
+            local: 1,
+            remote: 3,
+            unplaced: 1,
+            geoipReady: true,
+          },
+        },
+      }),
+    )
+    await renderApp('/admin/monitoring')
+    // The world map's outlines take a moment to load in the test runner.
+    await screen.findByText('Data sent', {}, { timeout: 4000 })
+    expect(screen.getAllByText(/^11\sGB$/).length).toBeGreaterThan(0)
+    expect(screen.getByText('75% of plays')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Where remote plays come from' })).toBeInTheDocument()
+    expect(screen.getByText('Lyon, France')).toBeInTheDocument()
+    expect(screen.getByText('1 remote play couldn’t be placed.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Bob' })).toHaveAttribute('href', '/admin/people/u2')
+    expect(screen.getByText('Living room TV')).toBeInTheDocument()
+    expect(screen.getByText('33')).toBeInTheDocument()
+  })
+
+  it('filters the library report from its numbers, and pages through the wall', async () => {
+    const entry = (id: string, title: string, extra = {}) => ({
+      item: {
+        id,
+        kind: 'movie',
+        displayTitle: title,
+        matchStatus: 'matched',
+        genres: [],
+        fileCount: 1,
+        childCount: 0,
+        technical: {},
+      },
+      bytes: 4e9,
+      files: 1,
+      height: 2160,
+      duplicate: false,
+      plays: 0,
+      addedAt: '2025-01-01T00:00:00Z',
+      ...extra,
+    })
+    const totals = {
+      titles: 3,
+      bytes: 12e9,
+      unwatched: 2,
+      unwatchedBytes: 8e9,
+      stale: 2,
+      staleBytes: 8e9,
+      duplicates: 1,
+      duplicateBytes: 4e9,
+    }
+    const asked: URLSearchParams[] = []
+    fakeApi(
+      routes({
+        'GET /library-report': (req: Request) => {
+          const query = new URL(req.url).searchParams
+          asked.push(query)
+          const dups = query.get('show') === 'duplicates'
+          return {
+            status: 200,
+            body: {
+              totals,
+              total: dups ? 1 : 2,
+              genres: [{ id: 18, name: 'Drama' }],
+              items: dups
+                ? [entry('m3', 'Dune', { duplicate: true, files: 2 })]
+                : query.get('offset') === '1'
+                  ? [entry('m2', 'Arrival')]
+                  : [entry('m1', 'Metropolis')],
+            },
+          }
+        },
+      }),
+    )
+    await renderApp('/admin/report')
+    expect(await screen.findByRole('link', { name: /Metropolis/ })).toHaveAttribute(
+      'href',
+      '/item/m1',
+    )
+    expect(screen.getAllByText('4K').length).toBeGreaterThan(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Show 1 more' }))
+    expect(await screen.findByRole('link', { name: /Arrival/ })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Several files/ }))
+    expect(await screen.findByRole('link', { name: /Dune/ })).toBeInTheDocument()
+    expect(screen.getByText('2+ files')).toBeInTheDocument()
+    expect(asked.at(-1)?.get('sort')).toBe('size')
   })
 
   it('goes back from a library to Libraries', async () => {
@@ -831,17 +1242,6 @@ describe('motion (TM25)', () => {
     expect(travel('/admin/settings', '/admin/libraries')).toEqual({ nav: 'push' })
     expect(travel('/admin/libraries/lib1', '/admin/libraries')).toEqual({ nav: 'pop' })
     expect(travel('/admin/people', '/admin/libraries')).toEqual({})
-  })
-
-  it('marks the page with the way it travelled', async () => {
-    fakeApi(routes())
-    await renderApp('/admin/settings')
-    await userEvent.click(await screen.findByRole('link', { name: /Libraries/ }))
-    await screen.findByRole('link', { name: 'Back to Settings' })
-    expect(document.querySelector('.adm__main')).toHaveAttribute('data-nav', 'push')
-    await userEvent.click(screen.getByRole('link', { name: 'Back to Settings' }))
-    await screen.findByRole('link', { name: /Libraries/ })
-    expect(document.querySelector('.adm__main')).toHaveAttribute('data-nav', 'pop')
   })
 
   it('keeps a stream that ended for a moment, flagged as leaving', () => {

@@ -5,6 +5,11 @@ export function formatNumber(locale: string, n: number): string {
   return new Intl.NumberFormat(locale).format(n)
 }
 
+/** A share (0–1) as a percentage, "14 %" in French. */
+export function formatPercent(locale: string, share: number): string {
+  return new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(share)
+}
+
 /** Bytes as GB, MB… with the locale's units, e.g. "12,4 Go" in French. */
 export function formatBytes(locale: string, bytes: number): string {
   const units = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte'] as const

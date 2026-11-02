@@ -127,7 +127,12 @@ export function TopBar({
             onMouseDown={(e) => e.nativeEvent.stopPropagation()}
             onClick={() => setMenu((m) => !m)}
           >
-            <Avatar name={profile.name} color={profile.avatarColor + 1} size={38} />
+            <Avatar
+              name={profile.name}
+              color={profile.avatarColor + 1}
+              picture={profile.avatar.url}
+              size={38}
+            />
           </button>
           {menu && <ProfileMenu className="br-menu--down" onClose={() => setMenu(false)} />}
         </span>

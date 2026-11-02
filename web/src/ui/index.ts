@@ -12,6 +12,7 @@ export { AmbientBackdrop, PosterSlot, ServerFact, type SlotState } from './scan'
 export { TextField } from './TextField'
 export {
   Avatar,
+  avatarSrc,
   CandidateCard,
   DeviceRow,
   FileRow,

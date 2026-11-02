@@ -71,6 +71,8 @@ type NewUser struct {
 	Password    string
 	Role        auth.Role
 	Locale      string
+	// GroupIDs are a member's sharing groups (F009).
+	GroupIDs []string
 }
 
 // validate normalizes u and returns a validation or weak_password error.
@@ -111,7 +113,8 @@ func (s *Service) insertUser(ctx context.Context, q querier, u NewUser, hash str
 	if err != nil {
 		return User{}, Profile{}, err
 	}
-	profile := Profile{ID: newID(), UserID: user.ID, Name: truncateRunes(u.DisplayName, 32), AllowUnrated: true, IsDefault: true}
+	profile := Profile{ID: newID(), UserID: user.ID, Name: truncateRunes(u.DisplayName, 32), AllowUnrated: true, IsDefault: true,
+		Avatar: Avatar{Kind: AvatarInitial}}
 	_, err = q.ExecContext(ctx, `INSERT INTO profiles
 		(id, user_id, name, avatar_color, allow_unrated, is_default, created_at, updated_at)
 		VALUES (?, ?, ?, 0, 1, 1, ?, ?)`, profile.ID, user.ID, profile.Name, ts(now), ts(now))
@@ -129,8 +132,10 @@ func (s *Service) CreateUser(ctx context.Context, actor auth.Principal, u NewUse
 	}
 	var user User
 	err = s.inTx(ctx, func(tx *sql.Tx) error {
-		user, _, err = s.insertUser(ctx, tx, u, hash, true)
-		return err
+		if user, _, err = s.insertUser(ctx, tx, u, hash, true); err != nil {
+			return err
+		}
+		return setUserGroups(ctx, tx, user.ID, u.GroupIDs)
 	})
 	if err == nil {
 		s.logger.Info("user created", "user_id", user.ID, "role", user.Role, "by", actor.UserID)
@@ -144,6 +149,10 @@ type UserPatch struct {
 	Role        *auth.Role
 	Locale      *string
 	Disabled    *bool
+	// Sharing (F009): replaced when set.
+	GroupIDs        *[]string
+	ExtraLibraryIDs *[]string
+	ExtraRights     *RightsOverride
 }
 
 // UpdateUser applies patch to account id (F003-R1, R14).
@@ -158,6 +167,9 @@ func (s *Service) UpdateUser(ctx context.Context, actor auth.Principal, id strin
 	}
 	if patch.Role != nil && *patch.Role != auth.RoleAdmin && *patch.Role != auth.RoleMember {
 		p.add("role", "invalid")
+	}
+	if patch.ExtraRights != nil {
+		checkOverride("extraRights", *patch.ExtraRights, &p)
 	}
 	if err := p.err(); err != nil {
 		return User{}, err
@@ -196,9 +208,24 @@ func (s *Service) UpdateUser(ctx context.Context, actor auth.Principal, id strin
 			return err
 		}
 		if patch.Disabled != nil && *patch.Disabled {
-			_, err = s.revokeSessions(ctx, tx, id, "")
+			if _, err = s.revokeSessions(ctx, tx, id, ""); err != nil {
+				return err
+			}
 		}
-		return err
+		if patch.GroupIDs != nil {
+			if err := setUserGroups(ctx, tx, id, *patch.GroupIDs); err != nil {
+				return err
+			}
+		}
+		if patch.ExtraLibraryIDs != nil {
+			if err := setUserLibraries(ctx, tx, id, *patch.ExtraLibraryIDs); err != nil {
+				return err
+			}
+		}
+		if patch.ExtraRights != nil {
+			return setUserRights(ctx, tx, id, *patch.ExtraRights)
+		}
+		return nil
 	})
 	if err == nil {
 		s.logger.Info("user updated", "user_id", id, "role", user.Role, "disabled", user.Disabled, "by", actor.UserID)

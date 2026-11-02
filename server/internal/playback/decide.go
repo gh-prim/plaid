@@ -30,6 +30,7 @@ const (
 	ReasonBitrate          = "bitrate_too_high"
 	ReasonKeyframeIndex    = "keyframe_index_missing"
 	ReasonForced           = "forced_by_client"
+	ReasonQualityCap       = "quality_capped" // above the person's best quality (F009)
 )
 
 // WarningColors flags a transcode whose colors can't be mapped right
@@ -92,6 +93,21 @@ type Limits struct {
 	Remote           bool
 	// Tonemap: FFmpeg can tone map HDR to SDR (zscale and tonemap, R23).
 	Tonemap bool
+	// MaxQuality is the best rung the person may get (F009), "" or
+	// "original" for no cap.
+	MaxQuality string
+}
+
+// capRung returns the index in Ladder of lim's cap, -1 for none.
+func (lim Limits) capRung() int {
+	return slices.IndexFunc(Ladder, func(q Quality) bool { return q.Name == lim.MaxQuality })
+}
+
+// overCap reports whether the source is bigger than the cap: it fills the
+// rung above it.
+func (lim Limits) overCap(m Media) bool {
+	i := lim.capRung()
+	return i > 0 && fills(m, Ladder[i-1])
 }
 
 // Decision is how a file is played.
@@ -232,6 +248,10 @@ func Decide(m Media, req Request, p Profile, lim Limits) (Decision, error) {
 	if tooFast {
 		reasons = append(reasons, ReasonBitrate)
 	}
+	capped := lim.overCap(m)
+	if capped {
+		reasons = append(reasons, ReasonQualityCap)
+	}
 	// A lower quality than the source is the client's choice too: without
 	// it, a file that plays directly would ignore the quality menu.
 	lowered := req.Quality != "" && req.Quality != QualityOriginal
@@ -258,7 +278,7 @@ func Decide(m Media, req Request, p Profile, lim Limits) (Decision, error) {
 		burn = true
 		d.Reasons = append(d.Reasons, ReasonSubtitleBurnIn)
 	}
-	streamable := len(videoReasons) == 0 && !burn && !tooFast && req.ForceMethod != Transcode &&
+	streamable := len(videoReasons) == 0 && !burn && !tooFast && !capped && req.ForceMethod != Transcode &&
 		m.Video != nil && slices.Contains([]string{"h264", "hevc", "av1"}, m.Video.Codec)
 	if streamable && !m.HasKeyframeIndex {
 		d.Reasons = append(d.Reasons, ReasonKeyframeIndex)
@@ -280,7 +300,13 @@ func Decide(m Media, req Request, p Profile, lim Limits) (Decision, error) {
 		d.SubtitleDelivery = subtitleDelivery(d.Subtitle, p, false)
 	}
 	d.Qualities = qualities(m, streamable)
-	q := pickQuality(m, p, req.Quality, d.MaxBitrate)
+	if i := lim.capRung(); i > 0 {
+		d.Qualities = slices.DeleteFunc(d.Qualities, func(name string) bool {
+			j := slices.IndexFunc(Ladder, func(q Quality) bool { return q.Name == name })
+			return j >= 0 && j < i
+		})
+	}
+	q := pickQuality(m, p, req.Quality, d.MaxBitrate, lim.capRung())
 	d.Quality = q.Name
 	d.Width, d.Height = fit(m, q)
 	d.VideoBitrate = q.Bitrate
@@ -469,9 +495,12 @@ func fills(m Media, q Quality) bool {
 
 // pickQuality is the asked rung when the source fills it, else the best
 // one under the bitrate limit and the client's H.264 size limits.
-func pickQuality(m Media, p Profile, want string, maxBitrate int64) Quality {
+func pickQuality(m Media, p Profile, want string, maxBitrate int64, capRung int) Quality {
 	c := p.video("h264")
 	allowed := func(q Quality) bool {
+		if capRung > 0 && slices.Index(Ladder, q) < capRung {
+			return false
+		}
 		if !fills(m, q) && q != Ladder[len(Ladder)-1] {
 			return false
 		}

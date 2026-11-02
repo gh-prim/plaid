@@ -5,9 +5,17 @@ import type { components } from '../api/schema'
 import { useAuth } from '../auth/AuthProvider'
 import { errorMessage, failure } from '../auth/errors'
 import { parseNetworks } from '../lib/cidr'
-import { formatRelative, formatTime } from '../lib/format'
+import {
+  formatDuration,
+  formatNumber,
+  formatPercent,
+  formatRelative,
+  formatTime,
+} from '../lib/format'
 import { mountCommand } from '../lib/shellQuote'
-import { Button, Mark, CommandBlock, TextField } from '../ui'
+import { Link } from 'react-router'
+import { usePolling } from '../hooks/usePolling'
+import { Button, Mark, CommandBlock, Icon, TextField } from '../ui'
 import { useAdmin } from './AdminLayout'
 import { Group, Loading, Row, Section } from './v2'
 
@@ -15,6 +23,7 @@ type PlaybackSettings = components['schemas']['PlaybackSettings']
 type Update = components['schemas']['PlaybackSettingsUpdate']
 type HwAccel = components['schemas']['HwAccelSetting']
 type Problem = components['schemas']['Problem']
+type ActivePlayback = components['schemas']['ActivePlayback']
 
 const gb = 1e9
 const remoteOptions = [0, 4e6, 8e6, 12e6, 20e6, 40e6]
@@ -22,7 +31,7 @@ const remoteOptions = [0, 4e6, 8e6, 12e6, 20e6, 40e6]
 /** Hardware test and playback settings (boards AP12–AP14, TA09, F007 R24, R28). */
 export function Transcoding() {
   const { t } = useTranslation()
-  const { refresh } = useAdmin()
+  const { refresh, data: admin } = useAdmin()
   const [s, setS] = useState<PlaybackSettings>()
   const [testing, setTesting] = useState(false)
   const [testError, setTestError] = useState<string>()
@@ -70,6 +79,7 @@ export function Transcoding() {
     <Section
       title={t('transcoding.title')}
       glyph="transcoding"
+      aside={<TranscodingAside streams={admin?.streams ?? []} max={s.maxTranscodes} />}
       paneTitle={
         hw.active
           ? t('admin.transcoding.hardware', { accelerator: hw.active.toUpperCase() })
@@ -151,6 +161,62 @@ export function Transcoding() {
 
       <Prefs settings={s} accelOptions={accelOptions} onSaved={onSaved} />
     </Section>
+  )
+}
+
+/** Board AdmV2 15's right column: the transcodes running, and the week's share. */
+function TranscodingAside({ streams, max }: { streams: ActivePlayback[]; max: number }) {
+  const { t, i18n } = useTranslation()
+  const lng = i18n.language
+  const { data: week } = usePolling(
+    async () =>
+      (
+        await api.GET('/activity', {
+          params: { query: { days: 7, tzOffsetMinutes: new Date().getTimezoneOffset() } },
+        })
+      ).data ?? null,
+    300_000,
+  )
+  const running = streams.filter((s) => s.session.method === 'transcode')
+  const tot = week?.totals
+  return (
+    <>
+      <Group
+        title={t('admin.transcoding.running')}
+        meta={`${formatNumber(lng, running.length)} / ${formatNumber(lng, max)}`}
+      >
+        {running.length === 0 ? (
+          <Row label={t('admin.transcoding.noneRunning')} muted />
+        ) : (
+          running.map((s) => (
+            <Row
+              key={s.session.id}
+              label={s.itemTitle}
+              sub={[
+                s.profileName,
+                s.session.quality === 'original' ? undefined : s.session.quality,
+                s.session.hardwareAcceleration
+                  ? t('admin.transcoding.gpu')
+                  : t('admin.transcoding.cpu'),
+                s.speed
+                  ? t('admin.transcoding.speed', { speed: formatNumber(lng, s.speed) })
+                  : undefined,
+              ]
+                .filter(Boolean)
+                .join(t('card.separator'))}
+              to="/admin/playing"
+            />
+          ))
+        )}
+      </Group>
+      <Group title={t('admin.transcoding.week')}>
+        <li className="ax-stat">
+          <p>{t('admin.transcoding.transcoded')}</p>
+          <strong>{tot?.plays ? formatPercent(lng, tot.transcoded / tot.plays) : '—'}</strong>
+          <span>{t('admin.transcoding.ofPlays', { count: tot?.plays ?? 0 })}</span>
+        </li>
+      </Group>
+    </>
   )
 }
 
@@ -414,9 +480,10 @@ function Prefs({
 
 /** Provider keys (write-only), metadata progress and attributions (boards AP15, TA11, F007 R25). */
 export function Metadata() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { state } = useAuth()
-  const { data: admin } = useAdmin()
+  const { data: admin, toast } = useAdmin()
+  const [refreshing, setRefreshing] = useState(false)
   const [settings, setSettings] = useState<components['schemas']['MetadataSettings']>()
   const [status, setStatus] = useState<components['schemas']['MetadataStatus']>()
   const [key, setKey] = useState('')
@@ -471,29 +538,106 @@ export function Metadata() {
     { matched: 0, total: 0 },
   )
   const down = providers.filter((p) => p.state !== 'ok' && p.state !== 'no_api_key')
+  const up = providers.filter((p) => p.state === 'ok').length
+  const n = (v: number) => formatNumber(i18n.language, v)
+
+  async function refreshAll() {
+    setRefreshing(true)
+    await Promise.all(
+      (admin?.libraries ?? []).map((l) =>
+        api.POST('/libraries/{libraryId}/metadata/refresh', {
+          params: { path: { libraryId: l.id } },
+        }),
+      ),
+    )
+    setRefreshing(false)
+    toast(t('admin.metadata.refreshing'))
+  }
 
   return (
     <Section
       title={t('metadata.title')}
-      glyph="metadata"
-      paneTitle={t('admin.metadata.sources')}
-      paneSub={
-        status
-          ? t('admin.metadata.matched', { matched: totals.matched, total: totals.total })
-          : undefined
+      actions={
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={refreshing}
+          disabled={!admin?.libraries.length}
+          onClick={() => void refreshAll()}
+        >
+          <Icon name="refresh" size={14} />
+          {t('admin.metadata.refreshAll')}
+        </Button>
       }
-      status={
-        status
-          ? down.length
-            ? { text: t('admin.metadata.down', { count: down.length }), tone: 'warning' }
-            : { text: t('admin.metadata.allOk'), tone: 'ok' }
-          : undefined
+      aside={
+        <>
+          {(status?.libraries.length ?? 0) > 0 && (
+            <Group title={t('metadata.perLibrary')}>
+              {status!.libraries.map((c) => (
+                <Row
+                  key={c.libraryId}
+                  to={`/admin/libraries/${c.libraryId}`}
+                  label={admin?.libraries.find((l) => l.id === c.libraryId)?.name ?? c.libraryId}
+                  sub={t('metadata.progress', {
+                    matched: c.matched,
+                    needsReview: c.needsReview,
+                    unmatched: c.unmatched,
+                  })}
+                />
+              ))}
+            </Group>
+          )}
+          {attributions.length > 0 && (
+            <Group title={t('admin.metadata.credits')}>
+              {attributions.map((a) => (
+                <Row
+                  key={a.provider}
+                  label={
+                    <a href={a.url} rel="noreferrer" target="_blank" className="adm__link">
+                      {a.name}
+                    </a>
+                  }
+                  sub={a.notice}
+                />
+              ))}
+            </Group>
+          )}
+        </>
       }
     >
+      {status && (
+        <div className="ax-kpis ax-kpis--3">
+          <section className="ax-card ax-kpi">
+            <p>{t('admin.metadata.matchedKpi')}</p>
+            <strong>{n(totals.matched)}</strong>
+            <span>{t('admin.metadata.ofTitles', { count: totals.total })}</span>
+          </section>
+          <section className="ax-card ax-kpi">
+            <p>{t('admin.metadata.sourcesCard')}</p>
+            <strong>
+              {n(up)} / {n(providers.length)}
+            </strong>
+            <span>
+              {down.length
+                ? t('admin.metadata.down', { count: down.length })
+                : t('admin.metadata.allOk')}
+            </span>
+          </section>
+          <section className="ax-card ax-kpi">
+            <p>{t('admin.unmatched.review')}</p>
+            <strong>{n(totals.total - totals.matched)}</strong>
+            <span>
+              <Link to="/admin/unmatched" className="ax-link">
+                {t('admin.metadata.seeUnmatched')}
+              </Link>
+            </span>
+          </section>
+        </div>
+      )}
       {!status && !settings && <Loading />}
       {settings && !status && <p className="adm__text">{source(settings.tmdb.keySource)}</p>}
       {providers.length > 0 && (
-        <Group title={t('metadata.attributions')}>
+        <Group title={t('admin.metadata.sourcesCard')}>
           {providers.map((p) => (
             <Row
               key={p.provider}
@@ -532,37 +676,6 @@ export function Metadata() {
                 </div>
               )}
             </Row>
-          ))}
-        </Group>
-      )}
-      {(status?.libraries.length ?? 0) > 0 && (
-        <Group title={t('metadata.perLibrary')}>
-          {status!.libraries.map((c) => (
-            <Row
-              key={c.libraryId}
-              to={`/admin/libraries/${c.libraryId}`}
-              label={admin?.libraries.find((l) => l.id === c.libraryId)?.name ?? c.libraryId}
-              sub={t('metadata.progress', {
-                matched: c.matched,
-                needsReview: c.needsReview,
-                unmatched: c.unmatched,
-              })}
-            />
-          ))}
-        </Group>
-      )}
-      {attributions.length > 0 && (
-        <Group title={t('admin.metadata.credits')}>
-          {attributions.map((a) => (
-            <Row
-              key={a.provider}
-              label={
-                <a href={a.url} rel="noreferrer" target="_blank" className="adm__link">
-                  {a.name}
-                </a>
-              }
-              sub={a.notice}
-            />
           ))}
         </Group>
       )}
@@ -610,33 +723,43 @@ function describe(
   }
 }
 
-/** The last 7 days of problems, going on first (board TA10, F007 R26). */
+/** The last 7 days of problems, going on first (board AdmV2 Problems, F007 R26). */
 export function Problems() {
   const { t, i18n } = useTranslation()
   const { data } = useAdmin()
   const locale = i18n.resolvedLanguage ?? 'en'
+  const [now] = useState(() => Date.now())
   const list = data?.problems ?? []
   const open = list.filter((p) => !p.resolvedAt)
   const solved = list.filter((p) => p.resolvedAt)
+  const since = (p: Problem) => new Date(p.firstSeen).getTime()
 
   const row = (p: Problem) => {
     const time = formatTime(locale, new Date(p.lastSeen))
     const d = describe(t, p, time)
-    const fixed = p.resolvedAt ? formatRelative(locale, new Date(p.resolvedAt)) : undefined
+    const resolved = p.resolvedAt ? new Date(p.resolvedAt) : undefined
     return (
       <Row
         key={p.id}
+        avatar={
+          <Icon name="alert" size={16} className={`ax-mark ${resolved ? 'is-ok' : 'is-warning'}`} />
+        }
         label={d.text}
-        value={formatRelative(locale, new Date(p.lastSeen))}
         sub={[
+          resolved
+            ? t('admin.problems.fixedIn', {
+                when: formatRelative(locale, resolved),
+                took: formatDuration(locale, Math.max(60_000, resolved.getTime() - since(p))),
+              })
+            : t('admin.problems.for', {
+                took: formatDuration(locale, Math.max(60_000, now - since(p))),
+              }),
           p.count > 1 ? t('problems.count', { count: p.count }) : undefined,
-          fixed ? t('problems.resolved', { time: fixed }) : undefined,
         ]
           .filter(Boolean)
-          .join(' · ')}
-        tone={fixed ? undefined : 'warning'}
+          .join(t('card.separator'))}
       >
-        {!fixed && (d.todo || d.command) ? (
+        {!resolved && (d.todo || d.command) ? (
           <>
             {d.todo && (
               <p className="adm__text">
@@ -651,27 +774,29 @@ export function Problems() {
   }
 
   return (
-    <Section
-      title={t('problems.title')}
-      glyph="problems"
-      paneTitle={data ? t('admin.problems.week', { count: list.length }) : undefined}
-      paneSub={t('problems.lead')}
-      status={
-        data
-          ? open.length
-            ? { text: t('admin.problems.open', { count: open.length }), tone: 'error' }
-            : { text: t('admin.problems.allClear'), tone: 'ok' }
-          : undefined
-      }
-    >
+    <Section title={t('problems.title')} lead={t('problems.lead')}>
       {!data && <Loading />}
       {data && !list.length && (
-        <div className="adm__empty">
+        <section className="ax-card adm__empty">
           <p className="title">{t('problems.empty')}</p>
-        </div>
+        </section>
       )}
-      {open.length > 0 && <Group title={t('admin.problems.goingOn')}>{open.map(row)}</Group>}
-      {solved.length > 0 && <Group title={t('admin.problems.solved')}>{solved.map(row)}</Group>}
+      {open.length > 0 && (
+        <Group
+          title={t('admin.problems.goingOn')}
+          meta={t('admin.problems.open', { count: open.length })}
+        >
+          {open.map(row)}
+        </Group>
+      )}
+      {solved.length > 0 && (
+        <Group
+          title={t('admin.problems.solved')}
+          meta={t('admin.problems.solvedWeek', { count: solved.length })}
+        >
+          {solved.map(row)}
+        </Group>
+      )}
     </Section>
   )
 }

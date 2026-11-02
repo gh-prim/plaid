@@ -241,6 +241,137 @@ paths:
           description: Deleted
         default:
           $ref: "#/components/responses/Error"
+  /me/profiles/{profileId}/avatar:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    put:
+      operationId: setMyProfileAvatar
+      summary: Show the initial, or an avatar made in the builder (F009)
+      tags: [profiles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvatarUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        default:
+          $ref: "#/components/responses/Error"
+  /me/profiles/{profileId}/avatar/photo:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    put:
+      operationId: setMyProfilePhoto
+      summary: Use a photo, already cropped square by the client (F009)
+      description: JPEG, PNG or WebP up to 8 MB. The server keeps a 512 px square JPEG, without the photo's metadata.
+      tags: [profiles]
+      requestBody:
+        required: true
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        default:
+          $ref: "#/components/responses/Error"
+  /avatars/{profileId}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    get:
+      operationId: getAvatar
+      summary: A profile's avatar or photo, square (F009)
+      description: >-
+        Any signed-in account can see any profile's picture (a party shows everyone's). A profile showing its initial
+        has no picture: 404. `Profile.avatar.url` changes when the picture changes, so responses are immutable.
+      tags: [profiles]
+      parameters:
+        - $ref: "#/components/parameters/AvatarSize"
+      responses:
+        "200":
+          description: The picture
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/Error"
+  /avatar-builder:
+    get:
+      operationId: getAvatarBuilder
+      summary: The parts and colors of the avatar builder (F009)
+      description: The "Lorelei" style by Lisa Wischofsky, CC0 1.0, drawn with DiceBear's definition.
+      tags: [profiles]
+      responses:
+        "200":
+          description: The builder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvatarBuilder"
+        default:
+          $ref: "#/components/responses/Error"
+  /avatar-builder/render:
+    get:
+      operationId: renderAvatar
+      summary: Draw an avatar from options, for the builder's previews (F009)
+      tags: [profiles]
+      parameters:
+        - name: options
+          in: query
+          required: true
+          description: AvatarOptions as JSON.
+          schema:
+            type: string
+        - name: color
+          in: query
+          description: Background, an avatar color index; none for transparent.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 7
+        - $ref: "#/components/parameters/AvatarSize"
+      responses:
+        "200":
+          description: The avatar
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/Error"
   /session/profile:
     post:
       operationId: selectProfile
@@ -414,6 +545,175 @@ paths:
       responses:
         "204":
           description: Session ended
+        default:
+          $ref: "#/components/responses/Error"
+  /groups:
+    get:
+      operationId: listGroups
+      summary: Sharing groups (admin, F009)
+      tags: [sharing]
+      responses:
+        "200":
+          description: Groups, by name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createGroup
+      summary: Create a sharing group (admin, F009)
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        default:
+          $ref: "#/components/responses/Error"
+  /groups/{groupId}:
+    parameters:
+      - $ref: "#/components/parameters/GroupId"
+    patch:
+      operationId: updateGroup
+      summary: Change a group's name, libraries or rights (admin, F009)
+      description: >-
+        The change applies at once to everyone in the group. A playback of a title that is no longer visible ends.
+        A household-only library can only go to a household group (`422 household_only`).
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteGroup
+      summary: Delete a group; its members keep their other groups (admin, F009)
+      tags: [sharing]
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /invitations:
+    get:
+      operationId: listInvitations
+      summary: Pending invitations, then those accepted or expired in the last 30 days (admin, F009)
+      tags: [sharing]
+      responses:
+        "200":
+          description: Pending first, then the others; newest first in each
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invitation"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createInvitation
+      summary: Create a single-use invitation link (admin, F009)
+      description: The token is returned once, here. The link is `/invite/{token}` on the server's address.
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvitationRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedInvitation"
+        default:
+          $ref: "#/components/responses/Error"
+  /invitations/{invitationId}:
+    parameters:
+      - name: invitationId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      operationId: revokeInvitation
+      summary: Cancel an invitation that wasn't used (admin, F009)
+      tags: [sharing]
+      responses:
+        "204":
+          description: Cancelled
+        default:
+          $ref: "#/components/responses/Error"
+  /invite/check:
+    post:
+      operationId: checkInvitation
+      summary: What an invitation link is for, before creating the account (F009)
+      description: >-
+        A used, cancelled or expired link answers `410 invitation_expired`, an unknown one `404 invitation_not_found`.
+        Repeated unknown tokens from one address return `429 too_many_attempts`.
+      tags: [sharing]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationTokenRequest"
+      responses:
+        "200":
+          description: The invitation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationPreview"
+        default:
+          $ref: "#/components/responses/Error"
+  /invite/accept:
+    post:
+      operationId: acceptInvitation
+      summary: Create an account from an invitation and sign in (F009)
+      description: >-
+        The account is a member in the invitation's groups. Its first profile gets the 4-digit PIN, which is required.
+        Web clients (`X-Plaid-Client: web`) get the session as a cookie, others get the token in the body.
+      tags: [sharing]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequest"
+      responses:
+        "201":
+          description: Account created and signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
         default:
           $ref: "#/components/responses/Error"
   /pairing:
@@ -1573,6 +1873,40 @@ paths:
                 $ref: "#/components/schemas/PlaybackSettings"
         default:
           $ref: "#/components/responses/Error"
+  /settings/party:
+    get:
+      operationId: getPartySettings
+      summary: Plaid Party settings (admin, step 21, ahead of F010)
+      tags: [sharing]
+      responses:
+        "200":
+          description: The settings in effect, defaults included
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartySettings"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updatePartySettings
+      summary: Change the Plaid Party settings (admin)
+      description: Absent fields keep their value. Who can start or join a party is each group's `party` right.
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartySettingsUpdate"
+      responses:
+        "200":
+          description: The settings after the change
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartySettings"
+        default:
+          $ref: "#/components/responses/Error"
   /stream/{token}/file:
     parameters:
       - $ref: "#/components/parameters/StreamToken"
@@ -1861,6 +2195,139 @@ paths:
                 $ref: "#/components/schemas/ServerStats"
         default:
           $ref: "#/components/responses/Error"
+  /server/stats/history:
+    get:
+      operationId: getServerStatsHistory
+      summary: The last 24 hours of streams and upload, one sample a minute (admin, step 21)
+      description: Kept in memory since the server started; a restart starts it again.
+      tags: [server]
+      responses:
+        "200":
+          description: Samples, oldest first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsHistory"
+        default:
+          $ref: "#/components/responses/Error"
+  /activity:
+    get:
+      operationId: getActivity
+      summary: What was watched and added lately, for the admin dashboard and Activity (step 21)
+      tags: [server]
+      parameters:
+        - name: days
+          in: query
+          description: How many days back, today included; defaults to 7.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 366
+        - name: userId
+          in: query
+          description: Only this account's plays (the totals and the days too).
+          schema:
+            type: string
+        - name: tzOffsetMinutes
+          in: query
+          description: The browser's offset from UTC (JavaScript's getTimezoneOffset), so days are local.
+          schema:
+            type: integer
+            minimum: -840
+            maximum: 840
+      responses:
+        "200":
+          description: The activity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+        default:
+          $ref: "#/components/responses/Error"
+  /monitoring:
+    get:
+      operationId: getMonitoring
+      summary: Data sent, where remote plays come from, and device health (admin)
+      description: >-
+        Over the last `days` (today included, local days from `tzOffsetMinutes`). Remote plays are placed with the
+        DB-IP Lite city database the server downloads monthly; local plays are never placed.
+      tags: [server]
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 366
+        - name: tzOffsetMinutes
+          in: query
+          schema:
+            type: integer
+            minimum: -840
+            maximum: 840
+      responses:
+        "200":
+          description: The period's monitoring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monitoring"
+        default:
+          $ref: "#/components/responses/Error"
+  /library-report:
+    get:
+      operationId: getLibraryReport
+      summary: Every movie and show with its size, picture, files and plays (admin)
+      description: >-
+        Filters combine. `unwatched`: nobody played it. `stale`: added more than 6 months ago and not played for a
+        year. `duplicates`: a movie, or one of a show's episodes, has more than one file. Totals are over the whole
+        library (or all), whatever the filters.
+      tags: [libraries]
+      parameters:
+        - name: libraryId
+          in: query
+          schema:
+            type: string
+        - name: show
+          in: query
+          schema:
+            type: string
+            enum: [all, unwatched, stale, duplicates]
+        - name: quality
+          in: query
+          description: The best picture's class.
+          schema:
+            type: string
+            enum: [uhd, fhd, hd, sd]
+        - name: genreId
+          in: query
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [size, added, title, plays]
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: A page of the report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LibraryReport"
+        default:
+          $ref: "#/components/responses/Error"
   /server/capabilities:
     get:
       operationId: getServerCapabilities
@@ -2012,6 +2479,20 @@ components:
       required: true
       schema:
         type: string
+    GroupId:
+      name: groupId
+      in: path
+      required: true
+      schema:
+        type: string
+    AvatarSize:
+      name: size
+      in: query
+      description: Side in pixels, defaults to 256.
+      schema:
+        type: integer
+        minimum: 32
+        maximum: 512
     SessionId:
       name: sessionId
       in: path
@@ -2308,9 +2789,313 @@ components:
           type: string
         mustChangePassword:
           type: boolean
+    MaxQuality:
+      type: string
+      description: The best picture a person may get. Above it, playback transcodes down.
+      enum: [original, 2160p, 1080p, 720p, 480p]
+    PartyRight:
+      type: string
+      description: What a person may do with Plaid Party (F010).
+      enum: [none, join, start]
+    Rights:
+      type: object
+      required: [maxQuality, maxStreams, downloads, party, canCreateProfiles]
+      properties:
+        maxQuality:
+          $ref: "#/components/schemas/MaxQuality"
+        maxStreams:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 20
+          description: Streams at the same time per person; null for no limit.
+        downloads:
+          type: boolean
+          description: Downloads for offline viewing (stored now, used by the apps once they download).
+        party:
+          $ref: "#/components/schemas/PartyRight"
+        canCreateProfiles:
+          type: boolean
+    RightsOverride:
+      type: object
+      description: Rights given to one person on top of their groups. They only add; null takes the groups' value.
+      properties:
+        maxQuality:
+          oneOf:
+            - $ref: "#/components/schemas/MaxQuality"
+            - type: "null"
+        maxStreams:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 20
+        unlimitedStreams:
+          type: [boolean, "null"]
+        downloads:
+          type: [boolean, "null"]
+        party:
+          oneOf:
+            - $ref: "#/components/schemas/PartyRight"
+            - type: "null"
+        canCreateProfiles:
+          type: [boolean, "null"]
+    EffectiveAccess:
+      type: object
+      description: What an account gets from its role, groups and exceptions together.
+      required: [libraryIds, rights]
+      properties:
+        libraryIds:
+          type: [array, "null"]
+          description: The libraries it sees; null for all of them (admins and household groups).
+          items:
+            type: string
+        rights:
+          $ref: "#/components/schemas/Rights"
+    Group:
+      type: object
+      required: [id, name, household, libraryIds, rights, memberIds]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        household:
+          type: boolean
+          description: Sees every library, present and future, household-only ones included.
+        libraryIds:
+          type: array
+          description: Shared libraries; ignored for a household group.
+          items:
+            type: string
+        rights:
+          $ref: "#/components/schemas/Rights"
+        memberIds:
+          type: array
+          items:
+            type: string
+    CreateGroupRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 40
+        household:
+          type: boolean
+        libraryIds:
+          type: array
+          items:
+            type: string
+        rights:
+          $ref: "#/components/schemas/Rights"
+    UpdateGroupRequest:
+      type: object
+      description: Absent fields are unchanged.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 40
+        household:
+          type: boolean
+        libraryIds:
+          type: array
+          items:
+            type: string
+        rights:
+          $ref: "#/components/schemas/Rights"
+    Invitation:
+      type: object
+      required: [id, name, groupIds, createdAt, expiresAt, status]
+      properties:
+        status:
+          type: string
+          enum: [pending, accepted, expired]
+        token:
+          type: string
+          description: The link's token, for a pending invitation (the link is `/invite/{token}`). Admins only.
+        acceptedAt:
+          type: string
+          format: date-time
+        userId:
+          type: string
+          description: The account it created, when accepted.
+        id:
+          type: string
+        name:
+          type: string
+          description: Who it is for, as the admin wrote it.
+        groupIds:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    CreateInvitationRequest:
+      type: object
+      required: [name, groupIds]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        groupIds:
+          type: array
+          minItems: 1
+          description: At least one group, so the new account sees something.
+          items:
+            type: string
+        expiresInDays:
+          type: integer
+          minimum: 1
+          maximum: 30
+          description: Defaults to 7.
+    CreatedInvitation:
+      type: object
+      required: [invitation, token]
+      properties:
+        invitation:
+          $ref: "#/components/schemas/Invitation"
+        token:
+          type: string
+          description: Shown once; the link is `/invite/{token}`.
+    InvitationTokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    InvitationPreview:
+      type: object
+      required: [serverName, name, invitedBy, expiresAt]
+      properties:
+        serverName:
+          type: string
+        name:
+          type: string
+          description: The name the admin gave; a suggestion for the display name.
+        invitedBy:
+          type: string
+          description: The display name of the admin who invited.
+        expiresAt:
+          type: string
+          format: date-time
+    AcceptInvitationRequest:
+      type: object
+      required: [token, displayName, username, password, pin]
+      properties:
+        token:
+          type: string
+        displayName:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        pin:
+          type: string
+          description: 4 digits, required. It protects the first profile.
+        locale:
+          type: string
+        device:
+          $ref: "#/components/schemas/Device"
+    AvatarKind:
+      type: string
+      enum: [initial, builder, photo]
+    Avatar:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          $ref: "#/components/schemas/AvatarKind"
+        url:
+          type: string
+          description: The picture (`/avatars/{profileId}?v=…`), absent for the initial.
+        options:
+          $ref: "#/components/schemas/AvatarOptions"
+    AvatarOptions:
+      type: object
+      description: >-
+        A built avatar: one variant per part, as listed by `GET /avatar-builder`. An optional part is absent or null for
+        none.
+      required: [head, hair, eyes, eyebrows, mouth, nose, hairColor, skinColor]
+      properties:
+        head:
+          type: string
+        hair:
+          type: string
+        eyes:
+          type: string
+        eyebrows:
+          type: string
+        mouth:
+          type: string
+        nose:
+          type: string
+        glasses:
+          type: [string, "null"]
+        beard:
+          type: [string, "null"]
+        earrings:
+          type: [string, "null"]
+        freckles:
+          type: [string, "null"]
+        hairColor:
+          type: string
+          examples: ["#5b3a26"]
+        skinColor:
+          type: string
+          examples: ["#d9a07a"]
+    AvatarUpdate:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [initial, builder]
+        options:
+          $ref: "#/components/schemas/AvatarOptions"
+    AvatarPart:
+      type: object
+      required: [name, optional, variants]
+      properties:
+        name:
+          type: string
+          enum: [head, hair, eyes, eyebrows, mouth, nose, glasses, beard, earrings, freckles]
+        optional:
+          type: boolean
+        variants:
+          type: array
+          items:
+            type: string
+    AvatarBuilder:
+      type: object
+      required: [parts, hairColors, skinColors, defaults, license]
+      properties:
+        parts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AvatarPart"
+        hairColors:
+          type: array
+          items:
+            type: string
+        skinColors:
+          type: array
+          items:
+            type: string
+        defaults:
+          $ref: "#/components/schemas/AvatarOptions"
+        license:
+          type: string
+          description: Credit line for the style, shown in About.
     AdminUser:
       type: object
-      required: [id, username, displayName, role, locale, mustChangePassword, disabled, createdAt]
+      required: [id, username, displayName, role, locale, mustChangePassword, disabled, createdAt, lastSeenAt, avatarColor,
+        avatar, groupIds, extraLibraryIds, extraRights, access]
       properties:
         id:
           type: string
@@ -2326,12 +3111,38 @@ components:
           type: boolean
         disabled:
           type: boolean
+          description: Suspended. A suspended account can't sign in; its account and history are kept.
         createdAt:
           type: string
           format: date-time
+        lastSeenAt:
+          type: [string, "null"]
+          format: date-time
+          description: The most recent activity of any of its devices, null if it never signed in.
+        lastDevice:
+          $ref: "#/components/schemas/SessionInfo"
+          description: The device seen last, absent if it never signed in.
+        avatarColor:
+          type: integer
+          description: The default profile's color.
+        avatar:
+          $ref: "#/components/schemas/Avatar"
+        groupIds:
+          type: array
+          items:
+            type: string
+        extraLibraryIds:
+          type: array
+          description: Libraries given to this person on top of their groups (F009).
+          items:
+            type: string
+        extraRights:
+          $ref: "#/components/schemas/RightsOverride"
+        access:
+          $ref: "#/components/schemas/EffectiveAccess"
     Profile:
       type: object
-      required: [id, name, avatarColor, hasPin, maxAge, allowUnrated, locale, isDefault]
+      required: [id, name, avatarColor, avatar, hasPin, maxAge, allowUnrated, locale, isDefault]
       properties:
         id:
           type: string
@@ -2341,7 +3152,9 @@ components:
           type: integer
           minimum: 0
           maximum: 7
-          description: Index of the `party-*` design token.
+          description: Index of the `party-*` design token. The background of the initial and of a built avatar.
+        avatar:
+          $ref: "#/components/schemas/Avatar"
         hasPin:
           type: boolean
         maxAge:
@@ -2359,7 +3172,7 @@ components:
           description: The backdrop of what the profile watched last, which lights the profile picker (V2). Never for a profile with a PIN, so it doesn't show what it watches.
     Me:
       type: object
-      required: [user, profiles]
+      required: [user, profiles, access]
       properties:
         user:
           $ref: "#/components/schemas/User"
@@ -2369,6 +3182,8 @@ components:
             $ref: "#/components/schemas/Profile"
         activeProfile:
           $ref: "#/components/schemas/Profile"
+        access:
+          $ref: "#/components/schemas/EffectiveAccess"
     UpdateMeRequest:
       type: object
       properties:
@@ -2472,6 +3287,11 @@ components:
           $ref: "#/components/schemas/Role"
         locale:
           type: string
+        groupIds:
+          type: array
+          description: The member's groups (F009). Without any, a member sees no library.
+          items:
+            type: string
     UpdateUserRequest:
       type: object
       properties:
@@ -2483,6 +3303,19 @@ components:
           type: string
         disabled:
           type: boolean
+          description: Suspend (true) or restore (false). Suspending ends every session and playback of the account at once.
+        groupIds:
+          type: array
+          description: Replaces the account's groups (F009).
+          items:
+            type: string
+        extraLibraryIds:
+          type: array
+          description: Replaces the libraries given on top of the groups (F009).
+          items:
+            type: string
+        extraRights:
+          $ref: "#/components/schemas/RightsOverride"
     ResetPasswordRequest:
       type: object
       required: [temporaryPassword]
@@ -2554,7 +3387,7 @@ components:
           enum: [ok, unavailable, unreadable]
     LibraryCounts:
       type: object
-      required: [movies, shows, episodes, files, unrecognized]
+      required: [movies, shows, episodes, files, unrecognized, sizeBytes]
       properties:
         movies:
           type: integer
@@ -2567,9 +3400,13 @@ components:
           description: Files present on disk.
         unrecognized:
           type: integer
+        sizeBytes:
+          type: integer
+          format: int64
+          description: The size of the files present on disk.
     Library:
       type: object
-      required: [id, name, type, scanIntervalSeconds, metadataLanguage, metadataRegion, folders, counts, scan]
+      required: [id, name, type, scanIntervalSeconds, metadataLanguage, metadataRegion, folders, counts, scan, householdOnly]
       properties:
         id:
           type: string
@@ -2595,6 +3432,9 @@ components:
           $ref: "#/components/schemas/LibraryCounts"
         scan:
           $ref: "#/components/schemas/ScanProgress"
+        householdOnly:
+          type: boolean
+          description: Never shared outside the household (F009). Only admins and household groups see it.
     CreateLibraryRequest:
       type: object
       required: [name, type, folders]
@@ -2639,6 +3479,9 @@ components:
           $ref: "#/components/schemas/MetadataLanguage"
         metadataRegion:
           $ref: "#/components/schemas/MetadataRegion"
+        householdOnly:
+          type: boolean
+          description: Making a library household-only removes it from every non-household group and person (F009).
     MetadataLanguage:
       type: string
       pattern: "^[a-z]{2}$"
@@ -4107,6 +4950,32 @@ components:
           description: The render node set by the admin; absent for the default (the first /dev/dri/renderD*).
         hardware:
           $ref: "#/components/schemas/HardwareStatus"
+    PartySettings:
+      type: object
+      required: [enabled, maxPeople, guests]
+      properties:
+        enabled:
+          type: boolean
+          description: Watch together, at home or away. On by default.
+        maxPeople:
+          type: integer
+          minimum: 2
+          maximum: 16
+          description: People per party, the host included. 8 by default.
+        guests:
+          type: boolean
+          description: Someone without an account can join from the party's link. Off by default.
+    PartySettingsUpdate:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        maxPeople:
+          type: integer
+          minimum: 2
+          maximum: 16
+        guests:
+          type: boolean
     PlaybackSettingsUpdate:
       type: object
       properties:
@@ -4156,6 +5025,10 @@ components:
           format: int64
         state:
           $ref: "#/components/schemas/PlaybackState"
+        bitrateBps:
+          type: integer
+          format: int64
+          description: What this stream is sent at, in bits per second (step 21).
         remote:
           type: boolean
           description: The client is outside the local networks (R22).
@@ -4179,6 +5052,303 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ActivePlayback"
+    StatsHistory:
+      type: object
+      required: [samples]
+      properties:
+        samples:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatsSample"
+    StatsSample:
+      type: object
+      required: [at, streams, transcodes, uploadBps]
+      properties:
+        at:
+          type: string
+          format: date-time
+        streams:
+          type: integer
+        transcodes:
+          type: integer
+        uploadBps:
+          type: integer
+          format: int64
+    Activity:
+      type: object
+      required: [days, recent, recentlyAdded, activePeople, totals]
+      properties:
+        totals:
+          $ref: "#/components/schemas/ActivityTotals"
+        days:
+          type: array
+          description: One entry per day, oldest first, today last.
+          items:
+            $ref: "#/components/schemas/ActivityDay"
+        recent:
+          type: array
+          description: The last plays, newest first (50 at most).
+          items:
+            $ref: "#/components/schemas/PlayRecord"
+        recentlyAdded:
+          type: array
+          description: The last movies and shows added, newest first (10 at most).
+          items:
+            $ref: "#/components/schemas/ItemSummary"
+        activePeople:
+          type: integer
+          description: Accounts seen in the period.
+    Monitoring:
+      type: object
+      required: [days, people, places, devices, local, remote, unplaced, geoipReady]
+      properties:
+        days:
+          type: array
+          description: One per day, oldest first.
+          items:
+            $ref: "#/components/schemas/MonitoringDay"
+        people:
+          type: array
+          description: Most data first.
+          items:
+            $ref: "#/components/schemas/MonitoringPerson"
+        places:
+          type: array
+          description: Cities remote plays came from, most plays first.
+          items:
+            $ref: "#/components/schemas/MonitoringPlace"
+        devices:
+          type: array
+          description: Worst health first.
+          items:
+            $ref: "#/components/schemas/DeviceHealth"
+        local:
+          type: integer
+        remote:
+          type: integer
+        unplaced:
+          type: integer
+          description: Remote plays without a place (no database yet, or an unknown address).
+        geoipReady:
+          type: boolean
+          description: The geolocation database is downloaded.
+    MonitoringDay:
+      type: object
+      required: [date, bytes]
+      properties:
+        date:
+          type: string
+          format: date
+        bytes:
+          type: integer
+          format: int64
+    MonitoringPerson:
+      type: object
+      required: [displayName, bytes, plays, watchedMs]
+      properties:
+        userId:
+          type: string
+        displayName:
+          type: string
+        bytes:
+          type: integer
+          format: int64
+        plays:
+          type: integer
+        watchedMs:
+          type: integer
+          format: int64
+    MonitoringPlace:
+      type: object
+      required: [country, lat, lon, plays, people, lastAt]
+      properties:
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2.
+        city:
+          type: string
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+        plays:
+          type: integer
+        people:
+          type: integer
+        lastAt:
+          type: string
+          format: date-time
+    DeviceHealth:
+      type: object
+      required: [deviceName, displayName, plays, directPlay, directStream, transcoded, codecIssues, score, lastAt]
+      properties:
+        deviceName:
+          type: string
+        displayName:
+          type: string
+        plays:
+          type: integer
+        directPlay:
+          type: integer
+        directStream:
+          type: integer
+        transcoded:
+          type: integer
+        codecIssues:
+          type: integer
+          description: Plays converted because the device couldn't decode a codec or format.
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Half the direct play rate, 30 for few transcodes, 20 for few codec problems.
+        lastAt:
+          type: string
+          format: date-time
+    LibraryReport:
+      type: object
+      required: [totals, total, genres, items]
+      properties:
+        totals:
+          $ref: "#/components/schemas/LibraryReportTotals"
+        total:
+          type: integer
+          description: Titles matching the filters.
+        genres:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportGenre"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LibraryReportItem"
+    LibraryReportTotals:
+      type: object
+      description: Over the whole library (or all), whatever the filters.
+      required: [titles, bytes, unwatched, unwatchedBytes, stale, staleBytes, duplicates, duplicateBytes]
+      properties:
+        titles:
+          type: integer
+        bytes:
+          type: integer
+          format: int64
+        unwatched:
+          type: integer
+        unwatchedBytes:
+          type: integer
+          format: int64
+        stale:
+          type: integer
+        staleBytes:
+          type: integer
+          format: int64
+        duplicates:
+          type: integer
+        duplicateBytes:
+          type: integer
+          format: int64
+    ReportGenre:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    LibraryReportItem:
+      type: object
+      required: [item, bytes, files, height, duplicate, plays, addedAt]
+      properties:
+        item:
+          $ref: "#/components/schemas/ItemSummary"
+        bytes:
+          type: integer
+          format: int64
+        files:
+          type: integer
+        height:
+          type: integer
+          description: The best picture's lines, 0 when unknown.
+        duplicate:
+          type: boolean
+        plays:
+          type: integer
+        lastPlayedAt:
+          type: string
+          format: date-time
+        addedAt:
+          type: string
+          format: date-time
+    ActivityTotals:
+      type: object
+      description: The plays of the period, all of them (not only the last 50).
+      required: [plays, people, directPlay, transcoded]
+      properties:
+        plays:
+          type: integer
+        people:
+          type: integer
+          description: Accounts that watched something.
+        directPlay:
+          type: integer
+          description: Plays sent as is.
+        transcoded:
+          type: integer
+          description: Plays converted by the server.
+        top:
+          $ref: "#/components/schemas/ActivityTop"
+    ActivityTop:
+      type: object
+      description: The title played most in the period; absent with no plays.
+      required: [itemId, title, plays]
+      properties:
+        itemId:
+          type: string
+        title:
+          type: string
+        plays:
+          type: integer
+    ActivityDay:
+      type: object
+      required: [date, hours, plays]
+      properties:
+        date:
+          type: string
+          format: date
+        hours:
+          type: number
+          description: Hours watched that day, all accounts.
+        plays:
+          type: integer
+    PlayRecord:
+      type: object
+      required: [itemId, title, userId, displayName, profileName, deviceName, method, remote, startedAt, watchedMs]
+      properties:
+        itemId:
+          type: string
+        title:
+          type: string
+        userId:
+          type: string
+        displayName:
+          type: string
+        profileName:
+          type: string
+        deviceName:
+          type: string
+        method:
+          type: string
+          enum: [direct_play, direct_stream, transcode]
+        remote:
+          type: boolean
+        startedAt:
+          type: string
+          format: date-time
+        watchedMs:
+          type: integer
+          format: int64
     ServerStats:
       type: object
       required: [uptimeSeconds, transcodes, maxTranscodes, uploadBps, drives]
@@ -4196,6 +5366,13 @@ components:
         temperatureC:
           type: number
           description: The hottest thermal zone.
+        memoryUsedBytes:
+          type: integer
+          format: int64
+          description: Memory in use on the machine, when known.
+        memoryTotalBytes:
+          type: integer
+          format: int64
         transcodes:
           type: integer
           description: Conversions running now.

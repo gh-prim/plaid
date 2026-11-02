@@ -20,6 +20,9 @@ func (h *Handlers) GetMe(ctx context.Context, _ api.GetMeRequestObject) (api.Get
 	}
 	out := toMe(me)
 	h.lightProfiles(ctx, out.Profiles)
+	if err := h.withAccess(ctx, p.UserID, &out); err != nil {
+		return nil, err
+	}
 	return api.GetMe200JSONResponse(out), nil
 }
 
@@ -65,7 +68,11 @@ func (h *Handlers) UpdateMe(ctx context.Context, req api.UpdateMeRequestObject) 
 	if err != nil {
 		return nil, err
 	}
-	return api.UpdateMe200JSONResponse(toMe(me)), nil
+	out := toMe(me)
+	if err := h.withAccess(ctx, p.UserID, &out); err != nil {
+		return nil, err
+	}
+	return api.UpdateMe200JSONResponse(out), nil
 }
 
 // ChangeMyPassword changes the caller's password.
@@ -173,7 +180,11 @@ func (h *Handlers) SelectProfile(ctx context.Context, req api.SelectProfileReque
 	if err != nil {
 		return nil, err
 	}
-	return api.SelectProfile200JSONResponse(toMe(me)), nil
+	out := toMe(me)
+	if err := h.withAccess(ctx, p.UserID, &out); err != nil {
+		return nil, err
+	}
+	return api.SelectProfile200JSONResponse(out), nil
 }
 
 // ListMySessions lists the caller's signed-in devices.

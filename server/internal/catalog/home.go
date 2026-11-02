@@ -80,7 +80,7 @@ func (c *Catalog) Home(ctx context.Context, q HomeQuery) (string, []Row, error) 
 	if r := page(Row{ID: RowContinueWatching, Type: RowContinueWatching}, q.ContinueWatching, 0, HomeRowSize); len(r.IDs) > 0 {
 		rows = append(rows, r)
 	}
-	libs, err := c.libraries(ctx)
+	libs, err := c.libraries(ctx, q.Access)
 	if err != nil {
 		return "", nil, err
 	}
@@ -122,7 +122,7 @@ func (c *Catalog) HomeRow(ctx context.Context, q HomeQuery, rowID, cursor string
 		}
 		return page(Row{ID: rowID, Type: kind}, q.ContinueWatching, offset, limit), nil
 	case RowRecentlyAdded:
-		libs, err := c.libraries(ctx)
+		libs, err := c.libraries(ctx, q.Access)
 		if err != nil {
 			return Row{}, err
 		}
@@ -292,7 +292,8 @@ func (c *Catalog) ambient(ctx context.Context, q HomeQuery) (string, error) {
 	return id, err
 }
 
-func (c *Catalog) libraries(ctx context.Context) ([]lib, error) {
+// libraries returns the libraries lim lets the profile see.
+func (c *Catalog) libraries(ctx context.Context, lim access.Limit) ([]lib, error) {
 	var out []lib
 	err := c.scan(ctx, `SELECT id, name, type, metadata_language FROM libraries ORDER BY name COLLATE NOCASE, id`, nil, func(r *sql.Rows) error {
 		var (
@@ -306,6 +307,9 @@ func (c *Catalog) libraries(ctx context.Context) ([]lib, error) {
 		if typ == "shows" {
 			l.kind = "show"
 		}
+		if !lim.AllowsLibrary(l.id) {
+			return nil
+		}
 		out = append(out, l)
 		return nil
 	})
@@ -315,7 +319,7 @@ func (c *Catalog) libraries(ctx context.Context) ([]lib, error) {
 // visibleTop is the WHERE of visible movies and shows, with i and m.
 func visibleTop(lim access.Limit) (string, []any) {
 	where := "i.hidden = 0 AND i.kind IN ('movie', 'show')"
-	cond, args := lim.SQL("m")
+	cond, args := lim.SQL("i", "m")
 	if cond != "" {
 		where += " AND " + cond
 	}

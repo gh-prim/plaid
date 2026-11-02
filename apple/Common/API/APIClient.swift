@@ -47,6 +47,14 @@ final class APIClient {
         return c.url!
     }
 
+    /// A profile picture (F009) at `size` pixels: `avatar.url` is a path
+    /// under api/v1 that changes with the picture.
+    func avatarURL(_ path: String, size: Int) -> URL {
+        var c = URLComponents(string: baseURL.appending(path: "api/v1").absoluteString + path)!
+        c.queryItems = (c.queryItems ?? []) + [URLQueryItem(name: "size", value: String(min(512, max(32, size))))]
+        return c.url!
+    }
+
     func authorized(_ url: URL) -> URLRequest {
         var r = URLRequest(url: url)
         if let token { r.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
@@ -67,6 +75,48 @@ final class APIClient {
 
     func postNoContent<B: Encodable>(_ path: String, _ body: B) async throws {
         _ = try await send("POST", path, body: body)
+    }
+
+    func put<T: Decodable, B: Encodable>(_ path: String, _ body: B) async throws -> T {
+        let (data, _) = try await send("PUT", path, body: body)
+        return try decode(data)
+    }
+
+    func patch<T: Decodable, B: Encodable>(_ path: String, _ body: B) async throws -> T {
+        let (data, _) = try await send("PATCH", path, body: body)
+        return try decode(data)
+    }
+
+    /// Sends raw bytes (a photo) and decodes the answer.
+    func upload<T: Decodable>(_ method: String, _ path: String, data body: Data, contentType: String) async throws -> T {
+        var r = authorized(baseURL.appending(path: "api/v1" + path))
+        r.httpMethod = method
+        r.setValue("application/json", forHTTPHeaderField: "Accept")
+        r.setValue(contentType, forHTTPHeaderField: "Content-Type")
+        r.httpBody = body
+        let data: Data, response: URLResponse
+        do {
+            (data, response) = try await session.data(for: r)
+        } catch {
+            throw APIError.network
+        }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        if status >= 400 {
+            let code = (try? decoder.decode(APIErrorBody.self, from: data))?.error.code ?? "generic"
+            throw APIError(status: status, code: code)
+        }
+        return try decode(data)
+    }
+
+    /// The server's drawing of avatar options, for the builder (F009).
+    func avatarRenderURL(_ options: AvatarOptions, size: Int, color: Int? = nil) -> URL {
+        var c = URLComponents(url: baseURL.appending(path: "api/v1/avatar-builder/render"), resolvingAgainstBaseURL: false)!
+        let json = (try? JSONEncoder().encode(options)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+        c.queryItems = [URLQueryItem(name: "options", value: json), URLQueryItem(name: "size", value: String(size))]
+        if let color { c.queryItems?.append(URLQueryItem(name: "color", value: String(color))) }
+        // "+" stays literal in a query: escape it so the colors' JSON survives.
+        c.percentEncodedQuery = c.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        return c.url!
     }
 
     func delete<B: Encodable>(_ path: String, _ body: B) async throws {

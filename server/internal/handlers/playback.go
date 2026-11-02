@@ -239,6 +239,9 @@ func (h *Handlers) ListPlaybackSessions(ctx context.Context, _ api.ListPlaybackS
 			ItemTitle: s.ItemTitle, PositionMs: s.PositionMs, Remote: s.Remote,
 			StartedAt: s.CreatedAt, LastActivityAt: s.LastActivity,
 		}
+		if bps := s.BitrateBps(); bps > 0 {
+			a.BitrateBps = &bps
+		}
 		if s.State != "" {
 			st := api.PlaybackState(s.State)
 			a.State = &st
@@ -280,7 +283,7 @@ func (h *Handlers) mark(ctx context.Context, itemID string, watched bool) error 
 		return err
 	}
 	it, err := h.library.Store().GetItem(ctx, itemID)
-	if errors.Is(err, library.ErrNotFound) || err == nil && !limit.Allows(it.AgeRating) {
+	if errors.Is(err, library.ErrNotFound) || err == nil && !limit.Allows(it.LibraryID, it.AgeRating) {
 		return apierr.NotFound("no such item")
 	}
 	if err != nil {
@@ -378,6 +381,8 @@ func playbackErr(err error) error {
 	switch {
 	case errors.Is(err, playback.ErrProfileRequired):
 		return apierr.ProfileRequired()
+	case errors.Is(err, playback.ErrStreamLimit):
+		return apierr.StreamLimitReached()
 	case errors.Is(err, playback.ErrItemNotFound):
 		return apierr.NotFound("no such item")
 	case errors.Is(err, playback.ErrItemNotPlayable):

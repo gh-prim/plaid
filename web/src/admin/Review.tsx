@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
-import { Button, CandidateCard, EmptyState, Icon, Spinner, TextField } from '../ui'
+import { errorMessage, failure, type Failure } from '../auth/errors'
+import { Button, CandidateCard, Dialog, EmptyState, Icon, Spinner, TextField } from '../ui'
 import { candidatePoster, parseQuery } from '../browse/matchQuery'
 import { useAdmin } from './AdminLayout'
 import { MatchSheet } from '../browse/FixMatchSheet'
@@ -84,6 +85,105 @@ function TmdbSearch({
   )
 }
 
+/**
+ * The season and episode a file's path suggests: "Saison.1/01 - L'Hiver
+ * vient.mkv" gives season 1, episode 1; "S02E05E06" gives 2 and 5–6.
+ */
+export function guessEpisode(path: string): { season: string; episodes: string } {
+  const name = path.slice(path.lastIndexOf('/') + 1)
+  const se = /s(\d{1,2})[ ._-]*e(\d{1,3})(?:[ ._-]*e(\d{1,3}))?/i.exec(name)
+  if (se)
+    return {
+      season: String(Number(se[1])),
+      episodes: [se[2], se[3]].filter(Boolean).map(Number).join('-'),
+    }
+  const x = /\b(\d{1,2})x(\d{1,3})\b/i.exec(name)
+  if (x) return { season: String(Number(x[1])), episodes: String(Number(x[2])) }
+  const season = /(?:saison|season|staffel|temporada|stagione|s)[ ._-]*(\d{1,2})(?!\d)/i.exec(path)
+  const episode = /^(?:e|ep|episode|épisode)?[ ._-]*(\d{1,3})(?!\d)/i.exec(name)
+  return {
+    season: season ? String(Number(season[1])) : '',
+    episodes: episode ? String(Number(episode[1])) : '',
+  }
+}
+
+/** "3", "3-4" or "3,4" as episode numbers; undefined when it isn't that. */
+function episodeList(text: string): number[] | undefined {
+  const range = /^\s*(\d{1,3})\s*-\s*(\d{1,3})\s*$/.exec(text)
+  if (range) {
+    const [a, b] = [Number(range[1]), Number(range[2])]
+    if (b < a || b - a > 9) return undefined
+    return Array.from({ length: b - a + 1 }, (_, i) => a + i)
+  }
+  const list = text.split(',').map((x) => x.trim())
+  if (!list.length || list.length > 10 || list.some((x) => !/^\d{1,3}$/.test(x))) return undefined
+  return list.map(Number)
+}
+
+/** A show was picked for a file: which season and episode it is. */
+function EpisodeDialog({
+  show,
+  path,
+  onBack,
+  onUse,
+}: {
+  show: string
+  path: string
+  onBack: () => void
+  onUse: (season: number, episodes: number[]) => Promise<string | undefined>
+}) {
+  const { t } = useTranslation()
+  const guess = guessEpisode(path)
+  const [season, setSeason] = useState(guess.season)
+  const [episodes, setEpisodes] = useState(guess.episodes)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string>()
+  const seasonOk = /^\d{1,2}$/.test(season.trim())
+  const list = episodeList(episodes)
+  return (
+    <Dialog
+      title={t('matchFile.episode.title', { show })}
+      actions={
+        <>
+          <Button variant="ghost" onClick={onBack}>
+            {t('matchFile.episode.back')}
+          </Button>
+          <Button
+            loading={busy}
+            disabled={!seasonOk || !list}
+            onClick={() =>
+              void (async () => {
+                setBusy(true)
+                setError(await onUse(Number(season), list!))
+                setBusy(false)
+              })()
+            }
+          >
+            {t('matchFile.episode.use')}
+          </Button>
+        </>
+      }
+    >
+      <p className="adm__text adm__mono">{path.slice(path.lastIndexOf('/') + 1)}</p>
+      <TextField
+        label={t('matchFile.episode.season')}
+        inputMode="numeric"
+        value={season}
+        onValue={setSeason}
+        maxLength={2}
+      />
+      <TextField
+        label={t('matchFile.episode.episodes')}
+        help={t('matchFile.episode.help')}
+        value={episodes}
+        onValue={setEpisodes}
+        maxLength={20}
+        error={episodes && !list ? t('matchFile.episode.invalid') : error}
+      />
+    </Dialog>
+  )
+}
+
 /** Files whose name couldn't be understood (board AP07, F007 R21). */
 export function Unrecognized() {
   const { t, i18n } = useTranslation()
@@ -101,14 +201,25 @@ export function Unrecognized() {
       .catch(() => setFiles([]))
   }, [id])
 
-  async function identify(fileId: string, tmdbId: number) {
-    const { error } = await api
-      .POST('/media-files/{fileId}/identify', { params: { path: { fileId } }, body: { tmdbId } })
-      .catch((err: unknown) => ({ error: err }))
-    if (error) return false
+  // A show picked for a file waits for its season and episode.
+  const [episodeFor, setEpisodeFor] = useState<{
+    file: UnrecognizedFile
+    tmdbId: number
+    title: string
+  }>()
+
+  async function identify(
+    fileId: string,
+    body: components['schemas']['IdentifyRequest'],
+  ): Promise<Failure | undefined> {
+    const { error, response } = await api.POST('/media-files/{fileId}/identify', {
+      params: { path: { fileId } },
+      body,
+    })
+    if (error) return failure(error, response)
     setDone((d) => new Set(d).add(fileId))
     void refresh()
-    return true
+    return undefined
   }
 
   const remaining = (files ?? []).filter((f) => !done.has(f.id))
@@ -183,9 +294,33 @@ export function Unrecognized() {
           }
           onClose={() => setOpen(undefined)}
           onUse={async (c) => {
-            const ok = await identify(sheet.id, c.tmdbId)
-            if (ok) setOpen(undefined)
-            return ok
+            if (lib?.type === 'shows') {
+              setEpisodeFor({ file: sheet, tmdbId: c.tmdbId, title: c.title })
+              setOpen(undefined)
+              return true
+            }
+            const fail = await identify(sheet.id, { tmdbId: c.tmdbId })
+            if (!fail) setOpen(undefined)
+            return !fail
+          }}
+        />
+      )}
+      {episodeFor && (
+        <EpisodeDialog
+          show={episodeFor.title}
+          path={episodeFor.file.path}
+          onBack={() => {
+            setOpen(episodeFor.file.id)
+            setEpisodeFor(undefined)
+          }}
+          onUse={async (seasonNumber, episodeNumbers) => {
+            const fail = await identify(episodeFor.file.id, {
+              tmdbId: episodeFor.tmdbId,
+              seasonNumber,
+              episodeNumbers,
+            })
+            if (!fail) setEpisodeFor(undefined)
+            return fail && errorMessage(t, fail)
           }}
         />
       )}

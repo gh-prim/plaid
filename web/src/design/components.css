@@ -182,6 +182,7 @@
 /* ---------- Avatar ---------- */
 .pl-avatar{--pc:var(--party-1);position:relative;flex:none;width:var(--pl-s,48px);height:var(--pl-s,48px);border-radius:var(--radius-full);display:grid;place-items:center;color:var(--on-action);background:var(--pc);font:600 calc(var(--pl-s,48px) * .42)/1 var(--font-text);user-select:none}
 .pl-avatar > span{display:contents}
+.pl-avatar__img{width:100%;height:100%;border-radius:inherit;object-fit:cover;display:block}
 .pl-avatar.is-focus{box-shadow:var(--shadow-focus);transform:scale(var(--scale-focus-card))}
 .pl-avatar__status{position:absolute;right:-3px;bottom:-3px;width:28%;height:28%;min-width:12px;min-height:12px;border-radius:var(--radius-full);border:2px solid var(--bg-base);display:grid;place-items:center}
 .pl-avatar__status--ready{background:var(--status-success)}

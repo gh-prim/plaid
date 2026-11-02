@@ -16,6 +16,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/auth"
 	"github.com/gh-prim/plaid/server/internal/clientinfo"
+	"github.com/gh-prim/plaid/server/internal/geoip"
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/playback/keyframes"
 	"github.com/gh-prim/plaid/server/internal/problems"
@@ -26,6 +27,7 @@ import (
 // API errors.
 var (
 	ErrProfileRequired = errors.New("profile_required")
+	ErrStreamLimit     = errors.New("stream_limit_reached")
 	ErrItemNotFound    = errors.New("no such item")
 	ErrItemNotPlayable = errors.New("only movies and episodes play")
 	// ErrFFmpegMissing: the file needs HLS, which needs FFmpeg (R31).
@@ -45,6 +47,8 @@ type Accounts interface {
 	AccessLimit(ctx context.Context, p auth.Principal) (access.Limit, error)
 	SessionActive(ctx context.Context, sessionID string) (bool, error)
 	SessionOwner(ctx context.Context, p auth.Principal) (accounts.SessionOwner, error)
+	// Access is what the account may do: best quality, streams at once (F009).
+	Access(ctx context.Context, userID string) (accounts.Access, error)
 }
 
 // Options configures a Service.
@@ -71,8 +75,15 @@ type Options struct {
 	// Problems records hardware fallbacks and software restarts for the
 	// admin (F007 R29); nil records nothing.
 	Problems problems.Reporter
-	Log      *slog.Logger
-	Now      func() time.Time
+	// Geo places remote plays for the admin's map; nil places nothing.
+	Geo Locator
+	Log *slog.Logger
+	Now func() time.Time
+}
+
+// Locator turns a client address into a rough place (geoip.Locator).
+type Locator interface {
+	Lookup(ip string) (geoip.Place, bool)
 }
 
 // ErrHWTestRunning answers a hardware test asked for while one runs
@@ -88,6 +99,7 @@ type Service struct {
 	o         Options
 	t         Timings
 	manager   *Manager
+	hist      history // the last day of samples (step 21)
 	watch     *WatchStore
 	keyframes *keyframes.Store
 	storage   *Storage
@@ -174,6 +186,7 @@ func (s *Service) Start(ctx context.Context) {
 		}()
 	}
 	go s.manager.Run(ctx)
+	go s.runHistory(ctx)
 	if s.previews != nil && s.o.FFmpeg != nil {
 		go s.runPreviews(ctx)
 	}
@@ -392,8 +405,11 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 		return Session{}, err
 	}
 	r.Request = s.supported(r.Request)
-	lim, err := s.limits(ctx, client)
+	lim, err := s.limits(ctx, client, p.UserID)
 	if err != nil {
+		return Session{}, err
+	}
+	if err := s.checkStreams(ctx, p.UserID); err != nil {
 		return Session{}, err
 	}
 	m, err := ChooseFile(files, r.FileID, func(m Media) Decision { d, _ := Decide(m, r.Request, r.Profile, lim); return d })
@@ -484,7 +500,7 @@ func (s *Service) visibleItem(ctx context.Context, p auth.Principal, itemID stri
 	if err != nil {
 		return library.Item{}, err
 	}
-	if !limit.Allows(item.AgeRating) {
+	if !limit.Allows(item.LibraryID, item.AgeRating) {
 		return library.Item{}, ErrItemNotFound // invisible items don't exist (R9)
 	}
 	return item, nil
@@ -500,13 +516,67 @@ func (s *Service) supported(r Request) Request {
 	return r
 }
 
-func (s *Service) limits(ctx context.Context, client clientinfo.Info) (Limits, error) {
+// limits are the server side of a decision for userID's client; userID ""
+// has no cap.
+func (s *Service) limits(ctx context.Context, client clientinfo.Info, userID string) (Limits, error) {
 	cfg, err := LoadConfig(ctx, s.o.Settings)
 	if err != nil {
 		return Limits{}, err
 	}
-	return Limits{RemoteMaxBitrate: cfg.RemoteMaxBitrate, Remote: IsRemote(client.IP, cfg.LocalNetworks),
-		Tonemap: s.o.FFmpeg.HasFilter("zscale") && s.o.FFmpeg.HasFilter("tonemap")}, nil
+	lim := Limits{RemoteMaxBitrate: cfg.RemoteMaxBitrate, Remote: IsRemote(client.IP, cfg.LocalNetworks),
+		Tonemap: s.o.FFmpeg.HasFilter("zscale") && s.o.FFmpeg.HasFilter("tonemap")}
+	if userID != "" && s.o.Accounts != nil {
+		acc, err := s.o.Accounts.Access(ctx, userID)
+		if err != nil {
+			return Limits{}, err
+		}
+		lim.MaxQuality = acc.Rights.MaxQuality
+	}
+	return lim, nil
+}
+
+// checkStreams refuses a new playback when the person already watches as
+// many streams at once as their groups allow (F009).
+func (s *Service) checkStreams(ctx context.Context, userID string) error {
+	if s.o.Accounts == nil {
+		return nil
+	}
+	acc, err := s.o.Accounts.Access(ctx, userID)
+	if err != nil || acc.Rights.MaxStreams == nil {
+		return err
+	}
+	n := 0
+	for _, sess := range s.manager.List() {
+		if sess.UserID == userID {
+			n++
+		}
+	}
+	if n >= *acc.Rights.MaxStreams {
+		return ErrStreamLimit
+	}
+	return nil
+}
+
+// EndUser ends every playback of an account at once: suspended or deleted
+// (F009).
+func (s *Service) EndUser(userID string) {
+	for _, sess := range s.manager.List() {
+		if sess.UserID == userID {
+			s.manager.EndAuthSession(sess.AuthSessionID)
+		}
+	}
+}
+
+// Recheck ends the playbacks of titles their account may no longer see,
+// after an admin changed who sees what (F009).
+func (s *Service) Recheck(ctx context.Context) {
+	for _, sess := range s.manager.List() {
+		p := auth.Principal{UserID: sess.UserID, SessionID: sess.AuthSessionID, ProfileID: sess.ProfileID}
+		if _, err := s.visibleItem(ctx, p, sess.ItemID); errors.Is(err, ErrItemNotFound) {
+			_ = s.manager.End(p, sess.ID, nil)
+			s.o.Log.Info("playback ended", "playback_id", sess.ID, "user_id", sess.UserID, "reason", "access_removed")
+		}
+	}
 }
 
 // accelFor is the accelerator a new stream of d runs on: transcodes only.
@@ -599,7 +669,7 @@ func (s *Service) ChangeSession(ctx context.Context, p auth.Principal, client cl
 		r.BurnSubtitles = *c.BurnSubtitles
 	}
 	r = s.supported(r)
-	lim, err := s.limits(ctx, client)
+	lim, err := s.limits(ctx, client, p.UserID)
 	if err != nil {
 		return Session{}, err
 	}
@@ -688,6 +758,7 @@ func genOf(dir string) int {
 func (s *Service) onEnd(sess Session) {
 	s.closeStream(sess.ID, false)
 	s.saveFinal(sess)
+	s.logPlay(sess)
 }
 
 // Session returns a session p may see.
@@ -701,15 +772,22 @@ func (s *Service) Sessions() []Session { return s.manager.List() }
 // out to the players (what each stream is sent at, not measured).
 func (s *Service) Load() (transcodes, limit int, uploadBps int64) {
 	for _, sess := range s.manager.List() {
-		d := sess.Decision
-		if d.Method == Transcode {
+		if sess.Decision.Method == Transcode {
 			transcodes++
-			uploadBps += d.VideoBitrate + audioBitrate(d)
-			continue
 		}
-		uploadBps += d.Media.Bitrate
+		uploadBps += sess.BitrateBps()
 	}
 	return transcodes, s.maxTranscodes(), uploadBps
+}
+
+// BitrateBps is what the session is sent at: the transcode's target, else
+// the file's own bitrate.
+func (sess Session) BitrateBps() int64 {
+	d := sess.Decision
+	if d.Method == Transcode {
+		return d.VideoBitrate + audioBitrate(d)
+	}
+	return d.Media.Bitrate
 }
 
 // Progress records a client's position and state (R32), writing watch

@@ -7,10 +7,10 @@ import { errorMessage, failure, type Failure } from '../auth/errors'
 import { markProfilePicked } from '../auth/profileSession'
 import { PageLight } from '../browse/PageLight'
 import { Wordmark } from '../browse/Wordmark'
-import { Icon } from '../ui'
+import { Icon, avatarSrc } from '../ui'
 import '../browse/browse.css'
 
-/** A profile's circle: its party color with a soft top light, its initial. */
+/** A profile's circle: its avatar or photo (F009), else its party color with a soft top light and its initial. */
 function Face({ profile, size }: { profile: Profile; size: number }) {
   return (
     <span
@@ -23,7 +23,11 @@ function Face({ profile, size }: { profile: Profile; size: number }) {
       }
       aria-hidden="true"
     >
-      {profile.name.trim().charAt(0).toLocaleUpperCase()}
+      {profile.avatar.url ? (
+        <img className="pf__img" src={avatarSrc(profile.avatar.url, size)} alt="" />
+      ) : (
+        profile.name.trim().charAt(0).toLocaleUpperCase()
+      )}
     </span>
   )
 }

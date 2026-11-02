@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { Icon, Spinner } from '../ui'
+import { TopBar } from './AdminLayout'
 
 /*
  * The admin section pages in V2 (canvas page "V2", Step 9 second pass,
@@ -84,9 +84,11 @@ export function StatusPill({ status }: { status: Status }) {
 }
 
 /**
- * A section page: the back pill and the title on top, the tile with the
- * section's state on the left, the rows on the right. `back: null` for
- * Settings itself; by default it goes back to Settings.
+ * A section page in the step 21 shell (boards AdmV2 a–c): the top bar with
+ * the title and the page's buttons, then cards. A state card leads when
+ * the section has one (Transcoding's acceleration, Remote access's
+ * status); `aside` is the narrow right column. `back` is for a page inside
+ * a section (a library, a person); `back: null` and the default show none.
  */
 export function Section({
   title,
@@ -97,55 +99,69 @@ export function Section({
   paneTitle,
   paneSub,
   status,
-  phoneTitle = 'title',
+  control,
+  sub,
+  actions,
+  aside,
+  lead,
   children,
 }: {
   title: string
   back?: { to: string; label: string } | null
   glyph?: GlyphName
-  /** Text in the tile instead of a glyph (an initial). */
+  /** Text in the state card's square instead of a glyph (an initial, an avatar). */
   tile?: ReactNode
   tileBg?: string
   paneTitle?: ReactNode
   paneSub?: ReactNode
   status?: Status
-  /** On a phone, the big title is the page title, or the pane's (Settings: the server's name). */
+  /** A switch or a button at the right of the state card. */
+  control?: ReactNode
+  /** Grey text next to the title in the top bar. */
+  sub?: ReactNode
+  /** Buttons at the right of the top bar. */
+  actions?: ReactNode
+  aside?: ReactNode
+  /** A line above the cards. */
+  lead?: ReactNode
+  /** Kept for the callers of the V2 tile layout; the shell has one title. */
   phoneTitle?: 'title' | 'pane'
   children: ReactNode
 }) {
-  const { t } = useTranslation()
-  const to = back === undefined ? { to: '/admin/settings', label: t('admin.tab.settings') } : back
   return (
-    <div className={`adm-sec adm-sec--${phoneTitle}`}>
-      <header className="adm-sec__head">
-        {to && (
-          <Link
-            to={to.to}
-            className="adm-sec__back br-glass pl-focusable"
-            aria-label={t('admin.backTo', { name: to.label })}
-          >
-            <Icon name="chevronLeft" size={18} />
-            <span>{to.label}</span>
-          </Link>
-        )}
-        <h1 className="adm-sec__title">{title}</h1>
-      </header>
-      <div className="adm-sec__body">
-        <aside className="adm-sec__pane">
-          <span
-            className="adm-sec__tile"
-            aria-hidden="true"
-            style={{ '--tile': tileBg ?? (glyph ? tints[glyph] : tints.root) } as CSSProperties}
-          >
-            {tile ?? (glyph ? <Glyph name={glyph} /> : null)}
-          </span>
-          {paneTitle != null && <p className="adm-sec__pane-title">{paneTitle}</p>}
-          {paneSub != null && <p className="adm-sec__pane-sub">{paneSub}</p>}
-          {status && <StatusPill status={status} />}
-        </aside>
-        <div className="adm-sec__list">{children}</div>
+    <>
+      <TopBar title={title} sub={sub} back={back ?? undefined}>
+        {actions}
+      </TopBar>
+      <div className="ax-body">
+        {lead != null && <p className="ax-lead">{lead}</p>}
+        <div className={`ax-sec${aside ? ' has-aside' : ''}`}>
+          <div className="ax-sec__main">
+            {paneTitle != null && (
+              <section className="ax-card ax-state">
+                <span
+                  className="ax-state__icon"
+                  aria-hidden="true"
+                  style={
+                    { '--tile': tileBg ?? (glyph ? tints[glyph] : undefined) } as CSSProperties
+                  }
+                >
+                  {tile ?? (glyph ? <Glyph name={glyph} size={20} /> : null)}
+                </span>
+                <span className="ax-state__text">
+                  <b>{paneTitle}</b>
+                  {paneSub != null && <small>{paneSub}</small>}
+                </span>
+                {status && <StatusPill status={status} />}
+                {control}
+              </section>
+            )}
+            {children}
+          </div>
+          {aside && <div className="ax-sec__aside">{aside}</div>}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -159,22 +175,37 @@ export function Loading({ label }: { label?: string }) {
   )
 }
 
-/** A group of rows, with an optional heading above and a note below. */
+/**
+ * A card of rows, with its title and a grey note at the right of the
+ * head (`meta`, "2 open"), and a note below the card.
+ */
 export function Group({
   title,
+  meta,
+  action,
   foot,
   children,
 }: {
   title?: string
+  meta?: ReactNode
+  /** A small button in the head, instead of the note. */
+  action?: ReactNode
   foot?: ReactNode
   children: ReactNode
 }) {
   return (
-    <section className="adm-group" aria-label={title}>
-      {title && <h2 className="adm-group__h">{title}</h2>}
-      <ul className="adm-group__rows">{children}</ul>
+    <div className="adm-group">
+      <section className="ax-card" aria-label={title}>
+        {title && (
+          <header className="ax-card__head">
+            <h2>{title}</h2>
+            {action ?? (meta != null && <span>{meta}</span>)}
+          </header>
+        )}
+        <ul className="adm-group__rows">{children}</ul>
+      </section>
       {foot && <p className="adm-group__foot">{foot}</p>}
-    </section>
+    </div>
   )
 }
 

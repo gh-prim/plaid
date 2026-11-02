@@ -31,12 +31,13 @@ Ideas not yet turned into a feature live in [backlog.md](backlog.md).
 | [F006](features/F006-playback-streaming/intent.md) | Playback: direct play and transcoding | 1 | server | gh-prim | ✅ | [✅](features/F006-playback-streaming/spec.md) | [🚧](features/F006-playback-streaming/plan.md) |
 | [F007](features/F007-web-onboarding-admin/intent.md) | Web: onboarding and administration | 2 | server, web | gh-prim | ✅ | [✅](features/F007-web-onboarding-admin/spec.md) | [🚧](features/F007-web-onboarding-admin/plan.md) |
 | [F008](features/F008-web-browsing-player/intent.md) | Web: browsing and player | 2 | server, web | gh-prim | ✅ | [✅](features/F008-web-browsing-player/spec.md) | [🚧](features/F008-web-browsing-player/plan.md) |
-| [F009](features/F009-library-sharing/intent.md) | Library sharing | 3 | server, web | ? | 📝 | — | — |
+| [F009](features/F009-library-sharing/intent.md) | Library sharing | 3 | server, web, apple | gh-prim | 📝 | [📝](features/F009-library-sharing/spec.md) | [🚧](features/F009-library-sharing/plan.md) |
 | [F010](features/F010-plaid-party/intent.md) | Plaid Party (watch together) | 3 | server, web | ? | 📝 | — | — |
 | [F011](features/F011-tvos-app/intent.md) | Apple TV app | 4 | server, apple | gh-prim | ✅ | [✅](features/F011-tvos-app/spec.md) | [🚧](features/F011-tvos-app/plan.md) |
 | [F012](features/F012-remote-access/intent.md) | Remote access through getplaid.direct | 3 | server, web | gh-prim | ✅ | [✅](features/F012-remote-access/spec.md) | [✔️](features/F012-remote-access/plan.md) |
 | [F013](features/F013-pair-tv-v2/intent.md) | Web: Pair a TV in the V2 look | 4 | web | gh-prim | ✅ | [✅](features/F013-pair-tv-v2/spec.md) | [✔️](features/F013-pair-tv-v2/plan.md) |
 | [F014](features/F014-ios-app/intent.md) | iPhone and iPad app | 4 | apple, web | gh-prim | ✅ | [✅](features/F014-ios-app/spec.md) | [🚧](features/F014-ios-app/plan.md) |
+| [F015](features/F015-admin-v2-monitoring/intent.md) | Admin V2 and monitoring | 3 | server, web | gh-prim | 📝 | [📝](features/F015-admin-v2-monitoring/spec.md) | [🚧](features/F015-admin-v2-monitoring/plan.md) |
 
 ### Later (intents to write)
 - Android + Android TV app: phase 5

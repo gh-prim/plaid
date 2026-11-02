@@ -131,7 +131,7 @@ func (s *Store) ListItems(ctx context.Context, q ItemQuery) ([]Item, string, err
 		where = append(where, "items.kind = ?")
 		args = append(args, q.Kind)
 	}
-	if cond, condArgs := q.Access.SQL("m"); cond != "" {
+	if cond, condArgs := q.Access.SQL("items", "m"); cond != "" {
 		where = append(where, cond)
 		args = append(args, condArgs...)
 	}

@@ -223,6 +223,7 @@ func TestStreamDiesWithItsDeviceSession(t *testing.T) {
 func TestPlaybackSessionsBelongToTheirUser(t *testing.T) {
 	e := newPlayEnv(t)
 	bob := e.member(e.admin, "bob")
+	e.inFamily(e.admin, bob.User.ID)
 	s := e.start(e.admin, e.movie, map[string]any{"profile": external})
 	e.expect(e.do("GET", "/playback/"+s.ID, nil, bearer(e.admin)), http.StatusOK, "")
 	e.expect(e.do("GET", "/playback/"+s.ID, nil, bearer(bob.Token)), http.StatusNotFound, "playback_session_not_found")

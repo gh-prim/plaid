@@ -15,6 +15,7 @@ export const reasonCodes = [
   'bitrate_too_high',
   'keyframe_index_missing',
   'forced_by_client',
+  'quality_capped',
   'colors_may_be_wrong',
 ] as const
 
@@ -58,6 +59,8 @@ export function reasonText(
       return t('reason.keyframe_index_missing')
     case 'forced_by_client':
       return t('reason.forced_by_client')
+    case 'quality_capped':
+      return t('reason.quality_capped')
     case 'colors_may_be_wrong':
       return t('reason.colors_may_be_wrong')
     default:

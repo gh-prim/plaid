@@ -5,6 +5,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { serverUrl } from '../api/server'
 import { Button } from './Button'
 import { CommandBlock } from './CommandBlock'
 import { cx } from './cx'
@@ -22,14 +23,25 @@ export function Tag({ children }: { children: ReactNode }) {
   return <span className="pl-tag">{children}</span>
 }
 
-/** A person's initial on their party color (F003 profile color index 0–7). */
+/** A profile picture's address at size px: the API path the server gave
+ * (`Profile.avatar.url`), at 2x for sharp screens. */
+export function avatarSrc(url: string, size: number): string {
+  const px = Math.min(512, Math.max(32, Math.round(size * 2)))
+  return serverUrl(`/api/v1${url}${url.includes('?') ? '&' : '?'}size=${px}`)
+}
+
+/** A person's picture (built avatar or photo, F009), else their initial on
+ * their party color (F003 profile color index 0–7). */
 export function Avatar({
   name,
   color,
+  picture,
   size = 40,
 }: {
   name: string
   color?: number
+  /** `avatar.url` of the profile; absent shows the initial. */
+  picture?: string
   size?: number
 }) {
   const c = color ?? ((name.codePointAt(0) ?? 0) % 8) + 1
@@ -39,7 +51,11 @@ export function Avatar({
       style={{ '--pl-s': `${size}px`, '--pc': `var(--party-${c})` } as CSSProperties}
       aria-hidden="true"
     >
-      <span>{name.trim().charAt(0).toLocaleUpperCase()}</span>
+      {picture ? (
+        <img className="pl-avatar__img" src={avatarSrc(picture, size)} alt="" loading="lazy" />
+      ) : (
+        <span>{name.trim().charAt(0).toLocaleUpperCase()}</span>
+      )}
     </span>
   )
 }

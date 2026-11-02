@@ -44,6 +44,7 @@ type Service struct {
 	pins     *auth.Backoff // keys "<session or user>:<profile>"
 	claims   *auth.Backoff // keys "u:<user id>"
 	pairings *auth.Backoff // keys "ip:<addr>"
+	invites  *auth.Backoff // keys "ip:<addr>", unknown invitation tokens
 
 	mu        sync.Mutex
 	setupCode string
@@ -80,6 +81,7 @@ func New(db *sql.DB, opts Options) *Service {
 		pins:       auth.NewBackoff(auth.PINBackoff, opts.Now),
 		claims:     auth.NewBackoff(auth.LoginBackoff, opts.Now),
 		pairings:   auth.NewBackoff(auth.PairingCreateBackoff, opts.Now),
+		invites:    auth.NewBackoff(auth.LoginBackoff, opts.Now),
 		pairTokens: map[string]pendingToken{},
 	}
 }
@@ -107,6 +109,17 @@ type Profile struct {
 	AllowUnrated bool
 	Locale       *string
 	IsDefault    bool
+	Avatar       Avatar
+}
+
+// Avatar is what a profile shows (F009): its initial, an avatar made in
+// the builder, or a photo.
+type Avatar struct {
+	Kind string // initial, builder or photo
+	// Options are the builder's choices as JSON, "" for the other kinds.
+	Options string
+	// Version changes with the picture, so its URL can be cached forever.
+	Version int
 }
 
 // Device describes the client a session belongs to.

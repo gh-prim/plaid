@@ -191,7 +191,9 @@ func touch(t *testing.T, root string, rels ...string) {
 
 func TestLibraryRoles(t *testing.T) {
 	e := newLibEnv(t, libOpts{})
-	member := e.member(e.admin, "carol").Token
+	carol := e.member(e.admin, "carol")
+	member := carol.Token
+	e.inFamily(e.admin, carol.User.ID)
 	dir := t.TempDir()
 
 	e.expect(e.do("POST", "/libraries", map[string]any{"name": "Movies", "type": "movies", "folders": []string{dir}},

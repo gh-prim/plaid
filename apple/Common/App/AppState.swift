@@ -16,6 +16,9 @@ final class AppState {
     }
 
     private(set) var phase: Phase = .loading
+    /// An invitation link being answered (F009): its flow covers everything
+    /// else until the new account is set up.
+    var invite: PendingInvite?
     /// The launch intro plays once per cold start, over the app loading
     /// behind it; nothing behind it takes focus meanwhile. Apple TV only.
     #if os(tvOS)
@@ -89,6 +92,30 @@ final class AppState {
         phase = .chooseServer
     }
 
+    /// Opens an invitation: plaid://invite?server=…&token=… from the web
+    /// page, or the link itself (https://server/invite/<token>). False when
+    /// url isn't one.
+    @discardableResult
+    func openInvite(_ url: URL) -> Bool {
+        guard let invite = PendingInvite(url) else { return false }
+        self.invite = invite
+        return true
+    }
+
+    /// The invited account exists: this server becomes the app's, signed in.
+    func acceptedInvitation(_ result: AuthResult, on server: URL) {
+        UserDefaults.standard.set(server.absoluteString, forKey: serverKey)
+        client = APIClient(baseURL: server)
+        signedIn(result)
+        Task { await refresh() }
+    }
+
+    /// The active profile changed (its picture): read the account again.
+    func reloadMe() async {
+        guard let client, let me: Me = try? await client.get("/me") else { return }
+        self.me = me
+    }
+
     func signedIn(_ result: AuthResult) {
         guard let client, let token = result.token else { return }
         client.token = token
@@ -129,6 +156,35 @@ final class AppState {
         let type = UIDevice.current.userInterfaceIdiom == .pad ? "ipados" : "ios"
         #endif
         return Device(name: UIDevice.current.name, type: type, clientVersion: version)
+    }
+}
+
+/// An invitation link (F009): the server it comes from and its token.
+struct PendingInvite: Equatable {
+    let server: URL
+    let token: String
+
+    init?(_ url: URL) {
+        let c = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        if url.scheme == "plaid", url.host() == "invite" {
+            guard let s = c?.queryItems?.first(where: { $0.name == "server" })?.value, let server = URL(string: s),
+                  let token = c?.queryItems?.first(where: { $0.name == "token" })?.value, !token.isEmpty
+            else { return nil }
+            self.server = server
+            self.token = token
+            return
+        }
+        // https://server[/prefix]/invite/<token>
+        let parts = url.path().split(separator: "/")
+        guard url.scheme == "http" || url.scheme == "https", parts.count >= 2, parts[parts.count - 2] == "invite",
+              var base = c
+        else { return nil }
+        token = String(parts[parts.count - 1])
+        base.path = "/" + parts.dropLast(2).joined(separator: "/")
+        base.query = nil
+        base.fragment = nil
+        guard let server = base.url else { return nil }
+        self.server = server
     }
 }
 

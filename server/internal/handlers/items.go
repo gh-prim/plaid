@@ -37,6 +37,9 @@ func (h *Handlers) ListLibraryItems(ctx context.Context, req api.ListLibraryItem
 	if err != nil {
 		return nil, err
 	}
+	if !limit.AllowsLibrary(req.LibraryId) {
+		return nil, libraryErr(library.ErrNotFound, nil)
+	}
 	if catalogQuery(req.Params) {
 		return h.listCatalog(ctx, req, pr, limit)
 	}
@@ -110,7 +113,7 @@ func (h *Handlers) GetItem(ctx context.Context, req api.GetItemRequestObject) (a
 func (h *Handlers) itemDetail(ctx context.Context, id string, limit access.Limit) (api.ItemDetail, error) {
 	st := h.library.Store()
 	it, err := st.GetItem(ctx, id)
-	if errors.Is(err, library.ErrNotFound) || err == nil && !limit.Allows(it.AgeRating) {
+	if errors.Is(err, library.ErrNotFound) || err == nil && !limit.Allows(it.LibraryID, it.AgeRating) {
 		return api.ItemDetail{}, apierr.NotFound("no such item")
 	}
 	if err != nil {
@@ -162,7 +165,7 @@ func (h *Handlers) summariesOf(ctx context.Context, ids []string, limit access.L
 		if err != nil {
 			return nil, err
 		}
-		if limit.Allows(it.AgeRating) {
+		if limit.Allows(it.LibraryID, it.AgeRating) {
 			items = append(items, it)
 		}
 	}

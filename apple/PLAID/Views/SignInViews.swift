@@ -247,15 +247,18 @@ struct ProfilePickerView: View {
                         if p.hasPin { pinFor = p; pin = "" } else { select(p, pin: nil) }
                     } label: {
                         VStack(spacing: 20) {
-                            Circle()
-                                .fill(Theme.party[p.avatarColor % Theme.party.count])
-                                .frame(width: 200, height: 200)
-                                .focusHalo(Circle())
-                                .overlay {
-                                    Text(verbatim: String(p.name.prefix(1)).uppercased())
-                                        .font(Theme.sans(88, .semibold))
-                                        .foregroundStyle(Theme.bgBase)
-                                }
+                            // "Who's watching?" with avatars, photos and initials (board Avatar03).
+                            ProfilePicture(profile: p, size: 200) {
+                                Circle()
+                                    .fill(Theme.party[p.avatarColor % Theme.party.count])
+                                    .frame(width: 200, height: 200)
+                                    .overlay {
+                                        Text(verbatim: String(p.name.prefix(1)).uppercased())
+                                            .font(Theme.sans(88, .semibold))
+                                            .foregroundStyle(Theme.bgBase)
+                                    }
+                            }
+                            .focusHalo(Circle())
                             Text(verbatim: p.name).font(Theme.sans(30, .semibold))
                         }
                     }

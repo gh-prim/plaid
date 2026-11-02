@@ -70,6 +70,8 @@ type Library struct {
 	MetadataLanguage string
 	MetadataRegion   string
 	Folders          []Folder
+	// HouseholdOnly libraries are never shared outside the household (F009).
+	HouseholdOnly bool
 }
 
 // Folder is a row of library_folders.
@@ -170,8 +172,9 @@ func (s *Store) GetLibrary(ctx context.Context, id string) (Library, error) {
 		lastScan sql.NullString
 	)
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, name, type, scan_interval_s, last_scan_at, metadata_language, metadata_region FROM libraries WHERE id = ?`, id).
-		Scan(&lib.ID, &lib.Name, &lib.Type, &interval, &lastScan, &lib.MetadataLanguage, &lib.MetadataRegion)
+		`SELECT id, name, type, scan_interval_s, last_scan_at, metadata_language, metadata_region, household_only
+		 FROM libraries WHERE id = ?`, id).
+		Scan(&lib.ID, &lib.Name, &lib.Type, &interval, &lastScan, &lib.MetadataLanguage, &lib.MetadataRegion, &lib.HouseholdOnly)
 	if errors.Is(err, sql.ErrNoRows) {
 		return lib, ErrNotFound
 	}
@@ -448,6 +451,9 @@ type Patch struct {
 	// F005 fetches metadata in (R10).
 	MetadataLanguage *string
 	MetadataRegion   *string
+	// HouseholdOnly, when set to true, also takes the library away from
+	// every non-household group and person (F009).
+	HouseholdOnly *bool
 }
 
 // UpdateLibrary applies p and returns the ids of folders it added. Removed
@@ -486,6 +492,20 @@ func (s *Store) UpdateLibrary(ctx context.Context, id string, p Patch) (added []
 	if p.MetadataRegion != nil {
 		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET metadata_region = ? WHERE id = ?`, *p.MetadataRegion, id); err != nil {
 			return nil, err
+		}
+	}
+	if p.HouseholdOnly != nil {
+		if _, err := tx.ExecContext(ctx, `UPDATE libraries SET household_only = ? WHERE id = ?`, *p.HouseholdOnly, id); err != nil {
+			return nil, err
+		}
+		if *p.HouseholdOnly {
+			if _, err := tx.ExecContext(ctx, `DELETE FROM group_libraries WHERE library_id = ?
+				AND group_id IN (SELECT id FROM groups WHERE household = 0)`, id); err != nil {
+				return nil, err
+			}
+			if _, err := tx.ExecContext(ctx, `DELETE FROM user_libraries WHERE library_id = ?`, id); err != nil {
+				return nil, err
+			}
 		}
 	}
 	if p.Folders != nil {
@@ -541,6 +561,8 @@ func (s *Store) SetFolderWatch(ctx context.Context, folderID, fsType string, wat
 // Counts are the visible contents of a library.
 type Counts struct {
 	Movies, Shows, Episodes, Files, Unrecognized int
+	// SizeBytes is the size of the files present on disk.
+	SizeBytes int64
 }
 
 // LibraryCounts returns the counts of every library, by library id.
@@ -577,7 +599,7 @@ func (s *Store) LibraryCounts(ctx context.Context) (map[string]Counts, error) {
 		return nil, err
 	}
 	rows, err = s.db.QueryContext(ctx,
-		`SELECT library_id, COUNT(*), COALESCE(SUM(parse_status = 'unrecognized'), 0)
+		`SELECT library_id, COUNT(*), COALESCE(SUM(parse_status = 'unrecognized'), 0), COALESCE(SUM(size), 0)
 		 FROM media_files WHERE missing_since IS NULL GROUP BY library_id`)
 	if err != nil {
 		return nil, err
@@ -588,12 +610,13 @@ func (s *Store) LibraryCounts(ctx context.Context) (map[string]Counts, error) {
 			id      string
 			files   int
 			unknown int
+			size    int64
 		)
-		if err := rows.Scan(&id, &files, &unknown); err != nil {
+		if err := rows.Scan(&id, &files, &unknown, &size); err != nil {
 			return nil, err
 		}
 		c := out[id]
-		c.Files, c.Unrecognized = files, unknown
+		c.Files, c.Unrecognized, c.SizeBytes = files, unknown, size
 		out[id] = c
 	}
 	return out, rows.Err()
@@ -623,4 +646,24 @@ func nullInt64Ptr(p *int64) any {
 		return nil
 	}
 	return *p
+}
+
+// RecentlyAdded returns the movies and shows added last, newest first
+// (step 21 dashboard).
+func (s *Store) RecentlyAdded(ctx context.Context, n int) ([]string, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id FROM items WHERE hidden = 0 AND kind IN ('movie', 'show')
+		ORDER BY created_at DESC, id DESC LIMIT ?`, n)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	out := []string{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out = append(out, id)
+	}
+	return out, rows.Err()
 }

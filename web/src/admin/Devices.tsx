@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
-import { formatRelative } from '../lib/format'
+import { useNavigate } from 'react-router'
+import { useAuth } from '../auth/AuthProvider'
+import { errorMessage, failure } from '../auth/errors'
+import { formatNumber, formatRelative } from '../lib/format'
 import { Button, EmptyState } from '../ui'
 import { useAdmin } from './AdminLayout'
 import { Group, Loading, Row, Section } from './v2'
@@ -84,19 +87,97 @@ export function Devices() {
   return (
     <Section
       title={t('admin.nav.devices')}
-      glyph="devices"
-      paneTitle={devices ? t('admin.devices.count', { count: devices.length }) : undefined}
-      paneSub={devices ? t('admin.devices.tvs', { count: tvs.length }) : undefined}
+      sub={devices ? t('admin.devices.count', { count: devices.length }) : undefined}
     >
+      <PairCard onPaired={() => void load()} />
       {!devices && <Loading />}
       {devices && !devices.length && <EmptyState title={t('admin.devices.empty')} />}
-      {tvs.length > 0 && <Group title={t('admin.devices.tvGroup')}>{tvs.map(row)}</Group>}
-      {others.length > 0 && <Group title={t('admin.devices.otherGroup')}>{others.map(row)}</Group>}
-      {devices && (
-        <Group foot={t('admin.devices.foot')}>
-          <Row to="/pair" label={t('pairing.title')} sub={t('admin.devices.pairHelp')} />
+      {tvs.length > 0 && (
+        <Group title={t('admin.devices.tvGroup')} meta={formatNumber(locale, tvs.length)}>
+          {tvs.map(row)}
+        </Group>
+      )}
+      {others.length > 0 && (
+        <Group
+          title={t('admin.devices.otherGroup')}
+          meta={formatNumber(locale, others.length)}
+          foot={t('admin.devices.foot')}
+        >
+          {others.map(row)}
         </Group>
       )}
     </Section>
+  )
+}
+
+// The TV's code alphabet (server/internal/auth/token.go): no 0, O, 1, I or L.
+const notInCode = /[^ABCDEFGHJKMNPQRSTUVWXYZ2-9]/g
+
+/**
+ * Pair a TV (board AdmV2 14): the code the TV shows, signed in on the
+ * admin's current profile. A profile with a PIN goes to the full pairing
+ * page, which asks for it.
+ */
+function PairCard({ onPaired }: { onPaired: () => void }) {
+  const { t } = useTranslation()
+  const { state } = useAuth()
+  const { toast } = useAdmin()
+  const navigate = useNavigate()
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string>()
+  const me = state.status === 'ready' ? state.me : null
+  const profile = me?.activeProfile ?? me?.profiles[0]
+
+  async function pair(e: FormEvent) {
+    e.preventDefault()
+    if (code.length !== 6 || busy || !profile) return
+    if (profile.hasPin) return void navigate(`/pair?code=${code}`)
+    setBusy(true)
+    setError(undefined)
+    const {
+      data,
+      error: err,
+      response,
+    } = await api.POST('/pairing/claim', {
+      body: { code, profileId: profile.id },
+    })
+    setBusy(false)
+    if (err) return setError(errorMessage(t, failure(err, response)))
+    setCode('')
+    toast(t('admin.devices.paired', { device: data.deviceName }))
+    onPaired()
+  }
+
+  return (
+    <section className="ax-card ax-pair">
+      <header className="ax-card__head">
+        <h2>{t('pairing.title')}</h2>
+      </header>
+      <form className="ax-pair__form" onSubmit={(e) => void pair(e)}>
+        <label className="ax-pair__label" htmlFor="pair-code">
+          {t('admin.devices.pairHelp')}
+        </label>
+        <input
+          id="pair-code"
+          className="ax-pair__code"
+          value={code}
+          maxLength={6}
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="••••••"
+          aria-invalid={error ? 'true' : undefined}
+          onChange={(e) => setCode(e.target.value.toUpperCase().replace(notInCode, '').slice(0, 6))}
+        />
+        <Button type="submit" size="sm" loading={busy} disabled={code.length !== 6}>
+          {t('admin.devices.pair')}
+        </Button>
+        {error && (
+          <p role="alert" className="ax-pair__error">
+            {error}
+          </p>
+        )}
+      </form>
+    </section>
   )
 }

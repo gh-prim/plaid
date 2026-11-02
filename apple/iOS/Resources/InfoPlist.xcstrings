@@ -4,8 +4,8 @@
     "NSCameraUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "PLAID reads the QR code a TV shows to pair it." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "PLAID lit le QR code affiché par une TV pour l’associer." } }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "PLAID reads the QR code a TV shows to pair it, and takes your profile photo." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "PLAID lit le QR code affiché par une TV pour l’associer, et prend ta photo de profil." } }
       }
     },
     "NSLocalNetworkUsageDescription" : {

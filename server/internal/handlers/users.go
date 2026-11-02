@@ -25,11 +25,11 @@ func (h *Handlers) ListUsers(ctx context.Context, _ api.ListUsersRequestObject) 
 	if err != nil {
 		return nil, err
 	}
-	out := make(api.ListUsers200JSONResponse, 0, len(users))
-	for _, u := range users {
-		out = append(out, toAdminUser(u))
+	out, err := h.adminUsers(ctx, users)
+	if err != nil {
+		return nil, err
 	}
-	return out, nil
+	return api.ListUsers200JSONResponse(out), nil
 }
 
 // CreateUser creates an account with a temporary password.
@@ -44,12 +44,16 @@ func (h *Handlers) CreateUser(ctx context.Context, req api.CreateUserRequestObje
 	}
 	u, err := h.accounts.CreateUser(ctx, p, accounts.NewUser{
 		DisplayName: b.DisplayName, Username: b.Username, Password: b.TemporaryPassword,
-		Role: auth.Role(b.Role), Locale: deref(b.Locale),
+		Role: auth.Role(b.Role), Locale: deref(b.Locale), GroupIDs: value(b.GroupIds),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return api.CreateUser201JSONResponse(toAdminUser(u)), nil
+	out, err := h.adminUser(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	return api.CreateUser201JSONResponse(out), nil
 }
 
 // UpdateUser changes an account.
@@ -62,16 +66,31 @@ func (h *Handlers) UpdateUser(ctx context.Context, req api.UpdateUserRequestObje
 	if err != nil {
 		return nil, err
 	}
-	patch := accounts.UserPatch{DisplayName: b.DisplayName, Locale: b.Locale, Disabled: b.Disabled}
+	patch := accounts.UserPatch{DisplayName: b.DisplayName, Locale: b.Locale, Disabled: b.Disabled,
+		GroupIDs: b.GroupIds, ExtraLibraryIDs: b.ExtraLibraryIds}
 	if b.Role != nil {
 		role := auth.Role(*b.Role)
 		patch.Role = &role
+	}
+	if b.ExtraRights != nil {
+		o := fromOverride(*b.ExtraRights)
+		patch.ExtraRights = &o
 	}
 	u, err := h.accounts.UpdateUser(ctx, p, req.UserId, patch)
 	if err != nil {
 		return nil, err
 	}
-	return api.UpdateUser200JSONResponse(toAdminUser(u)), nil
+	// Suspending stops what they watch now; less access stops what they
+	// may no longer see (F009).
+	if h.playback != nil && u.Disabled {
+		h.playback.EndUser(u.ID)
+	}
+	h.recheckPlayback(ctx)
+	out, err := h.adminUser(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	return api.UpdateUser200JSONResponse(out), nil
 }
 
 // DeleteUser deletes an account.
@@ -82,6 +101,9 @@ func (h *Handlers) DeleteUser(ctx context.Context, req api.DeleteUserRequestObje
 	}
 	if err := h.accounts.DeleteUser(ctx, p, req.UserId); err != nil {
 		return nil, err
+	}
+	if h.playback != nil {
+		h.playback.EndUser(req.UserId)
 	}
 	return api.DeleteUser204Response{}, nil
 }

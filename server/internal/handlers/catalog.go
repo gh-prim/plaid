@@ -34,6 +34,9 @@ func (h *Handlers) GetLibraryFacets(ctx context.Context, req api.GetLibraryFacet
 	if err != nil {
 		return nil, err
 	}
+	if !lim.AllowsLibrary(req.LibraryId) {
+		return nil, libraryErr(library.ErrNotFound, nil)
+	}
 	lib, err := h.library.Store().GetLibrary(ctx, req.LibraryId)
 	if err != nil {
 		return nil, libraryErr(err, nil)

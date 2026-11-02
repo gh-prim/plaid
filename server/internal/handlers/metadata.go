@@ -512,6 +512,9 @@ func (h *Handlers) ListCollections(ctx context.Context, req api.ListCollectionsR
 	if err != nil {
 		return nil, err
 	}
+	if !limit.AllowsLibrary(req.Params.LibraryId) {
+		return nil, libraryErr(library.ErrNotFound, nil)
+	}
 	if _, err := h.library.Store().GetLibrary(ctx, req.Params.LibraryId); err != nil {
 		return nil, libraryErr(err, nil)
 	}

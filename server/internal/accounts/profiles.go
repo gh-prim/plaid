@@ -10,7 +10,8 @@ import (
 	"github.com/gh-prim/plaid/server/internal/auth"
 )
 
-const profileColumns = `id, user_id, name, avatar_color, pin_hash, max_age, allow_unrated, locale, is_default`
+const profileColumns = `id, user_id, name, avatar_color, pin_hash, max_age, allow_unrated, locale, is_default,
+	avatar_kind, COALESCE(avatar_options, ''), avatar_version`
 
 func scanProfile(row interface{ Scan(...any) error }) (Profile, string, error) {
 	var (
@@ -19,7 +20,8 @@ func scanProfile(row interface{ Scan(...any) error }) (Profile, string, error) {
 		maxAge               sql.NullInt64
 		allowUnrated, isDflt int
 	)
-	err := row.Scan(&pr.ID, &pr.UserID, &pr.Name, &pr.AvatarColor, &pinHash, &maxAge, &allowUnrated, &locale, &isDflt)
+	err := row.Scan(&pr.ID, &pr.UserID, &pr.Name, &pr.AvatarColor, &pinHash, &maxAge, &allowUnrated, &locale, &isDflt,
+		&pr.Avatar.Kind, &pr.Avatar.Options, &pr.Avatar.Version)
 	if err != nil {
 		return Profile{}, "", err
 	}
@@ -87,7 +89,11 @@ func (s *Service) AccessLimit(ctx context.Context, p auth.Principal) (access.Lim
 	if err != nil {
 		return access.Limit{}, err
 	}
-	return access.Limit{MaxAge: pr.MaxAge, AllowUnrated: pr.AllowUnrated}, nil
+	acc, err := s.Access(ctx, p.UserID)
+	if err != nil {
+		return access.Limit{}, err
+	}
+	return access.Limit{MaxAge: pr.MaxAge, AllowUnrated: pr.AllowUnrated, Libraries: acc.LibraryIDs}, nil
 }
 
 // requireProfileManager lets only an unrestricted profile (or a session with
@@ -122,6 +128,14 @@ func (s *Service) CreateProfile(ctx context.Context, p auth.Principal, in NewPro
 	if err := s.requireProfileManager(ctx, p); err != nil {
 		return Profile{}, err
 	}
+	// A friend may only add profiles if one of their groups lets them (F009).
+	acc, err := s.Access(ctx, p.UserID)
+	if err != nil {
+		return Profile{}, err
+	}
+	if !acc.Rights.CanCreateProfiles {
+		return Profile{}, apierr.Forbidden()
+	}
 	var pr problems
 	in.Name = checkLength("name", in.Name, 32, &pr)
 	checkAvatarColor(in.AvatarColor, &pr)
@@ -153,12 +167,12 @@ func (s *Service) CreateProfile(ctx context.Context, p auth.Principal, in NewPro
 
 	profile := Profile{
 		ID: newID(), UserID: p.UserID, Name: in.Name, AvatarColor: in.AvatarColor, HasPIN: pinHash.Valid,
-		MaxAge: in.MaxAge, AllowUnrated: allowUnrated,
+		MaxAge: in.MaxAge, AllowUnrated: allowUnrated, Avatar: Avatar{Kind: AvatarInitial},
 	}
 	if in.Locale != "" {
 		profile.Locale = &in.Locale
 	}
-	err := s.inTx(ctx, func(tx *sql.Tx) error {
+	err = s.inTx(ctx, func(tx *sql.Tx) error {
 		var count int
 		if err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM profiles WHERE user_id = ?`, p.UserID).Scan(&count); err != nil {
 			return err

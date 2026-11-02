@@ -3,15 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { formatNumber } from '../lib/format'
 import { useServer } from '../onboarding/Page'
 import { useAdmin } from './AdminLayout'
-import { needs, statusLine } from './summary'
+import { needs } from './summary'
 import { Group, Loading, Row, Section, type Tone } from './v2'
 
-type Item = { to: string; label: string; value?: string; tone?: Tone }
+type Item = { to?: string; label: string; value?: string; tone?: Tone }
 
 /**
- * Settings (V2, boards TA01 and TQ02, like Apple TV): a big glass tile on
- * the left with the server's name and its state in words, and the sections
- * as grouped rows on the right, each with its value in grey and a chevron.
+ * Settings (board AdmV2 Settings): the server and its content on the left,
+ * playback and people on the right, as cards of rows with their values.
  * "Needs you" comes first, and only when something does.
  */
 export function AdminSettings() {
@@ -21,16 +20,8 @@ export function AdminSettings() {
   const list = data ? needs(t, data) : []
   const tone: Tone = list.some((x) => x.tone === 'error') ? 'error' : list.length ? 'warning' : 'ok'
 
-  const section = (children: ReactNode) => (
-    <Section
-      title={t('admin.tab.settings')}
-      back={null}
-      glyph="root"
-      paneTitle={serverName}
-      paneSub={version ? t('welcome.version', { version }) : undefined}
-      status={data ? { text: statusLine(t, data, list.length), tone } : undefined}
-      phoneTitle="pane"
-    >
+  const section = (children: ReactNode, aside?: ReactNode) => (
+    <Section title={t('admin.tab.settings')} back={null} aside={aside}>
       {children}
     </Section>
   )
@@ -43,7 +34,7 @@ export function AdminSettings() {
   const open = data.problems.filter((p) => !p.resolvedAt).length
   const hw = data.capabilities?.hwAccel.active
 
-  const groups: { title?: string; items: Item[] }[] = [
+  const main: { title?: string; items: Item[] }[] = [
     {
       items: list.length
         ? [
@@ -55,6 +46,23 @@ export function AdminSettings() {
             },
           ]
         : [],
+    },
+    {
+      title: t('admin.settings.group.server'),
+      items: [
+        { label: t('admin.settings.serverName'), value: serverName },
+        {
+          label: t('admin.settings.version'),
+          value: version ? t('welcome.version', { version }) : undefined,
+        },
+        { to: '/admin/remote-access', label: t('admin.nav.remoteAccess') },
+        {
+          to: '/admin/problems',
+          label: t('admin.nav.problems'),
+          value: open ? n(open) : t('admin.settings.none'),
+          tone: open ? 'warning' : undefined,
+        },
+      ],
     },
     {
       title: t('admin.settings.group.library'),
@@ -70,7 +78,7 @@ export function AdminSettings() {
         ...(unrecognized[0]
           ? [
               {
-                to: `/admin/libraries/${unrecognized[0].id}/unrecognized`,
+                to: '/admin/unmatched',
                 label: t('admin.settings.unrecognized'),
                 value: n(unrecognizedCount),
                 tone: 'warning' as const,
@@ -80,14 +88,8 @@ export function AdminSettings() {
         { to: '/admin/metadata', label: t('admin.nav.metadata') },
       ],
     },
-    {
-      title: t('admin.settings.group.people'),
-      items: [
-        { to: '/admin/people', label: t('admin.nav.people') },
-        { to: '/admin/devices', label: t('admin.nav.devices') },
-        { to: '/pair', label: t('pairing.title') },
-      ],
-    },
+  ]
+  const side: { title?: string; items: Item[] }[] = [
     {
       title: t('admin.settings.group.playback'),
       items: [
@@ -101,31 +103,33 @@ export function AdminSettings() {
           label: t('admin.nav.playing'),
           value: n(data.streams.length),
         },
+        { to: '/admin/party', label: t('party.title') },
       ],
     },
     {
-      title: t('admin.settings.group.server'),
+      title: t('admin.settings.group.people'),
       items: [
-        { to: '/admin/remote-access', label: t('admin.nav.remoteAccess') },
+        { to: '/admin/people', label: t('admin.nav.people') },
         {
-          to: '/admin/problems',
-          label: t('admin.nav.problems'),
-          value: open ? n(open) : t('admin.settings.none'),
-          tone: open ? 'warning' : undefined,
+          to: '/admin/invitations',
+          label: t('admin.nav.invitations'),
+          value: t('admin.settings.inviteDays', { count: 7 }),
         },
+        { to: '/admin/devices', label: t('admin.nav.devices') },
+        { to: '/pair', label: t('pairing.title') },
       ],
     },
   ]
-
-  return section(
+  const cards = (groups: { title?: string; items: Item[] }[]) =>
     groups
       .filter((g) => g.items.length)
       .map((g, i) => (
         <Group key={i} title={g.title}>
           {g.items.map((r) => (
-            <Row key={r.to} to={r.to} label={r.label} value={r.value} tone={r.tone} />
+            <Row key={r.label} to={r.to} label={r.label} value={r.value} tone={r.tone} />
           ))}
         </Group>
-      )),
-  )
+      ))
+
+  return section(cards(main), cards(side))
 }

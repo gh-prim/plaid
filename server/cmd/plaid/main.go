@@ -23,6 +23,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/config"
 	"github.com/gh-prim/plaid/server/internal/db"
 	"github.com/gh-prim/plaid/server/internal/discovery"
+	"github.com/gh-prim/plaid/server/internal/geoip"
 	"github.com/gh-prim/plaid/server/internal/handlers"
 	"github.com/gh-prim/plaid/server/internal/httpserver"
 	"github.com/gh-prim/plaid/server/internal/library"
@@ -208,11 +209,14 @@ func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store
 	} else {
 		logger.Info("ffmpeg found", "path", ffmpeg.Path, "version", ffmpeg.Version)
 	}
+	// Remote plays are placed on the admin's map with DB-IP Lite, fetched monthly.
+	geo := &geoip.Locator{Dir: filepath.Join(cfg.DataDir, "geoip"), Log: logger}
+	go geo.Run(ctx)
 	svc := playback.New(playback.Options{
 		DB: database, Library: store, Accounts: accts,
 		Settings: settings.New(database), FFmpeg: ffmpeg, Log: logger, ProbeHardware: true, Problems: probs,
-		PreviewsAhead: true,
-		TranscodeDir:  cfg.TranscodeDir, CacheDir: filepath.Join(cfg.DataDir, "cache", "playback"),
+		PreviewsAhead: true, Geo: geo,
+		TranscodeDir: cfg.TranscodeDir, CacheDir: filepath.Join(cfg.DataDir, "cache", "playback"),
 	})
 	svc.Start(ctx)
 	return svc
