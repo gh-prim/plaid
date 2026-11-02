@@ -11,6 +11,12 @@
 #
 # Like the releases, TMDB_API_KEY and FANART_API_KEY (environment) become
 # the built-in keys; without them the server needs its own key in the admin.
+# A key that looks like a placeholder (contains "…" or "...", or is shorter
+# than 16 characters) stops the deploy.
+#
+# It refuses to deploy a dirty working tree or a HEAD that doesn't contain
+# origin/main (fetched first), so a stale branch can't roll the server back.
+# FORCE=1 skips that check, e.g. to try a feature branch on the server.
 set -euo pipefail
 
 target="${1:-administrator@192.168.1.93}"
@@ -19,6 +25,26 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 version="0.1.19+local.$(date +%m%d%H%M)"
 commit="$(git -C "$root" rev-parse --short HEAD)$(git -C "$root" diff --quiet || echo -dirty)"
 bin="$root/server/bin/plaid-linux-$arch"
+
+die() { echo "✖ $*" >&2; exit 1; }
+
+for name in TMDB_API_KEY FANART_API_KEY; do
+  value="${!name:-}"
+  [ -n "$value" ] || continue
+  case "$value" in
+    *…* | *...*) die "$name looks like a placeholder (\"$value\"): pass the real key or unset it" ;;
+  esac
+  [ "${#value}" -ge 16 ] || die "$name is only ${#value} characters: pass the real key or unset it"
+done
+
+if [ "${FORCE:-}" != 1 ]; then
+  echo "▸ checking the working tree against origin/main"
+  [ -z "$(git -C "$root" status --porcelain)" ] ||
+    die "the working tree has uncommitted changes: commit or stash them (FORCE=1 to deploy anyway)"
+  git -C "$root" fetch -q origin main
+  git -C "$root" merge-base --is-ancestor origin/main HEAD ||
+    die "HEAD ($(git -C "$root" rev-parse --abbrev-ref HEAD)) doesn't contain origin/main: check out main and pull (FORCE=1 to deploy anyway)"
+fi
 
 echo "▸ building the web app"
 make -C "$root" web-build >/dev/null
