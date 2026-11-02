@@ -18,18 +18,20 @@ import (
 	"github.com/gh-prim/plaid/server/internal/library"
 )
 
-// Previews (V2 hero): a short loop of a few scenes from the title
-// itself, cut by FFmpeg in the background and cached. A movie's scenes
-// come from its first third, after the opening credits; a show's from its
-// first episode, so they spoil nothing.
+// Previews (V2 hero): one moment of the title itself, looped, cut by
+// FFmpeg in the background and cached. A movie's moment comes from its
+// first third, after the opening credits; a show's from its first
+// episode, so it spoils nothing. The moment is the liveliest of a few
+// candidate windows (previewMoment).
 const (
-	previewScenes      = 4
-	previewSceneLength = 6 * time.Second
-	// previewFade fades each scene's sound in and out.
-	previewFade = 400 * time.Millisecond
-	// previewFrom and previewTo bound where the scenes are taken, as a
+	previewLength = 24 * time.Second
+	// previewCandidates windows are weighed to pick the moment.
+	previewCandidates = 10
+	// previewFade fades the sound in and out, so the loop doesn't click.
+	previewFade = time.Second
+	// previewFrom and previewTo bound where the moment is taken, as a
 	// share of the runtime.
-	previewFrom = 0.08
+	previewFrom = 0.10
 	previewTo   = 0.35
 	// previewMinRuntime: shorter files (trailers, extras) get no preview.
 	previewMinRuntime = 5 * time.Minute
@@ -49,7 +51,7 @@ const (
 	// ones out.
 	previewCopyCacheMax = 4 << 30
 	// previewVersion changes the cache key when the recipe changes.
-	previewVersion = "v2"
+	previewVersion = "v3"
 )
 
 // PreviewState says whether an item's preview can be played.
@@ -69,10 +71,12 @@ const (
 // of time on two threads, newest first, and only while nobody transcodes,
 // so a hero's scenes are ready before anyone asks.
 type previews struct {
-	// cache holds the encoded previews; copies, the copied ones.
-	cache  *fileCache
-	copies *fileCache
-	mu     sync.Mutex
+	// cache holds the encoded previews; copies, the copied ones; moments,
+	// where each file's preview starts, so a recut skips the weighing.
+	cache   *fileCache
+	copies  *fileCache
+	moments string
+	mu      sync.Mutex
 	// urgent holds the titles someone is looking at; queued, their keys.
 	urgent []previewSource
 	queued map[string]bool
@@ -88,11 +92,12 @@ type previews struct {
 
 func newPreviews(dir string) *previews {
 	return &previews{
-		cache:  &fileCache{Dir: filepath.Join(dir, "encoded"), Max: previewCacheMax},
-		copies: &fileCache{Dir: filepath.Join(dir, "copied"), Max: previewCopyCacheMax},
-		queued: map[string]bool{},
-		failed: map[string]time.Time{},
-		wake:   make(chan struct{}, 1),
+		cache:   &fileCache{Dir: filepath.Join(dir, "encoded"), Max: previewCacheMax},
+		copies:  &fileCache{Dir: filepath.Join(dir, "copied"), Max: previewCopyCacheMax},
+		moments: filepath.Join(dir, "moments"),
+		queued:  map[string]bool{},
+		failed:  map[string]time.Time{},
+		wake:    make(chan struct{}, 1),
 	}
 }
 
@@ -106,6 +111,8 @@ type previewSource struct {
 	// copy: the video is copied as it is (previewCopy).
 	copy bool
 	key  string
+	// momentKey names the file's moment, whatever the sound track.
+	momentKey string
 }
 
 // cacheFor is the cache a source's preview goes to.
@@ -197,14 +204,19 @@ func (s *Service) previewSource(ctx context.Context, item library.Item, audio st
 			continue
 		}
 		track := previewAudio(f.Streams, langs...)
-		h := sha256.New()
-		_, _ = fmt.Fprintf(h, "%s\x00%s\x00%d\x00%s\x00%d", f.ID, f.Path, f.ModTime.UnixNano(), previewVersion, track)
+		file := fmt.Sprintf("%s\x00%s\x00%d\x00%s", f.ID, f.Path, f.ModTime.UnixNano(), previewVersion)
 		return previewSource{
 			fileID: f.ID, path: f.Path, duration: d, hdr: f.HDRFormat != "",
-			audio: track, copy: previewCopy(f, s.previewCopyMax()), key: hex.EncodeToString(h.Sum(nil))[:32],
+			audio: track, copy: previewCopy(f, s.previewCopyMax()),
+			key: hashKey(fmt.Sprintf("%s\x00%d", file, track)), momentKey: hashKey(file),
 		}, true, nil
 	}
 	return previewSource{}, false, nil
+}
+
+func hashKey(s string) string {
+	h := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(h[:])[:32]
 }
 
 // Waits between the cuts ahead of time.
@@ -329,7 +341,7 @@ func (s *Service) cutPreview(ctx context.Context, src previewSource, urgent bool
 	_, err := pv.cacheFor(src).Get(ctx, src.key+".mp4", func(ctx context.Context, dst string) error {
 		ctx, cancel := context.WithTimeout(ctx, previewTimeout)
 		defer cancel()
-		return cutScenes(ctx, s.o.FFmpeg, src, dst, urgent)
+		return s.cutClip(ctx, src, dst, urgent)
 	})
 	pv.mu.Lock()
 	delete(pv.queued, src.key)
@@ -352,14 +364,15 @@ func (s *Service) cutPreview(ctx context.Context, src previewSource, urgent bool
 	s.o.Log.Info("preview cut", "file_id", src.fileID, "urgent", urgent, "duration_ms", time.Since(start).Milliseconds())
 }
 
-// previewScenesAt spreads the scenes evenly over [previewFrom, previewTo]
-// of the runtime.
-func previewScenesAt(d time.Duration) []time.Duration {
-	from, to := time.Duration(float64(d)*previewFrom), time.Duration(float64(d)*previewTo)
-	step := (to - from) / previewScenes
-	out := make([]time.Duration, previewScenes)
+// previewCandidatesAt spreads the candidate windows evenly over
+// [previewFrom, previewTo] of the runtime, the last one ending at
+// previewTo.
+func previewCandidatesAt(d time.Duration) []time.Duration {
+	share := func(f float64) time.Duration { return time.Duration(float64(d) * f).Round(time.Millisecond) }
+	from, to := share(previewFrom), share(previewTo)-previewLength
+	out := make([]time.Duration, previewCandidates)
 	for i := range out {
-		out[i] = from + time.Duration(i)*step
+		out[i] = (from + (to-from)*time.Duration(i)/(previewCandidates-1)).Round(time.Millisecond)
 	}
 	return out
 }
@@ -411,39 +424,19 @@ const (
 	previewThreadsAhead  = "2"
 )
 
-// cutScenes cuts the scenes one at a time, each into its own file (one
-// decoder in memory at once: four 4K HEVC decoders side by side took
-// 2.8 GB and got killed), then joins them without encoding again.
-func cutScenes(ctx context.Context, ff *FFmpeg, src previewSource, dst string, urgent bool) error {
-	tmp, err := os.MkdirTemp("", "plaid-preview-")
-	if err != nil {
-		return err
-	}
-	defer func() { _ = os.RemoveAll(tmp) }()
+// cutClip cuts the preview: the moment, then one FFmpeg run.
+func (s *Service) cutClip(ctx context.Context, src previewSource, dst string, urgent bool) error {
 	threads := previewThreadsAhead
 	if urgent {
 		threads = previewThreadsUrgent
 	}
-	run := func(args []string) error {
-		out, err := exec.CommandContext(ctx, ff.Path, args...).CombinedOutput() //nolint:gosec // argument list
-		if err != nil {
-			return fmt.Errorf("cutting preview: %w: %s", err, strings.TrimSpace(string(out)))
-		}
-		return nil
+	at := s.previewMoment(ctx, src, threads)
+	args := previewClipArgs(src, s.o.FFmpeg, at, dst, threads)
+	out, err := exec.CommandContext(ctx, s.o.FFmpeg.Path, args...).CombinedOutput() //nolint:gosec // argument list
+	if err != nil {
+		return fmt.Errorf("cutting preview: %w: %s", err, strings.TrimSpace(string(out)))
 	}
-	var list strings.Builder
-	for i, at := range previewScenesAt(src.duration) {
-		scene := filepath.Join(tmp, fmt.Sprintf("scene%d.mp4", i))
-		if err := run(previewSceneArgs(src, ff, at, scene, threads)); err != nil {
-			return err
-		}
-		fmt.Fprintf(&list, "file '%s'\n", scene)
-	}
-	listPath := filepath.Join(tmp, "scenes.txt")
-	if err := os.WriteFile(listPath, []byte(list.String()), 0o600); err != nil {
-		return err
-	}
-	return run(previewJoinArgs(listPath, dst))
+	return nil
 }
 
 // previewCopyMax is Timings.PreviewCopyMaxBitrate, or its default.
@@ -466,12 +459,12 @@ func previewCopy(f library.PlayableFile, maxBitrate int64) bool {
 		(v.PixFmt == "yuv420p" || v.PixFmt == "yuvj420p") && f.Bitrate > 0 && f.Bitrate <= maxBitrate
 }
 
-// previewSceneArgs cuts one scene from at: fast-seeked, its video copied
+// previewClipArgs cuts the clip from at: fast-seeked, its video copied
 // (previewCopy) or scaled (and tone mapped from HDR when the build can),
-// its sound in stereo faded in and out so the joins don't click; H.264
-// and AAC, or no sound when the file has none. Every scene gets the same
-// parameters, so they join as they are.
-func previewSceneArgs(src previewSource, ff *FFmpeg, at time.Duration, dst, threads string) []string {
+// its sound in stereo faded in and out so the loop doesn't click; H.264
+// and AAC, or no sound when the file has none; an MP4 that starts playing
+// before it's fully loaded.
+func previewClipArgs(src previewSource, ff *FFmpeg, at time.Duration, dst, threads string) []string {
 	secs := func(d time.Duration) string { return strconv.FormatFloat(d.Seconds(), 'f', 3, 64) }
 	filter := "scale=" + strconv.Itoa(previewWidth) + ":-2"
 	if src.hdr && ff.HasFilter("zscale") && ff.HasFilter("tonemap") {
@@ -484,14 +477,14 @@ func previewSceneArgs(src previewSource, ff *FFmpeg, at time.Duration, dst, thre
 		// The video starts on the keyframe before at; so does the sound.
 		args = append(args, "-noaccurate_seek")
 	}
-	args = append(args, "-ss", secs(at), "-t", secs(previewSceneLength), "-i", src.path, "-map", "0:v:0")
+	args = append(args, "-ss", secs(at), "-t", secs(previewLength), "-i", src.path, "-map", "0:v:0")
 	if src.copy {
 		args = append(args, "-c:v", "copy")
 	} else {
 		args = append(args, "-vf", filter)
 	}
 	if src.audio >= 0 {
-		fadeOut := previewSceneLength - previewFade
+		fadeOut := previewLength - previewFade
 		args = append(args, "-map", "0:"+strconv.Itoa(src.audio), "-af",
 			fmt.Sprintf("aformat=sample_rates=48000:channel_layouts=stereo,asetpts=PTS-STARTPTS,"+
 				"afade=t=in:d=%s,afade=t=out:st=%s:d=%s", secs(previewFade), secs(fadeOut), secs(previewFade)),
@@ -499,18 +492,12 @@ func previewSceneArgs(src previewSource, ff *FFmpeg, at time.Duration, dst, thre
 	} else {
 		args = append(args, "-an")
 	}
+	mp4 := []string{"-movflags", "+faststart", "-f", "mp4", dst}
 	if src.copy {
-		return append(args, "-avoid_negative_ts", "make_zero", "-f", "mp4", dst)
+		return append(append(args, "-avoid_negative_ts", "make_zero"), mp4...)
 	}
-	return append(args, "-threads", threads, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26",
-		"-profile:v", "high", "-f", "mp4", dst)
-}
-
-// previewJoinArgs joins the scenes listed in list without encoding them
-// again, into an MP4 that starts playing before it's fully loaded.
-func previewJoinArgs(list, dst string) []string {
-	return []string{"-hide_banner", "-nostdin", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0",
-		"-i", list, "-c", "copy", "-movflags", "+faststart", "-f", "mp4", dst}
+	return append(append(args, "-threads", threads, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26",
+		"-profile:v", "high"), mp4...)
 }
 
 // previewDir is where previews are cached, under the cache folder, one
