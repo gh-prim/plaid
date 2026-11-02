@@ -1,11 +1,5 @@
 import SwiftUI
 
-/// The next episode on the card, and the seconds left when counting down.
-struct NextCard: Equatable {
-    let next: ItemSummary
-    var left: Int?
-}
-
 /// The web's TV next-episode card (`pl-next--tv`): the still with the
 /// countdown ring, "Next episode", the episode, then Play now and Cancel.
 /// Play now has focus as soon as the card shows.

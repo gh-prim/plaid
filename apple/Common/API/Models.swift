@@ -1,6 +1,6 @@
 import Foundation
 
-// Hand-written mirrors of the api/openapi.yaml schemas the TV app uses.
+// Hand-written mirrors of the api/openapi.yaml schemas the Apple apps use.
 // Only the fields the app reads are declared; unknown fields are ignored.
 
 struct ServerInfo: Decodable {
@@ -24,6 +24,12 @@ struct Device: Encodable {
     let clientVersion: String?
 }
 
+struct LoginRequest: Encodable {
+    let username: String
+    let password: String
+    let device: Device
+}
+
 struct StartPairingRequest: Encodable {
     let device: Device
 }
@@ -42,6 +48,8 @@ struct Profile: Decodable, Identifiable, Hashable {
     let hasPin: Bool
     let locale: String?
     let isDefault: Bool
+    /// The backdrop of what it watched last, to light the profile picker.
+    let ambient: Artwork?
 }
 
 struct User: Decodable {
@@ -317,6 +325,38 @@ struct Library: Decodable, Identifiable, Hashable {
     let id: String
     let name: String
     let type: String
+    /// Absent on the routes built in the app (a row's "See all").
+    var scan: ScanProgress? = nil
+}
+
+/// A library's scan: idle, queued, scanning or analyzing, with its counters.
+struct ScanProgress: Decodable, Hashable {
+    struct Counters: Decodable, Hashable {
+        let found: Int
+        let analyzed: Int
+    }
+
+    let state: String
+    let currentFolder: String?
+    let counters: Counters
+}
+
+// MARK: Account
+
+struct ClaimPairingRequest: Encodable {
+    let code: String
+    let profileId: String
+    let pin: String?
+}
+
+struct SessionInfo: Decodable {
+    let id: String
+    let deviceName: String
+}
+
+struct ChangePasswordRequest: Encodable {
+    let currentPassword: String
+    let newPassword: String
 }
 
 struct SearchResults: Decodable {
@@ -370,6 +410,9 @@ struct AudioCapability: Encodable {
 
 struct SubtitleCapability: Encodable {
     let text: [String]
+    /// Image formats the app draws itself from their own stream (.sup):
+    /// never burned in, so the picture stays the original.
+    var separate: [String]?
 }
 
 struct CapabilityProfile: Encodable {
@@ -409,6 +452,11 @@ struct PlaybackSubtitle: Decodable, Hashable {
     let forced: Bool
     let selected: Bool
     let delivery: String
+    /// Where an external track is fetched: a .sup for PGS drawn by the app.
+    let url: String?
+
+    /// A PGS track the app draws over the picture.
+    var drawnByApp: Bool { delivery == "external" && url?.hasSuffix(".sup") == true }
 }
 
 struct PlaybackAudioTrack: Decodable, Hashable {

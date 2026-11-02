@@ -1,3 +1,4 @@
+import CoreImage.CIFilterBuiltins
 import SwiftUI
 
 /// Servers found over Bonjour, plus an address typed by hand.
@@ -76,13 +77,7 @@ struct ServerPickerView: View {
     }
 
     /// The typed address as a URL: plain http on PLAID's port unless it says otherwise.
-    private func typedURL() -> URL? {
-        var s = address.trimmingCharacters(in: .whitespaces)
-        if !s.contains("://") { s = "http://" + s }
-        guard var c = URLComponents(string: s), c.host != nil else { return nil }
-        if c.port == nil && c.scheme == "http" { c.port = 32500 }
-        return c.url
-    }
+    private func typedURL() -> URL? { serverURL(typed: address) }
 
     private func connect(_ url: URL) {
         connecting = true
@@ -158,18 +153,31 @@ struct PairingView: View {
             Text("pair.title").font(Theme.sans(48, .semibold))
             Group {
                 if let pairing {
-                    Text(verbatim: pairing.code)
-                        .font(Theme.sans(120, .bold))
-                        .monospaced()
-                        .tracking(12)
-                        .foregroundStyle(Theme.textPrimary)
+                    HStack(spacing: 72) {
+                        Text(verbatim: pairing.code)
+                            .font(Theme.sans(120, .bold))
+                            .monospaced()
+                            .tracking(12)
+                            .foregroundStyle(Theme.textPrimary)
+                        // The same code for a phone: the PLAID app scans it, or
+                        // the camera opens the web's /pair with it typed in.
+                        if let url = pairURL(pairing.code) {
+                            VStack(spacing: 12) {
+                                QRCodeImage(text: url.absoluteString)
+                                    .frame(width: 200, height: 200)
+                                    .padding(14)
+                                    .background(RoundedRectangle(cornerRadius: 18).fill(Color.white))
+                                Text("pair.scan").font(Theme.sans(22)).foregroundStyle(Theme.textTertiary)
+                            }
+                        }
+                    }
                 } else if failed {
                     Text("pair.failed").font(Theme.sans(32)).foregroundStyle(Theme.textSecondary)
                 } else {
                     ProgressView().controlSize(.large)
                 }
             }
-            .frame(height: 160)
+            .frame(height: 280)
             if let host = app.client?.baseURL {
                 Text("pair.instructions \(host.appending(path: "pair").absoluteString)")
                     .font(Theme.sans(30))
@@ -183,6 +191,14 @@ struct PairingView: View {
         .padding(Theme.gutter)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task { await run() }
+    }
+
+    /// The web's /pair with the code typed in: what the QR code holds.
+    private func pairURL(_ code: String) -> URL? {
+        guard let base = app.client?.baseURL,
+              var c = URLComponents(url: base.appending(path: "pair"), resolvingAgainstBaseURL: false) else { return nil }
+        c.queryItems = [URLQueryItem(name: "code", value: code.filter { $0 != "-" })]
+        return c.url
     }
 
     /// Starts a pairing, polls it every 2 s and starts again when it expires.
@@ -270,5 +286,28 @@ struct ProfilePickerView: View {
                 self.error = "error.generic"
             }
         }
+    }
+}
+
+/// A QR code drawn sharp at any size: Core Image's generator, scaled
+/// without smoothing.
+struct QRCodeImage: View {
+    let text: String
+
+    var body: some View {
+        if let image = Self.render(text) {
+            Image(decorative: image, scale: 1)
+                .interpolation(.none)
+                .resizable()
+                .aspectRatio(1, contentMode: .fit)
+        }
+    }
+
+    private static func render(_ text: String) -> CGImage? {
+        let f = CIFilter.qrCodeGenerator()
+        f.message = Data(text.utf8)
+        f.correctionLevel = "M"
+        guard let out = f.outputImage else { return nil }
+        return CIContext().createCGImage(out, from: out.extent)
     }
 }

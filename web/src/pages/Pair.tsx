@@ -1,7 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { api, type Profile } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { errorMessage, failure, type Failure } from '../auth/errors'
@@ -44,7 +44,11 @@ export function Pair() {
   const me = state.status === 'ready' ? state.me : null
   const profiles = me?.profiles ?? []
   const active = me?.activeProfile ?? undefined
-  const [code, setCode] = useState('')
+  // A TV's QR code opens /pair?code=…: the code is already typed.
+  const [params] = useSearchParams()
+  const [code, setCode] = useState(() =>
+    (params.get('code') ?? '').toUpperCase().replace(notInCode, '').slice(0, codeLength),
+  )
   const [profileId, setProfileId] = useState(active?.id ?? profiles[0]?.id ?? '')
   const [pin, setPin] = useState('')
   const [busy, setBusy] = useState(false)

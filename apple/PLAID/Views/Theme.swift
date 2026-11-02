@@ -53,19 +53,6 @@ enum Theme {
     }
 }
 
-extension Color {
-    init(hex: String) {
-        let s = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        var v: UInt64 = 0
-        Scanner(string: s).scanHexInt64(&v)
-        self.init(
-            red: Double((v >> 16) & 0xff) / 255,
-            green: Double((v >> 8) & 0xff) / 255,
-            blue: Double(v & 0xff) / 255
-        )
-    }
-}
-
 /// The amber tartan of the web progress thread, drawn instead of its PNG.
 struct PlaidStripe: View {
     var body: some View {
@@ -177,22 +164,6 @@ private struct RowButtonBody: View {
             .scaleEffect(focused ? 1.04 : 1)
             .shadow(color: focused ? .black.opacity(0.5) : .clear, radius: 24, y: 12)
             .animation(.smooth(duration: 0.25), value: focused)
-    }
-}
-
-/// Shimmer for anything still loading (never a frozen blank).
-struct Shimmer: View {
-    @State private var phase: CGFloat = -1
-
-    var body: some View {
-        LinearGradient(
-            colors: [Theme.surface, Theme.surfaceHover, Theme.surface],
-            startPoint: UnitPoint(x: phase, y: 0.5),
-            endPoint: UnitPoint(x: phase + 1, y: 0.5)
-        )
-        .onAppear {
-            withAnimation(.linear(duration: 1.4).repeatForever(autoreverses: false)) { phase = 1 }
-        }
     }
 }
 

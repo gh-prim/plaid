@@ -1,21 +1,5 @@
 import SwiftUI
 
-/// What the player is asked to play, and from where.
-struct PlayRequest: Identifiable, Hashable {
-    let id = UUID()
-    let item: ItemSummary
-    let startMs: Int64
-    /// The version picked on the item page; nil lets the server choose.
-    var fileId: String?
-}
-
-/// Pages reached from an item: a person, a collection, a library by genre
-/// or a library's collections.
-struct PersonRoute: Hashable { let id: String; let name: String }
-struct CollectionRoute: Hashable { let id: String; let name: String }
-struct GenreRoute: Hashable { let libraryId: String; let genre: GenreRef }
-struct CollectionsRoute: Hashable { let library: Library }
-
 /// The sections of the side rail.
 enum Section: Hashable {
     case home, library(Library), search, settings
@@ -399,24 +383,6 @@ private struct RailButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.92 : 1)
             .animation(railSpring, value: configuration.isPressed)
-    }
-}
-
-struct PlayAction {
-    let run: (PlayRequest) -> Void
-    func callAsFunction(_ item: ItemSummary, from startMs: Int64 = 0, fileId: String? = nil) {
-        run(PlayRequest(item: item, startMs: startMs, fileId: fileId))
-    }
-}
-
-private struct PlayKey: EnvironmentKey {
-    static let defaultValue = PlayAction { _ in }
-}
-
-extension EnvironmentValues {
-    var play: PlayAction {
-        get { self[PlayKey.self] }
-        set { self[PlayKey.self] = newValue }
     }
 }
 

@@ -4,6 +4,7 @@ options:
   bundleIdPrefix: app.plaid
   deploymentTarget:
     tvOS: "18.0"
+    iOS: "26.0"
   createIntermediateGroups: true
 settings:
   base:
@@ -21,6 +22,7 @@ targets:
     platform: tvOS
     sources:
       - path: PLAID
+      - path: Common
       - path: Shared
     dependencies:
       - target: PLAID-TopShelf
@@ -58,6 +60,52 @@ targets:
           - CFBundleURLName: app.plaid.tv
             CFBundleURLSchemes: [plaid]
         UIAppFonts: [InstrumentSans-Variable-latin.ttf, InstrumentSerif-Regular-latin.ttf]
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+          NSAllowsLocalNetworking: true
+  # iPhone and iPad (F014): the V2 look in Liquid Glass, sharing Common
+  # (API, session, player model, strings, fonts) with the TV app.
+  PLAID-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: iOS
+      - path: Common
+    settings:
+      base:
+        # The same App Store Connect app as the TV ("Plaid Media Server"),
+        # with iOS added as a platform: one bundle ID for both.
+        PRODUCT_BUNDLE_IDENTIFIER: app.plaid.tv
+        PRODUCT_NAME: PLAID
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+    info:
+      path: iOS/Info.plist
+      properties:
+        CFBundleDisplayName: PLAID
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, fr]
+        UIRequiredDeviceCapabilities: [arm64]
+        UILaunchScreen:
+          UIColorName: Launch
+        UIUserInterfaceStyle: Dark
+        UIApplicationSupportsIndirectInputEvents: true
+        # Portrait for browsing; the player turns to landscape.
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        # Sound keeps playing with the screen locked, and Picture in Picture.
+        UIBackgroundModes: [audio]
+        NSLocalNetworkUsageDescription: PLAID looks for your media server on the local network.
+        NSCameraUsageDescription: PLAID reads the QR code a TV shows to pair it.
+        NSBonjourServices: [_plaid._tcp]
+        CFBundleURLTypes:
+          - CFBundleURLName: app.plaid.ios
+            CFBundleURLSchemes: [plaid]
+        UIAppFonts: [InstrumentSans-Variable-latin.ttf, InstrumentSerif-Regular-latin.ttf, BricolageGrotesque-Variable-latin.ttf]
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
           NSAllowsLocalNetworking: true

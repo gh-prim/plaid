@@ -9,6 +9,7 @@ final class AppState {
     enum Phase: Equatable {
         case loading
         case chooseServer
+        /// Signing in: a code on the TV, a password on iPhone and iPad.
         case pairing
         case chooseProfile
         case ready
@@ -16,8 +17,12 @@ final class AppState {
 
     private(set) var phase: Phase = .loading
     /// The launch intro plays once per cold start, over the app loading
-    /// behind it; nothing behind it takes focus meanwhile.
+    /// behind it; nothing behind it takes focus meanwhile. Apple TV only.
+    #if os(tvOS)
     var splashing = true
+    #else
+    var splashing = false
+    #endif
     private(set) var client: APIClient?
     private(set) var serverName: String?
     private(set) var server: ServerInfo?
@@ -118,7 +123,12 @@ final class AppState {
 
     static var device: Device {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
-        return Device(name: UIDevice.current.name, type: "tvos", clientVersion: version)
+        #if os(tvOS)
+        let type = "tvos"
+        #else
+        let type = UIDevice.current.userInterfaceIdiom == .pad ? "ipados" : "ios"
+        #endif
+        return Device(name: UIDevice.current.name, type: type, clientVersion: version)
     }
 }
 
