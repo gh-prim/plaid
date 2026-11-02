@@ -49,6 +49,35 @@ type PartyAccess interface {
 	// Position is a live party's reference position now (shared encodes,
 	// R25); ok is false when the party isn't playing.
 	Position(partyID string) (ms int64, ok bool)
+	// UploadBps is the home upload the admin gave, 0 when unknown (R27).
+	UploadBps(ctx context.Context) int64
+}
+
+// minPartyBitrate is the floor of a remote party screen under the upload
+// budget: 480p still plays.
+const minPartyBitrate = 1_500_000
+
+// uploadBudget caps a remote party screen so the remote streams fit 80% of
+// the home upload (F010-R27): what's left after the other remote streams,
+// never under minPartyBitrate.
+func (s *Service) uploadBudget(ctx context.Context, lim *Limits) {
+	if s.o.Party == nil || !lim.Remote {
+		return
+	}
+	upload := s.o.Party.UploadBps(ctx)
+	if upload <= 0 {
+		return
+	}
+	var used int64
+	for _, sess := range s.manager.List() {
+		if sess.Remote {
+			used += sess.BitrateBps()
+		}
+	}
+	left := max(upload*8/10-used, minPartyBitrate)
+	if lim.RemoteMaxBitrate == 0 || left < lim.RemoteMaxBitrate {
+		lim.RemoteMaxBitrate = left
+	}
 }
 
 // guestAuthPrefix marks a guest's sessions in place of an F003 session id.
@@ -458,6 +487,9 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 		if err := s.checkStreams(ctx, p.UserID); err != nil {
 			return Session{}, err
 		}
+	}
+	if r.PartyID != "" || p.IsGuest() {
+		s.uploadBudget(ctx, &lim)
 	}
 	m, err := ChooseFile(files, r.FileID, func(m Media) Decision { d, _ := Decide(m, r.Request, r.Profile, lim); return d })
 	if err != nil {

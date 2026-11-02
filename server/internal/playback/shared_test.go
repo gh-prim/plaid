@@ -17,6 +17,7 @@ func (*fakeParty) InParty(context.Context, auth.Principal, string, string) (stri
 }
 func (*fakeParty) GuestActive(context.Context, string) (bool, error) { return true, nil }
 func (f *fakeParty) Position(string) (int64, bool)                   { return f.pos.Load(), true }
+func (*fakeParty) UploadBps(context.Context) int64                   { return 40_000_000 }
 
 // addPartySession is addSession for a party screen: it joins a shared
 // encode instead of taking a slot when it can (F010-R25).
@@ -139,5 +140,28 @@ func TestShareKey(t *testing.T) {
 	same := d
 	if shareKey("p", d) == shareKey("p", other) || shareKey("p", d) != shareKey("p", same) || shareKey("p", d) == shareKey("q", d) {
 		t.Error("keys don't tell streams apart")
+	}
+}
+
+// TestUploadBudget covers F010-R27: remote party screens share 80% of the
+// home upload, never below 1.5 Mb/s.
+func TestUploadBudget(t *testing.T) {
+	s, _ := hlsService(t, fastTimings)
+	s.o.Party = &fakeParty{}
+	lim := Limits{Remote: true}
+	s.uploadBudget(context.Background(), &lim)
+	if lim.RemoteMaxBitrate != 32_000_000 {
+		t.Fatalf("first remote screen cap = %d", lim.RemoteMaxBitrate)
+	}
+	s.manager.Add(Session{UserID: "a", Remote: true, Decision: Decision{Method: Transcode, VideoBitrate: 31_000_000}})
+	lim = Limits{Remote: true, RemoteMaxBitrate: 20_000_000}
+	s.uploadBudget(context.Background(), &lim)
+	if lim.RemoteMaxBitrate != minPartyBitrate {
+		t.Fatalf("cap with the upload used = %d", lim.RemoteMaxBitrate)
+	}
+	lim = Limits{Remote: false}
+	s.uploadBudget(context.Background(), &lim)
+	if lim.RemoteMaxBitrate != 0 {
+		t.Error("a local screen got capped")
 	}
 }

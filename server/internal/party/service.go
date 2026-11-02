@@ -1247,3 +1247,13 @@ func (s *Service) Opens(p auth.Principal, itemID string) bool {
 	}
 	return false
 }
+
+// UploadBps is the admin's upload speed in bits per second, 0 when unknown
+// (R27).
+func (s *Service) UploadBps(ctx context.Context) int64 {
+	set, err := s.o.Accounts.Party(ctx)
+	if err != nil {
+		return 0
+	}
+	return int64(set.UploadMbps) * 1_000_000
+}
