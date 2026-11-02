@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var confirmSignOut = false
+    @State private var changingPicture = false
 
     private var profileId: String { app.me?.activeProfile?.id ?? "default" }
 
@@ -27,6 +28,13 @@ struct SettingsView: View {
                             }
                         }
                         .padding(.vertical, 4)
+                    }
+                    if let p = app.me?.activeProfile {
+                        Button { changingPicture = true } label: { Label("avatar.change", systemImage: "face.smiling") }
+                            .sheet(isPresented: $changingPicture) {
+                                AvatarChoiceView(profile: p, doneLabel: "common.done") { changingPicture = false }
+                                    .presentationBackground(Theme.bgBase)
+                            }
                     }
                     Button { dismiss(); app.switchProfile() } label: { Label("settings.switchProfile", systemImage: "person.2") }
                     if let base = app.client?.baseURL {

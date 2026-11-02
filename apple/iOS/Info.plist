@@ -48,7 +48,7 @@
 		<string>_plaid._tcp</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>PLAID reads the QR code a TV shows to pair it.</string>
+	<string>PLAID reads the QR code a TV shows to pair it, and takes your profile photo.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>PLAID looks for your media server on the local network.</string>
 	<key>UIAppFonts</key>

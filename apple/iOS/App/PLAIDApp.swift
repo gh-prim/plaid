@@ -30,19 +30,31 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Theme.bgBase.ignoresSafeArea()
-            switch app.phase {
-            case .loading: LoadingView()
-            case .chooseServer: ServerPickerView()
-            case .pairing: SignInView()
-            case .chooseProfile: ProfilePickerView()
-            case .ready: MainTabs()
+            if let invite = app.invite {
+                // An invitation covers everything until the account is set up
+                // (F009). It stays out of the language's id below: the new
+                // account's language must not restart it half way.
+                InviteView(invite: invite).id(invite.token).transition(.opacity)
+            } else {
+                Group {
+                    switch app.phase {
+                    case .loading: LoadingView()
+                    case .chooseServer: ServerPickerView()
+                    case .pairing: SignInView()
+                    case .chooseProfile: ProfilePickerView()
+                    case .ready: MainTabs()
+                    }
+                }
+                // A new language redraws everything, with its formats too.
+                .id(app.language ?? "system")
             }
         }
+        // plaid://invite?server=…&token=… from the invitation web page.
+        .onOpenURL { url in app.openInvite(url) }
         .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.top } action: { topInset = $0 }
         .environment(\.topInset, topInset)
         .animation(.smooth, value: app.phase)
-        // A new language redraws everything, with its formats too.
-        .id(app.language ?? "system")
+        .animation(.smooth, value: app.invite)
         .environment(\.locale, app.language.map(Locale.init(identifier:)) ?? .autoupdatingCurrent)
     }
 }

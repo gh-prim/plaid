@@ -7,6 +7,7 @@ struct ServerPickerView: View {
     @State private var discovery = ServerDiscovery()
     @State private var picked: DiscoveredServer?
     @State private var byCode = false
+    @State private var byInvite = false
     @State private var connecting = false
     @State private var error: LocalizedStringKey?
 
@@ -14,6 +15,9 @@ struct ServerPickerView: View {
         SignInScaffold {
             if byCode {
                 ServerCodeCard(back: { withAnimation(.smooth) { byCode = false } })
+                    .transition(.blurReplace)
+            } else if byInvite {
+                InviteLinkCard(back: { withAnimation(.smooth) { byInvite = false } })
                     .transition(.blurReplace)
             } else {
                 card.transition(.blurReplace)
@@ -101,6 +105,9 @@ struct ServerPickerView: View {
                 Text("server.away").foregroundStyle(Theme.textTertiary)
                 Button("server.enterCode") { withAnimation(.smooth) { byCode = true } }
                     .foregroundStyle(Theme.textPrimary)
+                Button("invite.link.open") { withAnimation(.smooth) { byInvite = true } }
+                    .foregroundStyle(Theme.textPrimary)
+                    .padding(.top, 8)
             }
             .font(Theme.sans(12, .semibold))
             .padding(.top, 16)

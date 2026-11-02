@@ -100,7 +100,7 @@ targets:
         # Sound keeps playing with the screen locked, and Picture in Picture.
         UIBackgroundModes: [audio]
         NSLocalNetworkUsageDescription: PLAID looks for your media server on the local network.
-        NSCameraUsageDescription: PLAID reads the QR code a TV shows to pair it.
+        NSCameraUsageDescription: PLAID reads the QR code a TV shows to pair it, and takes your profile photo.
         NSBonjourServices: [_plaid._tcp]
         CFBundleURLTypes:
           - CFBundleURLName: app.plaid.ios

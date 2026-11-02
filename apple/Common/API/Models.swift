@@ -45,11 +45,114 @@ struct Profile: Decodable, Identifiable, Hashable {
     let id: String
     let name: String
     let avatarColor: Int
+    /// What the profile shows (F009): its initial, a built avatar or a photo.
+    let avatar: ProfileAvatar?
     let hasPin: Bool
     let locale: String?
     let isDefault: Bool
     /// The backdrop of what it watched last, to light the profile picker.
     let ambient: Artwork?
+}
+
+/// A profile's picture (F009). `url` is an API path, absent for the initial.
+struct ProfileAvatar: Decodable, Hashable {
+    let kind: String
+    let url: String?
+    let options: AvatarOptions?
+}
+
+/// The builder's choices (F009): a variant per part, nil for an optional
+/// part left out.
+struct AvatarOptions: Codable, Hashable {
+    var head: String
+    var hair: String
+    var eyes: String
+    var eyebrows: String
+    var mouth: String
+    var nose: String
+    var glasses: String?
+    var beard: String?
+    var earrings: String?
+    var freckles: String?
+    var hairColor: String
+    var skinColor: String
+
+    subscript(part: String) -> String? {
+        get {
+            switch part {
+            case "head": head
+            case "hair": hair
+            case "eyes": eyes
+            case "eyebrows": eyebrows
+            case "mouth": mouth
+            case "nose": nose
+            case "glasses": glasses
+            case "beard": beard
+            case "earrings": earrings
+            case "freckles": freckles
+            default: nil
+            }
+        }
+        set {
+            switch part {
+            case "head": head = newValue ?? head
+            case "hair": hair = newValue ?? hair
+            case "eyes": eyes = newValue ?? eyes
+            case "eyebrows": eyebrows = newValue ?? eyebrows
+            case "mouth": mouth = newValue ?? mouth
+            case "nose": nose = newValue ?? nose
+            case "glasses": glasses = newValue
+            case "beard": beard = newValue
+            case "earrings": earrings = newValue
+            case "freckles": freckles = newValue
+            default: break
+            }
+        }
+    }
+}
+
+/// The parts and colors of the avatar builder (GET /avatar-builder).
+struct AvatarBuilderInfo: Decodable {
+    struct Part: Decodable, Hashable {
+        let name: String
+        let optional: Bool
+        let variants: [String]
+    }
+    let parts: [Part]
+    let hairColors: [String]
+    let skinColors: [String]
+    let defaults: AvatarOptions
+}
+
+struct AvatarUpdate: Encodable {
+    let kind: String
+    let options: AvatarOptions?
+}
+
+struct ProfileColorUpdate: Encodable {
+    let avatarColor: Int
+}
+
+/// What an invitation is for (POST /invite/check).
+struct InvitationPreview: Decodable {
+    let serverName: String
+    let name: String
+    let invitedBy: String
+    let expiresAt: Date
+}
+
+struct InvitationToken: Encodable {
+    let token: String
+}
+
+struct AcceptInvitationRequest: Encodable {
+    let token: String
+    let displayName: String
+    let username: String
+    let password: String
+    let pin: String
+    let locale: String?
+    let device: Device
 }
 
 struct User: Decodable {

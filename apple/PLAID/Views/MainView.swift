@@ -363,17 +363,19 @@ struct SideRail: View {
     }
 }
 
-/// A profile's initial on its party colour.
+/// A profile's picture (F009), else its initial on its party colour.
 struct Avatar: View {
     let profile: Profile
     var size: CGFloat = 46
 
     var body: some View {
-        Text(verbatim: String(profile.name.prefix(1)).uppercased())
-            .font(Theme.sans(size * 0.48, .semibold))
-            .foregroundStyle(Theme.bgBase)
-            .frame(width: size, height: size)
-            .background(Circle().fill(Theme.party[profile.avatarColor % Theme.party.count]))
+        ProfilePicture(profile: profile, size: size) {
+            Text(verbatim: String(profile.name.prefix(1)).uppercased())
+                .font(Theme.sans(size * 0.48, .semibold))
+                .foregroundStyle(Theme.bgBase)
+                .frame(width: size, height: size)
+                .background(Circle().fill(Theme.party[profile.avatarColor % Theme.party.count]))
+        }
     }
 }
 

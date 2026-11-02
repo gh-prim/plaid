@@ -63,6 +63,44 @@ struct RemoteImage: View {
     }
 }
 
+/// A profile's picture (F009) over its initial on its party color: the
+/// initial shows until the picture is in, and stays when there is none.
+struct ProfilePicture<Initial: View>: View {
+    let profile: Profile
+    let size: CGFloat
+    @ViewBuilder let initial: () -> Initial
+
+    @Environment(AppState.self) private var app
+    @State private var image: UIImage?
+
+    var body: some View {
+        initial()
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: size, height: size)
+                        .clipShape(Circle())
+                        .transition(.opacity)
+                }
+            }
+            .task(id: profile.avatar?.url) { await load() }
+    }
+
+    private func load() async {
+        guard let path = profile.avatar?.url, let client = app.client else {
+            image = nil
+            return
+        }
+        let url = client.avatarURL(path, size: Int(size * 2))
+        if let hit = ImageCache.shared.image(for: url) { image = hit; return }
+        guard let data = try? await client.data(for: url), let img = UIImage(data: data) else { return }
+        ImageCache.shared.store(img, for: url)
+        withAnimation(.easeOut(duration: 0.2)) { image = img }
+    }
+}
+
 /// Shimmer for anything still loading (never a frozen blank).
 struct Shimmer: View {
     @State private var phase: CGFloat = -1

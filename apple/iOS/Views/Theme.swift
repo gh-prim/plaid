@@ -88,17 +88,19 @@ struct GlassIconButton: View {
     }
 }
 
-/// A profile's round face: its initial on its party color.
+/// A profile's round face: its picture (F009), else its initial on its party color.
 struct ProfileFace: View {
     let profile: Profile
     var size: CGFloat = 36
 
     var body: some View {
-        Text(verbatim: String(profile.name.prefix(1)).uppercased())
-            .font(Theme.display(size * 0.44))
-            .foregroundStyle(Theme.onCream)
-            .frame(width: size, height: size)
-            .background(Circle().fill(Theme.party[profile.avatarColor % Theme.party.count]))
+        ProfilePicture(profile: profile, size: size) {
+            Text(verbatim: String(profile.name.prefix(1)).uppercased())
+                .font(Theme.display(size * 0.44))
+                .foregroundStyle(Theme.onCream)
+                .frame(width: size, height: size)
+                .background(Circle().fill(Theme.party[profile.avatarColor % Theme.party.count]))
+        }
     }
 }
 
