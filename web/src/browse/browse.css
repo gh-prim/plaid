@@ -21,25 +21,34 @@
   min-width: 0;
 }
 .br-wordmark {
-  /* V2: bold sans, tight, with Foxy as the dot of the i. */
-  font: 700 32px/1 var(--font-text);
-  letter-spacing: -0.035em;
-  color: var(--text-primary);
-  white-space: nowrap;
-  --fx-tan: oklch(0.8 0.06 75);
-  --fx-ink: oklch(0.155 0.005 71);
-  --fx-cream: oklch(0.955 0.01 81);
+  /* Step 14 "Woven play": the tile, then the drawn name. One em is the
+     old wordmark's font size; the tile is 1.6 em, the name 1.13 em tall. */
+  --wm-tile: #1c1c1e;
+  --wm-ink: #f4f0e9;
+  font-size: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.46em;
+  color: #f4f0e9;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.45));
 }
-.br-wordmark__i {
-  position: relative;
+:root[data-theme='light'] .br-wordmark {
+  --wm-tile: #f4f0e9;
+  --wm-ink: #1c1c1e;
+  color: #1c1c1e;
+  filter: none;
 }
-.br-wordmark__i .br-foxy {
-  position: absolute;
-  left: 50%;
-  top: 0.02em;
-  width: 0.42em;
-  height: 0.42em;
-  transform: translateX(-50%);
+.br-wordmark__mark {
+  flex: none;
+  width: 1.6em;
+  height: 1.6em;
+}
+.br-wordmark__name {
+  flex: none;
+  height: 1.13em;
+  width: auto;
+  aspect-ratio: 245 / 122;
+  overflow: visible;
 }
 
 /* Server card (admins) */
@@ -2267,6 +2276,176 @@
 }
 .br-detail .br-notice {
   margin: 0;
+}
+
+/* V2.1 detail hero (canvas "PLAID Design", step 22): the backdrop
+   full-bleed under the top bar, slowly zooming; the text on its left in
+   Bricolage; the scores, genres and tags on one line; liquid-glass pills. */
+.br-detail__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+.br-detail__facts > .br-ratings + .br-detail__genres {
+  padding-left: 18px;
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+}
+.br-detail__facts .br-detail__genres {
+  color: rgba(255, 255, 255, 0.8);
+}
+@media (max-width: 767px) {
+  /* The genres wrap under the scores on a phone: no divider. */
+  .br-detail__facts > .br-ratings + .br-detail__genres {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+.br-detail__facts .br-tag {
+  height: 24px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  font-size: 11.5px;
+  color: #fff;
+}
+@media (min-width: 768px) {
+  /* Under the sticky top bar, which floats over the picture. */
+  .br-item {
+    margin-top: -88px;
+  }
+  .br-detail {
+    margin: 0;
+    min-height: min(900px, 100vh);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .br-detail--tall {
+    min-height: 100vh;
+  }
+  .br-detail__frame,
+  .br-detail__art,
+  .br-detail__frame > .br-hero__shade {
+    border-radius: 0;
+  }
+  .br-detail__body {
+    width: min(784px, 100%);
+    padding: 240px 72px 150px;
+    gap: 14px;
+  }
+  .br-detail__title {
+    font:
+      700 92px/0.92 'Bricolage Grotesque',
+      var(--font-text);
+    letter-spacing: -0.045em;
+    text-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
+  }
+  .br-detail--tall .br-detail__title {
+    font-size: 72px;
+  }
+  .br-detail__meta {
+    font: 600 16px/22px var(--font-text);
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .br-detail__overview {
+    font: 500 17px/1.55 var(--font-text);
+    color: rgba(255, 255, 255, 0.82);
+  }
+  .br-detail .br-hero__credits {
+    right: 72px;
+    bottom: 110px;
+    max-width: 460px;
+    font: 500 14px/1.6 var(--font-text);
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .br-detail__actions {
+    margin-top: 12px;
+  }
+  .br-detail .br-hero__shade {
+    background:
+      linear-gradient(90deg, rgba(8, 8, 9, 0.82) 0%, rgba(8, 8, 9, 0.45) 38%, rgba(8, 8, 9, 0) 65%),
+      linear-gradient(
+        180deg,
+        rgba(8, 8, 9, 0.55) 0%,
+        rgba(8, 8, 9, 0) 18%,
+        rgba(8, 8, 9, 0) 55%,
+        rgba(8, 8, 9, 0.6) 100%
+      );
+  }
+  /* The preview's sound and pause buttons, under the top bar that now
+     floats over the hero, lined up with its right edge. */
+  .br-detail .br-detail__controls {
+    top: 88px;
+    right: 48px;
+  }
+  /* The picture fades into the page (and its light) instead of ending
+     on an edge. */
+  .br-detail__frame {
+    mask-image: linear-gradient(180deg, #000 62%, transparent 100%);
+  }
+}
+@keyframes br-kenburns {
+  from {
+    scale: 1.04;
+  }
+  to {
+    scale: 1.12;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .br-detail__art {
+    animation: br-kenburns 30s ease-in-out infinite alternate;
+  }
+}
+/* Liquid glass: a blurred, saturated tint, a lit top edge and a rim of
+   light around it. Play is the brighter one. */
+.br-detail .br-hero__btn {
+  position: relative;
+  isolation: isolate;
+  height: 56px;
+  padding: 0 24px;
+  border-radius: 999px;
+  color: #fff;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)), rgba(24, 24, 26, 0.66);
+  backdrop-filter: blur(40px) saturate(1.7);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.06),
+    0 12px 32px -12px rgba(0, 0, 0, 0.55);
+}
+.br-detail .br-hero__btn.br-hero__btn--play {
+  padding: 0 30px;
+  color: #fff;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.14)), rgba(40, 40, 44, 0.35);
+}
+.br-detail .br-hero__btn.br-hero__btn--play:hover,
+.br-detail .br-hero__btn:hover {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.18)), rgba(40, 40, 44, 0.4);
+}
+.br-detail .br-hero__btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.65),
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(255, 255, 255, 0.04) 55%,
+    rgba(255, 255, 255, 0.12) 80%,
+    rgba(255, 255, 255, 0.4)
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
 }
 
 /* Sections under the hero */
