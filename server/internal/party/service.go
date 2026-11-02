@@ -66,7 +66,7 @@ type Service struct {
 	lastReleases time.Time
 }
 
-// CodeBackoff: 10 wrong codes in 10 minutes wait 15 minutes (R3).
+// CodeBackoff makes 10 wrong codes in 10 minutes wait 15 minutes (R3).
 var CodeBackoff = auth.BackoffPolicy{Threshold: 10, Base: 15 * time.Minute, Max: 15 * time.Minute, Forget: 10 * time.Minute}
 
 // codeKey is who a wrong code counts against.
@@ -110,7 +110,6 @@ type live struct {
 var (
 	errNotAllowed      = apierr.New(403, "party_not_allowed", "Plaid Party isn't open to you")
 	errOff             = apierr.New(403, "party_disabled", "Plaid Party is turned off on this server")
-	errAgeLimit        = apierr.New(403, "party_age_limit", "this title isn't for this profile")
 	errNotFound        = apierr.NotFound("no such party")
 	errNotStarted      = &realtime.Error{Code: "party_not_started"}
 	errProfileRequired = apierr.ProfileRequired()
@@ -300,25 +299,25 @@ func (s *Service) enabled(ctx context.Context) (accounts.PartySettings, error) {
 }
 
 // visible returns an item the caller's profile may see.
-func (s *Service) visible(ctx context.Context, p auth.Principal, itemID string) (Item, error) {
+func (s *Service) visible(ctx context.Context, p auth.Principal, itemID string) error {
 	it, err := s.store.Item(ctx, itemID)
 	if errors.Is(err, ErrNotFound) {
-		return Item{}, apierr.NotFound("no such item")
+		return apierr.NotFound("no such item")
 	}
 	if err != nil {
-		return Item{}, err
+		return err
 	}
 	lim, err := s.o.Accounts.AccessLimit(ctx, p)
 	if err != nil {
-		return Item{}, err
+		return err
 	}
 	if !lim.Allows(it.LibraryID, it.AgeRating) {
-		return Item{}, apierr.NotFound("no such item")
+		return apierr.NotFound("no such item")
 	}
 	if it.Kind != "movie" && it.Kind != "episode" {
-		return Item{}, apierr.NotPlayable("only movies and episodes can be watched together")
+		return apierr.NotPlayable("only movies and episodes can be watched together")
 	}
-	return it, nil
+	return nil
 }
 
 // --- REST side ------------------------------------------------------------
@@ -399,7 +398,7 @@ func (s *Service) Create(ctx context.Context, p auth.Principal, in NewParty) (Pa
 		return Party{}, apierr.ValidationFailed(probs...)
 	}
 	if in.ItemID != "" {
-		if _, err := s.visible(ctx, p, in.ItemID); err != nil {
+		if err := s.visible(ctx, p, in.ItemID); err != nil {
 			return Party{}, err
 		}
 	}
@@ -613,7 +612,7 @@ func (s *Service) Update(ctx context.Context, p auth.Principal, id string, in Pa
 		pt.Note = n
 	}
 	if in.ItemID != nil && pt.Status != StatusLive {
-		if _, err := s.visible(ctx, p, *in.ItemID); err != nil {
+		if err := s.visible(ctx, p, *in.ItemID); err != nil {
 			return Party{}, err
 		}
 		pt.ItemID = *in.ItemID
@@ -625,7 +624,7 @@ func (s *Service) Update(ctx context.Context, p auth.Principal, id string, in Pa
 		pt.ControlMode = *in.ControlMode
 		if l := s.roomOf(pt.ID); l != nil {
 			l.mu.Lock()
-			l.room.SetMode(s.o.Now(), l.room.Host(), *in.ControlMode)
+			_ = l.room.SetMode(s.o.Now(), l.room.Host(), *in.ControlMode) // as the host: can only succeed
 			l.mu.Unlock()
 		}
 	}
@@ -966,7 +965,7 @@ func (s *Service) Message(c *realtime.Conn, env realtime.Envelope) error {
 		}
 		switch rep.State {
 		case "blocked": // transcode_limit_reached (R26)
-			err = s.blocked(l, me, rep.Quality)
+			s.blocked(l, me, rep.Quality)
 		case "credits": // the end credits start (R30, ADR 0008)
 			rep.State = ScreenPlaying
 			err = l.room.Report(now, c.ID, rep)

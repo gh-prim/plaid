@@ -361,7 +361,7 @@ func (r *Room) admit(now time.Time) {
 	for len(r.queue) > 0 && len(r.people) < r.MaxPeople {
 		q := r.queue[0]
 		r.queue = r.queue[1:]
-		r.Join(now, q.person, q.conn, q.kind, q.dev)
+		_, _ = r.Join(now, q.person, q.conn, q.kind, q.dev) // there is a seat: it can only succeed
 	}
 	for i, q := range r.queue {
 		r.emit(Target{Conn: q.conn}, "party.queued", map[string]int{"position": i + 1})
@@ -619,7 +619,7 @@ func (r *Room) Tick(now time.Time) bool {
 	return false
 }
 
-func (r *Room) emitWaiting(now time.Time) {
+func (r *Room) emitWaiting(_ time.Time) {
 	names := []string{}
 	ids := []string{}
 	for _, id := range r.order {
@@ -779,7 +779,7 @@ func (r *Room) post(now time.Time, m ChatMessage) {
 }
 
 // SetMode changes the control mode (host only, R14).
-func (r *Room) SetMode(now time.Time, person, mode string) error {
+func (r *Room) SetMode(_ time.Time, person, mode string) error {
 	if person != r.host {
 		return ErrNotHost
 	}
@@ -793,7 +793,7 @@ func (r *Room) SetMode(now time.Time, person, mode string) error {
 }
 
 // Grant gives or takes control from one person (R16).
-func (r *Room) Grant(now time.Time, person, to string, on bool) error {
+func (r *Room) Grant(_ time.Time, person, to string, on bool) error {
 	if person != r.host {
 		return ErrNotHost
 	}
@@ -843,7 +843,7 @@ func (r *Room) Remove(now time.Time, person, who string) ([]string, error) {
 }
 
 // End closes the room for everyone (host's "End for everyone", R17).
-func (r *Room) End(now time.Time, person string) error {
+func (r *Room) End(_ time.Time, person string) error {
 	if person != r.host {
 		return ErrNotHost
 	}
@@ -938,7 +938,7 @@ func (r *Room) presence() map[string]any {
 }
 
 // Snapshot is everything a joining client needs (party.snapshot).
-func (r *Room) Snapshot(now time.Time, me string) map[string]any {
+func (r *Room) Snapshot(_ time.Time, me string) map[string]any {
 	chat := r.chat
 	asks := make([]map[string]any, 0, len(r.pendingAsks))
 	ids := make([]int64, 0, len(r.pendingAsks))

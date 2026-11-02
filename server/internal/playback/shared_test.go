@@ -136,7 +136,8 @@ func TestShareKey(t *testing.T) {
 	}
 	other := d
 	other.Quality, other.Height = "1080p", 1080
-	if shareKey("p", d) == shareKey("p", other) || shareKey("p", d) != shareKey("p", d) || shareKey("p", d) == shareKey("q", d) {
+	same := d
+	if shareKey("p", d) == shareKey("p", other) || shareKey("p", d) != shareKey("p", same) || shareKey("p", d) == shareKey("q", d) {
 		t.Error("keys don't tell streams apart")
 	}
 }

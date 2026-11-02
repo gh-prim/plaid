@@ -59,7 +59,7 @@ func showFixture(t *testing.T, s *Store) {
 }
 
 func TestNextEpisode(t *testing.T) {
-	_, s := fixture(t)
+	s := fixture(t)
 	showFixture(t, s)
 	ctx := context.Background()
 	for cur, want := range map[string]string{"cam-s1e1": "cam-s1e2", "cam-s1e2": "cam-s2e1", "cam-s2e2": "", "nosferatu": ""} {
@@ -74,7 +74,7 @@ func TestNextEpisode(t *testing.T) {
 // the next episode, moves to it after 10 s and starts it once screens
 // loaded it.
 func TestNextEpisodeTogether(t *testing.T) {
-	_, st := fixture(t)
+	st := fixture(t)
 	showFixture(t, st)
 	now := t0
 	svc := New(Options{Store: st, Accounts: fakeAccounts{}, Now: func() time.Time { return now }})
@@ -163,7 +163,7 @@ func TestTally(t *testing.T) {
 // TestVoteLifecycle covers R31–R33: phases, two proposals each, ballots
 // kept to their voter, and the close picking the winner.
 func TestVoteLifecycle(t *testing.T) {
-	_, st := fixture(t)
+	st := fixture(t)
 	ctx := context.Background()
 	now := t0
 	for _, id := range []string{"metropolis", "sintel"} {
@@ -241,7 +241,7 @@ func TestVoteLifecycle(t *testing.T) {
 // reminder 15 minutes before, the start at the time, and a party nobody
 // started cancelled 3 hours later.
 func TestScheduler(t *testing.T) {
-	_, st := fixture(t)
+	st := fixture(t)
 	ctx := context.Background()
 	now := t0
 	svc := New(Options{Store: st, Accounts: fakeAccounts{}, Now: func() time.Time { return now }})
@@ -320,7 +320,7 @@ func (fakeReleases) Season(_ context.Context, _, n int, _ provider.Locale) (*pro
 // come from TMDB with their status, and "Notify me" fires when the file
 // lands.
 func TestUpcoming(t *testing.T) {
-	_, st := fixture(t)
+	st := fixture(t)
 	showFixture(t, st)
 	ctx := context.Background()
 	now := t0

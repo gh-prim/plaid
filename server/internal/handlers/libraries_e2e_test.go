@@ -3,9 +3,6 @@ package handlers_test
 import (
 	"context"
 	"fmt"
-	"github.com/gh-prim/plaid/server/internal/auth"
-	"github.com/gh-prim/plaid/server/internal/party"
-	"github.com/gh-prim/plaid/server/internal/realtime"
 	"io"
 	"log/slog"
 	"net"
@@ -17,6 +14,10 @@ import (
 	"testing"
 	"testing/fstest"
 	"time"
+
+	"github.com/gh-prim/plaid/server/internal/auth"
+	"github.com/gh-prim/plaid/server/internal/party"
+	"github.com/gh-prim/plaid/server/internal/realtime"
 
 	"github.com/gh-prim/plaid/server/internal/catalog"
 	"github.com/gh-prim/plaid/server/internal/handlers"

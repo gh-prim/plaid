@@ -212,7 +212,7 @@ func (h *Hub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.opts.Handler.Disconnected(c)
 		}
 		cancel()
-		ws.CloseNow()
+		_ = ws.CloseNow()
 	}()
 	if h.opts.Handler != nil {
 		h.opts.Handler.Connected(c)
@@ -227,7 +227,7 @@ func (h *Hub) writeLoop(ctx context.Context, ws *websocket.Conn, c *Conn) {
 	for {
 		select {
 		case <-ctx.Done():
-			ws.Close(websocket.StatusGoingAway, "")
+			_ = ws.Close(websocket.StatusGoingAway, "")
 			return
 		case b := <-c.send:
 			wctx, done := context.WithTimeout(ctx, h.opts.SlowAfter)

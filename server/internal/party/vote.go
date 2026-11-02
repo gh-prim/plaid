@@ -245,7 +245,7 @@ func Tally(proposals []Proposal, ballots []Ballot, seed string) Result {
 func Draw(ids []string, seed string) string {
 	h := fnv.New64a()
 	h.Write([]byte(seed))
-	r := rand.New(rand.NewPCG(h.Sum64(), uint64(len(ids))))
+	r := rand.New(rand.NewPCG(h.Sum64(), uint64(len(ids)))) //nolint:gosec // G404: deterministic on purpose, the seed is random
 	return ids[r.IntN(len(ids))]
 }
 

@@ -100,7 +100,7 @@ func (h *Handlers) toParty(ctx context.Context, svc *party.Service, p auth.Princ
 		out.FutureEpisode = &struct {
 			Episode int    `json:"episode"`
 			Season  int    `json:"season"`
-			ShowId  string `json:"showId"`
+			ShowId  string `json:"showId"` //nolint:revive // the generated type's field
 		}{Episode: pt.FutureEpisode, Season: pt.FutureSeason, ShowId: pt.FutureShowID}
 	}
 	// A guest sees the party, not who else was invited.
@@ -408,7 +408,7 @@ func toPartyVote(v party.VoteView) api.PartyVote {
 	if r := v.Result; r != nil {
 		res := &struct {
 			Scores []struct {
-				ItemId string `json:"itemId"`
+				ItemId string `json:"itemId"` //nolint:revive // the generated type's field
 				Points int    `json:"points"`
 				Vetoed bool   `json:"vetoed"`
 			} `json:"scores"`
@@ -418,7 +418,7 @@ func toPartyVote(v party.VoteView) api.PartyVote {
 		}{}
 		for _, sc := range r.Scores {
 			res.Scores = append(res.Scores, struct {
-				ItemId string `json:"itemId"`
+				ItemId string `json:"itemId"` //nolint:revive // the generated type's field
 				Points int    `json:"points"`
 				Vetoed bool   `json:"vetoed"`
 			}{ItemId: sc.ItemID, Points: sc.Points, Vetoed: sc.Vetoed})

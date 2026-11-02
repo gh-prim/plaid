@@ -84,7 +84,7 @@ const guestCookieMaxAge = 2 * 24 * time.Hour
 
 // SetGuestCookie queues a Plaid Party guest's cookie (F010-R5).
 func SetGuestCookie(ctx context.Context, token string) {
-	c := sessionCookie(ctx, token, int(guestCookieMaxAge/time.Second))
+	c := sessionCookie(ctx, token, int(guestCookieMaxAge/time.Second)) //nolint:gosec // G124: HttpOnly, SameSite, Secure over HTTPS
 	c.Name = GuestCookieName
 	setCookie(ctx, c)
 }

@@ -263,6 +263,7 @@ func (s *Store) ByCode(ctx context.Context, code string) (Party, error) {
 }
 
 func (s *Store) list(ctx context.Context, where string, args ...any) ([]Party, error) {
+	//nolint:gosec // G202: where is one of this file's constant conditions
 	rows, err := s.db.QueryContext(ctx, `SELECT `+partyCols+` FROM parties WHERE `+where, args...)
 	if err != nil {
 		return nil, err
@@ -558,6 +559,7 @@ func (s *Store) Unwatched(ctx context.Context, users []string, limit int) ([]str
 		args = append(args, u)
 	}
 	args = append(args, limit)
+	//nolint:gosec // G202: only "?" placeholders are concatenated
 	rows, err := s.db.QueryContext(ctx, `SELECT i.id FROM items i WHERE i.kind = 'movie' AND i.hidden = 0
 		AND NOT EXISTS (SELECT 1 FROM watch_state w JOIN profiles pr ON pr.id = w.profile_id
 			WHERE w.item_id = i.id AND (w.watched = 1 OR w.position_ms > 0)

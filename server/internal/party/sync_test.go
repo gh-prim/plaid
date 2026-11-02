@@ -138,7 +138,7 @@ func simulate(t *testing.T, rtt, jitter, skewA, skewB float64) (p95, p50 float64
 		{name: "b", skewMs: skewB, oneWayMs: rtt / 2, jitterMs: jitter, rate: 1},
 	}
 	trueMs := 0.0
-	r := NewRoom("p", "item", ControlHost, 8, start, func(to Target, typ string, data any) {
+	r := NewRoom("p", "item", ControlHost, 8, start, func(_ Target, typ string, data any) {
 		if typ != "party.playback" {
 			return
 		}

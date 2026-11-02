@@ -31,7 +31,7 @@ func (h *Handlers) GetUpcoming(ctx context.Context, req api.GetUpcomingRequestOb
 		from = req.Params.From.Time
 	}
 	if req.Params.To != nil {
-		to = req.Params.To.Time.Add(24*time.Hour - time.Millisecond)
+		to = req.Params.To.Add(24*time.Hour - time.Millisecond)
 	}
 	kind := "all"
 	if req.Params.Kind != nil {

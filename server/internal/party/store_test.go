@@ -2,7 +2,6 @@ package party
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"testing"
 	"time"
@@ -14,7 +13,7 @@ var t0 = time.Date(2026, 11, 7, 20, 0, 0, 0, time.UTC)
 
 // fixture opens a database with two users (alex, mia), a profile each and a
 // movie.
-func fixture(t *testing.T) (*sql.DB, *Store) {
+func fixture(t *testing.T) *Store {
 	t.Helper()
 	ctx := context.Background()
 	d, err := db.Open(ctx, t.TempDir())
@@ -37,12 +36,12 @@ func fixture(t *testing.T) (*sql.DB, *Store) {
 	}
 	exec(`INSERT INTO libraries (id, name, type, created_at, updated_at) VALUES ('lib','Films','movies',?,?)`, now, now)
 	exec(`INSERT INTO items (id, library_id, kind, title, created_at, updated_at) VALUES ('nosferatu','lib','movie','Nosferatu',?,?)`, now, now)
-	return d, NewStore(d)
+	return NewStore(d)
 }
 
 func TestStoreCreateAndCode(t *testing.T) {
 	ctx := context.Background()
-	_, s := fixture(t)
+	s := fixture(t)
 	p := Party{ID: NewID(), Code: "K7P4QX", Status: StatusLive, ItemID: "nosferatu",
 		OrganizerUserID: "alex", OrganizerProfileID: "p-alex", ControlMode: ControlHost, CreatedAt: t0}
 	if err := s.Create(ctx, p, []string{"mia", "mia"}); err != nil {
@@ -75,7 +74,7 @@ func TestStoreCreateAndCode(t *testing.T) {
 
 func TestStoreInvitesAndAnswers(t *testing.T) {
 	ctx := context.Background()
-	_, s := fixture(t)
+	s := fixture(t)
 	sched := t0.Add(24 * time.Hour)
 	p := Party{ID: NewID(), Code: NewCode(), Status: StatusScheduled, ItemID: "nosferatu",
 		OrganizerUserID: "alex", ControlMode: ControlEveryone, ScheduledAt: &sched, Note: "Popcorn", CreatedAt: t0}
@@ -111,7 +110,7 @@ func TestStoreInvitesAndAnswers(t *testing.T) {
 
 func TestStoreGuestsAndRemoval(t *testing.T) {
 	ctx := context.Background()
-	_, s := fixture(t)
+	s := fixture(t)
 	p := Party{ID: NewID(), Code: NewCode(), Status: StatusLive, ItemID: "nosferatu",
 		OrganizerUserID: "alex", ControlMode: ControlHost, CreatedAt: t0}
 	if err := s.Create(ctx, p, nil); err != nil {

@@ -154,6 +154,7 @@ func (st *Store) Releases(ctx context.Context, shows []string, from, to string) 
 	for _, s := range shows {
 		args = append(args, s)
 	}
+	//nolint:gosec // G202: only "?" placeholders are concatenated
 	rows, err := st.db.QueryContext(ctx, `SELECT show_id, season, episode, COALESCE(title, ''), air_date FROM upcoming_episodes
 		WHERE air_date BETWEEN ? AND ? AND show_id IN (?`+strings.Repeat(",?", len(shows)-1)+`)
 		ORDER BY air_date, show_id, season, episode`, args...)

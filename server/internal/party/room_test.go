@@ -22,9 +22,9 @@ type roomTest struct {
 	sent []sent
 }
 
-func newRoomTest(t *testing.T, max int) *roomTest {
+func newRoomTest(t *testing.T, maxPeople int) *roomTest {
 	rt := &roomTest{t: t, now: t0}
-	rt.r = NewRoom("party1", "nosferatu", ControlHost, max, rt.now, func(to Target, typ string, data any) {
+	rt.r = NewRoom("party1", "nosferatu", ControlHost, maxPeople, rt.now, func(to Target, typ string, data any) {
 		rt.sent = append(rt.sent, sent{to, typ, data})
 	})
 	return rt

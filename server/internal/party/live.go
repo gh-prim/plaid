@@ -29,7 +29,7 @@ func lowest(qs []string) string {
 
 // blocked records that a person's screen can't get a transcode now and
 // tells the host (R26). Callers hold l.mu.
-func (s *Service) blocked(l *live, me, quality string) error {
+func (s *Service) blocked(l *live, me, quality string) {
 	l.blocked[me] = quality
 	type who struct {
 		ID      string `json:"id"`
@@ -48,7 +48,6 @@ func (s *Service) blocked(l *live, me, quality string) error {
 	l.room.emit(Target{Host: true}, "party.transcode.limit", map[string]any{
 		"waiting": waiting, "sharedQuality": shared, "options": []string{"shared", "order", "cancel"},
 	})
-	return nil
 }
 
 // chooseTranscode applies the host's choice (R26): one shared quality for

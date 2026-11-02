@@ -9,9 +9,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/gh-prim/plaid/server/internal/auth"
-	"github.com/gh-prim/plaid/server/internal/party"
-	"github.com/gh-prim/plaid/server/internal/realtime"
 	"io"
 	"log/slog"
 	"net"
@@ -21,6 +18,10 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"github.com/gh-prim/plaid/server/internal/auth"
+	"github.com/gh-prim/plaid/server/internal/party"
+	"github.com/gh-prim/plaid/server/internal/realtime"
 
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/buildinfo"
