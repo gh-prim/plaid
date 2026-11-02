@@ -44,6 +44,9 @@ var publicRoutes = []string{
 	"POST /auth/login",
 	"POST /pairing",
 	"GET /pairing/{pairingId}",
+	// Invitation links (F009): checked by the backoff on unknown tokens.
+	"POST /invite/check",
+	"POST /invite/accept",
 	// Playback streams authenticate by the token in their path (F006 R25).
 	"GET /stream/{token}/file",
 	"HEAD /stream/{token}/file",

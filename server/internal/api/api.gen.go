@@ -131,6 +131,87 @@ func (e AttributionProvider) Valid() bool {
 	}
 }
 
+// Defines values for AvatarKind.
+const (
+	AvatarKindBuilder AvatarKind = "builder"
+	AvatarKindInitial AvatarKind = "initial"
+	AvatarKindPhoto   AvatarKind = "photo"
+)
+
+// Valid indicates whether the value is a known member of the AvatarKind enum.
+func (e AvatarKind) Valid() bool {
+	switch e {
+	case AvatarKindBuilder:
+		return true
+	case AvatarKindInitial:
+		return true
+	case AvatarKindPhoto:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AvatarPartName.
+const (
+	Beard    AvatarPartName = "beard"
+	Earrings AvatarPartName = "earrings"
+	Eyebrows AvatarPartName = "eyebrows"
+	Eyes     AvatarPartName = "eyes"
+	Freckles AvatarPartName = "freckles"
+	Glasses  AvatarPartName = "glasses"
+	Hair     AvatarPartName = "hair"
+	Head     AvatarPartName = "head"
+	Mouth    AvatarPartName = "mouth"
+	Nose     AvatarPartName = "nose"
+)
+
+// Valid indicates whether the value is a known member of the AvatarPartName enum.
+func (e AvatarPartName) Valid() bool {
+	switch e {
+	case Beard:
+		return true
+	case Earrings:
+		return true
+	case Eyebrows:
+		return true
+	case Eyes:
+		return true
+	case Freckles:
+		return true
+	case Glasses:
+		return true
+	case Hair:
+		return true
+	case Head:
+		return true
+	case Mouth:
+		return true
+	case Nose:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AvatarUpdateKind.
+const (
+	AvatarUpdateKindBuilder AvatarUpdateKind = "builder"
+	AvatarUpdateKindInitial AvatarUpdateKind = "initial"
+)
+
+// Valid indicates whether the value is a known member of the AvatarUpdateKind enum.
+func (e AvatarUpdateKind) Valid() bool {
+	switch e {
+	case AvatarUpdateKindBuilder:
+		return true
+	case AvatarUpdateKindInitial:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CapabilityProfilePreset.
 const (
 	CapabilityProfilePresetExternal CapabilityProfilePreset = "external"
@@ -563,6 +644,33 @@ func (e MatchedItemKind) Valid() bool {
 	}
 }
 
+// Defines values for MaxQuality.
+const (
+	MaxQualityN1080p   MaxQuality = "1080p"
+	MaxQualityN2160p   MaxQuality = "2160p"
+	MaxQualityN480p    MaxQuality = "480p"
+	MaxQualityN720p    MaxQuality = "720p"
+	MaxQualityOriginal MaxQuality = "original"
+)
+
+// Valid indicates whether the value is a known member of the MaxQuality enum.
+func (e MaxQuality) Valid() bool {
+	switch e {
+	case MaxQualityN1080p:
+		return true
+	case MaxQualityN2160p:
+		return true
+	case MaxQualityN480p:
+		return true
+	case MaxQualityN720p:
+		return true
+	case MaxQualityOriginal:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MediaFileHdrFormat.
 const (
 	MediaFileHdrFormatDolbyVision MediaFileHdrFormat = "dolby_vision"
@@ -707,6 +815,27 @@ const (
 func (e PairingPendingStatus) Valid() bool {
 	switch e {
 	case PairingPendingStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PartyRight.
+const (
+	PartyRightJoin  PartyRight = "join"
+	PartyRightNone  PartyRight = "none"
+	PartyRightStart PartyRight = "start"
+)
+
+// Valid indicates whether the value is a known member of the PartyRight enum.
+func (e PartyRight) Valid() bool {
+	switch e {
+	case PartyRightJoin:
+		return true
+	case PartyRightNone:
+		return true
+	case PartyRightStart:
 		return true
 	default:
 		return false
@@ -1397,6 +1526,19 @@ func (e SearchMetadataParamsKind) Valid() bool {
 	}
 }
 
+// AcceptInvitationRequest defines model for AcceptInvitationRequest.
+type AcceptInvitationRequest struct {
+	Device      *Device `json:"device,omitempty"`
+	DisplayName string  `json:"displayName"`
+	Locale      *string `json:"locale,omitempty"`
+	Password    string  `json:"password"`
+
+	// Pin 4 digits, required. It protects the first profile.
+	Pin      string `json:"pin"`
+	Token    string `json:"token"`
+	Username string `json:"username"`
+}
+
 // ActivePlayback defines model for ActivePlayback.
 type ActivePlayback struct {
 	DeviceName     string    `json:"deviceName"`
@@ -1425,14 +1567,32 @@ type ActivePlaybackList struct {
 
 // AdminUser defines model for AdminUser.
 type AdminUser struct {
-	CreatedAt          time.Time `json:"createdAt"`
-	Disabled           bool      `json:"disabled"`
-	DisplayName        string    `json:"displayName"`
-	Id                 string    `json:"id"`
-	Locale             string    `json:"locale"`
-	MustChangePassword bool      `json:"mustChangePassword"`
-	Role               Role      `json:"role"`
-	Username           string    `json:"username"`
+	// Access What an account gets from its role, groups and exceptions together.
+	Access EffectiveAccess `json:"access"`
+	Avatar Avatar          `json:"avatar"`
+
+	// AvatarColor The default profile's color.
+	AvatarColor int       `json:"avatarColor"`
+	CreatedAt   time.Time `json:"createdAt"`
+
+	// Disabled Suspended. A suspended account can't sign in; its account and history are kept.
+	Disabled    bool   `json:"disabled"`
+	DisplayName string `json:"displayName"`
+
+	// ExtraLibraryIds Libraries given to this person on top of their groups (F009).
+	ExtraLibraryIds []string `json:"extraLibraryIds"`
+
+	// ExtraRights Rights given to one person on top of their groups. They only add; null takes the groups' value.
+	ExtraRights RightsOverride `json:"extraRights"`
+	GroupIds    []string       `json:"groupIds"`
+	Id          string         `json:"id"`
+
+	// LastSeenAt The most recent activity of any of its devices, null if it never signed in.
+	LastSeenAt         nullable.Nullable[time.Time] `json:"lastSeenAt"`
+	Locale             string                       `json:"locale"`
+	MustChangePassword bool                         `json:"mustChangePassword"`
+	Role               Role                         `json:"role"`
+	Username           string                       `json:"username"`
 }
 
 // AmbientColors Colors taken from the image for the UI (R21), as
@@ -1524,6 +1684,73 @@ type AuthResult struct {
 	Token *string `json:"token,omitempty"`
 	User  User    `json:"user"`
 }
+
+// Avatar defines model for Avatar.
+type Avatar struct {
+	Kind AvatarKind `json:"kind"`
+
+	// Options A built avatar: one variant per part, as listed by `GET /avatar-builder`. An optional part is absent or null for none.
+	Options *AvatarOptions `json:"options,omitempty"`
+
+	// Url The picture (`/avatars/{profileId}?v=…`), absent for the initial.
+	Url *string `json:"url,omitempty"`
+}
+
+// AvatarBuilder defines model for AvatarBuilder.
+type AvatarBuilder struct {
+	// Defaults A built avatar: one variant per part, as listed by `GET /avatar-builder`. An optional part is absent or null for none.
+	Defaults   AvatarOptions `json:"defaults"`
+	HairColors []string      `json:"hairColors"`
+
+	// License Credit line for the style, shown in About.
+	License    string       `json:"license"`
+	Parts      []AvatarPart `json:"parts"`
+	SkinColors []string     `json:"skinColors"`
+}
+
+// AvatarKind defines model for AvatarKind.
+type AvatarKind string
+
+// AvatarOptions A built avatar: one variant per part, as listed by `GET /avatar-builder`. An optional part is absent or null for none.
+type AvatarOptions struct {
+	Beard    nullable.Nullable[string] `json:"beard,omitempty"`
+	Earrings nullable.Nullable[string] `json:"earrings,omitempty"`
+	Eyebrows string                    `json:"eyebrows"`
+	Eyes     string                    `json:"eyes"`
+	Freckles nullable.Nullable[string] `json:"freckles,omitempty"`
+	Glasses  nullable.Nullable[string] `json:"glasses,omitempty"`
+	Hair     string                    `json:"hair"`
+
+	// HairColor Examples: #5b3a26
+	HairColor string `json:"hairColor"`
+	Head      string `json:"head"`
+	Mouth     string `json:"mouth"`
+	Nose      string `json:"nose"`
+
+	// SkinColor Examples: #d9a07a
+	SkinColor string `json:"skinColor"`
+}
+
+// AvatarPart defines model for AvatarPart.
+type AvatarPart struct {
+	Name     AvatarPartName `json:"name"`
+	Optional bool           `json:"optional"`
+	Variants []string       `json:"variants"`
+}
+
+// AvatarPartName defines model for AvatarPart.Name.
+type AvatarPartName string
+
+// AvatarUpdate defines model for AvatarUpdate.
+type AvatarUpdate struct {
+	Kind AvatarUpdateKind `json:"kind"`
+
+	// Options A built avatar: one variant per part, as listed by `GET /avatar-builder`. An optional part is absent or null for none.
+	Options *AvatarOptions `json:"options,omitempty"`
+}
+
+// AvatarUpdateKind defines model for AvatarUpdate.Kind.
+type AvatarUpdateKind string
 
 // BrowseEntry defines model for BrowseEntry.
 type BrowseEntry struct {
@@ -1657,6 +1884,24 @@ type CollectionSummary struct {
 	Poster *Artwork `json:"poster,omitempty"`
 }
 
+// CreateGroupRequest defines model for CreateGroupRequest.
+type CreateGroupRequest struct {
+	Household  *bool     `json:"household,omitempty"`
+	LibraryIds *[]string `json:"libraryIds,omitempty"`
+	Name       string    `json:"name"`
+	Rights     *Rights   `json:"rights,omitempty"`
+}
+
+// CreateInvitationRequest defines model for CreateInvitationRequest.
+type CreateInvitationRequest struct {
+	// ExpiresInDays Defaults to 7.
+	ExpiresInDays *int `json:"expiresInDays,omitempty"`
+
+	// GroupIds At least one group, so the new account sees something.
+	GroupIds []string `json:"groupIds"`
+	Name     string   `json:"name"`
+}
+
 // CreateLibraryRequest defines model for CreateLibraryRequest.
 type CreateLibraryRequest struct {
 	// Folders Examples: ["/srv/media/movies"]
@@ -1681,11 +1926,22 @@ type CreateProfileRequest struct {
 
 // CreateUserRequest defines model for CreateUserRequest.
 type CreateUserRequest struct {
-	DisplayName       string  `json:"displayName"`
-	Locale            *string `json:"locale,omitempty"`
-	Role              Role    `json:"role"`
-	TemporaryPassword string  `json:"temporaryPassword"`
-	Username          string  `json:"username"`
+	DisplayName string `json:"displayName"`
+
+	// GroupIds The member's groups (F009). Without any, a member sees no library.
+	GroupIds          *[]string `json:"groupIds,omitempty"`
+	Locale            *string   `json:"locale,omitempty"`
+	Role              Role      `json:"role"`
+	TemporaryPassword string    `json:"temporaryPassword"`
+	Username          string    `json:"username"`
+}
+
+// CreatedInvitation defines model for CreatedInvitation.
+type CreatedInvitation struct {
+	Invitation Invitation `json:"invitation"`
+
+	// Token Shown once; the link is `/invite/{token}`.
+	Token string `json:"token"`
 }
 
 // Credit defines model for Credit.
@@ -1745,6 +2001,13 @@ type DriveStats struct {
 	TotalBytes *int64 `json:"totalBytes,omitempty"`
 }
 
+// EffectiveAccess What an account gets from its role, groups and exceptions together.
+type EffectiveAccess struct {
+	// LibraryIds The libraries it sees; null for all of them (admins and household groups).
+	LibraryIds nullable.Nullable[[]string] `json:"libraryIds"`
+	Rights     Rights                      `json:"rights"`
+}
+
 // EncoderPreset Encoder speed against quality (libx264 veryfast, faster, medium). On 4 cores or fewer (counting a container's CPU quota), fast uses superfast to keep up with real time.
 type EncoderPreset string
 
@@ -1784,6 +2047,19 @@ type GenreRef struct {
 	// Id TMDB genre id.
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+// Group defines model for Group.
+type Group struct {
+	// Household Sees every library, present and future, household-only ones included.
+	Household bool   `json:"household"`
+	Id        string `json:"id"`
+
+	// LibraryIds Shared libraries; ignored for a household group.
+	LibraryIds []string `json:"libraryIds"`
+	MemberIds  []string `json:"memberIds"`
+	Name       string   `json:"name"`
+	Rights     Rights   `json:"rights"`
 }
 
 // HardwareStatus The result of the last hardware test (F006 R24, R31).
@@ -1878,6 +2154,34 @@ type IdentifyRequest struct {
 
 	// TmdbId The movie, or the show for an episode.
 	TmdbId int `json:"tmdbId"`
+}
+
+// Invitation defines model for Invitation.
+type Invitation struct {
+	CreatedAt time.Time `json:"createdAt"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	GroupIds  []string  `json:"groupIds"`
+	Id        string    `json:"id"`
+
+	// Name Who it is for, as the admin wrote it.
+	Name string `json:"name"`
+}
+
+// InvitationPreview defines model for InvitationPreview.
+type InvitationPreview struct {
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	// InvitedBy The display name of the admin who invited.
+	InvitedBy string `json:"invitedBy"`
+
+	// Name The name the admin gave; a suggestion for the display name.
+	Name       string `json:"name"`
+	ServerName string `json:"serverName"`
+}
+
+// InvitationTokenRequest defines model for InvitationTokenRequest.
+type InvitationTokenRequest struct {
+	Token string `json:"token"`
 }
 
 // ItemDetail defines model for ItemDetail.
@@ -2110,10 +2414,13 @@ type LetterFacet struct {
 
 // Library defines model for Library.
 type Library struct {
-	Counts     LibraryCounts   `json:"counts"`
-	Folders    []LibraryFolder `json:"folders"`
-	Id         string          `json:"id"`
-	LastScanAt *time.Time      `json:"lastScanAt,omitempty"`
+	Counts  LibraryCounts   `json:"counts"`
+	Folders []LibraryFolder `json:"folders"`
+
+	// HouseholdOnly Never shared outside the household (F009). Only admins and household groups see it.
+	HouseholdOnly bool       `json:"householdOnly"`
+	Id            string     `json:"id"`
+	LastScanAt    *time.Time `json:"lastScanAt,omitempty"`
 
 	// MetadataLanguage ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
 	//
@@ -2244,11 +2551,16 @@ type MatchedItem struct {
 // MatchedItemKind defines model for MatchedItem.Kind.
 type MatchedItemKind string
 
+// MaxQuality The best picture a person may get. Above it, playback transcodes down.
+type MaxQuality string
+
 // Me defines model for Me.
 type Me struct {
-	ActiveProfile *Profile  `json:"activeProfile,omitempty"`
-	Profiles      []Profile `json:"profiles"`
-	User          User      `json:"user"`
+	// Access What an account gets from its role, groups and exceptions together.
+	Access        EffectiveAccess `json:"access"`
+	ActiveProfile *Profile        `json:"activeProfile,omitempty"`
+	Profiles      []Profile       `json:"profiles"`
+	User          User            `json:"user"`
 }
 
 // MediaFile defines model for MediaFile.
@@ -2388,6 +2700,9 @@ type PairingStarted struct {
 	Id         string    `json:"id"`
 	PollSecret string    `json:"pollSecret"`
 }
+
+// PartyRight What a person may do with Plaid Party (F010).
+type PartyRight string
 
 // Person defines model for Person.
 type Person struct {
@@ -2615,8 +2930,9 @@ type Profile struct {
 
 	// Ambient The backdrop of what the profile watched last, which lights the profile picker (V2). Never for a profile with a PIN, so it doesn't show what it watches.
 	Ambient *Artwork `json:"ambient,omitempty"`
+	Avatar  Avatar   `json:"avatar"`
 
-	// AvatarColor Index of the `party-*` design token.
+	// AvatarColor Index of the `party-*` design token. The background of the initial and of a built avatar.
 	AvatarColor int    `json:"avatarColor"`
 	HasPin      bool   `json:"hasPin"`
 	Id          string `json:"id"`
@@ -2767,6 +3083,33 @@ type ReviewItemReason string
 type ReviewPage struct {
 	Items      []ReviewItem `json:"items"`
 	NextCursor *string      `json:"nextCursor,omitempty"`
+}
+
+// Rights defines model for Rights.
+type Rights struct {
+	CanCreateProfiles bool `json:"canCreateProfiles"`
+
+	// Downloads Downloads for offline viewing (stored now, used by the apps once they download).
+	Downloads bool `json:"downloads"`
+
+	// MaxQuality The best picture a person may get. Above it, playback transcodes down.
+	MaxQuality MaxQuality `json:"maxQuality"`
+
+	// MaxStreams Streams at the same time per person; null for no limit.
+	MaxStreams nullable.Nullable[int] `json:"maxStreams"`
+
+	// Party What a person may do with Plaid Party (F010).
+	Party PartyRight `json:"party"`
+}
+
+// RightsOverride Rights given to one person on top of their groups. They only add; null takes the groups' value.
+type RightsOverride struct {
+	CanCreateProfiles nullable.Nullable[bool]       `json:"canCreateProfiles,omitempty"`
+	Downloads         nullable.Nullable[bool]       `json:"downloads,omitempty"`
+	MaxQuality        nullable.Nullable[MaxQuality] `json:"maxQuality,omitempty"`
+	MaxStreams        nullable.Nullable[int]        `json:"maxStreams,omitempty"`
+	Party             nullable.Nullable[PartyRight] `json:"party,omitempty"`
+	UnlimitedStreams  nullable.Nullable[bool]       `json:"unlimitedStreams,omitempty"`
 }
 
 // Role defines model for Role.
@@ -3034,9 +3377,20 @@ type UpNext struct {
 	Item ItemSummary `json:"item"`
 }
 
+// UpdateGroupRequest Absent fields are unchanged.
+type UpdateGroupRequest struct {
+	Household  *bool     `json:"household,omitempty"`
+	LibraryIds *[]string `json:"libraryIds,omitempty"`
+	Name       *string   `json:"name,omitempty"`
+	Rights     *Rights   `json:"rights,omitempty"`
+}
+
 // UpdateLibraryRequest defines model for UpdateLibraryRequest.
 type UpdateLibraryRequest struct {
 	Folders *[]string `json:"folders,omitempty"`
+
+	// HouseholdOnly Making a library household-only removes it from every non-household group and person (F009).
+	HouseholdOnly *bool `json:"householdOnly,omitempty"`
 
 	// MetadataLanguage ISO 639-1 language metadata is fetched in, English filling the gaps (F005 R10, R11). Defaults to the creating admin's locale. Changing it refreshes the library's metadata in the background.
 	//
@@ -3079,10 +3433,20 @@ type UpdateProfileRequest struct {
 
 // UpdateUserRequest defines model for UpdateUserRequest.
 type UpdateUserRequest struct {
+	// Disabled Suspend (true) or restore (false). Suspending ends every session and playback of the account at once.
 	Disabled    *bool   `json:"disabled,omitempty"`
 	DisplayName *string `json:"displayName,omitempty"`
-	Locale      *string `json:"locale,omitempty"`
-	Role        *Role   `json:"role,omitempty"`
+
+	// ExtraLibraryIds Replaces the libraries given on top of the groups (F009).
+	ExtraLibraryIds *[]string `json:"extraLibraryIds,omitempty"`
+
+	// ExtraRights Rights given to one person on top of their groups. They only add; null takes the groups' value.
+	ExtraRights *RightsOverride `json:"extraRights,omitempty"`
+
+	// GroupIds Replaces the account's groups (F009).
+	GroupIds *[]string `json:"groupIds,omitempty"`
+	Locale   *string   `json:"locale,omitempty"`
+	Role     *Role     `json:"role,omitempty"`
 }
 
 // User defines model for User.
@@ -3137,8 +3501,14 @@ type VideoCapabilityHdr string
 // WatchFilter defines model for WatchFilter.
 type WatchFilter string
 
+// AvatarSize defines model for AvatarSize.
+type AvatarSize = int
+
 // Cursor defines model for Cursor.
 type Cursor = string
+
+// GroupId defines model for GroupId.
+type GroupId = string
 
 // ItemId defines model for ItemId.
 type ItemId = string
@@ -3175,6 +3545,24 @@ type SubtitleIndex = int
 
 // UserId defines model for UserId.
 type UserId = string
+
+// RenderAvatarParams defines parameters for RenderAvatar.
+type RenderAvatarParams struct {
+	// Options AvatarOptions as JSON.
+	Options string `form:"options" json:"options"`
+
+	// Color Background, an avatar color index; none for transparent.
+	Color *int `form:"color,omitempty" json:"color,omitempty"`
+
+	// Size Side in pixels, defaults to 256.
+	Size *AvatarSize `form:"size,omitempty" json:"size,omitempty"`
+}
+
+// GetAvatarParams defines parameters for GetAvatar.
+type GetAvatarParams struct {
+	// Size Side in pixels, defaults to 256.
+	Size *AvatarSize `form:"size,omitempty" json:"size,omitempty"`
+}
 
 // ListCollectionsParams defines parameters for ListCollections.
 type ListCollectionsParams struct {
@@ -3293,6 +3681,21 @@ type SearchParams struct {
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
 
+// CreateGroupJSONRequestBody defines body for CreateGroup for application/json ContentType.
+type CreateGroupJSONRequestBody = CreateGroupRequest
+
+// UpdateGroupJSONRequestBody defines body for UpdateGroup for application/json ContentType.
+type UpdateGroupJSONRequestBody = UpdateGroupRequest
+
+// CreateInvitationJSONRequestBody defines body for CreateInvitation for application/json ContentType.
+type CreateInvitationJSONRequestBody = CreateInvitationRequest
+
+// AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
+type AcceptInvitationJSONRequestBody = AcceptInvitationRequest
+
+// CheckInvitationJSONRequestBody defines body for CheckInvitation for application/json ContentType.
+type CheckInvitationJSONRequestBody = InvitationTokenRequest
+
 // SelectItemArtworkJSONRequestBody defines body for SelectItemArtwork for application/json ContentType.
 type SelectItemArtworkJSONRequestBody = ArtworkSelection
 
@@ -3331,6 +3734,9 @@ type CreateMyProfileJSONRequestBody = CreateProfileRequest
 
 // UpdateMyProfileJSONRequestBody defines body for UpdateMyProfile for application/json ContentType.
 type UpdateMyProfileJSONRequestBody = UpdateProfileRequest
+
+// SetMyProfileAvatarJSONRequestBody defines body for SetMyProfileAvatar for application/json ContentType.
+type SetMyProfileAvatarJSONRequestBody = AvatarUpdate
 
 // IdentifyFileJSONRequestBody defines body for IdentifyFile for application/json ContentType.
 type IdentifyFileJSONRequestBody = IdentifyRequest
@@ -3382,6 +3788,15 @@ type ServerInterface interface {
 	// Logout End the current session
 	// (POST /auth/logout)
 	Logout(w http.ResponseWriter, r *http.Request)
+	// GetAvatarBuilder The parts and colors of the avatar builder (F009)
+	// (GET /avatar-builder)
+	GetAvatarBuilder(w http.ResponseWriter, r *http.Request)
+	// RenderAvatar Draw an avatar from options, for the builder's previews (F009)
+	// (GET /avatar-builder/render)
+	RenderAvatar(w http.ResponseWriter, r *http.Request, params RenderAvatarParams)
+	// GetAvatar A profile's avatar or photo, square (F009)
+	// (GET /avatars/{profileId})
+	GetAvatar(w http.ResponseWriter, r *http.Request, profileId ProfileId, params GetAvatarParams)
 	// ListCollections A library's collections (F005 R23)
 	// (GET /collections)
 	ListCollections(w http.ResponseWriter, r *http.Request, params ListCollectionsParams)
@@ -3391,6 +3806,18 @@ type ServerInterface interface {
 	// BrowseFolders Sub-folders of a server folder, for the folder picker (admin)
 	// (GET /fs/browse)
 	BrowseFolders(w http.ResponseWriter, r *http.Request, params BrowseFoldersParams)
+	// ListGroups Sharing groups (admin, F009)
+	// (GET /groups)
+	ListGroups(w http.ResponseWriter, r *http.Request)
+	// CreateGroup Create a sharing group (admin, F009)
+	// (POST /groups)
+	CreateGroup(w http.ResponseWriter, r *http.Request)
+	// DeleteGroup Delete a group; its members keep their other groups (admin, F009)
+	// (DELETE /groups/{groupId})
+	DeleteGroup(w http.ResponseWriter, r *http.Request, groupId GroupId)
+	// UpdateGroup Change a group's name, libraries or rights (admin, F009)
+	// (PATCH /groups/{groupId})
+	UpdateGroup(w http.ResponseWriter, r *http.Request, groupId GroupId)
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
@@ -3403,6 +3830,21 @@ type ServerInterface interface {
 	// GetImage An artwork image, resized for the client (F005 R19)
 	// (GET /images/{imageId})
 	GetImage(w http.ResponseWriter, r *http.Request, imageId string, params GetImageParams)
+	// ListInvitations Invitations not used yet and not expired (admin, F009)
+	// (GET /invitations)
+	ListInvitations(w http.ResponseWriter, r *http.Request)
+	// CreateInvitation Create a single-use invitation link (admin, F009)
+	// (POST /invitations)
+	CreateInvitation(w http.ResponseWriter, r *http.Request)
+	// RevokeInvitation Cancel an invitation that wasn't used (admin, F009)
+	// (DELETE /invitations/{invitationId})
+	RevokeInvitation(w http.ResponseWriter, r *http.Request, invitationId string)
+	// AcceptInvitation Create an account from an invitation and sign in (F009)
+	// (POST /invite/accept)
+	AcceptInvitation(w http.ResponseWriter, r *http.Request)
+	// CheckInvitation What an invitation link is for, before creating the account (F009)
+	// (POST /invite/check)
+	CheckInvitation(w http.ResponseWriter, r *http.Request)
 	// GetItem An item with its files and streams
 	// (GET /items/{itemId})
 	GetItem(w http.ResponseWriter, r *http.Request, itemId string)
@@ -3505,6 +3947,12 @@ type ServerInterface interface {
 	// UpdateMyProfile Update a profile
 	// (PATCH /me/profiles/{profileId})
 	UpdateMyProfile(w http.ResponseWriter, r *http.Request, profileId ProfileId)
+	// SetMyProfileAvatar Show the initial, or an avatar made in the builder (F009)
+	// (PUT /me/profiles/{profileId}/avatar)
+	SetMyProfileAvatar(w http.ResponseWriter, r *http.Request, profileId ProfileId)
+	// SetMyProfilePhoto Use a photo, already cropped square by the client (F009)
+	// (PUT /me/profiles/{profileId}/avatar/photo)
+	SetMyProfilePhoto(w http.ResponseWriter, r *http.Request, profileId ProfileId)
 	// RevokeMyOtherSessions Sign out every other device
 	// (DELETE /me/sessions)
 	RevokeMyOtherSessions(w http.ResponseWriter, r *http.Request)
@@ -3661,6 +4109,121 @@ func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
+// GetAvatarBuilder operation middleware
+func (siw *ServerInterfaceWrapper) GetAvatarBuilder(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAvatarBuilder(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RenderAvatar operation middleware
+func (siw *ServerInterfaceWrapper) RenderAvatar(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RenderAvatarParams
+
+	// ------------- Required query parameter "options" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "options", r.URL.Query(), &params.Options, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "options"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "options", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "color" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "color", r.URL.Query(), &params.Color, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "color"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "color", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "size" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "size", r.URL.Query(), &params.Size, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "size"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "size", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RenderAvatar(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAvatar operation middleware
+func (siw *ServerInterfaceWrapper) GetAvatar(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "profileId", r.PathValue("profileId"), &profileId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "profileId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAvatarParams
+
+	// ------------- Optional query parameter "size" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "size", r.URL.Query(), &params.Size, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "size"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "size", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAvatar(w, r, profileId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListCollections operation middleware
 func (siw *ServerInterfaceWrapper) ListCollections(w http.ResponseWriter, r *http.Request) {
 
@@ -3744,6 +4307,86 @@ func (siw *ServerInterfaceWrapper) BrowseFolders(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BrowseFolders(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGroups operation middleware
+func (siw *ServerInterfaceWrapper) ListGroups(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroups(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateGroup operation middleware
+func (siw *ServerInterfaceWrapper) CreateGroup(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGroup(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteGroup operation middleware
+func (siw *ServerInterfaceWrapper) DeleteGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "groupId" -------------
+	var groupId GroupId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupId", r.PathValue("groupId"), &groupId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteGroup(w, r, groupId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateGroup operation middleware
+func (siw *ServerInterfaceWrapper) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "groupId" -------------
+	var groupId GroupId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupId", r.PathValue("groupId"), &groupId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateGroup(w, r, groupId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3890,6 +4533,88 @@ func (siw *ServerInterfaceWrapper) GetImage(w http.ResponseWriter, r *http.Reque
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetImage(w, r, imageId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListInvitations operation middleware
+func (siw *ServerInterfaceWrapper) ListInvitations(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListInvitations(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateInvitation operation middleware
+func (siw *ServerInterfaceWrapper) CreateInvitation(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateInvitation(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeInvitation operation middleware
+func (siw *ServerInterfaceWrapper) RevokeInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "invitationId" -------------
+	var invitationId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "invitationId", r.PathValue("invitationId"), &invitationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "invitationId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeInvitation(w, r, invitationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcceptInvitation operation middleware
+func (siw *ServerInterfaceWrapper) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcceptInvitation(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CheckInvitation operation middleware
+func (siw *ServerInterfaceWrapper) CheckInvitation(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CheckInvitation(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5009,6 +5734,58 @@ func (siw *ServerInterfaceWrapper) UpdateMyProfile(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// SetMyProfileAvatar operation middleware
+func (siw *ServerInterfaceWrapper) SetMyProfileAvatar(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "profileId", r.PathValue("profileId"), &profileId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "profileId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetMyProfileAvatar(w, r, profileId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetMyProfilePhoto operation middleware
+func (siw *ServerInterfaceWrapper) SetMyProfilePhoto(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "profileId", r.PathValue("profileId"), &profileId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "profileId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetMyProfilePhoto(w, r, profileId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // RevokeMyOtherSessions operation middleware
 func (siw *ServerInterfaceWrapper) RevokeMyOtherSessions(w http.ResponseWriter, r *http.Request) {
 
@@ -5983,6 +6760,11 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/me/profiles", wrapper.CreateMyProfile)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/me/profiles/{profileId}", wrapper.DeleteMyProfile)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/me/profiles/{profileId}", wrapper.UpdateMyProfile)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/me/profiles/{profileId}/avatar", wrapper.SetMyProfileAvatar)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/me/profiles/{profileId}/avatar/photo", wrapper.SetMyProfilePhoto)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/avatars/{profileId}", wrapper.GetAvatar)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/avatar-builder", wrapper.GetAvatarBuilder)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/avatar-builder/render", wrapper.RenderAvatar)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/session/profile", wrapper.SelectProfile)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/me/sessions", wrapper.RevokeMyOtherSessions)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/me/sessions", wrapper.ListMySessions)
@@ -5994,6 +6776,15 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/users/{userId}/password", wrapper.ResetUserPassword)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/users/{userId}/sessions", wrapper.ListUserSessions)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/users/{userId}/sessions/{sessionId}", wrapper.RevokeUserSession)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/groups", wrapper.ListGroups)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/groups", wrapper.CreateGroup)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/groups/{groupId}", wrapper.DeleteGroup)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/groups/{groupId}", wrapper.UpdateGroup)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/invitations", wrapper.ListInvitations)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/invitations", wrapper.CreateInvitation)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/invitations/{invitationId}", wrapper.RevokeInvitation)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/invite/check", wrapper.CheckInvitation)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/invite/accept", wrapper.AcceptInvitation)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/pairing", wrapper.StartPairing)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/pairing/{pairingId}", wrapper.PollPairing)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/pairing/claim", wrapper.ClaimPairing)
@@ -6129,6 +6920,186 @@ func (response LogoutdefaultJSONResponse) VisitLogoutResponse(w http.ResponseWri
 	return err
 }
 
+type GetAvatarBuilderRequestObject struct {
+}
+
+type GetAvatarBuilderResponseObject interface {
+	VisitGetAvatarBuilderResponse(w http.ResponseWriter) error
+}
+
+type GetAvatarBuilder200JSONResponse AvatarBuilder
+
+func (response GetAvatarBuilder200JSONResponse) VisitGetAvatarBuilderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAvatarBuilderdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetAvatarBuilderdefaultJSONResponse) VisitGetAvatarBuilderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RenderAvatarRequestObject struct {
+	Params RenderAvatarParams
+}
+
+type RenderAvatarResponseObject interface {
+	VisitRenderAvatarResponse(w http.ResponseWriter) error
+}
+
+type RenderAvatar200ResponseHeaders struct {
+	CacheControl        *string
+	XContentTypeOptions *string
+}
+
+type RenderAvatar200ImagepngResponse struct {
+	Body          io.Reader
+	Headers       RenderAvatar200ResponseHeaders
+	ContentLength int64
+}
+
+func (response RenderAvatar200ImagepngResponse) VisitRenderAvatarResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/png")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type RenderAvatardefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response RenderAvatardefaultJSONResponse) VisitRenderAvatarResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAvatarRequestObject struct {
+	ProfileId ProfileId `json:"profileId"`
+	Params    GetAvatarParams
+}
+
+type GetAvatarResponseObject interface {
+	VisitGetAvatarResponse(w http.ResponseWriter) error
+}
+
+type GetAvatar200ResponseHeaders struct {
+	CacheControl        *string
+	XContentTypeOptions *string
+}
+
+type GetAvatar200ImagejpegResponse struct {
+	Body          io.Reader
+	Headers       GetAvatar200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetAvatar200ImagejpegResponse) VisitGetAvatarResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetAvatar200ImagepngResponse struct {
+	Body          io.Reader
+	Headers       GetAvatar200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetAvatar200ImagepngResponse) VisitGetAvatarResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/png")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetAvatardefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetAvatardefaultJSONResponse) VisitGetAvatarResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListCollectionsRequestObject struct {
 	Params ListCollectionsParams
 }
@@ -6235,6 +7206,156 @@ type BrowseFoldersdefaultJSONResponse struct {
 }
 
 func (response BrowseFoldersdefaultJSONResponse) VisitBrowseFoldersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupsRequestObject struct {
+}
+
+type ListGroupsResponseObject interface {
+	VisitListGroupsResponse(w http.ResponseWriter) error
+}
+
+type ListGroups200JSONResponse []Group
+
+func (response ListGroups200JSONResponse) VisitListGroupsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListGroupsdefaultJSONResponse) VisitListGroupsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupRequestObject struct {
+	Body *CreateGroupJSONRequestBody
+}
+
+type CreateGroupResponseObject interface {
+	VisitCreateGroupResponse(w http.ResponseWriter) error
+}
+
+type CreateGroup201JSONResponse Group
+
+func (response CreateGroup201JSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CreateGroupdefaultJSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteGroupRequestObject struct {
+	GroupId GroupId `json:"groupId"`
+}
+
+type DeleteGroupResponseObject interface {
+	VisitDeleteGroupResponse(w http.ResponseWriter) error
+}
+
+type DeleteGroup204Response struct {
+}
+
+func (response DeleteGroup204Response) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteGroupdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response DeleteGroupdefaultJSONResponse) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateGroupRequestObject struct {
+	GroupId GroupId `json:"groupId"`
+	Body    *UpdateGroupJSONRequestBody
+}
+
+type UpdateGroupResponseObject interface {
+	VisitUpdateGroupResponse(w http.ResponseWriter) error
+}
+
+type UpdateGroup200JSONResponse Group
+
+func (response UpdateGroup200JSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateGroupdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdateGroupdefaultJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -6456,6 +7577,194 @@ type GetImagedefaultJSONResponse struct {
 }
 
 func (response GetImagedefaultJSONResponse) VisitGetImageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitationsRequestObject struct {
+}
+
+type ListInvitationsResponseObject interface {
+	VisitListInvitationsResponse(w http.ResponseWriter) error
+}
+
+type ListInvitations200JSONResponse []Invitation
+
+func (response ListInvitations200JSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitationsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListInvitationsdefaultJSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitationRequestObject struct {
+	Body *CreateInvitationJSONRequestBody
+}
+
+type CreateInvitationResponseObject interface {
+	VisitCreateInvitationResponse(w http.ResponseWriter) error
+}
+
+type CreateInvitation201JSONResponse CreatedInvitation
+
+func (response CreateInvitation201JSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitationdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CreateInvitationdefaultJSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitationRequestObject struct {
+	InvitationId string `json:"invitationId"`
+}
+
+type RevokeInvitationResponseObject interface {
+	VisitRevokeInvitationResponse(w http.ResponseWriter) error
+}
+
+type RevokeInvitation204Response struct {
+}
+
+func (response RevokeInvitation204Response) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RevokeInvitationdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response RevokeInvitationdefaultJSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitationRequestObject struct {
+	Body *AcceptInvitationJSONRequestBody
+}
+
+type AcceptInvitationResponseObject interface {
+	VisitAcceptInvitationResponse(w http.ResponseWriter) error
+}
+
+type AcceptInvitation201JSONResponse AuthResult
+
+func (response AcceptInvitation201JSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitationdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response AcceptInvitationdefaultJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CheckInvitationRequestObject struct {
+	Body *CheckInvitationJSONRequestBody
+}
+
+type CheckInvitationResponseObject interface {
+	VisitCheckInvitationResponse(w http.ResponseWriter) error
+}
+
+type CheckInvitation200JSONResponse InvitationPreview
+
+func (response CheckInvitation200JSONResponse) VisitCheckInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CheckInvitationdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CheckInvitationdefaultJSONResponse) VisitCheckInvitationResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -7777,6 +9086,87 @@ type UpdateMyProfiledefaultJSONResponse struct {
 }
 
 func (response UpdateMyProfiledefaultJSONResponse) VisitUpdateMyProfileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetMyProfileAvatarRequestObject struct {
+	ProfileId ProfileId `json:"profileId"`
+	Body      *SetMyProfileAvatarJSONRequestBody
+}
+
+type SetMyProfileAvatarResponseObject interface {
+	VisitSetMyProfileAvatarResponse(w http.ResponseWriter) error
+}
+
+type SetMyProfileAvatar200JSONResponse Profile
+
+func (response SetMyProfileAvatar200JSONResponse) VisitSetMyProfileAvatarResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetMyProfileAvatardefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response SetMyProfileAvatardefaultJSONResponse) VisitSetMyProfileAvatarResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetMyProfilePhotoRequestObject struct {
+	ProfileId   ProfileId `json:"profileId"`
+	ContentType string
+	Body        io.Reader
+}
+
+type SetMyProfilePhotoResponseObject interface {
+	VisitSetMyProfilePhotoResponse(w http.ResponseWriter) error
+}
+
+type SetMyProfilePhoto200JSONResponse Profile
+
+func (response SetMyProfilePhoto200JSONResponse) VisitSetMyProfilePhotoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetMyProfilePhotodefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response SetMyProfilePhotodefaultJSONResponse) VisitSetMyProfilePhotoResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -9288,6 +10678,15 @@ type StrictServerInterface interface {
 	// Logout End the current session
 	// (POST /auth/logout)
 	Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error)
+	// GetAvatarBuilder The parts and colors of the avatar builder (F009)
+	// (GET /avatar-builder)
+	GetAvatarBuilder(ctx context.Context, request GetAvatarBuilderRequestObject) (GetAvatarBuilderResponseObject, error)
+	// RenderAvatar Draw an avatar from options, for the builder's previews (F009)
+	// (GET /avatar-builder/render)
+	RenderAvatar(ctx context.Context, request RenderAvatarRequestObject) (RenderAvatarResponseObject, error)
+	// GetAvatar A profile's avatar or photo, square (F009)
+	// (GET /avatars/{profileId})
+	GetAvatar(ctx context.Context, request GetAvatarRequestObject) (GetAvatarResponseObject, error)
 	// ListCollections A library's collections (F005 R23)
 	// (GET /collections)
 	ListCollections(ctx context.Context, request ListCollectionsRequestObject) (ListCollectionsResponseObject, error)
@@ -9297,6 +10696,18 @@ type StrictServerInterface interface {
 	// BrowseFolders Sub-folders of a server folder, for the folder picker (admin)
 	// (GET /fs/browse)
 	BrowseFolders(ctx context.Context, request BrowseFoldersRequestObject) (BrowseFoldersResponseObject, error)
+	// ListGroups Sharing groups (admin, F009)
+	// (GET /groups)
+	ListGroups(ctx context.Context, request ListGroupsRequestObject) (ListGroupsResponseObject, error)
+	// CreateGroup Create a sharing group (admin, F009)
+	// (POST /groups)
+	CreateGroup(ctx context.Context, request CreateGroupRequestObject) (CreateGroupResponseObject, error)
+	// DeleteGroup Delete a group; its members keep their other groups (admin, F009)
+	// (DELETE /groups/{groupId})
+	DeleteGroup(ctx context.Context, request DeleteGroupRequestObject) (DeleteGroupResponseObject, error)
+	// UpdateGroup Change a group's name, libraries or rights (admin, F009)
+	// (PATCH /groups/{groupId})
+	UpdateGroup(ctx context.Context, request UpdateGroupRequestObject) (UpdateGroupResponseObject, error)
 	// GetHealth Liveness and build info
 	// (GET /health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
@@ -9309,6 +10720,21 @@ type StrictServerInterface interface {
 	// GetImage An artwork image, resized for the client (F005 R19)
 	// (GET /images/{imageId})
 	GetImage(ctx context.Context, request GetImageRequestObject) (GetImageResponseObject, error)
+	// ListInvitations Invitations not used yet and not expired (admin, F009)
+	// (GET /invitations)
+	ListInvitations(ctx context.Context, request ListInvitationsRequestObject) (ListInvitationsResponseObject, error)
+	// CreateInvitation Create a single-use invitation link (admin, F009)
+	// (POST /invitations)
+	CreateInvitation(ctx context.Context, request CreateInvitationRequestObject) (CreateInvitationResponseObject, error)
+	// RevokeInvitation Cancel an invitation that wasn't used (admin, F009)
+	// (DELETE /invitations/{invitationId})
+	RevokeInvitation(ctx context.Context, request RevokeInvitationRequestObject) (RevokeInvitationResponseObject, error)
+	// AcceptInvitation Create an account from an invitation and sign in (F009)
+	// (POST /invite/accept)
+	AcceptInvitation(ctx context.Context, request AcceptInvitationRequestObject) (AcceptInvitationResponseObject, error)
+	// CheckInvitation What an invitation link is for, before creating the account (F009)
+	// (POST /invite/check)
+	CheckInvitation(ctx context.Context, request CheckInvitationRequestObject) (CheckInvitationResponseObject, error)
 	// GetItem An item with its files and streams
 	// (GET /items/{itemId})
 	GetItem(ctx context.Context, request GetItemRequestObject) (GetItemResponseObject, error)
@@ -9411,6 +10837,12 @@ type StrictServerInterface interface {
 	// UpdateMyProfile Update a profile
 	// (PATCH /me/profiles/{profileId})
 	UpdateMyProfile(ctx context.Context, request UpdateMyProfileRequestObject) (UpdateMyProfileResponseObject, error)
+	// SetMyProfileAvatar Show the initial, or an avatar made in the builder (F009)
+	// (PUT /me/profiles/{profileId}/avatar)
+	SetMyProfileAvatar(ctx context.Context, request SetMyProfileAvatarRequestObject) (SetMyProfileAvatarResponseObject, error)
+	// SetMyProfilePhoto Use a photo, already cropped square by the client (F009)
+	// (PUT /me/profiles/{profileId}/avatar/photo)
+	SetMyProfilePhoto(ctx context.Context, request SetMyProfilePhotoRequestObject) (SetMyProfilePhotoResponseObject, error)
 	// RevokeMyOtherSessions Sign out every other device
 	// (DELETE /me/sessions)
 	RevokeMyOtherSessions(ctx context.Context, request RevokeMyOtherSessionsRequestObject) (RevokeMyOtherSessionsResponseObject, error)
@@ -9624,6 +11056,83 @@ func (sh *strictHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAvatarBuilder operation middleware
+func (sh *strictHandler) GetAvatarBuilder(w http.ResponseWriter, r *http.Request) {
+	var request GetAvatarBuilderRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAvatarBuilder(ctx, request.(GetAvatarBuilderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAvatarBuilder")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAvatarBuilderResponseObject); ok {
+		if err := validResponse.VisitGetAvatarBuilderResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RenderAvatar operation middleware
+func (sh *strictHandler) RenderAvatar(w http.ResponseWriter, r *http.Request, params RenderAvatarParams) {
+	var request RenderAvatarRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RenderAvatar(ctx, request.(RenderAvatarRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RenderAvatar")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RenderAvatarResponseObject); ok {
+		if err := validResponse.VisitRenderAvatarResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAvatar operation middleware
+func (sh *strictHandler) GetAvatar(w http.ResponseWriter, r *http.Request, profileId ProfileId, params GetAvatarParams) {
+	var request GetAvatarRequestObject
+
+	request.ProfileId = profileId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAvatar(ctx, request.(GetAvatarRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAvatar")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAvatarResponseObject); ok {
+		if err := validResponse.VisitGetAvatarResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListCollections operation middleware
 func (sh *strictHandler) ListCollections(w http.ResponseWriter, r *http.Request, params ListCollectionsParams) {
 	var request ListCollectionsRequestObject
@@ -9695,6 +11204,120 @@ func (sh *strictHandler) BrowseFolders(w http.ResponseWriter, r *http.Request, p
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(BrowseFoldersResponseObject); ok {
 		if err := validResponse.VisitBrowseFoldersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGroups operation middleware
+func (sh *strictHandler) ListGroups(w http.ResponseWriter, r *http.Request) {
+	var request ListGroupsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGroups(ctx, request.(ListGroupsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGroups")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGroupsResponseObject); ok {
+		if err := validResponse.VisitListGroupsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateGroup operation middleware
+func (sh *strictHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	var request CreateGroupRequestObject
+
+	var body CreateGroupJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateGroup(ctx, request.(CreateGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateGroupResponseObject); ok {
+		if err := validResponse.VisitCreateGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteGroup operation middleware
+func (sh *strictHandler) DeleteGroup(w http.ResponseWriter, r *http.Request, groupId GroupId) {
+	var request DeleteGroupRequestObject
+
+	request.GroupId = groupId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteGroup(ctx, request.(DeleteGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteGroupResponseObject); ok {
+		if err := validResponse.VisitDeleteGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateGroup operation middleware
+func (sh *strictHandler) UpdateGroup(w http.ResponseWriter, r *http.Request, groupId GroupId) {
+	var request UpdateGroupRequestObject
+
+	request.GroupId = groupId
+
+	var body UpdateGroupJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateGroup(ctx, request.(UpdateGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateGroupResponseObject); ok {
+		if err := validResponse.VisitUpdateGroupResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -9797,6 +11420,149 @@ func (sh *strictHandler) GetImage(w http.ResponseWriter, r *http.Request, imageI
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetImageResponseObject); ok {
 		if err := validResponse.VisitGetImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListInvitations operation middleware
+func (sh *strictHandler) ListInvitations(w http.ResponseWriter, r *http.Request) {
+	var request ListInvitationsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListInvitations(ctx, request.(ListInvitationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListInvitations")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListInvitationsResponseObject); ok {
+		if err := validResponse.VisitListInvitationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateInvitation operation middleware
+func (sh *strictHandler) CreateInvitation(w http.ResponseWriter, r *http.Request) {
+	var request CreateInvitationRequestObject
+
+	var body CreateInvitationJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateInvitation(ctx, request.(CreateInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateInvitationResponseObject); ok {
+		if err := validResponse.VisitCreateInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevokeInvitation operation middleware
+func (sh *strictHandler) RevokeInvitation(w http.ResponseWriter, r *http.Request, invitationId string) {
+	var request RevokeInvitationRequestObject
+
+	request.InvitationId = invitationId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RevokeInvitation(ctx, request.(RevokeInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RevokeInvitationResponseObject); ok {
+		if err := validResponse.VisitRevokeInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AcceptInvitation operation middleware
+func (sh *strictHandler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
+	var request AcceptInvitationRequestObject
+
+	var body AcceptInvitationJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AcceptInvitation(ctx, request.(AcceptInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AcceptInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AcceptInvitationResponseObject); ok {
+		if err := validResponse.VisitAcceptInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CheckInvitation operation middleware
+func (sh *strictHandler) CheckInvitation(w http.ResponseWriter, r *http.Request) {
+	var request CheckInvitationRequestObject
+
+	var body CheckInvitationJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CheckInvitation(ctx, request.(CheckInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CheckInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CheckInvitationResponseObject); ok {
+		if err := validResponse.VisitCheckInvitationResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -10773,6 +12539,68 @@ func (sh *strictHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request,
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateMyProfileResponseObject); ok {
 		if err := validResponse.VisitUpdateMyProfileResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetMyProfileAvatar operation middleware
+func (sh *strictHandler) SetMyProfileAvatar(w http.ResponseWriter, r *http.Request, profileId ProfileId) {
+	var request SetMyProfileAvatarRequestObject
+
+	request.ProfileId = profileId
+
+	var body SetMyProfileAvatarJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetMyProfileAvatar(ctx, request.(SetMyProfileAvatarRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetMyProfileAvatar")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetMyProfileAvatarResponseObject); ok {
+		if err := validResponse.VisitSetMyProfileAvatarResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetMyProfilePhoto operation middleware
+func (sh *strictHandler) SetMyProfilePhoto(w http.ResponseWriter, r *http.Request, profileId ProfileId) {
+	var request SetMyProfilePhotoRequestObject
+
+	request.ProfileId = profileId
+	request.ContentType = r.Header.Get("Content-Type")
+
+	request.Body = r.Body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetMyProfilePhoto(ctx, request.(SetMyProfilePhotoRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetMyProfilePhoto")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetMyProfilePhotoResponseObject); ok {
+		if err := validResponse.VisitSetMyProfilePhotoResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

@@ -26,6 +26,7 @@ import (
 // API errors.
 var (
 	ErrProfileRequired = errors.New("profile_required")
+	ErrStreamLimit     = errors.New("stream_limit_reached")
 	ErrItemNotFound    = errors.New("no such item")
 	ErrItemNotPlayable = errors.New("only movies and episodes play")
 	// ErrFFmpegMissing: the file needs HLS, which needs FFmpeg (R31).
@@ -45,6 +46,8 @@ type Accounts interface {
 	AccessLimit(ctx context.Context, p auth.Principal) (access.Limit, error)
 	SessionActive(ctx context.Context, sessionID string) (bool, error)
 	SessionOwner(ctx context.Context, p auth.Principal) (accounts.SessionOwner, error)
+	// Access is what the account may do: best quality, streams at once (F009).
+	Access(ctx context.Context, userID string) (accounts.Access, error)
 }
 
 // Options configures a Service.
@@ -392,8 +395,11 @@ func (s *Service) StartSession(ctx context.Context, p auth.Principal, client cli
 		return Session{}, err
 	}
 	r.Request = s.supported(r.Request)
-	lim, err := s.limits(ctx, client)
+	lim, err := s.limits(ctx, client, p.UserID)
 	if err != nil {
+		return Session{}, err
+	}
+	if err := s.checkStreams(ctx, p.UserID); err != nil {
 		return Session{}, err
 	}
 	m, err := ChooseFile(files, r.FileID, func(m Media) Decision { d, _ := Decide(m, r.Request, r.Profile, lim); return d })
@@ -484,7 +490,7 @@ func (s *Service) visibleItem(ctx context.Context, p auth.Principal, itemID stri
 	if err != nil {
 		return library.Item{}, err
 	}
-	if !limit.Allows(item.AgeRating) {
+	if !limit.Allows(item.LibraryID, item.AgeRating) {
 		return library.Item{}, ErrItemNotFound // invisible items don't exist (R9)
 	}
 	return item, nil
@@ -500,13 +506,67 @@ func (s *Service) supported(r Request) Request {
 	return r
 }
 
-func (s *Service) limits(ctx context.Context, client clientinfo.Info) (Limits, error) {
+// limits are the server side of a decision for userID's client; userID ""
+// has no cap.
+func (s *Service) limits(ctx context.Context, client clientinfo.Info, userID string) (Limits, error) {
 	cfg, err := LoadConfig(ctx, s.o.Settings)
 	if err != nil {
 		return Limits{}, err
 	}
-	return Limits{RemoteMaxBitrate: cfg.RemoteMaxBitrate, Remote: IsRemote(client.IP, cfg.LocalNetworks),
-		Tonemap: s.o.FFmpeg.HasFilter("zscale") && s.o.FFmpeg.HasFilter("tonemap")}, nil
+	lim := Limits{RemoteMaxBitrate: cfg.RemoteMaxBitrate, Remote: IsRemote(client.IP, cfg.LocalNetworks),
+		Tonemap: s.o.FFmpeg.HasFilter("zscale") && s.o.FFmpeg.HasFilter("tonemap")}
+	if userID != "" && s.o.Accounts != nil {
+		acc, err := s.o.Accounts.Access(ctx, userID)
+		if err != nil {
+			return Limits{}, err
+		}
+		lim.MaxQuality = acc.Rights.MaxQuality
+	}
+	return lim, nil
+}
+
+// checkStreams refuses a new playback when the person already watches as
+// many streams at once as their groups allow (F009).
+func (s *Service) checkStreams(ctx context.Context, userID string) error {
+	if s.o.Accounts == nil {
+		return nil
+	}
+	acc, err := s.o.Accounts.Access(ctx, userID)
+	if err != nil || acc.Rights.MaxStreams == nil {
+		return err
+	}
+	n := 0
+	for _, sess := range s.manager.List() {
+		if sess.UserID == userID {
+			n++
+		}
+	}
+	if n >= *acc.Rights.MaxStreams {
+		return ErrStreamLimit
+	}
+	return nil
+}
+
+// EndUser ends every playback of an account at once: suspended or deleted
+// (F009).
+func (s *Service) EndUser(userID string) {
+	for _, sess := range s.manager.List() {
+		if sess.UserID == userID {
+			s.manager.EndAuthSession(sess.AuthSessionID)
+		}
+	}
+}
+
+// Recheck ends the playbacks of titles their account may no longer see,
+// after an admin changed who sees what (F009).
+func (s *Service) Recheck(ctx context.Context) {
+	for _, sess := range s.manager.List() {
+		p := auth.Principal{UserID: sess.UserID, SessionID: sess.AuthSessionID, ProfileID: sess.ProfileID}
+		if _, err := s.visibleItem(ctx, p, sess.ItemID); errors.Is(err, ErrItemNotFound) {
+			_ = s.manager.End(p, sess.ID, nil)
+			s.o.Log.Info("playback ended", "playback_id", sess.ID, "user_id", sess.UserID, "reason", "access_removed")
+		}
+	}
 }
 
 // accelFor is the accelerator a new stream of d runs on: transcodes only.
@@ -599,7 +659,7 @@ func (s *Service) ChangeSession(ctx context.Context, p auth.Principal, client cl
 		r.BurnSubtitles = *c.BurnSubtitles
 	}
 	r = s.supported(r)
-	lim, err := s.limits(ctx, client)
+	lim, err := s.limits(ctx, client, p.UserID)
 	if err != nil {
 		return Session{}, err
 	}

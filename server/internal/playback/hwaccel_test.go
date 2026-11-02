@@ -286,7 +286,7 @@ func TestTonemap(t *testing.T) {
 		Video: &library.Stream{Index: 0, Type: "video", Codec: "hevc", Profile: "Main 10", Width: 640, Height: 360, BitDepth: 10},
 		Audio: []library.Stream{{Index: 1, Type: "audio", Codec: "aac", Channels: 1, Default: true}},
 	}
-	lim, err := s.limits(ctx, clientinfo.Info{})
+	lim, err := s.limits(ctx, clientinfo.Info{}, "")
 	if err != nil {
 		t.Fatal(err)
 	}

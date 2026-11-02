@@ -144,7 +144,7 @@ func (c *Catalog) filtered(q Query) (string, []any) {
 		where = []string{"i.library_id = ?", "i.hidden = 0", "i.kind = ?"}
 		args  = []any{q.LibraryID, q.Kind}
 	)
-	if cond, a := q.Access.SQL("m"); cond != "" {
+	if cond, a := q.Access.SQL("i", "m"); cond != "" {
 		where = append(where, cond)
 		args = append(args, a...)
 	}

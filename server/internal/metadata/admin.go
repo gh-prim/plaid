@@ -921,7 +921,7 @@ func (s *Store) Collection(ctx context.Context, id string, limit access.Limit) (
 	}
 	q := `SELECT i.id FROM item_metadata m JOIN items i ON i.id = m.item_id WHERE m.collection_id = ? AND i.hidden = 0`
 	args := []any{id}
-	if cond, a := limit.SQL("m"); cond != "" {
+	if cond, a := limit.SQL("i", "m"); cond != "" {
 		q += ` AND ` + cond
 		args = append(args, a...)
 	}
@@ -970,7 +970,7 @@ func (s *Store) Person(ctx context.Context, id string, limit access.Limit) (Pers
 	q := `SELECT c.item_id, c.role, COALESCE(c.character, '') FROM item_credits c JOIN items i ON i.id = c.item_id
 		LEFT JOIN item_metadata m ON m.item_id = i.id WHERE c.person_id = ? AND i.hidden = 0`
 	args := []any{id}
-	if cond, a := limit.SQL("m"); cond != "" {
+	if cond, a := limit.SQL("i", "m"); cond != "" {
 		q += ` AND ` + cond
 		args = append(args, a...)
 	}

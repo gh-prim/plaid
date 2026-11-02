@@ -14,6 +14,7 @@ import (
 
 	"github.com/gh-prim/plaid/server/internal/api"
 	"github.com/gh-prim/plaid/server/internal/apierr"
+	"github.com/gh-prim/plaid/server/internal/auth"
 	"github.com/gh-prim/plaid/server/internal/library"
 )
 
@@ -88,9 +89,15 @@ func checkInterval(s int, p *problems) *int64 {
 	return &v
 }
 
-// ListLibraries lists every library; any signed-in account can (F004-R1).
+// ListLibraries lists the libraries the account can see: every library for
+// an admin (F004-R1), the shared ones for a member (F009).
 func (h *Handlers) ListLibraries(ctx context.Context, _ api.ListLibrariesRequestObject) (api.ListLibrariesResponseObject, error) {
-	if _, err := principal(ctx); err != nil {
+	pr, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	limit, err := h.accounts.AccessLimit(ctx, pr)
+	if err != nil {
 		return nil, err
 	}
 	views, err := h.library.Libraries(ctx)
@@ -99,9 +106,24 @@ func (h *Handlers) ListLibraries(ctx context.Context, _ api.ListLibrariesRequest
 	}
 	out := make(api.ListLibraries200JSONResponse, 0, len(views))
 	for _, v := range views {
-		out = append(out, toLibrary(v))
+		if limit.AllowsLibrary(v.ID) {
+			out = append(out, toLibrary(v))
+		}
 	}
 	return out, nil
+}
+
+// visibleLibrary returns an error unless the account may see the library:
+// a library that isn't shared with them doesn't exist (F009).
+func (h *Handlers) visibleLibrary(ctx context.Context, pr auth.Principal, libraryID string) error {
+	limit, err := h.accounts.AccessLimit(ctx, pr)
+	if err != nil {
+		return err
+	}
+	if !limit.AllowsLibrary(libraryID) {
+		return libraryErr(library.ErrNotFound, nil)
+	}
+	return nil
 }
 
 // CreateLibrary validates the folders, creates the library and queues a
@@ -146,7 +168,11 @@ func (h *Handlers) CreateLibrary(ctx context.Context, req api.CreateLibraryReque
 
 // GetLibrary returns one library.
 func (h *Handlers) GetLibrary(ctx context.Context, req api.GetLibraryRequestObject) (api.GetLibraryResponseObject, error) {
-	if _, err := principal(ctx); err != nil {
+	pr, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := h.visibleLibrary(ctx, pr, req.LibraryId); err != nil {
 		return nil, err
 	}
 	v, err := h.library.View(ctx, req.LibraryId)
@@ -202,6 +228,7 @@ func (h *Handlers) UpdateLibrary(ctx context.Context, req api.UpdateLibraryReque
 		}
 		patch.MetadataRegion = b.MetadataRegion
 	}
+	patch.HouseholdOnly = b.HouseholdOnly
 	if err := p.err(); err != nil {
 		return nil, err
 	}
@@ -302,7 +329,8 @@ func toLibrary(v library.View) api.Library {
 			Movies: v.Counts.Movies, Shows: v.Counts.Shows, Episodes: v.Counts.Episodes,
 			Files: v.Counts.Files, Unrecognized: v.Counts.Unrecognized,
 		},
-		Scan: toScanProgress(v.Scan),
+		Scan:          toScanProgress(v.Scan),
+		HouseholdOnly: v.HouseholdOnly,
 	}
 	if v.ScanIntervalS != nil {
 		out.ScanIntervalSeconds = nullable.NewNullableWithValue(int(*v.ScanIntervalS))

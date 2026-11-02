@@ -176,6 +176,22 @@ func PairingExpired() *Error {
 	return New(http.StatusGone, "pairing_expired", "pairing code expired")
 }
 
+// InvitationNotFound is an unknown invitation token (F009).
+func InvitationNotFound() *Error {
+	return New(http.StatusNotFound, "invitation_not_found", "no such invitation")
+}
+
+// InvitationExpired is an invitation used, cancelled or past its date.
+func InvitationExpired() *Error {
+	return New(http.StatusGone, "invitation_expired", "invitation expired or already used")
+}
+
+// StreamLimitReached means the person already watches as many streams at
+// once as their groups allow (F009).
+func StreamLimitReached() *Error {
+	return New(http.StatusTooManyRequests, "stream_limit_reached", "you are already watching as many videos at once as you're allowed to")
+}
+
 // Error codes from F004 (libraries and file scanning).
 
 // FolderNotFound rejects a library folder that doesn't exist, isn't a

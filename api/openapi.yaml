@@ -241,6 +241,137 @@ paths:
           description: Deleted
         default:
           $ref: "#/components/responses/Error"
+  /me/profiles/{profileId}/avatar:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    put:
+      operationId: setMyProfileAvatar
+      summary: Show the initial, or an avatar made in the builder (F009)
+      tags: [profiles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvatarUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        default:
+          $ref: "#/components/responses/Error"
+  /me/profiles/{profileId}/avatar/photo:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    put:
+      operationId: setMyProfilePhoto
+      summary: Use a photo, already cropped square by the client (F009)
+      description: JPEG, PNG or WebP up to 8 MB. The server keeps a 512 px square JPEG, without the photo's metadata.
+      tags: [profiles]
+      requestBody:
+        required: true
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        default:
+          $ref: "#/components/responses/Error"
+  /avatars/{profileId}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    get:
+      operationId: getAvatar
+      summary: A profile's avatar or photo, square (F009)
+      description: >-
+        Any signed-in account can see any profile's picture (a party shows everyone's). A profile showing its initial
+        has no picture: 404. `Profile.avatar.url` changes when the picture changes, so responses are immutable.
+      tags: [profiles]
+      parameters:
+        - $ref: "#/components/parameters/AvatarSize"
+      responses:
+        "200":
+          description: The picture
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/Error"
+  /avatar-builder:
+    get:
+      operationId: getAvatarBuilder
+      summary: The parts and colors of the avatar builder (F009)
+      description: The "Lorelei" style by Lisa Wischofsky, CC0 1.0, drawn with DiceBear's definition.
+      tags: [profiles]
+      responses:
+        "200":
+          description: The builder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvatarBuilder"
+        default:
+          $ref: "#/components/responses/Error"
+  /avatar-builder/render:
+    get:
+      operationId: renderAvatar
+      summary: Draw an avatar from options, for the builder's previews (F009)
+      tags: [profiles]
+      parameters:
+        - name: options
+          in: query
+          required: true
+          description: AvatarOptions as JSON.
+          schema:
+            type: string
+        - name: color
+          in: query
+          description: Background, an avatar color index; none for transparent.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 7
+        - $ref: "#/components/parameters/AvatarSize"
+      responses:
+        "200":
+          description: The avatar
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/Error"
   /session/profile:
     post:
       operationId: selectProfile
@@ -414,6 +545,175 @@ paths:
       responses:
         "204":
           description: Session ended
+        default:
+          $ref: "#/components/responses/Error"
+  /groups:
+    get:
+      operationId: listGroups
+      summary: Sharing groups (admin, F009)
+      tags: [sharing]
+      responses:
+        "200":
+          description: Groups, by name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createGroup
+      summary: Create a sharing group (admin, F009)
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        default:
+          $ref: "#/components/responses/Error"
+  /groups/{groupId}:
+    parameters:
+      - $ref: "#/components/parameters/GroupId"
+    patch:
+      operationId: updateGroup
+      summary: Change a group's name, libraries or rights (admin, F009)
+      description: >-
+        The change applies at once to everyone in the group. A playback of a title that is no longer visible ends.
+        A household-only library can only go to a household group (`422 household_only`).
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteGroup
+      summary: Delete a group; its members keep their other groups (admin, F009)
+      tags: [sharing]
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /invitations:
+    get:
+      operationId: listInvitations
+      summary: Invitations not used yet and not expired (admin, F009)
+      tags: [sharing]
+      responses:
+        "200":
+          description: Pending invitations, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invitation"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createInvitation
+      summary: Create a single-use invitation link (admin, F009)
+      description: The token is returned once, here. The link is `/invite/{token}` on the server's address.
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvitationRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedInvitation"
+        default:
+          $ref: "#/components/responses/Error"
+  /invitations/{invitationId}:
+    parameters:
+      - name: invitationId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      operationId: revokeInvitation
+      summary: Cancel an invitation that wasn't used (admin, F009)
+      tags: [sharing]
+      responses:
+        "204":
+          description: Cancelled
+        default:
+          $ref: "#/components/responses/Error"
+  /invite/check:
+    post:
+      operationId: checkInvitation
+      summary: What an invitation link is for, before creating the account (F009)
+      description: >-
+        A used, cancelled or expired link answers `410 invitation_expired`, an unknown one `404 invitation_not_found`.
+        Repeated unknown tokens from one address return `429 too_many_attempts`.
+      tags: [sharing]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationTokenRequest"
+      responses:
+        "200":
+          description: The invitation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationPreview"
+        default:
+          $ref: "#/components/responses/Error"
+  /invite/accept:
+    post:
+      operationId: acceptInvitation
+      summary: Create an account from an invitation and sign in (F009)
+      description: >-
+        The account is a member in the invitation's groups. Its first profile gets the 4-digit PIN, which is required.
+        Web clients (`X-Plaid-Client: web`) get the session as a cookie, others get the token in the body.
+      tags: [sharing]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequest"
+      responses:
+        "201":
+          description: Account created and signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
         default:
           $ref: "#/components/responses/Error"
   /pairing:
@@ -2012,6 +2312,20 @@ components:
       required: true
       schema:
         type: string
+    GroupId:
+      name: groupId
+      in: path
+      required: true
+      schema:
+        type: string
+    AvatarSize:
+      name: size
+      in: query
+      description: Side in pixels, defaults to 256.
+      schema:
+        type: integer
+        minimum: 32
+        maximum: 512
     SessionId:
       name: sessionId
       in: path
@@ -2308,9 +2622,301 @@ components:
           type: string
         mustChangePassword:
           type: boolean
+    MaxQuality:
+      type: string
+      description: The best picture a person may get. Above it, playback transcodes down.
+      enum: [original, 2160p, 1080p, 720p, 480p]
+    PartyRight:
+      type: string
+      description: What a person may do with Plaid Party (F010).
+      enum: [none, join, start]
+    Rights:
+      type: object
+      required: [maxQuality, maxStreams, downloads, party, canCreateProfiles]
+      properties:
+        maxQuality:
+          $ref: "#/components/schemas/MaxQuality"
+        maxStreams:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 20
+          description: Streams at the same time per person; null for no limit.
+        downloads:
+          type: boolean
+          description: Downloads for offline viewing (stored now, used by the apps once they download).
+        party:
+          $ref: "#/components/schemas/PartyRight"
+        canCreateProfiles:
+          type: boolean
+    RightsOverride:
+      type: object
+      description: Rights given to one person on top of their groups. They only add; null takes the groups' value.
+      properties:
+        maxQuality:
+          oneOf:
+            - $ref: "#/components/schemas/MaxQuality"
+            - type: "null"
+        maxStreams:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 20
+        unlimitedStreams:
+          type: [boolean, "null"]
+        downloads:
+          type: [boolean, "null"]
+        party:
+          oneOf:
+            - $ref: "#/components/schemas/PartyRight"
+            - type: "null"
+        canCreateProfiles:
+          type: [boolean, "null"]
+    EffectiveAccess:
+      type: object
+      description: What an account gets from its role, groups and exceptions together.
+      required: [libraryIds, rights]
+      properties:
+        libraryIds:
+          type: [array, "null"]
+          description: The libraries it sees; null for all of them (admins and household groups).
+          items:
+            type: string
+        rights:
+          $ref: "#/components/schemas/Rights"
+    Group:
+      type: object
+      required: [id, name, household, libraryIds, rights, memberIds]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        household:
+          type: boolean
+          description: Sees every library, present and future, household-only ones included.
+        libraryIds:
+          type: array
+          description: Shared libraries; ignored for a household group.
+          items:
+            type: string
+        rights:
+          $ref: "#/components/schemas/Rights"
+        memberIds:
+          type: array
+          items:
+            type: string
+    CreateGroupRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 40
+        household:
+          type: boolean
+        libraryIds:
+          type: array
+          items:
+            type: string
+        rights:
+          $ref: "#/components/schemas/Rights"
+    UpdateGroupRequest:
+      type: object
+      description: Absent fields are unchanged.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 40
+        household:
+          type: boolean
+        libraryIds:
+          type: array
+          items:
+            type: string
+        rights:
+          $ref: "#/components/schemas/Rights"
+    Invitation:
+      type: object
+      required: [id, name, groupIds, createdAt, expiresAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          description: Who it is for, as the admin wrote it.
+        groupIds:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    CreateInvitationRequest:
+      type: object
+      required: [name, groupIds]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        groupIds:
+          type: array
+          minItems: 1
+          description: At least one group, so the new account sees something.
+          items:
+            type: string
+        expiresInDays:
+          type: integer
+          minimum: 1
+          maximum: 30
+          description: Defaults to 7.
+    CreatedInvitation:
+      type: object
+      required: [invitation, token]
+      properties:
+        invitation:
+          $ref: "#/components/schemas/Invitation"
+        token:
+          type: string
+          description: Shown once; the link is `/invite/{token}`.
+    InvitationTokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    InvitationPreview:
+      type: object
+      required: [serverName, name, invitedBy, expiresAt]
+      properties:
+        serverName:
+          type: string
+        name:
+          type: string
+          description: The name the admin gave; a suggestion for the display name.
+        invitedBy:
+          type: string
+          description: The display name of the admin who invited.
+        expiresAt:
+          type: string
+          format: date-time
+    AcceptInvitationRequest:
+      type: object
+      required: [token, displayName, username, password, pin]
+      properties:
+        token:
+          type: string
+        displayName:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        pin:
+          type: string
+          description: 4 digits, required. It protects the first profile.
+        locale:
+          type: string
+        device:
+          $ref: "#/components/schemas/Device"
+    AvatarKind:
+      type: string
+      enum: [initial, builder, photo]
+    Avatar:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          $ref: "#/components/schemas/AvatarKind"
+        url:
+          type: string
+          description: The picture (`/avatars/{profileId}?v=…`), absent for the initial.
+        options:
+          $ref: "#/components/schemas/AvatarOptions"
+    AvatarOptions:
+      type: object
+      description: >-
+        A built avatar: one variant per part, as listed by `GET /avatar-builder`. An optional part is absent or null for
+        none.
+      required: [head, hair, eyes, eyebrows, mouth, nose, hairColor, skinColor]
+      properties:
+        head:
+          type: string
+        hair:
+          type: string
+        eyes:
+          type: string
+        eyebrows:
+          type: string
+        mouth:
+          type: string
+        nose:
+          type: string
+        glasses:
+          type: [string, "null"]
+        beard:
+          type: [string, "null"]
+        earrings:
+          type: [string, "null"]
+        freckles:
+          type: [string, "null"]
+        hairColor:
+          type: string
+          examples: ["#5b3a26"]
+        skinColor:
+          type: string
+          examples: ["#d9a07a"]
+    AvatarUpdate:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [initial, builder]
+        options:
+          $ref: "#/components/schemas/AvatarOptions"
+    AvatarPart:
+      type: object
+      required: [name, optional, variants]
+      properties:
+        name:
+          type: string
+          enum: [head, hair, eyes, eyebrows, mouth, nose, glasses, beard, earrings, freckles]
+        optional:
+          type: boolean
+        variants:
+          type: array
+          items:
+            type: string
+    AvatarBuilder:
+      type: object
+      required: [parts, hairColors, skinColors, defaults, license]
+      properties:
+        parts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AvatarPart"
+        hairColors:
+          type: array
+          items:
+            type: string
+        skinColors:
+          type: array
+          items:
+            type: string
+        defaults:
+          $ref: "#/components/schemas/AvatarOptions"
+        license:
+          type: string
+          description: Credit line for the style, shown in About.
     AdminUser:
       type: object
-      required: [id, username, displayName, role, locale, mustChangePassword, disabled, createdAt]
+      required: [id, username, displayName, role, locale, mustChangePassword, disabled, createdAt, lastSeenAt, avatarColor,
+        avatar, groupIds, extraLibraryIds, extraRights, access]
       properties:
         id:
           type: string
@@ -2326,12 +2932,35 @@ components:
           type: boolean
         disabled:
           type: boolean
+          description: Suspended. A suspended account can't sign in; its account and history are kept.
         createdAt:
           type: string
           format: date-time
+        lastSeenAt:
+          type: [string, "null"]
+          format: date-time
+          description: The most recent activity of any of its devices, null if it never signed in.
+        avatarColor:
+          type: integer
+          description: The default profile's color.
+        avatar:
+          $ref: "#/components/schemas/Avatar"
+        groupIds:
+          type: array
+          items:
+            type: string
+        extraLibraryIds:
+          type: array
+          description: Libraries given to this person on top of their groups (F009).
+          items:
+            type: string
+        extraRights:
+          $ref: "#/components/schemas/RightsOverride"
+        access:
+          $ref: "#/components/schemas/EffectiveAccess"
     Profile:
       type: object
-      required: [id, name, avatarColor, hasPin, maxAge, allowUnrated, locale, isDefault]
+      required: [id, name, avatarColor, avatar, hasPin, maxAge, allowUnrated, locale, isDefault]
       properties:
         id:
           type: string
@@ -2341,7 +2970,9 @@ components:
           type: integer
           minimum: 0
           maximum: 7
-          description: Index of the `party-*` design token.
+          description: Index of the `party-*` design token. The background of the initial and of a built avatar.
+        avatar:
+          $ref: "#/components/schemas/Avatar"
         hasPin:
           type: boolean
         maxAge:
@@ -2359,7 +2990,7 @@ components:
           description: The backdrop of what the profile watched last, which lights the profile picker (V2). Never for a profile with a PIN, so it doesn't show what it watches.
     Me:
       type: object
-      required: [user, profiles]
+      required: [user, profiles, access]
       properties:
         user:
           $ref: "#/components/schemas/User"
@@ -2369,6 +3000,8 @@ components:
             $ref: "#/components/schemas/Profile"
         activeProfile:
           $ref: "#/components/schemas/Profile"
+        access:
+          $ref: "#/components/schemas/EffectiveAccess"
     UpdateMeRequest:
       type: object
       properties:
@@ -2472,6 +3105,11 @@ components:
           $ref: "#/components/schemas/Role"
         locale:
           type: string
+        groupIds:
+          type: array
+          description: The member's groups (F009). Without any, a member sees no library.
+          items:
+            type: string
     UpdateUserRequest:
       type: object
       properties:
@@ -2483,6 +3121,19 @@ components:
           type: string
         disabled:
           type: boolean
+          description: Suspend (true) or restore (false). Suspending ends every session and playback of the account at once.
+        groupIds:
+          type: array
+          description: Replaces the account's groups (F009).
+          items:
+            type: string
+        extraLibraryIds:
+          type: array
+          description: Replaces the libraries given on top of the groups (F009).
+          items:
+            type: string
+        extraRights:
+          $ref: "#/components/schemas/RightsOverride"
     ResetPasswordRequest:
       type: object
       required: [temporaryPassword]
@@ -2569,7 +3220,7 @@ components:
           type: integer
     Library:
       type: object
-      required: [id, name, type, scanIntervalSeconds, metadataLanguage, metadataRegion, folders, counts, scan]
+      required: [id, name, type, scanIntervalSeconds, metadataLanguage, metadataRegion, folders, counts, scan, householdOnly]
       properties:
         id:
           type: string
@@ -2595,6 +3246,9 @@ components:
           $ref: "#/components/schemas/LibraryCounts"
         scan:
           $ref: "#/components/schemas/ScanProgress"
+        householdOnly:
+          type: boolean
+          description: Never shared outside the household (F009). Only admins and household groups see it.
     CreateLibraryRequest:
       type: object
       required: [name, type, folders]
@@ -2639,6 +3293,9 @@ components:
           $ref: "#/components/schemas/MetadataLanguage"
         metadataRegion:
           $ref: "#/components/schemas/MetadataRegion"
+        householdOnly:
+          type: boolean
+          description: Making a library household-only removes it from every non-household group and person (F009).
     MetadataLanguage:
       type: string
       pattern: "^[a-z]{2}$"

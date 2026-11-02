@@ -48,7 +48,7 @@ func (s *Service) Purge(ctx context.Context) error {
 		}
 	}
 	s.mu.Unlock()
-	for _, b := range []interface{ Sweep() }{s.logins, s.pins, s.claims, s.pairings} {
+	for _, b := range []interface{ Sweep() }{s.logins, s.pins, s.claims, s.pairings, s.invites} {
 		b.Sweep()
 	}
 	return nil

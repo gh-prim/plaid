@@ -120,6 +120,24 @@ func TestDecide(t *testing.T) {
 			},
 		},
 		{
+			name:  "a 4K film for a person capped at 1080p is transcoded down (F009)",
+			media: media(t, "hevc_hdr10_multiaudio", "/media/Dune.mkv"), profile: appleTV,
+			limits: Limits{MaxQuality: "1080p", Tonemap: true},
+			method: Transcode, reasons: []string{ReasonContainer, ReasonQualityCap},
+			check: func(t *testing.T, d Decision) {
+				if d.Quality != "1080p" || d.Height > 1080 || slices.Contains(d.Qualities, "2160p") ||
+					slices.Contains(d.Qualities, QualityOriginal) {
+					t.Errorf("capped decision = %s %dx%d, qualities %v", d.Quality, d.Width, d.Height, d.Qualities)
+				}
+			},
+		},
+		{
+			name:  "a 1080p film under a 1080p cap still plays directly",
+			media: media(t, "sdr_h264_stereo", "/media/Movie.mp4"), profile: chrome,
+			limits: Limits{MaxQuality: "1080p"},
+			method: DirectPlay, reasons: []string{},
+		},
+		{
 			name:  "H.264/DTS MKV in a browser is direct-streamed with AAC",
 			media: media(t, "sdr_h264_stereo", "/media/Movie.mkv", audioTo("dts", 6)), profile: chrome,
 			method: DirectStream, reasons: []string{ReasonContainer, ReasonAudioCodec},

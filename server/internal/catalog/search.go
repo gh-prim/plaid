@@ -44,7 +44,7 @@ func (c *Catalog) Search(ctx context.Context, q string, lim access.Limit, limit 
 	if match == "" {
 		return res, nil
 	}
-	cond, condArgs := lim.SQL("m")
+	cond, condArgs := lim.SQL("i", "m")
 	if cond != "" {
 		cond = " AND " + cond
 	}

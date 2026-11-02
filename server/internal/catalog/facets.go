@@ -49,7 +49,7 @@ type LetterCount struct {
 func (c *Catalog) Facets(ctx context.Context, libraryID, kind string, lim access.Limit) (Facets, error) {
 	where := "i.library_id = ? AND i.hidden = 0 AND i.kind = ?"
 	args := []any{libraryID, kind}
-	if cond, a := lim.SQL("m"); cond != "" {
+	if cond, a := lim.SQL("i", "m"); cond != "" {
 		where += " AND " + cond
 		args = append(args, a...)
 	}
