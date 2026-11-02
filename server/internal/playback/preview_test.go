@@ -11,74 +11,71 @@ import (
 	"github.com/gh-prim/plaid/server/internal/library"
 )
 
-// The scenes sit in the first third, after the opening credits.
-func TestPreviewScenesAt(t *testing.T) {
+// The candidate windows sit in the first third, after the opening
+// credits, the last one ending at 35%.
+func TestPreviewCandidatesAt(t *testing.T) {
 	d := 100 * time.Minute
-	got := previewScenesAt(d)
-	if len(got) != previewScenes {
-		t.Fatalf("%d scenes, want %d", len(got), previewScenes)
+	got := previewCandidatesAt(d)
+	if len(got) != previewCandidates {
+		t.Fatalf("%d candidates, want %d", len(got), previewCandidates)
 	}
-	if got[0] != 8*time.Minute {
-		t.Errorf("first scene at %v, want 8m", got[0])
+	if got[0] != 10*time.Minute {
+		t.Errorf("first candidate at %v, want 10m", got[0])
 	}
-	for i, at := range got {
-		if at+previewSceneLength > 35*time.Minute {
-			t.Errorf("scene %d at %v ends past the first third", i, at)
-		}
-		if i > 0 && at <= got[i-1] {
-			t.Errorf("scenes out of order: %v", got)
+	if end := got[len(got)-1] + previewLength; end != 35*time.Minute {
+		t.Errorf("last candidate ends at %v, want 35m", end)
+	}
+	for i := 1; i < len(got); i++ {
+		if got[i] <= got[i-1] {
+			t.Errorf("candidates out of order: %v", got)
 		}
 	}
 }
 
-// One scene per run, one input, threads bounded; its sound faded when
-// the file has one; tone mapped from HDR only when the build can. The
-// join copies.
-func TestPreviewSceneArgs(t *testing.T) {
+// One run, one input, threads bounded; its sound faded when the file has
+// one; tone mapped from HDR only when the build can; an MP4 that plays
+// before it's fully loaded.
+func TestPreviewClipArgs(t *testing.T) {
 	src := previewSource{path: "/m/a.mkv", duration: time.Hour, audio: 2}
 	full := &FFmpeg{Filters: map[string]bool{"zscale": true, "tonemap": true}}
-	args := previewSceneArgs(src, full, 8*time.Minute, "/t/scene0.mp4", previewThreadsAhead)
+	args := previewClipArgs(src, full, 8*time.Minute, "/t/p.mp4", previewThreadsAhead)
 	joined := strings.Join(args, " ")
 	if n := strings.Count(joined, "-i "); n != 1 {
 		t.Errorf("%d inputs, want 1: %s", n, joined)
 	}
-	for _, want := range []string{"-filter_threads 2", "-threads 2 -ss 480.000 -t 6.000 -i /m/a.mkv",
-		"-map 0:2", "afade=t=out:st=5.600", "-c:a aac", "libx264", "/t/scene0.mp4"} {
+	for _, want := range []string{"-filter_threads 2", "-threads 2 -ss 480.000 -t 24.000 -i /m/a.mkv",
+		"-map 0:2", "afade=t=out:st=23.000", "-c:a aac", "libx264", "-movflags +faststart", "/t/p.mp4"} {
 		if !strings.Contains(joined, want) {
 			t.Errorf("args lack %q: %s", want, joined)
 		}
 	}
-	if strings.Contains(joined, "tonemap") || strings.Contains(joined, "faststart") {
-		t.Errorf("SDR scene: %s", joined)
+	if strings.Contains(joined, "tonemap") {
+		t.Errorf("SDR clip: %s", joined)
 	}
 
 	src.audio = -1
-	if args := previewSceneArgs(src, full, 0, "/t/s.mp4", "4"); !slices.Contains(args, "-an") ||
+	if args := previewClipArgs(src, full, 0, "/t/s.mp4", "4"); !slices.Contains(args, "-an") ||
 		strings.Contains(strings.Join(args, " "), "aformat") {
 		t.Errorf("silent file: %v", args)
 	}
 	src.hdr = true
-	if args := previewSceneArgs(src, full, 0, "/t/s.mp4", "4"); !strings.Contains(strings.Join(args, " "), "tonemap=hable") {
+	if args := previewClipArgs(src, full, 0, "/t/s.mp4", "4"); !strings.Contains(strings.Join(args, " "), "tonemap=hable") {
 		t.Error("HDR source isn't tone mapped")
 	}
-	if args := previewSceneArgs(src, &FFmpeg{}, 0, "/t/s.mp4", "2"); strings.Contains(strings.Join(args, " "), "tonemap") {
+	if args := previewClipArgs(src, &FFmpeg{}, 0, "/t/s.mp4", "2"); strings.Contains(strings.Join(args, " "), "tonemap") {
 		t.Error("tone mapping asked of a build without zscale")
 	}
 
 	src = previewSource{path: "/m/a.mkv", duration: time.Hour, audio: 1, copy: true}
-	joined = strings.Join(previewSceneArgs(src, full, time.Minute, "/t/s.mp4", "2"), " ")
-	for _, want := range []string{"-noaccurate_seek -ss 60.000", "-c:v copy", "-c:a aac", "-avoid_negative_ts make_zero"} {
+	joined = strings.Join(previewClipArgs(src, full, time.Minute, "/t/s.mp4", "2"), " ")
+	for _, want := range []string{"-noaccurate_seek -ss 60.000", "-c:v copy", "-c:a aac",
+		"-avoid_negative_ts make_zero -movflags +faststart"} {
 		if !strings.Contains(joined, want) {
-			t.Errorf("copied scene lacks %q: %s", want, joined)
+			t.Errorf("copied clip lacks %q: %s", want, joined)
 		}
 	}
 	if strings.Contains(joined, "libx264") || strings.Contains(joined, "scale=") {
-		t.Errorf("copied scene encodes: %s", joined)
-	}
-
-	join := strings.Join(previewJoinArgs("/t/scenes.txt", "/c/x.mp4"), " ")
-	if !strings.Contains(join, "-f concat -safe 0 -i /t/scenes.txt -c copy -movflags +faststart") {
-		t.Errorf("join: %s", join)
+		t.Errorf("copied clip encodes: %s", joined)
 	}
 }
 
