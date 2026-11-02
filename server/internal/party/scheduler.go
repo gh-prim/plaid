@@ -34,6 +34,14 @@ func (s *Service) schedule(ctx context.Context) {
 	if err := s.store.PurgeSummaries(ctx, now.Add(-30*24*time.Hour)); err != nil {
 		s.o.Log.Error("party scheduler: purge", "err", err)
 	}
+	if now.Sub(s.lastReleases) >= releasesEvery {
+		s.lastReleases = now
+		go func() {
+			if err := s.FetchReleases(context.WithoutCancel(ctx)); err != nil {
+				s.o.Log.Error("party: releases", "err", err)
+			}
+		}()
+	}
 }
 
 func (s *Service) scheduleOne(ctx context.Context, pt Party, now time.Time) error {

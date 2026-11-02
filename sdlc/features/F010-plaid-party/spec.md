@@ -317,4 +317,4 @@ Plurals (`party.count`, invitations badge, "{n} films proposés"), dates and tim
 - [ ] Every message in `api/events.md` has an example, and the protocol tests replay those examples against the server.
 
 ## Revisions
-_None yet._
+- 2026-11-03: public code routes renamed `/party-codes/{code}` (mux conflict); alerts keyed by show, season and episode (`/shows/{showId}/alerts/{season}/{episode}`); `GET /shows/{showId}/follow` added for the show page.

@@ -1730,6 +1730,27 @@ func (e UnrecognizedFileProbeStatus) Valid() bool {
 	}
 }
 
+// Defines values for UpcomingEpisodeStatus.
+const (
+	UpcomingEpisodeStatusReleasedOnServer    UpcomingEpisodeStatus = "released_on_server"
+	UpcomingEpisodeStatusReleasedPendingFile UpcomingEpisodeStatus = "released_pending_file"
+	UpcomingEpisodeStatusUpcoming            UpcomingEpisodeStatus = "upcoming"
+)
+
+// Valid indicates whether the value is a known member of the UpcomingEpisodeStatus enum.
+func (e UpcomingEpisodeStatus) Valid() bool {
+	switch e {
+	case UpcomingEpisodeStatusReleasedOnServer:
+		return true
+	case UpcomingEpisodeStatusReleasedPendingFile:
+		return true
+	case UpcomingEpisodeStatusUpcoming:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for VideoCapabilityHdr.
 const (
 	VideoCapabilityHdrDolbyVision VideoCapabilityHdr = "dolby_vision"
@@ -1880,6 +1901,27 @@ func (e AnswerPartyJSONBodyAnswer) Valid() bool {
 	case AnswerPartyJSONBodyAnswerNo:
 		return true
 	case AnswerPartyJSONBodyAnswerYes:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetUpcomingParamsKind.
+const (
+	GetUpcomingParamsKindAll      GetUpcomingParamsKind = "all"
+	GetUpcomingParamsKindEpisodes GetUpcomingParamsKind = "episodes"
+	GetUpcomingParamsKindParties  GetUpcomingParamsKind = "parties"
+)
+
+// Valid indicates whether the value is a known member of the GetUpcomingParamsKind enum.
+func (e GetUpcomingParamsKind) Valid() bool {
+	switch e {
+	case GetUpcomingParamsKindAll:
+		return true
+	case GetUpcomingParamsKindEpisodes:
+		return true
+	case GetUpcomingParamsKindParties:
 		return true
 	default:
 		return false
@@ -4091,6 +4133,15 @@ type SetupState struct {
 	SetupComplete     bool `json:"setupComplete"`
 }
 
+// ShowFollow defines model for ShowFollow.
+type ShowFollow struct {
+	// Explicit Followed from the show page.
+	Explicit bool `json:"explicit"`
+
+	// Following The show is in Upcoming, followed explicitly or started and not finished.
+	Following bool `json:"following"`
+}
+
 // ShowRef The show of a season or an episode (F008 R30).
 type ShowRef struct {
 	DisplayTitle string `json:"displayTitle"`
@@ -4195,6 +4246,34 @@ type UnrecognizedPage struct {
 type UpNext struct {
 	Item ItemSummary `json:"item"`
 }
+
+// Upcoming defines model for Upcoming.
+type Upcoming struct {
+	Episodes    []UpcomingEpisode `json:"episodes"`
+	Invitations []Party           `json:"invitations"`
+	Parties     []Party           `json:"parties"`
+}
+
+// UpcomingEpisode defines model for UpcomingEpisode.
+type UpcomingEpisode struct {
+	// AirDate TMDB gives the date only.
+	AirDate openapi_types.Date `json:"airDate"`
+
+	// Alert Notify me is on.
+	Alert   bool `json:"alert"`
+	Episode int  `json:"episode"`
+
+	// ItemId The episode on the server, when it's there.
+	ItemId    *string               `json:"itemId,omitempty"`
+	Season    int                   `json:"season"`
+	ShowId    string                `json:"showId"`
+	ShowTitle string                `json:"showTitle"`
+	Status    UpcomingEpisodeStatus `json:"status"`
+	Title     *string               `json:"title,omitempty"`
+}
+
+// UpcomingEpisodeStatus defines model for UpcomingEpisode.Status.
+type UpcomingEpisodeStatus string
 
 // UpdateGroupRequest Absent fields are unchanged.
 type UpdateGroupRequest struct {
@@ -4565,6 +4644,16 @@ type SearchParams struct {
 	// Limit Per group.
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
+
+// GetUpcomingParams defines parameters for GetUpcoming.
+type GetUpcomingParams struct {
+	From *openapi_types.Date    `form:"from,omitempty" json:"from,omitempty"`
+	To   *openapi_types.Date    `form:"to,omitempty" json:"to,omitempty"`
+	Kind *GetUpcomingParamsKind `form:"kind,omitempty" json:"kind,omitempty"`
+}
+
+// GetUpcomingParamsKind defines parameters for GetUpcoming.
+type GetUpcomingParamsKind string
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
@@ -5021,6 +5110,24 @@ type ServerInterface interface {
 	// CreateFirstAdmin Create the first admin account and sign in
 	// (POST /setup/admin)
 	CreateFirstAdmin(w http.ResponseWriter, r *http.Request)
+	// ClearReleaseAlert Stop the alert
+	// (DELETE /shows/{showId}/alerts/{season}/{episode})
+	ClearReleaseAlert(w http.ResponseWriter, r *http.Request, showId string, season int, episode int)
+	// SetReleaseAlert Notify me when this episode is on the server (F010-R38)
+	// (PUT /shows/{showId}/alerts/{season}/{episode})
+	SetReleaseAlert(w http.ResponseWriter, r *http.Request, showId string, season int, episode int)
+	// UnfollowShow Stop following a show (one started stays followed until it's finished)
+	// (DELETE /shows/{showId}/follow)
+	UnfollowShow(w http.ResponseWriter, r *http.Request, showId string)
+	// GetShowFollow Whether the active profile follows a show (F010-R35)
+	// (GET /shows/{showId}/follow)
+	GetShowFollow(w http.ResponseWriter, r *http.Request, showId string)
+	// FollowShow Follow a show from its page
+	// (PUT /shows/{showId}/follow)
+	FollowShow(w http.ResponseWriter, r *http.Request, showId string)
+	// GetUpcoming The Upcoming tab (F010-R37)
+	// (GET /upcoming)
+	GetUpcoming(w http.ResponseWriter, r *http.Request, params GetUpcomingParams)
 	// ListUsers All accounts (admin)
 	// (GET /users)
 	ListUsers(w http.ResponseWriter, r *http.Request)
@@ -8081,6 +8188,231 @@ func (siw *ServerInterfaceWrapper) CreateFirstAdmin(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
+// ClearReleaseAlert operation middleware
+func (siw *ServerInterfaceWrapper) ClearReleaseAlert(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "showId" -------------
+	var showId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "showId", r.PathValue("showId"), &showId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "showId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "season" -------------
+	var season int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "season", r.PathValue("season"), &season, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "season", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "episode" -------------
+	var episode int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "episode", r.PathValue("episode"), &episode, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "episode", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ClearReleaseAlert(w, r, showId, season, episode)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetReleaseAlert operation middleware
+func (siw *ServerInterfaceWrapper) SetReleaseAlert(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "showId" -------------
+	var showId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "showId", r.PathValue("showId"), &showId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "showId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "season" -------------
+	var season int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "season", r.PathValue("season"), &season, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "season", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "episode" -------------
+	var episode int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "episode", r.PathValue("episode"), &episode, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "episode", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetReleaseAlert(w, r, showId, season, episode)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnfollowShow operation middleware
+func (siw *ServerInterfaceWrapper) UnfollowShow(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "showId" -------------
+	var showId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "showId", r.PathValue("showId"), &showId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "showId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnfollowShow(w, r, showId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetShowFollow operation middleware
+func (siw *ServerInterfaceWrapper) GetShowFollow(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "showId" -------------
+	var showId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "showId", r.PathValue("showId"), &showId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "showId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetShowFollow(w, r, showId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// FollowShow operation middleware
+func (siw *ServerInterfaceWrapper) FollowShow(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "showId" -------------
+	var showId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "showId", r.PathValue("showId"), &showId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "showId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.FollowShow(w, r, showId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUpcoming operation middleware
+func (siw *ServerInterfaceWrapper) GetUpcoming(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUpcomingParams
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "from", r.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "to", r.URL.Query(), &params.To, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "to"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "kind", r.URL.Query(), &params.Kind, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUpcoming(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListUsers operation middleware
 func (siw *ServerInterfaceWrapper) ListUsers(w http.ResponseWriter, r *http.Request) {
 
@@ -8471,6 +8803,12 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/parties/{partyId}/vote/proposals/{itemId}", wrapper.ProposeForParty)
 	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/parties/{partyId}/vote/ballot", wrapper.CastPartyBallot)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/parties/{partyId}/vote/suggestions", wrapper.PartyVoteSuggestions)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/upcoming", wrapper.GetUpcoming)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/shows/{showId}/follow", wrapper.UnfollowShow)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/shows/{showId}/follow", wrapper.GetShowFollow)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/shows/{showId}/follow", wrapper.FollowShow)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/shows/{showId}/alerts/{season}/{episode}", wrapper.ClearReleaseAlert)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/shows/{showId}/alerts/{season}/{episode}", wrapper.SetReleaseAlert)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/settings/party", wrapper.GetPartySettings)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/party", wrapper.UpdatePartySettings)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
@@ -12860,6 +13198,232 @@ func (response CreateFirstAdmindefaultJSONResponse) VisitCreateFirstAdminRespons
 	return err
 }
 
+type ClearReleaseAlertRequestObject struct {
+	ShowId  string `json:"showId"`
+	Season  int    `json:"season"`
+	Episode int    `json:"episode"`
+}
+
+type ClearReleaseAlertResponseObject interface {
+	VisitClearReleaseAlertResponse(w http.ResponseWriter) error
+}
+
+type ClearReleaseAlert204Response struct {
+}
+
+func (response ClearReleaseAlert204Response) VisitClearReleaseAlertResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type ClearReleaseAlertdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ClearReleaseAlertdefaultJSONResponse) VisitClearReleaseAlertResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetReleaseAlertRequestObject struct {
+	ShowId  string `json:"showId"`
+	Season  int    `json:"season"`
+	Episode int    `json:"episode"`
+}
+
+type SetReleaseAlertResponseObject interface {
+	VisitSetReleaseAlertResponse(w http.ResponseWriter) error
+}
+
+type SetReleaseAlert204Response struct {
+}
+
+func (response SetReleaseAlert204Response) VisitSetReleaseAlertResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type SetReleaseAlertdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response SetReleaseAlertdefaultJSONResponse) VisitSetReleaseAlertResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UnfollowShowRequestObject struct {
+	ShowId string `json:"showId"`
+}
+
+type UnfollowShowResponseObject interface {
+	VisitUnfollowShowResponse(w http.ResponseWriter) error
+}
+
+type UnfollowShow200JSONResponse ShowFollow
+
+func (response UnfollowShow200JSONResponse) VisitUnfollowShowResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UnfollowShowdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UnfollowShowdefaultJSONResponse) VisitUnfollowShowResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetShowFollowRequestObject struct {
+	ShowId string `json:"showId"`
+}
+
+type GetShowFollowResponseObject interface {
+	VisitGetShowFollowResponse(w http.ResponseWriter) error
+}
+
+type GetShowFollow200JSONResponse ShowFollow
+
+func (response GetShowFollow200JSONResponse) VisitGetShowFollowResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetShowFollowdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetShowFollowdefaultJSONResponse) VisitGetShowFollowResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type FollowShowRequestObject struct {
+	ShowId string `json:"showId"`
+}
+
+type FollowShowResponseObject interface {
+	VisitFollowShowResponse(w http.ResponseWriter) error
+}
+
+type FollowShow200JSONResponse ShowFollow
+
+func (response FollowShow200JSONResponse) VisitFollowShowResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type FollowShowdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response FollowShowdefaultJSONResponse) VisitFollowShowResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUpcomingRequestObject struct {
+	Params GetUpcomingParams
+}
+
+type GetUpcomingResponseObject interface {
+	VisitGetUpcomingResponse(w http.ResponseWriter) error
+}
+
+type GetUpcoming200JSONResponse Upcoming
+
+func (response GetUpcoming200JSONResponse) VisitGetUpcomingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUpcomingdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetUpcomingdefaultJSONResponse) VisitGetUpcomingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListUsersRequestObject struct {
 }
 
@@ -13449,6 +14013,24 @@ type StrictServerInterface interface {
 	// CreateFirstAdmin Create the first admin account and sign in
 	// (POST /setup/admin)
 	CreateFirstAdmin(ctx context.Context, request CreateFirstAdminRequestObject) (CreateFirstAdminResponseObject, error)
+	// ClearReleaseAlert Stop the alert
+	// (DELETE /shows/{showId}/alerts/{season}/{episode})
+	ClearReleaseAlert(ctx context.Context, request ClearReleaseAlertRequestObject) (ClearReleaseAlertResponseObject, error)
+	// SetReleaseAlert Notify me when this episode is on the server (F010-R38)
+	// (PUT /shows/{showId}/alerts/{season}/{episode})
+	SetReleaseAlert(ctx context.Context, request SetReleaseAlertRequestObject) (SetReleaseAlertResponseObject, error)
+	// UnfollowShow Stop following a show (one started stays followed until it's finished)
+	// (DELETE /shows/{showId}/follow)
+	UnfollowShow(ctx context.Context, request UnfollowShowRequestObject) (UnfollowShowResponseObject, error)
+	// GetShowFollow Whether the active profile follows a show (F010-R35)
+	// (GET /shows/{showId}/follow)
+	GetShowFollow(ctx context.Context, request GetShowFollowRequestObject) (GetShowFollowResponseObject, error)
+	// FollowShow Follow a show from its page
+	// (PUT /shows/{showId}/follow)
+	FollowShow(ctx context.Context, request FollowShowRequestObject) (FollowShowResponseObject, error)
+	// GetUpcoming The Upcoming tab (F010-R37)
+	// (GET /upcoming)
+	GetUpcoming(ctx context.Context, request GetUpcomingRequestObject) (GetUpcomingResponseObject, error)
 	// ListUsers All accounts (admin)
 	// (GET /users)
 	ListUsers(ctx context.Context, request ListUsersRequestObject) (ListUsersResponseObject, error)
@@ -16569,6 +17151,166 @@ func (sh *strictHandler) CreateFirstAdmin(w http.ResponseWriter, r *http.Request
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(CreateFirstAdminResponseObject); ok {
 		if err := validResponse.VisitCreateFirstAdminResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ClearReleaseAlert operation middleware
+func (sh *strictHandler) ClearReleaseAlert(w http.ResponseWriter, r *http.Request, showId string, season int, episode int) {
+	var request ClearReleaseAlertRequestObject
+
+	request.ShowId = showId
+	request.Season = season
+	request.Episode = episode
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ClearReleaseAlert(ctx, request.(ClearReleaseAlertRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ClearReleaseAlert")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ClearReleaseAlertResponseObject); ok {
+		if err := validResponse.VisitClearReleaseAlertResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetReleaseAlert operation middleware
+func (sh *strictHandler) SetReleaseAlert(w http.ResponseWriter, r *http.Request, showId string, season int, episode int) {
+	var request SetReleaseAlertRequestObject
+
+	request.ShowId = showId
+	request.Season = season
+	request.Episode = episode
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetReleaseAlert(ctx, request.(SetReleaseAlertRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetReleaseAlert")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetReleaseAlertResponseObject); ok {
+		if err := validResponse.VisitSetReleaseAlertResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UnfollowShow operation middleware
+func (sh *strictHandler) UnfollowShow(w http.ResponseWriter, r *http.Request, showId string) {
+	var request UnfollowShowRequestObject
+
+	request.ShowId = showId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnfollowShow(ctx, request.(UnfollowShowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnfollowShow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnfollowShowResponseObject); ok {
+		if err := validResponse.VisitUnfollowShowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetShowFollow operation middleware
+func (sh *strictHandler) GetShowFollow(w http.ResponseWriter, r *http.Request, showId string) {
+	var request GetShowFollowRequestObject
+
+	request.ShowId = showId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetShowFollow(ctx, request.(GetShowFollowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetShowFollow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetShowFollowResponseObject); ok {
+		if err := validResponse.VisitGetShowFollowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// FollowShow operation middleware
+func (sh *strictHandler) FollowShow(w http.ResponseWriter, r *http.Request, showId string) {
+	var request FollowShowRequestObject
+
+	request.ShowId = showId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.FollowShow(ctx, request.(FollowShowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "FollowShow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(FollowShowResponseObject); ok {
+		if err := validResponse.VisitFollowShowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUpcoming operation middleware
+func (sh *strictHandler) GetUpcoming(w http.ResponseWriter, r *http.Request, params GetUpcomingParams) {
+	var request GetUpcomingRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUpcoming(ctx, request.(GetUpcomingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUpcoming")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUpcomingResponseObject); ok {
+		if err := validResponse.VisitGetUpcomingResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

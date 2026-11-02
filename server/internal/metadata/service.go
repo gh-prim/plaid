@@ -279,6 +279,10 @@ func (s *Service) mdblist() *mdblist.Client {
 // Artwork is the image store; nil without a data directory.
 func (s *Service) Artwork() *artwork.Store { return s.art }
 
+// Provider is TMDB as configured now, nil without a key: Plaid Party's
+// Upcoming tab reads episode air dates from it (F010-R36).
+func (s *Service) Provider() provider.Provider { return s.provider() }
+
 func (s *Service) provider() provider.Provider {
 	s.mu.Lock()
 	defer s.mu.Unlock()

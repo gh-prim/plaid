@@ -96,12 +96,24 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	meta.Start(ctx)
 	defer meta.Close()
 
-	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{ItemsCreated: meta.ItemsCreated, Sidecars: meta.SidecarsSeen}, probs)
-	defer engine.Close()
-
 	// Plaid Party (F010): rooms over the WebSocket hub; playback asks it
-	// which titles a party opens.
-	parties := party.New(party.Options{Store: party.NewStore(database), Accounts: accts, Log: logger})
+	// which titles a party opens, scans fire its release alerts.
+	parties := party.New(party.Options{Store: party.NewStore(database), Accounts: accts, Log: logger,
+		Releases: func() party.Releases {
+			if p := meta.Provider(); p != nil {
+				return p
+			}
+			return nil
+		}})
+
+	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{
+		ItemsCreated: func(libraryID string, itemIDs []string) {
+			meta.ItemsCreated(libraryID, itemIDs)
+			parties.ItemsCreated(libraryID, itemIDs)
+		},
+		Sidecars: meta.SidecarsSeen,
+	}, probs)
+	defer engine.Close()
 
 	// Playback (F006) closes before the library engine: deferred calls
 	// run last-in first-out.

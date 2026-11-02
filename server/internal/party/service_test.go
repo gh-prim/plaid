@@ -8,6 +8,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/access"
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/auth"
+	"github.com/gh-prim/plaid/server/internal/metadata/provider"
 	"github.com/gh-prim/plaid/server/internal/realtime"
 )
 
@@ -292,5 +293,87 @@ func TestScheduler(t *testing.T) {
 	svc.schedule(ctx)
 	if got, _ := st.Get(ctx, stale.ID); got.Status != StatusCancelled {
 		t.Errorf("stale party = %s", got.Status)
+	}
+}
+
+// fakeReleases is TMDB for Caminandes: two seasons, season 2 airing.
+type fakeReleases struct{}
+
+func (fakeReleases) Show(context.Context, int, provider.Locale) (*provider.Details, error) {
+	return &provider.Details{Seasons: []provider.SeasonRef{{Number: 0}, {Number: 1}, {Number: 2}}}, nil
+}
+
+func (fakeReleases) Season(_ context.Context, _, n int, _ provider.Locale) (*provider.Season, error) {
+	day := func(d int) string { return t0.AddDate(0, 0, d).Format("2006-01-02") }
+	if n == 1 {
+		return &provider.Season{Number: 1, Episodes: []provider.Episode{{Season: 1, Number: 1, AirDate: day(-400)}}}, nil
+	}
+	return &provider.Season{Number: 2, Episodes: []provider.Episode{
+		{Season: 2, Number: 1, Name: "Llamigos", AirDate: day(-2)},
+		{Season: 2, Number: 3, Name: "Le Phare", AirDate: day(-1)},
+		{Season: 2, Number: 4, Name: "Les Lunes", AirDate: day(3)},
+		{Season: 2, Number: 5, AirDate: day(90)},
+	}}, nil
+}
+
+// TestUpcoming covers R35–R38: a started show is followed, its releases
+// come from TMDB with their status, and "Notify me" fires when the file
+// lands.
+func TestUpcoming(t *testing.T) {
+	_, st := fixture(t)
+	showFixture(t, st)
+	ctx := context.Background()
+	now := t0
+	for _, q := range []string{
+		`INSERT INTO item_metadata (item_id, tmdb_id, title, updated_at) VALUES ('cam', 4242, 'Caminandes', '` + ts(t0) + `')`,
+		`INSERT INTO watch_state (profile_id, item_id, position_ms, updated_at) VALUES ('p-mia','cam-s1e1',60000,'` + ts(t0) + `')`,
+	} {
+		if _, err := st.db.ExecContext(ctx, q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	svc := New(Options{Store: st, Accounts: fakeAccounts{}, Now: func() time.Time { return now },
+		Releases: func() Releases { return fakeReleases{} }})
+	if err := svc.FetchReleases(ctx); err != nil {
+		t.Fatal(err)
+	}
+	mia := auth.Principal{UserID: "mia", ProfileID: "p-mia"}
+	v, err := svc.Upcoming(ctx, mia, now.AddDate(0, 0, -7), now.AddDate(0, 0, 60), "all")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(v.Episodes) != 3 {
+		t.Fatalf("episodes = %+v", v.Episodes)
+	}
+	want := map[int]string{1: ReleaseOnServer, 3: ReleasePending, 4: ReleaseUpcoming}
+	for _, e := range v.Episodes {
+		if e.Status != want[e.Episode] || e.ShowTitle != "Caminandes" {
+			t.Errorf("S2E%d = %s %q", e.Episode, e.Status, e.ShowTitle)
+		}
+	}
+	// Sam never started it: nothing, until he follows it.
+	sam := auth.Principal{UserID: "sam", ProfileID: "p-sam"}
+	if v, _ := svc.Upcoming(ctx, sam, now, now.AddDate(0, 0, 60), "episodes"); len(v.Episodes) != 0 {
+		t.Errorf("sam sees %+v", v.Episodes)
+	}
+	if err := svc.Follow(ctx, sam, "cam", true); err != nil {
+		t.Fatal(err)
+	}
+	if v, _ := svc.Upcoming(ctx, sam, now, now.AddDate(0, 0, 60), "episodes"); len(v.Episodes) != 1 {
+		t.Errorf("after follow, sam sees %+v", v.Episodes)
+	}
+
+	// Notify me on S2E4, then the scan adds it.
+	if err := svc.Alert(ctx, mia, "cam", 2, 4, true); err != nil {
+		t.Fatal(err)
+	}
+	st.db.ExecContext(ctx, `INSERT INTO items (id, library_id, kind, parent_id, episode_number, created_at, updated_at)
+		VALUES ('cam-s2e4','shows','episode','cam-s2',4,?,?)`, ts(t0), ts(t0))
+	fired, err := st.FireAlerts(ctx, []string{"cam-s2e4", "nosferatu"}, now)
+	if err != nil || len(fired) != 1 || fired[0] != [2]string{"p-mia", "mia"} {
+		t.Fatalf("fired = %v, %v", fired, err)
+	}
+	if again, _ := st.FireAlerts(ctx, []string{"cam-s2e4"}, now); len(again) != 0 {
+		t.Error("alert fired twice")
 	}
 }

@@ -43,6 +43,9 @@ type Options struct {
 	Now      func() time.Time
 	// Tick is how often rooms run their timers (250 ms).
 	Tick time.Duration
+	// Releases returns TMDB for the Upcoming tab's air dates, nil without
+	// a key (R36).
+	Releases func() Releases
 }
 
 // Service runs Plaid Party: the stored parties and the live rooms. It is
@@ -59,6 +62,8 @@ type Service struct {
 	names map[string]map[string]string
 	// codes slows down guessing party codes (R3), by address and account.
 	codes *auth.Backoff
+	// lastReleases is when the releases were last fetched (R36).
+	lastReleases time.Time
 }
 
 // CodeBackoff: 10 wrong codes in 10 minutes wait 15 minutes (R3).
@@ -103,11 +108,13 @@ type live struct {
 
 // Errors of the service, as API errors.
 var (
-	errNotAllowed = apierr.New(403, "party_not_allowed", "Plaid Party isn't open to you")
-	errOff        = apierr.New(403, "party_disabled", "Plaid Party is turned off on this server")
-	errAgeLimit   = apierr.New(403, "party_age_limit", "this title isn't for this profile")
-	errNotFound   = apierr.NotFound("no such party")
-	errNotStarted = &realtime.Error{Code: "party_not_started"}
+	errNotAllowed      = apierr.New(403, "party_not_allowed", "Plaid Party isn't open to you")
+	errOff             = apierr.New(403, "party_disabled", "Plaid Party is turned off on this server")
+	errAgeLimit        = apierr.New(403, "party_age_limit", "this title isn't for this profile")
+	errNotFound        = apierr.NotFound("no such party")
+	errNotStarted      = &realtime.Error{Code: "party_not_started"}
+	errProfileRequired = apierr.ProfileRequired()
+	apiNotFoundItem    = apierr.NotFound("no such item")
 )
 
 // New returns a service. Call SetHub before serving sockets, then Run.

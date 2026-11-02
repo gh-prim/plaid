@@ -2218,6 +2218,121 @@ paths:
                   $ref: "#/components/schemas/PartyItem"
         default:
           $ref: "#/components/responses/Error"
+  /upcoming:
+    get:
+      operationId: getUpcoming
+      summary: The Upcoming tab (F010-R37)
+      description: >-
+        For the active profile, between two dates (default today to 60 days ahead): invitations to answer, episodes of
+        followed shows (started and not finished, or followed from their page) with their status, and parties.
+      tags: [party]
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: kind
+          in: query
+          schema:
+            type: string
+            enum: [all, episodes, parties]
+            default: all
+      responses:
+        "200":
+          description: The tab
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Upcoming"
+        default:
+          $ref: "#/components/responses/Error"
+  /shows/{showId}/follow:
+    parameters:
+      - name: showId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getShowFollow
+      summary: Whether the active profile follows a show (F010-R35)
+      tags: [party]
+      responses:
+        "200":
+          description: The follow state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShowFollow"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      operationId: followShow
+      summary: Follow a show from its page
+      tags: [party]
+      responses:
+        "200":
+          description: The follow state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShowFollow"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: unfollowShow
+      summary: Stop following a show (one started stays followed until it's finished)
+      tags: [party]
+      responses:
+        "200":
+          description: The follow state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShowFollow"
+        default:
+          $ref: "#/components/responses/Error"
+  /shows/{showId}/alerts/{season}/{episode}:
+    parameters:
+      - name: showId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: season
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: episode
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      operationId: setReleaseAlert
+      summary: Notify me when this episode is on the server (F010-R38)
+      tags: [party]
+      responses:
+        "204":
+          description: Set
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: clearReleaseAlert
+      summary: Stop the alert
+      tags: [party]
+      responses:
+        "204":
+          description: Cleared
+        default:
+          $ref: "#/components/responses/Error"
   /settings/party:
     get:
       operationId: getPartySettings
@@ -5631,6 +5746,59 @@ components:
             seed:
               type: string
               description: The tie draw's seed; the draw is Draw(tied, seed) and can be checked again (R33).
+    ShowFollow:
+      type: object
+      required: [following, explicit]
+      properties:
+        following:
+          type: boolean
+          description: The show is in Upcoming, followed explicitly or started and not finished.
+        explicit:
+          type: boolean
+          description: Followed from the show page.
+    UpcomingEpisode:
+      type: object
+      required: [showId, showTitle, season, episode, airDate, status, alert]
+      properties:
+        showId:
+          type: string
+        showTitle:
+          type: string
+        season:
+          type: integer
+        episode:
+          type: integer
+        title:
+          type: string
+        airDate:
+          type: string
+          format: date
+          description: TMDB gives the date only.
+        status:
+          type: string
+          enum: [released_on_server, released_pending_file, upcoming]
+        itemId:
+          type: string
+          description: The episode on the server, when it's there.
+        alert:
+          type: boolean
+          description: Notify me is on.
+    Upcoming:
+      type: object
+      required: [invitations, episodes, parties]
+      properties:
+        invitations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Party"
+        episodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/UpcomingEpisode"
+        parties:
+          type: array
+          items:
+            $ref: "#/components/schemas/Party"
     PartySettings:
       type: object
       required: [enabled, maxPeople, guests, uploadMbps]

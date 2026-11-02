@@ -1642,6 +1642,69 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/upcoming': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * The Upcoming tab (F010-R37)
+     * @description For the active profile, between two dates (default today to 60 days ahead): invitations to answer, episodes of followed shows (started and not finished, or followed from their page) with their status, and parties.
+     */
+    get: operations['getUpcoming']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/shows/{showId}/follow': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+      }
+      cookie?: never
+    }
+    /** Whether the active profile follows a show (F010-R35) */
+    get: operations['getShowFollow']
+    /** Follow a show from its page */
+    put: operations['followShow']
+    post?: never
+    /** Stop following a show (one started stays followed until it's finished) */
+    delete: operations['unfollowShow']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/shows/{showId}/alerts/{season}/{episode}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+        season: number
+        episode: number
+      }
+      cookie?: never
+    }
+    get?: never
+    /** Notify me when this episode is on the server (F010-R38) */
+    put: operations['setReleaseAlert']
+    post?: never
+    /** Stop the alert */
+    delete: operations['clearReleaseAlert']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/settings/party': {
     parameters: {
       query?: never
@@ -3640,6 +3703,35 @@ export interface components {
         /** @description The tie draw's seed; the draw is Draw(tied, seed) and can be checked again (R33). */
         seed?: string
       }
+    }
+    ShowFollow: {
+      /** @description The show is in Upcoming, followed explicitly or started and not finished. */
+      following: boolean
+      /** @description Followed from the show page. */
+      explicit: boolean
+    }
+    UpcomingEpisode: {
+      showId: string
+      showTitle: string
+      season: number
+      episode: number
+      title?: string
+      /**
+       * Format: date
+       * @description TMDB gives the date only.
+       */
+      airDate: string
+      /** @enum {string} */
+      status: 'released_on_server' | 'released_pending_file' | 'upcoming'
+      /** @description The episode on the server, when it's there. */
+      itemId?: string
+      /** @description Notify me is on. */
+      alert: boolean
+    }
+    Upcoming: {
+      invitations: components['schemas']['Party'][]
+      episodes: components['schemas']['UpcomingEpisode'][]
+      parties: components['schemas']['Party'][]
     }
     PartySettings: {
       /** @description Watch together, at home or away. On by default. */
@@ -6590,6 +6682,146 @@ export interface operations {
         content: {
           'application/json': components['schemas']['PartyItem'][]
         }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getUpcoming: {
+    parameters: {
+      query?: {
+        from?: string
+        to?: string
+        kind?: 'all' | 'episodes' | 'parties'
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The tab */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Upcoming']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getShowFollow: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The follow state */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ShowFollow']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  followShow: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The follow state */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ShowFollow']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  unfollowShow: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The follow state */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ShowFollow']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  setReleaseAlert: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+        season: number
+        episode: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Set */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  clearReleaseAlert: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+        season: number
+        episode: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Cleared */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
       default: components['responses']['Error']
     }
