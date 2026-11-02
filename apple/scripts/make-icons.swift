@@ -14,10 +14,11 @@ let out = "\(assets)/App Icon & Top Shelf Image.brandassets"
 let cream = CGColor(srgbRed: 0xf4 / 255, green: 0xf0 / 255, blue: 0xe9 / 255, alpha: 1)
 let graphite = CGColor(srgbRed: 0x1c / 255, green: 0x1c / 255, blue: 0x1e / 255, alpha: 1)
 
-func context(_ w: Int, _ h: Int) -> CGContext {
+/// `opaque`: no alpha channel, as the App Store wants for an iOS icon.
+func context(_ w: Int, _ h: Int, opaque: Bool = false) -> CGContext {
     let c = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0,
                       space: CGColorSpace(name: CGColorSpace.sRGB)!,
-                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+                      bitmapInfo: (opaque ? CGImageAlphaInfo.noneSkipLast : .premultipliedLast).rawValue)!
     // SVG coordinates: origin top-left.
     c.translateBy(x: 0, y: CGFloat(h))
     c.scaleBy(x: 1, y: -1)
@@ -156,4 +157,20 @@ writeJSON([
     "info": ["author": "xcode", "version": 1],
 ], "\(assets)/Splash.colorset/Contents.json")
 
-print("icons written to \(out)")
+// MARK: iPhone and iPad: one 1024 square, the woven play button on graphite
+// as on the board's square icon; the system rounds the corners.
+
+let iosIcon = "iOS/Resources/Assets.xcassets/AppIcon.appiconset"
+do {
+    let c = context(1024, 1024, opaque: true)
+    c.setFillColor(graphite); c.fill(CGRect(x: 0, y: 0, width: 1024, height: 1024))
+    drawMark(c, origin: .zero, scale: 10.24)
+    save(c, "\(iosIcon)/icon-1024.png")
+    writeJSON([
+        "images": [["idiom": "universal", "platform": "ios", "size": "1024x1024", "filename": "icon-1024.png"]],
+        "info": ["author": "xcode", "version": 1],
+    ], "\(iosIcon)/Contents.json")
+    writeJSON(["info": ["author": "xcode", "version": 1]], "iOS/Resources/Assets.xcassets/Contents.json")
+}
+
+print("icons written to \(out) and \(iosIcon)")

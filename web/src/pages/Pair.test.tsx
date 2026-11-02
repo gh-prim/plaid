@@ -97,4 +97,21 @@ describe('Pair', () => {
       'This code expired. Show a new one on the TV.',
     )
   })
+
+  it('takes the code from the TV QR code link', async () => {
+    const calls = signedIn({
+      status: 200,
+      body: { id: 's9', deviceName: 'Living room TV', deviceType: 'tvos' },
+    })
+    await renderApp('/pair?code=k7p4qx')
+    const pair = await screen.findByRole('button', { name: 'Pair' })
+    expect(pair).toBeEnabled()
+    await userEvent.click(pair)
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Living room TV is connected.')
+    expect(calls.find((c) => c.path === '/pairing/claim')?.body).toEqual({
+      code: 'K7P4QX',
+      profileId: 'p1',
+    })
+  })
 })

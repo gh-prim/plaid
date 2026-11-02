@@ -1,0 +1,20 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSCameraUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "PLAID reads the QR code a TV shows to pair it." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "PLAID lit le QR code affiché par une TV pour l’associer." } }
+      }
+    },
+    "NSLocalNetworkUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "PLAID looks for your media server on the local network." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "PLAID cherche ton serveur multimédia sur le réseau local." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

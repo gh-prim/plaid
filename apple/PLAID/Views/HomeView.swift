@@ -254,11 +254,6 @@ struct MetaLine: View {
     }
 }
 
-func episodeCode(_ item: ItemSummary) -> String? {
-    guard let s = item.seasonNumber, let e = item.episodeNumber else { return nil }
-    return tr("card.episodeShort %lld %lld", s, e)
-}
-
 struct TimeLeft: View {
     let item: ItemSummary
     let progress: Double

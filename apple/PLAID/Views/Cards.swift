@@ -192,9 +192,6 @@ extension View {
     func cardMenu(_ item: ItemSummary) -> some View { modifier(CardMenu(item: item)) }
 }
 
-/// An item known only by its id (a show from an episode's menu).
-struct ItemRoute: Hashable { let id: String }
-
 struct ItemByIdView: View {
     let route: ItemRoute
     @Environment(AppState.self) private var app
