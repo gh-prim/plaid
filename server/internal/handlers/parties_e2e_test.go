@@ -152,6 +152,8 @@ func TestPartyFlow(t *testing.T) {
 	}
 	// The party opens the movie for him although his libraries don't hold
 	// it (R6), but nothing else.
+	e.expect(e.do("GET", "/items/"+e.movie, nil, bearer(bobTok)), http.StatusOK, "")
+	e.expect(e.do("GET", "/items/"+e.dune, nil, bearer(bobTok)), http.StatusNotFound, "")
 	e.expect(e.do("POST", "/items/"+e.movie+"/playback", map[string]any{"profile": external}, bearer(bobTok)), http.StatusNotFound, "")
 	s := e.start(bobTok, e.movie, map[string]any{"profile": external, "partyId": pt.ID})
 	if s.ID == "" {
@@ -196,13 +198,17 @@ func TestPartyFlow(t *testing.T) {
 		t.Fatalf("guest = %+v", guest)
 	}
 	e.expect(e.do("GET", "/parties/"+pt.ID, nil, bearer(guest.Token)), http.StatusOK, "")
-	for _, path := range []string{"/libraries", "/me", "/items/" + e.movie, "/parties"} {
+	for _, path := range []string{"/libraries", "/me", "/search", "/parties"} {
 		e.expect(e.do("GET", path, nil, bearer(guest.Token)), http.StatusUnauthorized, "")
 	}
 	gs := e.socket(srv, guest.Token)
 	if got, code := gs.send("party.join", map[string]any{}); code != "" || !has(got, "party.snapshot") {
 		t.Fatalf("guest join: %q", code)
 	}
+	// In the room, the guest reads the party's title (the player needs its
+	// files), not another one.
+	e.expect(e.do("GET", "/items/"+e.movie, nil, bearer(guest.Token)), http.StatusOK, "")
+	e.expect(e.do("GET", "/items/"+e.dune, nil, bearer(guest.Token)), http.StatusNotFound, "")
 	if s := e.start(guest.Token, e.movie, map[string]any{"profile": external}); s.ID == "" {
 		t.Fatal("guest can't play the party's movie")
 	}

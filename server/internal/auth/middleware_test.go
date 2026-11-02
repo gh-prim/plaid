@@ -188,7 +188,7 @@ func TestGuestReachesOnlyGuestRoutes(t *testing.T) {
 		{http.MethodPost, "/api/v1/playback/p1/progress", true},
 		{http.MethodGet, "/api/v1/me", false},
 		{http.MethodGet, "/api/v1/libraries", false},
-		{http.MethodGet, "/api/v1/items/nosferatu", false},
+		{http.MethodGet, "/api/v1/items/nosferatu/up-next", false},
 		{http.MethodGet, "/api/v1/search", false},
 		{http.MethodGet, "/api/v1/settings/party", false},
 	} {

@@ -84,6 +84,7 @@ var guestRoutes = []string{
 	"GET /ws",
 	"GET /me/party",
 	"GET /parties/{partyId}",
+	"GET /items/{itemId}",
 	"POST /items/{itemId}/playback",
 	"GET /items/{itemId}/artwork/{kind}",
 	"GET /items/{itemId}/segments",

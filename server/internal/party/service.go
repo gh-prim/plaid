@@ -1229,3 +1229,22 @@ func (s *Service) offerCompanion(tv *realtime.Conn, partyID string) {
 		c.Send("party.companion", map[string]string{"partyId": partyID, "screen": tv.Device.Name})
 	}
 }
+
+// Opens reports whether p is in a live party on itemID (or about to move to
+// it): the party opens that title's page and artwork, whatever their
+// libraries (R6). A guest's own party only.
+func (s *Service) Opens(p auth.Principal, itemID string) bool {
+	who := PersonID(p.UserID, p.GuestID)
+	for _, l := range s.liveRooms() {
+		if p.IsGuest() && l.party.ID != p.PartyID {
+			continue
+		}
+		l.mu.Lock()
+		ok := l.room.Has(who) && (l.room.ItemID == itemID || l.nextItem == itemID)
+		l.mu.Unlock()
+		if ok {
+			return true
+		}
+	}
+	return false
+}

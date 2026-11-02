@@ -87,9 +87,19 @@ func (h *Handlers) GetItem(ctx context.Context, req api.GetItemRequestObject) (a
 	if err != nil {
 		return nil, err
 	}
-	limit, err := h.accounts.AccessLimit(ctx, pr)
-	if err != nil {
-		return nil, err
+	var limit access.Limit
+	if !pr.IsGuest() {
+		if limit, err = h.accounts.AccessLimit(ctx, pr); err != nil {
+			return nil, err
+		}
+	}
+	// A Plaid Party opens its title to the people in it, whatever their
+	// libraries; a profile's age limit still applies (F010-R5, R6).
+	inParty := h.party != nil && h.party.Opens(pr, req.ItemId)
+	if inParty {
+		limit.Libraries = nil
+	} else if pr.IsGuest() {
+		return nil, apierr.NotFound("no such item")
 	}
 	out, err := h.itemDetail(ctx, req.ItemId, limit)
 	if err != nil {
