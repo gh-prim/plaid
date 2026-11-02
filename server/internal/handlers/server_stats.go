@@ -88,7 +88,7 @@ func (h *Handlers) GetActivity(ctx context.Context, req api.GetActivityRequestOb
 		return nil, err
 	}
 	days, offset := 7, 0
-	if d := req.Params.Days; d != nil && *d >= 1 && *d <= 90 {
+	if d := req.Params.Days; d != nil && *d >= 1 && *d <= 366 {
 		days = *d
 	}
 	if o := req.Params.TzOffsetMinutes; o != nil && *o >= -840 && *o <= 840 {
@@ -96,9 +96,13 @@ func (h *Handlers) GetActivity(ctx context.Context, req api.GetActivityRequestOb
 	}
 	out := api.Activity{Days: []api.ActivityDay{}, Recent: []api.PlayRecord{}, RecentlyAdded: []api.ItemSummary{}}
 	if h.playback != nil {
-		perDay, plays, err := h.playback.Activity(ctx, days, offset)
+		perDay, plays, tot, err := h.playback.Activity(ctx, days, offset, value(req.Params.UserId))
 		if err != nil {
 			return nil, err
+		}
+		out.Totals = api.ActivityTotals{Plays: tot.Plays, People: tot.People, DirectPlay: tot.DirectPlay, Transcoded: tot.Transcoded}
+		if tot.TopPlays > 0 {
+			out.Totals.Top = &api.ActivityTop{ItemId: tot.TopItemID, Plays: tot.TopPlays, Title: tot.TopTitle}
 		}
 		for _, d := range perDay {
 			date, _ := time.Parse("2006-01-02", d.Date)

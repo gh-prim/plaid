@@ -49,7 +49,7 @@ async function loadSummary(): Promise<AdminData> {
     streams: playback.data?.sessions ?? [],
     libraries: libraries.data ?? [],
     capabilities: capabilities.data,
-    invitations: invitations.data?.length ?? 0,
+    invitations: invitations.data?.filter((i) => i.status === 'pending').length ?? 0,
     problems: problems.data?.problems ?? [],
   }
 }
@@ -131,12 +131,14 @@ export function AdminLayout() {
           badge: data?.streams.length,
         },
         { to: '/admin/activity', label: t('admin.nav.activity'), icon: 'restart' },
+        { to: '/admin/monitoring', label: t('admin.nav.monitoring'), icon: 'globe' },
       ],
     },
     {
       title: t('admin.nav.content'),
       items: [
         { to: '/admin/libraries', label: t('libraries.title'), icon: 'folder' },
+        { to: '/admin/report', label: t('admin.nav.report'), icon: 'quality' },
         { to: '/admin/unmatched', label: t('admin.nav.unmatched'), icon: 'info' },
         { to: '/admin/metadata', label: t('admin.nav.metadata'), icon: 'globe' },
       ],
@@ -160,6 +162,7 @@ export function AdminLayout() {
       items: [
         { to: '/admin/transcoding', label: t('admin.nav.transcoding'), icon: 'quality' },
         { to: '/admin/remote-access', label: t('admin.nav.remoteAccess'), icon: 'globe' },
+        { to: '/admin/party', label: t('party.title'), icon: 'party' },
         {
           to: '/admin/problems',
           label: t('admin.nav.problems'),
@@ -171,10 +174,10 @@ export function AdminLayout() {
       ],
     },
   ]
+  // A group's page lives under People's path but belongs to Groups.
+  const path = location.pathname.replace(/^\/admin\/people\/groups/, '/admin/groups')
   const here = (item: NavItem) =>
-    item.end
-      ? location.pathname.replace(/\/$/, '') === item.to
-      : location.pathname.startsWith(item.to)
+    item.end ? path.replace(/\/$/, '') === item.to : path.startsWith(item.to)
 
   return (
     <AdminContext.Provider value={{ data, refresh, toast }}>
@@ -262,14 +265,28 @@ export function AdminLayout() {
 export function TopBar({
   title,
   sub,
+  back,
   children,
 }: {
   title: string
-  sub?: string
+  sub?: ReactNode
+  /** A page inside a section (a library, a person) links back to its list. */
+  back?: { to: string; label: string }
   children?: ReactNode
 }) {
+  const { t } = useTranslation()
   return (
     <header className="ax-top">
+      {back && (
+        <Link
+          to={back.to}
+          className="ax-back pl-focusable"
+          aria-label={t('admin.backTo', { name: back.label })}
+        >
+          <Icon name="chevronLeft" size={16} />
+          <span>{back.label}</span>
+        </Link>
+      )}
       <h1 className="ax-top__title">{title}</h1>
       {sub && <span className="ax-top__sub">{sub}</span>}
       <span className="ax-top__fill" />

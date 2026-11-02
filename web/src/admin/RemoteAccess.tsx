@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { errorMessage, failure } from '../auth/errors'
-import { formatRelative } from '../lib/format'
-import { Button, CommandBlock } from '../ui'
+import { formatMbps, formatRelative } from '../lib/format'
+import { Button, CommandBlock, Icon } from '../ui'
 import { Group, Loading, Row, Section, Switch, type Tone } from './v2'
 
 type Remote = components['schemas']['RemoteAccess']
@@ -31,6 +31,10 @@ export function RemoteAccess() {
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
   const [portInput, setPortInput] = useState('')
+  const [limit, setLimit] = useState<number>()
+  useEffect(() => {
+    api.GET('/settings/playback').then(({ data }) => setLimit(data?.remoteMaxBitrate))
+  }, [])
 
   useEffect(() => {
     api.GET('/remote-access').then(({ data, error: e, response }) => {
@@ -134,26 +138,67 @@ export function RemoteAccess() {
     <Section
       title={title}
       glyph="remote"
-      paneTitle={r.hostname ?? t('remoteAccess.pane')}
-      paneSub={t('remoteAccess.paneSub')}
+      paneTitle={
+        r.state === 'ok'
+          ? t('admin.remote.reachable')
+          : r.enabled
+            ? stateText[r.state]
+            : t('remoteAccess.enable')
+      }
+      paneSub={
+        r.reachability.at
+          ? t('admin.remote.checkedOutside', {
+              when: formatRelative(i18n.language, new Date(r.reachability.at)),
+            })
+          : t('remoteAccess.enableHelp')
+      }
       status={{ text: stateText[r.state], tone: stateTone[r.state] }}
-    >
-      <Group foot={t('remoteAccess.privacy')}>
-        <Row
+      control={
+        <Switch
           label={t('remoteAccess.enable')}
-          sub={t('remoteAccess.enableHelp')}
-          busy={saving}
-          control={
-            <Switch
-              label={t('remoteAccess.enable')}
-              on={r.enabled}
-              disabled={saving}
-              onChange={(on) => void save({ enabled: on })}
-            />
-          }
+          on={r.enabled}
+          disabled={saving}
+          onChange={(on) => void save({ enabled: on })}
         />
-      </Group>
-
+      }
+      lead={t('remoteAccess.privacy')}
+      aside={
+        <>
+          <Group title={t('admin.remote.limits')}>
+            <Row
+              to="/admin/transcoding"
+              label={t('admin.remote.perStream')}
+              value={
+                limit == null
+                  ? undefined
+                  : limit
+                    ? formatMbps(i18n.language, limit)
+                    : t('transcoding.remote.none')
+              }
+            />
+            <Row
+              to="/admin/groups"
+              label={t('admin.remote.who')}
+              value={t('admin.remote.byGroup')}
+            />
+          </Group>
+          {r.enabled && (
+            <div>
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={testing}
+                disabled={!r.hostname}
+                onClick={() => void test()}
+              >
+                <Icon name="refresh" size={14} />
+                {t('admin.remote.checkNow')}
+              </Button>
+            </div>
+          )}
+        </>
+      }
+    >
       {r.enabled && r.url && (
         <Group title={t('remoteAccess.address')} foot={t('remoteAccess.addressHelp')}>
           <li className="adm-row-item">
@@ -214,12 +259,6 @@ export function RemoteAccess() {
             }
             subTone={r.reachability.state === 'failed' ? 'error' : undefined}
             busy={r.reachability.state === 'pending'}
-          />
-          <Row
-            label={testing ? t('remoteAccess.testing') : t('remoteAccess.test')}
-            busy={testing}
-            disabled={!r.hostname}
-            onClick={() => void test()}
           />
         </Group>
       )}

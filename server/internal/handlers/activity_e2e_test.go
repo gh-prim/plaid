@@ -33,6 +33,16 @@ func TestActivity(t *testing.T) {
 			ID string `json:"id"`
 		} `json:"recentlyAdded"`
 		ActivePeople int `json:"activePeople"`
+		Totals       struct {
+			Plays      int `json:"plays"`
+			People     int `json:"people"`
+			DirectPlay int `json:"directPlay"`
+			Transcoded int `json:"transcoded"`
+			Top        *struct {
+				ItemID string `json:"itemId"`
+				Plays  int    `json:"plays"`
+			} `json:"top"`
+		} `json:"totals"`
 	}
 	r := e.do("GET", "/activity?days=7", nil, bearer(e.admin))
 	e.expect(r, http.StatusOK, "")
@@ -52,6 +62,20 @@ func TestActivity(t *testing.T) {
 		t.Errorf("recently added %d, active people %d", len(a.RecentlyAdded), a.ActivePeople)
 	}
 
+	if tt := a.Totals; tt.Plays != 1 || tt.People != 1 || tt.DirectPlay+tt.Transcoded > 1 || tt.Top == nil ||
+		tt.Top.ItemID != e.movie || tt.Top.Plays != 1 {
+		t.Errorf("totals = %+v", a.Totals)
+	}
+	// A year back works; another account's filter sees nothing.
+	member := e.member(e.admin, "bob")
+	r = e.do("GET", "/activity?days=366&userId="+member.User.ID, nil, bearer(e.admin))
+	e.expect(r, http.StatusOK, "")
+	a.Recent, a.Totals.Top = nil, nil
+	r.json(&a)
+	if len(a.Days) != 366 || len(a.Recent) != 0 || a.Totals.Plays != 0 || a.Totals.Top != nil {
+		t.Errorf("bob's year: %d days, %d plays, totals %+v", len(a.Days), len(a.Recent), a.Totals)
+	}
+
 	var h struct {
 		Samples []struct {
 			Streams int `json:"streams"`
@@ -61,7 +85,6 @@ func TestActivity(t *testing.T) {
 	if h.Samples == nil {
 		t.Error("no samples list")
 	}
-	member := e.member(e.admin, "bob")
 	e.expect(e.do("GET", "/activity", nil, bearer(member.Token)), http.StatusForbidden, "forbidden")
 	e.expect(e.do("GET", "/server/stats/history", nil, bearer(member.Token)), http.StatusForbidden, "forbidden")
 }

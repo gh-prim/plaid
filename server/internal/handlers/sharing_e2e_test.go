@@ -181,9 +181,15 @@ func TestInvitation(t *testing.T) {
 		} `json:"invitation"`
 	}
 	r.json(&created)
-	var pending []struct{ ID string }
+	var pending []struct {
+		ID     string
+		Status string
+		Token  string
+		UserID string `json:"userId"`
+	}
 	e.do("GET", "/invitations", nil, bearer(e.admin)).json(&pending)
-	if len(pending) != 1 || pending[0].ID != created.Invitation.ID {
+	if len(pending) != 1 || pending[0].ID != created.Invitation.ID || pending[0].Status != "pending" ||
+		pending[0].Token != created.Token {
 		t.Fatalf("pending = %+v", pending)
 	}
 
@@ -217,9 +223,10 @@ func TestInvitation(t *testing.T) {
 	// The link works once.
 	accept["username"] = "camille2"
 	e.expect(e.do("POST", "/invite/accept", accept), http.StatusGone, "invitation_expired")
+	pending = nil
 	e.do("GET", "/invitations", nil, bearer(e.admin)).json(&pending)
-	if len(pending) != 0 {
-		t.Errorf("a used invitation is still pending: %+v", pending)
+	if len(pending) != 1 || pending[0].Status != "accepted" || pending[0].Token != "" || pending[0].UserID != res.User.ID {
+		t.Errorf("a used invitation is still pending, or lost its account: %+v", pending)
 	}
 
 	// A cancelled one can't be used.
@@ -229,6 +236,11 @@ func TestInvitation(t *testing.T) {
 	r.json(&created)
 	e.expect(e.do("DELETE", "/invitations/"+created.Invitation.ID, nil, bearer(e.admin)), http.StatusNoContent, "")
 	e.expect(e.do("POST", "/invite/check", map[string]any{"token": created.Token}), http.StatusGone, "invitation_expired")
+	pending = nil
+	e.do("GET", "/invitations", nil, bearer(e.admin)).json(&pending)
+	if len(pending) != 1 || pending[0].Status != "accepted" {
+		t.Errorf("a cancelled invitation is still listed: %+v", pending)
+	}
 	// Members can't invite.
 	e.expect(e.do("POST", "/invitations", map[string]any{"name": "X", "groupIds": []string{}}, bearer(res.Token)),
 		http.StatusForbidden, "forbidden")
@@ -320,4 +332,33 @@ func (e *env) inFamily(admin, userID string) {
 		}
 	}
 	e.t.Fatal("no Family group")
+}
+
+// Step 21: Plaid Party settings, stored ahead of F010.
+func TestPartySettings(t *testing.T) {
+	e := newLibEnv(t, libOpts{})
+	var s struct {
+		Enabled   bool `json:"enabled"`
+		MaxPeople int  `json:"maxPeople"`
+		Guests    bool `json:"guests"`
+	}
+	e.do("GET", "/settings/party", nil, bearer(e.admin)).json(&s)
+	if !s.Enabled || s.MaxPeople != 8 || s.Guests {
+		t.Fatalf("defaults = %+v", s)
+	}
+	r := e.do("PATCH", "/settings/party", map[string]any{"maxPeople": 4, "guests": true}, bearer(e.admin))
+	e.expect(r, http.StatusOK, "")
+	r.json(&s)
+	if !s.Enabled || s.MaxPeople != 4 || !s.Guests {
+		t.Errorf("after = %+v", s)
+	}
+	e.expect(e.do("PATCH", "/settings/party", map[string]any{"maxPeople": 40}, bearer(e.admin)),
+		http.StatusUnprocessableEntity, "validation_failed")
+	e.expect(e.do("PATCH", "/settings/party", map[string]any{"enabled": false}, bearer(e.admin)), http.StatusOK, "")
+	e.do("GET", "/settings/party", nil, bearer(e.admin)).json(&s)
+	if s.Enabled || s.MaxPeople != 4 {
+		t.Errorf("stored = %+v", s)
+	}
+	member := e.member(e.admin, "bob")
+	e.expect(e.do("GET", "/settings/party", nil, bearer(member.Token)), http.StatusForbidden, "forbidden")
 }

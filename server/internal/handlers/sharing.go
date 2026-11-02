@@ -97,7 +97,7 @@ func (h *Handlers) recheckPlayback(ctx context.Context) {
 	}
 }
 
-// ListInvitations lists pending invitations.
+// ListInvitations lists pending invitations, then the recent accepted and expired ones.
 func (h *Handlers) ListInvitations(ctx context.Context, _ api.ListInvitationsRequestObject) (api.ListInvitationsResponseObject, error) {
 	if _, err := admin(ctx); err != nil {
 		return nil, err
@@ -323,5 +323,46 @@ func toGroup(g accounts.Group) api.Group {
 }
 
 func toInvitation(inv accounts.Invitation) api.Invitation {
-	return api.Invitation{Id: inv.ID, Name: inv.Name, GroupIds: inv.GroupIDs, CreatedAt: inv.CreatedAt, ExpiresAt: inv.ExpiresAt}
+	out := api.Invitation{Id: inv.ID, Name: inv.Name, GroupIds: inv.GroupIDs, CreatedAt: inv.CreatedAt, ExpiresAt: inv.ExpiresAt,
+		Status: api.InvitationStatus(inv.Status), AcceptedAt: inv.UsedAt}
+	if inv.Token != "" {
+		out.Token = &inv.Token
+	}
+	if inv.UserID != "" {
+		out.UserId = &inv.UserID
+	}
+	return out
+}
+
+// GetPartySettings returns the Plaid Party settings (step 21).
+func (h *Handlers) GetPartySettings(ctx context.Context, _ api.GetPartySettingsRequestObject) (api.GetPartySettingsResponseObject, error) {
+	if _, err := admin(ctx); err != nil {
+		return nil, err
+	}
+	s, err := h.accounts.Party(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return api.GetPartySettings200JSONResponse(toParty(s)), nil
+}
+
+// UpdatePartySettings changes the Plaid Party settings.
+func (h *Handlers) UpdatePartySettings(ctx context.Context, req api.UpdatePartySettingsRequestObject) (api.UpdatePartySettingsResponseObject, error) {
+	p, err := admin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	b, err := body(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	s, err := h.accounts.SetParty(ctx, p, accounts.PartyUpdate{Enabled: b.Enabled, MaxPeople: b.MaxPeople, Guests: b.Guests})
+	if err != nil {
+		return nil, err
+	}
+	return api.UpdatePartySettings200JSONResponse(toParty(s)), nil
+}
+
+func toParty(s accounts.PartySettings) api.PartySettings {
+	return api.PartySettings{Enabled: s.Enabled, MaxPeople: s.MaxPeople, Guests: s.Guests}
 }

@@ -19,15 +19,27 @@
   },
   "admin": {
     "activity": {
-      "days_one": "{{count, number}} day",
-      "days_other": "{{count, number}} days",
+      "directHelp": "sent as is, no conversion",
+      "directPlay": "Direct Play",
+      "everyone": "Everyone",
+      "hoursWeek": "Hours watched, last 7 days",
       "how": "How",
+      "length": "Length",
+      "month": "30 days",
+      "most": "Most watched",
       "none": "Nothing watched in this period.",
+      "people": "People",
+      "peopleCount_one": "{{count, number}} person",
+      "peopleCount_other": "{{count, number}} people",
       "period": "Period",
+      "person": "Person",
+      "plays_one": "{{count, number}} play",
+      "plays_other": "{{count, number}} plays",
       "recent": "Last plays",
-      "total": "{{hours}} hours watched",
       "watched": "Watched",
-      "when": "When"
+      "week": "7 days",
+      "when": "When",
+      "year": "1 year"
     },
     "back": "Back to the library",
     "backTo": "Back to {{name}}",
@@ -85,12 +97,23 @@
       "empty": "No device is signed in.",
       "foot": "Signing a device out ends that session only; nothing else is deleted.",
       "otherGroup": "Browsers and phones",
+      "pair": "Pair",
+      "paired": "{{device}} is signed in.",
       "pairHelp": "Type the code the TV shows",
       "signedOut": "{{device}} is signed out.",
       "signOut": "Sign out {{device}}",
-      "tvGroup": "TVs",
-      "tvs_one": "{{count, number}} TV",
-      "tvs_other": "{{count, number}} TVs"
+      "tvGroup": "TVs"
+    },
+    "groups": {
+      "canCreate": "can create",
+      "cannot": "can’t create",
+      "exception_one": "{{count, number}} more library",
+      "exception_other": "{{count, number}} more libraries",
+      "group": "Group",
+      "limits": "Limits",
+      "members": "Members",
+      "noMembers": "Nobody in this group yet.",
+      "profiles": "Profiles"
     },
     "home": {
       "nothingNeedsYou": "Nothing needs you.",
@@ -105,7 +128,21 @@
       }
     },
     "invitations": {
-      "none": "No invitation waiting. Invite someone to share your libraries."
+      "accepted": "Accepted",
+      "cancelFor": "Cancel {{name}}’s invitation",
+      "copy": "Copy link",
+      "copyFor": "Copy {{name}}’s link",
+      "expired": "Expired",
+      "expires": "Expires",
+      "for": "For",
+      "inDays_one": "in {{count, number}} d",
+      "inDays_other": "in {{count, number}} d",
+      "none": "No invitation waiting. Invite someone to share your libraries.",
+      "pending_one": "{{count, number}} pending",
+      "pending_other": "{{count, number}} pending",
+      "resend": "Resend",
+      "resendFor": "New link for {{name}}",
+      "sent": "Sent"
     },
     "libraries": {
       "add": "Add a library…",
@@ -147,8 +184,41 @@
       "credits": "Credits",
       "down_one": "One source isn’t answering",
       "down_other": "{{count, number}} sources aren’t answering",
-      "matched": "{{matched, number}} of {{total, number}} titles matched",
-      "sources": "TMDB and fanart.tv"
+      "matchedKpi": "Matched",
+      "ofTitles_one": "of {{count, number}} title",
+      "ofTitles_other": "of {{count, number}} titles",
+      "refreshAll": "Refresh all",
+      "refreshing": "Refreshing every library’s details.",
+      "seeUnmatched": "See what’s left",
+      "sourcesCard": "Sources"
+    },
+    "monitoring": {
+      "byPerson": "Who uses the most",
+      "codecs": "Codec problems",
+      "credit": "IP geolocation by DB-IP",
+      "devicesOf_one": "of {{count, number}} device",
+      "devicesOf_other": "of {{count, number}} devices",
+      "downloading": "The location database is downloading; remote plays will be placed once it’s there.",
+      "health": "Device health",
+      "healthHelp": "Direct play, transcodes and codecs it can’t read; worst first",
+      "lastSeen": "Last play",
+      "localNever": "Plays at home are never placed; only a city is kept, never the address.",
+      "map": "Where remote plays come from",
+      "noPlace": "No remote play yet.",
+      "perDay": "Data sent per day",
+      "places": "Places",
+      "placeSub": "{{people}} · {{when}}",
+      "remote": "Remote plays",
+      "remotePlays_one": "{{count, number}} remote play",
+      "remotePlays_other": "{{count, number}} remote plays",
+      "remoteShare": "{{share}} of plays",
+      "score": "Health",
+      "sent": "Data sent",
+      "toCheck": "Devices to check",
+      "transcodes": "Transcodes",
+      "unplaced_one": "{{count, number}} remote play couldn’t be placed.",
+      "unplaced_other": "{{count, number}} remote plays couldn’t be placed.",
+      "where": "Places"
     },
     "nav": {
       "access": "Access",
@@ -158,11 +228,13 @@
       "invitations": "Invitations",
       "libraries": "Libraries",
       "metadata": "Metadata",
+      "monitoring": "Monitoring",
       "overview": "Overview",
       "people": "People",
       "playing": "Now playing",
       "problems": "Problems",
       "remoteAccess": "Remote access",
+      "report": "Library report",
       "server": "Server",
       "transcoding": "Transcoding",
       "unmatched": "Unmatched"
@@ -180,12 +252,14 @@
     },
     "person": {
       "access": "Access",
-      "cantDelete": "Not possible while {{name}} is the only admin",
-      "onlyAdmin": "{{name}} is the only admin. Make someone else an admin before turning this off."
+      "now": "Right now",
+      "onlyAdmin": "{{name}} is the only admin. Make someone else an admin before turning this off.",
+      "recent": "Recent plays"
     },
     "playing": {
-      "keepUp": "All streams keep up",
-      "slow": "One stream can’t keep up"
+      "lastTwo": "last 2 min",
+      "stopFor": "Stop {{title}} for {{user}}",
+      "stutter": "Stuttering"
     },
     "prefs": {
       "hideAdvanced": "Hide advanced",
@@ -193,13 +267,46 @@
       "showAdvanced": "Show advanced"
     },
     "problems": {
-      "allClear": "All clear",
+      "fixedIn": "{{when}} · fixed in {{took}}",
+      "for": "for {{took}}",
       "goingOn": "Going on",
       "open_one": "{{count, number}} going on",
       "open_other": "{{count, number}} going on",
       "solved": "Solved",
-      "week_one": "{{count, number}} this week",
-      "week_other": "{{count, number}} this week"
+      "solvedWeek_one": "{{count, number}} this week",
+      "solvedWeek_other": "{{count, number}} this week"
+    },
+    "remote": {
+      "byGroup": "set per group",
+      "checkedOutside": "Checked from outside {{when}}",
+      "checkNow": "Check now",
+      "limits": "Limits",
+      "perStream": "Limit per stream",
+      "reachable": "Reachable from anywhere",
+      "who": "Who can watch remotely"
+    },
+    "report": {
+      "allLibraries": "All libraries",
+      "anyGenre": "Any genre",
+      "anyQuality": "Any quality",
+      "byAdded": "Newest first",
+      "byPlays": "Most played",
+      "bySize": "Biggest first",
+      "byTitle": "By title",
+      "count_one": "{{count, number}} title",
+      "count_other": "{{count, number}} titles",
+      "duplicates": "Several files",
+      "dupTag": "2+ files",
+      "genre": "Genre",
+      "more_one": "Show {{count, number}} more",
+      "more_other": "Show {{count, number}} more",
+      "never": "never watched",
+      "none": "Nothing matches these filters.",
+      "quality": "Quality",
+      "sort": "Sort",
+      "stale": "Not watched for a year",
+      "titles": "Titles",
+      "unwatched": "Never watched"
     },
     "search": "Search",
     "searchKey": "⌘K",
@@ -212,12 +319,16 @@
         "playback": "Playback",
         "server": "Server"
       },
+      "inviteDays_one": "valid for {{count, number}} day",
+      "inviteDays_other": "valid for {{count, number}} days",
       "libraries_one": "{{count, number}} library",
       "libraries_other": "{{count, number}} libraries",
       "none": "None",
+      "serverName": "Server name",
       "things_one": "{{count, number}} thing",
       "things_other": "{{count, number}} things",
-      "unrecognized": "Not recognized"
+      "unrecognized": "Not recognized",
+      "version": "Version"
     },
     "summary": {
       "playing_one": "{{count, number}} stream",
@@ -229,17 +340,32 @@
     },
     "transcoding": {
       "advanced": "Advanced",
+      "cpu": "CPU",
+      "gpu": "GPU",
       "hardware": "Hardware, {{accelerator}}",
+      "noneRunning": "Nothing converting right now.",
+      "ofPlays_one": "of {{count, number}} play",
+      "ofPlays_other": "of {{count, number}} plays",
       "prefs": "When converting",
+      "running": "Running",
       "software": "Software",
+      "speed": "{{speed}}× realtime",
+      "transcoded": "Transcoded",
+      "week": "This week",
       "working": "Working"
     },
     "unmatched": {
+      "byLibrary": "By library",
       "files": "Files not understood",
       "filesCount_one": "{{count, number}} file",
       "filesCount_other": "{{count, number}} files",
+      "filesHelp": "PLAID couldn’t tell what they are",
+      "matched": "Matched",
+      "matchedOf_one": "of {{count, number}} title",
+      "matchedOf_other": "of {{count, number}} titles",
       "noneShort": "None",
       "review": "Titles to check",
+      "reviewHelp": "a match to confirm",
       "titlesCount_one": "{{count, number}} title",
       "titlesCount_other": "{{count, number}} titles"
     },
@@ -719,6 +845,15 @@
       "body": "Type what you think it is. Results come from TMDB.",
       "title": "The name didn’t say enough"
     },
+    "episode": {
+      "back": "Another show",
+      "episodes": "Episode",
+      "help": "Several in one file: 1-2 or 1,2",
+      "invalid": "A number, a range like 1-2, or a list like 1,2",
+      "season": "Season",
+      "title": "Which episode of {{show}}?",
+      "use": "Associate"
+    },
     "file": "The file",
     "in": "In {{folder}}",
     "note": "Once matched, the file joins the library with its artwork.",
@@ -858,6 +993,21 @@
     "pin": "{{name}}’s PIN",
     "startProfile": "It will open on",
     "title": "Pair a TV"
+  },
+  "party": {
+    "guests": "Guests without an account",
+    "guestsHelp": "They join from the party’s link.",
+    "help": "Watch together, at home or away.",
+    "none": "No party yet.",
+    "noneHelp": "Live and planned parties show up here.",
+    "parties": "Parties",
+    "people": "People per party",
+    "peopleHelp": "host included",
+    "title": "Plaid Party",
+    "upTo": "up to {{n}}",
+    "who": "Who can start",
+    "whoHelp": "Each group can start, join, or neither.",
+    "whoValue": "set per group"
   },
   "people": {
     "add": "Add a person",
@@ -1078,7 +1228,6 @@
       "transcode": "Converted (Transcode)"
     },
     "position": "{{position}} of {{duration}}",
-    "row": "{{user}} · {{profile}} on {{device}}",
     "slow": {
       "advice": {
         "software": "This server can’t convert this file in real time. Ask {{user}} to pick a lower quality, or to watch on a device that plays the file as it is."
@@ -1179,8 +1328,6 @@
     },
     "fullUrl": "Full address",
     "ip": "Public IP",
-    "pane": "Reach PLAID from anywhere",
-    "paneSub": "Through getplaid.direct",
     "port": {
       "auto": "Automatic (UPnP or NAT-PMP)",
       "autoHelp": "PLAID asks your router to open a port.",
@@ -1215,8 +1362,6 @@
       "pending": "In progress…"
     },
     "steps": "Status",
-    "test": "Check again",
-    "testing": "Checking…",
     "title": "Remote access"
   },
   "remoteSignIn": {

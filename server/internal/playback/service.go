@@ -16,6 +16,7 @@ import (
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/auth"
 	"github.com/gh-prim/plaid/server/internal/clientinfo"
+	"github.com/gh-prim/plaid/server/internal/geoip"
 	"github.com/gh-prim/plaid/server/internal/library"
 	"github.com/gh-prim/plaid/server/internal/playback/keyframes"
 	"github.com/gh-prim/plaid/server/internal/problems"
@@ -74,8 +75,15 @@ type Options struct {
 	// Problems records hardware fallbacks and software restarts for the
 	// admin (F007 R29); nil records nothing.
 	Problems problems.Reporter
-	Log      *slog.Logger
-	Now      func() time.Time
+	// Geo places remote plays for the admin's map; nil places nothing.
+	Geo Locator
+	Log *slog.Logger
+	Now func() time.Time
+}
+
+// Locator turns a client address into a rough place (geoip.Locator).
+type Locator interface {
+	Lookup(ip string) (geoip.Place, bool)
 }
 
 // ErrHWTestRunning answers a hardware test asked for while one runs

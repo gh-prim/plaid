@@ -14,7 +14,7 @@ import {
   formatTime,
 } from '../lib/format'
 import { methodLabel } from '../player/labels'
-import { Avatar, Icon, Spinner } from '../ui'
+import { Avatar, Button, Icon, Spinner } from '../ui'
 import { streamPoster, summaryEvery, TopBar, useAdmin } from './AdminLayout'
 import { needs, slow } from './summary'
 
@@ -26,7 +26,7 @@ type Sample = components['schemas']['StatsSample']
 const lowSpace = 0.1
 
 /** A small trend line through values, scaled to the box. */
-function Spark({ values, area }: { values: number[]; area?: boolean }) {
+export function Spark({ values, area }: { values: number[]; area?: boolean }) {
   if (values.length < 2) return <svg className="ax-spark" viewBox="0 0 160 36" aria-hidden="true" />
   const top = Math.max(1, ...values)
   const pts = values.map((v, i) => [(i * 160) / (values.length - 1), 34 - (v / top) * 30] as const)
@@ -57,6 +57,25 @@ export function Dashboard() {
   const lng = i18n.language
   const { data, refresh, toast } = useAdmin()
   const [stopping, setStopping] = useState<string>()
+  const [scanning, setScanning] = useState(false)
+
+  async function scanAll() {
+    const libs = data?.libraries ?? []
+    setScanning(true)
+    await Promise.all(
+      libs.map((l) =>
+        api
+          .POST('/libraries/{libraryId}/scan', {
+            params: { path: { libraryId: l.id } },
+            body: { full: false },
+          })
+          .catch(() => undefined),
+      ),
+    )
+    setScanning(false)
+    toast(t('admin.libraries.scanStarted', { count: libs.length }))
+    await refresh()
+  }
   const { data: stats } = usePolling(
     async () => (await api.GET('/server/stats')).data ?? null,
     summaryEvery,
@@ -140,7 +159,18 @@ export function Dashboard() {
 
   return (
     <>
-      <TopBar title={t('admin.tab.dashboard')} sub={today} />
+      <TopBar title={t('admin.tab.dashboard')} sub={today}>
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={scanning}
+          disabled={!data.libraries.length}
+          onClick={() => void scanAll()}
+        >
+          <Icon name="refresh" size={14} />
+          {t('admin.libraries.scanAll')}
+        </Button>
+      </TopBar>
       <div className="ax-body ax-dash">
         <section className="ax-kpis" aria-label={t('admin.dash.health')}>
           <div className="ax-card ax-kpi">

@@ -5,7 +5,8 @@ import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { useAuth } from '../auth/AuthProvider'
 import { errorMessage, failure, fieldCodes, fieldMessage, type Failure } from '../auth/errors'
-import { formatRelative } from '../lib/format'
+import { formatDuration, formatRelative } from '../lib/format'
+import { methodLabel } from '../player/labels'
 import { checkAccount } from '../onboarding/Account'
 import {
   Avatar,
@@ -742,11 +743,89 @@ export function Person() {
         .filter(Boolean)
         .join(' · ')}
       status={user.disabled ? { text: t('people.disabled'), tone: 'warning' } : undefined}
+      actions={
+        <>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={busy === 'reset'}
+            onClick={() => void resetPassword()}
+          >
+            {t('people.resetPassword')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={busy === 'disabled'}
+            onClick={() => void update('disabled', { disabled: !user.disabled })}
+          >
+            {user.disabled ? t('sharing.person.restore') : t('sharing.person.suspend')}
+          </Button>
+          {user.id !== me && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="ax-danger"
+              disabled={onlyAdmin}
+              onClick={() => setDeleting(true)}
+            >
+              {t('people.delete.label')}
+            </Button>
+          )}
+        </>
+      }
+      aside={
+        <>
+          <NowFor userId={user.id} />
+          <Group title={t('people.devices.label')}>
+            {!sessions && (
+              <li>
+                <Loading />
+              </li>
+            )}
+            {sessions && !sessions.length && <Row muted label={t('people.devices.empty')} />}
+            {(sessions ?? []).map((s) => (
+              <Row
+                key={s.id}
+                label={s.deviceName}
+                sub={
+                  s.current
+                    ? t('people.device.current')
+                    : t('people.device.lastSeen', {
+                        time: formatRelative(locale, new Date(s.lastSeenAt)),
+                      })
+                }
+                control={
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      void api
+                        .DELETE('/users/{userId}/sessions/{sessionId}', {
+                          params: { path: { userId: id, sessionId: s.id } },
+                        })
+                        .then(load)
+                    }
+                  >
+                    {t('people.device.signOut')}
+                  </Button>
+                }
+              />
+            ))}
+          </Group>
+        </>
+      }
     >
-      <Group>
-        <Row label={t('library.name')} value={user.displayName} />
-        <Row label={t('onboarding.account.username.label')} value={user.username} />
-      </Group>
+      {reset && (
+        <Group title={t('people.resetPassword')}>
+          <Row label={t('people.tempPassword.label')}>
+            <div className="pl pl-field">
+              <code className="adm__path">{reset}</code>
+              <span className="pl-field__help">{t('people.tempPassword.help')}</span>
+            </div>
+          </Row>
+        </Group>
+      )}
 
       <Group
         title={t('admin.person.access')}
@@ -764,86 +843,15 @@ export function Person() {
             />
           }
         />
-        <Row
-          label={user.disabled ? t('sharing.person.restore') : t('sharing.person.suspend')}
-          sub={user.disabled ? t('people.disabled') : t('sharing.person.suspendHelp')}
-          danger={!user.disabled}
-          busy={busy === 'disabled'}
-          onClick={() => void update('disabled', { disabled: !user.disabled })}
-        />
       </Group>
       <PersonSharing user={user} onChange={load} />
+      <RecentFor userId={user.id} />
       {fail && (
         <p role="alert" className="adm__text pl-tone--error adm-sec__alert">
           <Mark tone="error" />
           {errorMessage(t, fail)}
         </p>
       )}
-
-      <Group title={t('people.devices.label')}>
-        {!sessions && (
-          <li>
-            <Loading />
-          </li>
-        )}
-        {sessions && !sessions.length && <Row muted label={t('people.devices.empty')} />}
-        {(sessions ?? []).map((s) => (
-          <Row
-            key={s.id}
-            label={s.deviceName}
-            sub={
-              s.current
-                ? t('people.device.current')
-                : t('people.device.lastSeen', {
-                    time: formatRelative(locale, new Date(s.lastSeenAt)),
-                  })
-            }
-            control={
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  void api
-                    .DELETE('/users/{userId}/sessions/{sessionId}', {
-                      params: { path: { userId: id, sessionId: s.id } },
-                    })
-                    .then(load)
-                }
-              >
-                {t('people.device.signOut')}
-              </Button>
-            }
-          />
-        ))}
-      </Group>
-
-      <Group>
-        {reset ? (
-          <Row label={t('people.resetPassword')}>
-            <div className="pl pl-field">
-              <span className="pl-field__label">{t('people.tempPassword.label')}</span>
-              <code className="adm__path">{reset}</code>
-              <span className="pl-field__help">{t('people.tempPassword.help')}</span>
-            </div>
-          </Row>
-        ) : (
-          <Row
-            label={t('people.resetPassword')}
-            busy={busy === 'reset'}
-            onClick={() => void resetPassword()}
-          />
-        )}
-        {user.id !== me &&
-          (onlyAdmin ? (
-            <Row
-              muted
-              label={t('people.delete.label')}
-              sub={t('admin.person.cantDelete', { name: user.displayName })}
-            />
-          ) : (
-            <Row danger label={t('people.delete.label')} onClick={() => setDeleting(true)} />
-          ))}
-      </Group>
 
       {deleting && (
         <Dialog
@@ -873,5 +881,81 @@ export function Person() {
         />
       )}
     </Section>
+  )
+}
+
+/** Board AdmV2 13's "Right now": what this person is watching, with Stop. */
+function NowFor({ userId }: { userId: string }) {
+  const { t } = useTranslation()
+  const { data, refresh, toast } = useAdmin()
+  const streams = (data?.streams ?? []).filter((s) => s.userId === userId)
+  if (!streams.length) return null
+  return (
+    <Group title={t('admin.person.now')}>
+      {streams.map((s) => (
+        <Row
+          key={s.session.id}
+          label={s.itemTitle}
+          sub={[s.profileName, s.deviceName, methodLabel(t, s.session.method)].join(
+            t('card.separator'),
+          )}
+          control={
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                void api
+                  .DELETE('/playback/{sessionId}', {
+                    params: { path: { sessionId: s.session.id } },
+                  })
+                  .then(() => {
+                    toast(t('playing.stopped', { title: s.itemTitle, user: s.profileName }))
+                    return refresh()
+                  })
+              }
+            >
+              {t('playing.stop.label')}
+            </Button>
+          }
+        />
+      ))}
+    </Group>
+  )
+}
+
+/** Board AdmV2 13's "Recent plays": this person's last plays over a month. */
+function RecentFor({ userId }: { userId: string }) {
+  const { t, i18n } = useTranslation()
+  const lng = i18n.language
+  const [plays, setPlays] = useState<components['schemas']['PlayRecord'][]>()
+  useEffect(() => {
+    api
+      .GET('/activity', {
+        params: {
+          query: { days: 30, userId, tzOffsetMinutes: new Date().getTimezoneOffset() },
+        },
+      })
+      .then(({ data }) => setPlays(data?.recent.slice(0, 6) ?? []))
+  }, [userId])
+  return (
+    <Group title={t('admin.person.recent')}>
+      {!plays && (
+        <li>
+          <Loading />
+        </li>
+      )}
+      {plays && !plays.length && <Row muted label={t('admin.activity.none')} />}
+      {(plays ?? []).map((p) => (
+        <Row
+          key={`${p.itemId}-${p.startedAt}`}
+          to={`/item/${p.itemId}`}
+          label={p.title}
+          sub={[p.profileName, p.deviceName, formatDuration(lng, p.watchedMs)].join(
+            t('card.separator'),
+          )}
+          value={formatRelative(lng, new Date(p.startedAt))}
+        />
+      ))}
+    </Group>
   )
 }

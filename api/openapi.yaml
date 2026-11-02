@@ -619,11 +619,11 @@ paths:
   /invitations:
     get:
       operationId: listInvitations
-      summary: Invitations not used yet and not expired (admin, F009)
+      summary: Pending invitations, then those accepted or expired in the last 30 days (admin, F009)
       tags: [sharing]
       responses:
         "200":
-          description: Pending invitations, newest first
+          description: Pending first, then the others; newest first in each
           content:
             application/json:
               schema:
@@ -1873,6 +1873,40 @@ paths:
                 $ref: "#/components/schemas/PlaybackSettings"
         default:
           $ref: "#/components/responses/Error"
+  /settings/party:
+    get:
+      operationId: getPartySettings
+      summary: Plaid Party settings (admin, step 21, ahead of F010)
+      tags: [sharing]
+      responses:
+        "200":
+          description: The settings in effect, defaults included
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartySettings"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updatePartySettings
+      summary: Change the Plaid Party settings (admin)
+      description: Absent fields keep their value. Who can start or join a party is each group's `party` right.
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartySettingsUpdate"
+      responses:
+        "200":
+          description: The settings after the change
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartySettings"
+        default:
+          $ref: "#/components/responses/Error"
   /stream/{token}/file:
     parameters:
       - $ref: "#/components/parameters/StreamToken"
@@ -2188,7 +2222,12 @@ paths:
           schema:
             type: integer
             minimum: 1
-            maximum: 90
+            maximum: 366
+        - name: userId
+          in: query
+          description: Only this account's plays (the totals and the days too).
+          schema:
+            type: string
         - name: tzOffsetMinutes
           in: query
           description: The browser's offset from UTC (JavaScript's getTimezoneOffset), so days are local.
@@ -2203,6 +2242,90 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Activity"
+        default:
+          $ref: "#/components/responses/Error"
+  /monitoring:
+    get:
+      operationId: getMonitoring
+      summary: Data sent, where remote plays come from, and device health (admin)
+      description: >-
+        Over the last `days` (today included, local days from `tzOffsetMinutes`). Remote plays are placed with the
+        DB-IP Lite city database the server downloads monthly; local plays are never placed.
+      tags: [server]
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 366
+        - name: tzOffsetMinutes
+          in: query
+          schema:
+            type: integer
+            minimum: -840
+            maximum: 840
+      responses:
+        "200":
+          description: The period's monitoring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monitoring"
+        default:
+          $ref: "#/components/responses/Error"
+  /library-report:
+    get:
+      operationId: getLibraryReport
+      summary: Every movie and show with its size, picture, files and plays (admin)
+      description: >-
+        Filters combine. `unwatched`: nobody played it. `stale`: added more than 6 months ago and not played for a
+        year. `duplicates`: a movie, or one of a show's episodes, has more than one file. Totals are over the whole
+        library (or all), whatever the filters.
+      tags: [libraries]
+      parameters:
+        - name: libraryId
+          in: query
+          schema:
+            type: string
+        - name: show
+          in: query
+          schema:
+            type: string
+            enum: [all, unwatched, stale, duplicates]
+        - name: quality
+          in: query
+          description: The best picture's class.
+          schema:
+            type: string
+            enum: [uhd, fhd, hd, sd]
+        - name: genreId
+          in: query
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [size, added, title, plays]
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: A page of the report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LibraryReport"
         default:
           $ref: "#/components/responses/Error"
   /server/capabilities:
@@ -2782,8 +2905,20 @@ components:
           $ref: "#/components/schemas/Rights"
     Invitation:
       type: object
-      required: [id, name, groupIds, createdAt, expiresAt]
+      required: [id, name, groupIds, createdAt, expiresAt, status]
       properties:
+        status:
+          type: string
+          enum: [pending, accepted, expired]
+        token:
+          type: string
+          description: The link's token, for a pending invitation (the link is `/invite/{token}`). Admins only.
+        acceptedAt:
+          type: string
+          format: date-time
+        userId:
+          type: string
+          description: The account it created, when accepted.
         id:
           type: string
         name:
@@ -4815,6 +4950,32 @@ components:
           description: The render node set by the admin; absent for the default (the first /dev/dri/renderD*).
         hardware:
           $ref: "#/components/schemas/HardwareStatus"
+    PartySettings:
+      type: object
+      required: [enabled, maxPeople, guests]
+      properties:
+        enabled:
+          type: boolean
+          description: Watch together, at home or away. On by default.
+        maxPeople:
+          type: integer
+          minimum: 2
+          maximum: 16
+          description: People per party, the host included. 8 by default.
+        guests:
+          type: boolean
+          description: Someone without an account can join from the party's link. Off by default.
+    PartySettingsUpdate:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        maxPeople:
+          type: integer
+          minimum: 2
+          maximum: 16
+        guests:
+          type: boolean
     PlaybackSettingsUpdate:
       type: object
       properties:
@@ -4915,8 +5076,10 @@ components:
           format: int64
     Activity:
       type: object
-      required: [days, recent, recentlyAdded, activePeople]
+      required: [days, recent, recentlyAdded, activePeople, totals]
       properties:
+        totals:
+          $ref: "#/components/schemas/ActivityTotals"
         days:
           type: array
           description: One entry per day, oldest first, today last.
@@ -4935,6 +5098,218 @@ components:
         activePeople:
           type: integer
           description: Accounts seen in the period.
+    Monitoring:
+      type: object
+      required: [days, people, places, devices, local, remote, unplaced, geoipReady]
+      properties:
+        days:
+          type: array
+          description: One per day, oldest first.
+          items:
+            $ref: "#/components/schemas/MonitoringDay"
+        people:
+          type: array
+          description: Most data first.
+          items:
+            $ref: "#/components/schemas/MonitoringPerson"
+        places:
+          type: array
+          description: Cities remote plays came from, most plays first.
+          items:
+            $ref: "#/components/schemas/MonitoringPlace"
+        devices:
+          type: array
+          description: Worst health first.
+          items:
+            $ref: "#/components/schemas/DeviceHealth"
+        local:
+          type: integer
+        remote:
+          type: integer
+        unplaced:
+          type: integer
+          description: Remote plays without a place (no database yet, or an unknown address).
+        geoipReady:
+          type: boolean
+          description: The geolocation database is downloaded.
+    MonitoringDay:
+      type: object
+      required: [date, bytes]
+      properties:
+        date:
+          type: string
+          format: date
+        bytes:
+          type: integer
+          format: int64
+    MonitoringPerson:
+      type: object
+      required: [displayName, bytes, plays, watchedMs]
+      properties:
+        userId:
+          type: string
+        displayName:
+          type: string
+        bytes:
+          type: integer
+          format: int64
+        plays:
+          type: integer
+        watchedMs:
+          type: integer
+          format: int64
+    MonitoringPlace:
+      type: object
+      required: [country, lat, lon, plays, people, lastAt]
+      properties:
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2.
+        city:
+          type: string
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+        plays:
+          type: integer
+        people:
+          type: integer
+        lastAt:
+          type: string
+          format: date-time
+    DeviceHealth:
+      type: object
+      required: [deviceName, displayName, plays, directPlay, directStream, transcoded, codecIssues, score, lastAt]
+      properties:
+        deviceName:
+          type: string
+        displayName:
+          type: string
+        plays:
+          type: integer
+        directPlay:
+          type: integer
+        directStream:
+          type: integer
+        transcoded:
+          type: integer
+        codecIssues:
+          type: integer
+          description: Plays converted because the device couldn't decode a codec or format.
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Half the direct play rate, 30 for few transcodes, 20 for few codec problems.
+        lastAt:
+          type: string
+          format: date-time
+    LibraryReport:
+      type: object
+      required: [totals, total, genres, items]
+      properties:
+        totals:
+          $ref: "#/components/schemas/LibraryReportTotals"
+        total:
+          type: integer
+          description: Titles matching the filters.
+        genres:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportGenre"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LibraryReportItem"
+    LibraryReportTotals:
+      type: object
+      description: Over the whole library (or all), whatever the filters.
+      required: [titles, bytes, unwatched, unwatchedBytes, stale, staleBytes, duplicates, duplicateBytes]
+      properties:
+        titles:
+          type: integer
+        bytes:
+          type: integer
+          format: int64
+        unwatched:
+          type: integer
+        unwatchedBytes:
+          type: integer
+          format: int64
+        stale:
+          type: integer
+        staleBytes:
+          type: integer
+          format: int64
+        duplicates:
+          type: integer
+        duplicateBytes:
+          type: integer
+          format: int64
+    ReportGenre:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    LibraryReportItem:
+      type: object
+      required: [item, bytes, files, height, duplicate, plays, addedAt]
+      properties:
+        item:
+          $ref: "#/components/schemas/ItemSummary"
+        bytes:
+          type: integer
+          format: int64
+        files:
+          type: integer
+        height:
+          type: integer
+          description: The best picture's lines, 0 when unknown.
+        duplicate:
+          type: boolean
+        plays:
+          type: integer
+        lastPlayedAt:
+          type: string
+          format: date-time
+        addedAt:
+          type: string
+          format: date-time
+    ActivityTotals:
+      type: object
+      description: The plays of the period, all of them (not only the last 50).
+      required: [plays, people, directPlay, transcoded]
+      properties:
+        plays:
+          type: integer
+        people:
+          type: integer
+          description: Accounts that watched something.
+        directPlay:
+          type: integer
+          description: Plays sent as is.
+        transcoded:
+          type: integer
+          description: Plays converted by the server.
+        top:
+          $ref: "#/components/schemas/ActivityTop"
+    ActivityTop:
+      type: object
+      description: The title played most in the period; absent with no plays.
+      required: [itemId, title, plays]
+      properties:
+        itemId:
+          type: string
+        title:
+          type: string
+        plays:
+          type: integer
     ActivityDay:
       type: object
       required: [date, hours, plays]

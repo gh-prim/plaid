@@ -503,7 +503,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** Invitations not used yet and not expired (admin, F009) */
+    /** Pending invitations, then those accepted or expired in the last 30 days (admin, F009) */
     get: operations['listInvitations']
     put?: never
     /**
@@ -1408,6 +1408,27 @@ export interface paths {
     patch: operations['updatePlaybackSettings']
     trace?: never
   }
+  '/settings/party': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Plaid Party settings (admin, step 21, ahead of F010) */
+    get: operations['getPartySettings']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    /**
+     * Change the Plaid Party settings (admin)
+     * @description Absent fields keep their value. Who can start or join a party is each group's `party` right.
+     */
+    patch: operations['updatePartySettings']
+    trace?: never
+  }
   '/stream/{token}/file': {
     parameters: {
       query?: never
@@ -1711,6 +1732,46 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/monitoring': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Data sent, where remote plays come from, and device health (admin)
+     * @description Over the last `days` (today included, local days from `tzOffsetMinutes`). Remote plays are placed with the DB-IP Lite city database the server downloads monthly; local plays are never placed.
+     */
+    get: operations['getMonitoring']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/library-report': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Every movie and show with its size, picture, files and plays (admin)
+     * @description Filters combine. `unwatched`: nobody played it. `stale`: added more than 6 months ago and not played for a year. `duplicates`: a movie, or one of a show's episodes, has more than one file. Totals are over the whole library (or all), whatever the filters.
+     */
+    get: operations['getLibraryReport']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/server/capabilities': {
     parameters: {
       query?: never
@@ -2005,6 +2066,14 @@ export interface components {
       rights?: components['schemas']['Rights']
     }
     Invitation: {
+      /** @enum {string} */
+      status: 'pending' | 'accepted' | 'expired'
+      /** @description The link's token, for a pending invitation (the link is `/invite/{token}`). Admins only. */
+      token?: string
+      /** Format: date-time */
+      acceptedAt?: string
+      /** @description The account it created, when accepted. */
+      userId?: string
       id: string
       /** @description Who it is for, as the admin wrote it. */
       name: string
@@ -3151,6 +3220,19 @@ export interface components {
       hwDevice?: string
       hardware: components['schemas']['HardwareStatus']
     }
+    PartySettings: {
+      /** @description Watch together, at home or away. On by default. */
+      enabled: boolean
+      /** @description People per party, the host included. 8 by default. */
+      maxPeople: number
+      /** @description Someone without an account can join from the party's link. Off by default. */
+      guests: boolean
+    }
+    PartySettingsUpdate: {
+      enabled?: boolean
+      maxPeople?: number
+      guests?: boolean
+    }
     PlaybackSettingsUpdate: {
       maxTranscodes?: number | null
       /** Format: int64 */
@@ -3206,6 +3288,7 @@ export interface components {
       uploadBps: number
     }
     Activity: {
+      totals: components['schemas']['ActivityTotals']
       /** @description One entry per day, oldest first, today last. */
       days: components['schemas']['ActivityDay'][]
       /** @description The last plays, newest first (50 at most). */
@@ -3214,6 +3297,121 @@ export interface components {
       recentlyAdded: components['schemas']['ItemSummary'][]
       /** @description Accounts seen in the period. */
       activePeople: number
+    }
+    Monitoring: {
+      /** @description One per day, oldest first. */
+      days: components['schemas']['MonitoringDay'][]
+      /** @description Most data first. */
+      people: components['schemas']['MonitoringPerson'][]
+      /** @description Cities remote plays came from, most plays first. */
+      places: components['schemas']['MonitoringPlace'][]
+      /** @description Worst health first. */
+      devices: components['schemas']['DeviceHealth'][]
+      local: number
+      remote: number
+      /** @description Remote plays without a place (no database yet, or an unknown address). */
+      unplaced: number
+      /** @description The geolocation database is downloaded. */
+      geoipReady: boolean
+    }
+    MonitoringDay: {
+      /** Format: date */
+      date: string
+      /** Format: int64 */
+      bytes: number
+    }
+    MonitoringPerson: {
+      userId?: string
+      displayName: string
+      /** Format: int64 */
+      bytes: number
+      plays: number
+      /** Format: int64 */
+      watchedMs: number
+    }
+    MonitoringPlace: {
+      /** @description ISO 3166-1 alpha-2. */
+      country: string
+      city?: string
+      /** Format: double */
+      lat: number
+      /** Format: double */
+      lon: number
+      plays: number
+      people: number
+      /** Format: date-time */
+      lastAt: string
+    }
+    DeviceHealth: {
+      deviceName: string
+      displayName: string
+      plays: number
+      directPlay: number
+      directStream: number
+      transcoded: number
+      /** @description Plays converted because the device couldn't decode a codec or format. */
+      codecIssues: number
+      /** @description Half the direct play rate, 30 for few transcodes, 20 for few codec problems. */
+      score: number
+      /** Format: date-time */
+      lastAt: string
+    }
+    LibraryReport: {
+      totals: components['schemas']['LibraryReportTotals']
+      /** @description Titles matching the filters. */
+      total: number
+      genres: components['schemas']['ReportGenre'][]
+      items: components['schemas']['LibraryReportItem'][]
+    }
+    /** @description Over the whole library (or all), whatever the filters. */
+    LibraryReportTotals: {
+      titles: number
+      /** Format: int64 */
+      bytes: number
+      unwatched: number
+      /** Format: int64 */
+      unwatchedBytes: number
+      stale: number
+      /** Format: int64 */
+      staleBytes: number
+      duplicates: number
+      /** Format: int64 */
+      duplicateBytes: number
+    }
+    ReportGenre: {
+      id: number
+      name: string
+    }
+    LibraryReportItem: {
+      item: components['schemas']['ItemSummary']
+      /** Format: int64 */
+      bytes: number
+      files: number
+      /** @description The best picture's lines, 0 when unknown. */
+      height: number
+      duplicate: boolean
+      plays: number
+      /** Format: date-time */
+      lastPlayedAt?: string
+      /** Format: date-time */
+      addedAt: string
+    }
+    /** @description The plays of the period, all of them (not only the last 50). */
+    ActivityTotals: {
+      plays: number
+      /** @description Accounts that watched something. */
+      people: number
+      /** @description Plays sent as is. */
+      directPlay: number
+      /** @description Plays converted by the server. */
+      transcoded: number
+      top?: components['schemas']['ActivityTop']
+    }
+    /** @description The title played most in the period; absent with no plays. */
+    ActivityTop: {
+      itemId: string
+      title: string
+      plays: number
     }
     ActivityDay: {
       /** Format: date */
@@ -4181,7 +4379,7 @@ export interface operations {
     }
     requestBody?: never
     responses: {
-      /** @description Pending invitations, newest first */
+      /** @description Pending first, then the others; newest first in each */
       200: {
         headers: {
           [name: string]: unknown
@@ -5600,6 +5798,52 @@ export interface operations {
       default: components['responses']['Error']
     }
   }
+  getPartySettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The settings in effect, defaults included */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartySettings']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updatePartySettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PartySettingsUpdate']
+      }
+    }
+    responses: {
+      /** @description The settings after the change */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartySettings']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
   streamFile: {
     parameters: {
       query?: never
@@ -5976,6 +6220,8 @@ export interface operations {
       query?: {
         /** @description How many days back, today included; defaults to 7. */
         days?: number
+        /** @description Only this account's plays (the totals and the days too). */
+        userId?: string
         /** @description The browser's offset from UTC (JavaScript's getTimezoneOffset), so days are local. */
         tzOffsetMinutes?: number
       }
@@ -5992,6 +6238,60 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['Activity']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getMonitoring: {
+    parameters: {
+      query?: {
+        days?: number
+        tzOffsetMinutes?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The period's monitoring */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Monitoring']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getLibraryReport: {
+    parameters: {
+      query?: {
+        libraryId?: string
+        show?: 'all' | 'unwatched' | 'stale' | 'duplicates'
+        /** @description The best picture's class. */
+        quality?: 'uhd' | 'fhd' | 'hd' | 'sd'
+        genreId?: number
+        sort?: 'size' | 'added' | 'title' | 'plays'
+        offset?: number
+        limit?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description A page of the report */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LibraryReport']
         }
       }
       default: components['responses']['Error']

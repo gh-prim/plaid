@@ -325,12 +325,39 @@ export function LibraryPage() {
       title={lib.name}
       back={back}
       glyph="library"
-      paneTitle={lib.name}
-      paneSub={[counts(t, lib), scanLine(t, locale, lib)].filter(Boolean).join(' · ')}
-      status={
-        gone
-          ? { text: t('admin.library.unavailable', { count: gone }), tone: 'warning' }
-          : undefined
+      sub={[counts(t, lib), scanLine(t, locale, lib)].filter(Boolean).join(' · ')}
+      paneTitle={gone ? t('admin.library.unavailable', { count: gone }) : undefined}
+      status={gone ? { text: t('folder.status.unavailable'), tone: 'warning' } : undefined}
+      actions={
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={busy === 'scan'}
+          onClick={() => void act('scan', () => scan(false))}
+        >
+          <Icon name="refresh" size={14} />
+          {t('libraries.scanNow')}
+        </Button>
+      }
+      aside={
+        <>
+          <Group title={t('libraries.identifyReview')}>
+            <Row
+              to={`/admin/libraries/${lib.id}/unrecognized`}
+              label={t('admin.settings.unrecognized')}
+              value={formatNumber(i18n.language, lib.counts.unrecognized)}
+              tone={lib.counts.unrecognized ? 'warning' : undefined}
+              sub={t('libraries.unrecognized.help')}
+            />
+            <Row
+              to={`/admin/libraries/${lib.id}/review`}
+              label={t('review.needs.short')}
+              sub={t('libraries.review.help')}
+            />
+          </Group>
+
+          <LibrarySharing library={lib} onChange={() => void refresh()} />
+        </>
       }
     >
       <Group
@@ -389,21 +416,6 @@ export function LibraryPage() {
             onClick={() => setPicking(true)}
           />
         )}
-      </Group>
-
-      <Group title={t('libraries.identifyReview')}>
-        <Row
-          to={`/admin/libraries/${lib.id}/unrecognized`}
-          label={t('admin.settings.unrecognized')}
-          value={formatNumber(i18n.language, lib.counts.unrecognized)}
-          tone={lib.counts.unrecognized ? 'warning' : undefined}
-          sub={t('libraries.unrecognized.help')}
-        />
-        <Row
-          to={`/admin/libraries/${lib.id}/review`}
-          label={t('review.needs.short')}
-          sub={t('libraries.review.help')}
-        />
       </Group>
 
       <Group
@@ -474,8 +486,6 @@ export function LibraryPage() {
           onClick={() => void act('full', () => scan(true))}
         />
       </Group>
-
-      <LibrarySharing library={lib} onChange={() => void refresh()} />
 
       <Group>
         <Row danger label={t('libraries.delete.label')} onClick={() => setDeleting(true)} />

@@ -458,6 +458,27 @@ func (e HwAccelSetting) Valid() bool {
 	}
 }
 
+// Defines values for InvitationStatus.
+const (
+	InvitationStatusAccepted InvitationStatus = "accepted"
+	InvitationStatusExpired  InvitationStatus = "expired"
+	InvitationStatusPending  InvitationStatus = "pending"
+)
+
+// Valid indicates whether the value is a known member of the InvitationStatus enum.
+func (e InvitationStatus) Valid() bool {
+	switch e {
+	case InvitationStatusAccepted:
+		return true
+	case InvitationStatusExpired:
+		return true
+	case InvitationStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ItemKind.
 const (
 	ItemKindEpisode ItemKind = "episode"
@@ -535,28 +556,28 @@ func (e ItemMetadataShowStatus) Valid() bool {
 
 // Defines values for ItemSort.
 const (
-	Added    ItemSort = "added"
-	Played   ItemSort = "played"
-	Random   ItemSort = "random"
-	Rating   ItemSort = "rating"
-	Released ItemSort = "released"
-	Title    ItemSort = "title"
+	ItemSortAdded    ItemSort = "added"
+	ItemSortPlayed   ItemSort = "played"
+	ItemSortRandom   ItemSort = "random"
+	ItemSortRating   ItemSort = "rating"
+	ItemSortReleased ItemSort = "released"
+	ItemSortTitle    ItemSort = "title"
 )
 
 // Valid indicates whether the value is a known member of the ItemSort enum.
 func (e ItemSort) Valid() bool {
 	switch e {
-	case Added:
+	case ItemSortAdded:
 		return true
-	case Played:
+	case ItemSortPlayed:
 		return true
-	case Random:
+	case ItemSortRandom:
 		return true
-	case Rating:
+	case ItemSortRating:
 		return true
-	case Released:
+	case ItemSortReleased:
 		return true
-	case Title:
+	case ItemSortTitle:
 		return true
 	default:
 		return false
@@ -1510,19 +1531,91 @@ func (e VideoCapabilityHdr) Valid() bool {
 
 // Defines values for WatchFilter.
 const (
-	InProgress WatchFilter = "in_progress"
-	Unwatched  WatchFilter = "unwatched"
-	Watched    WatchFilter = "watched"
+	WatchFilterInProgress WatchFilter = "in_progress"
+	WatchFilterUnwatched  WatchFilter = "unwatched"
+	WatchFilterWatched    WatchFilter = "watched"
 )
 
 // Valid indicates whether the value is a known member of the WatchFilter enum.
 func (e WatchFilter) Valid() bool {
 	switch e {
-	case InProgress:
+	case WatchFilterInProgress:
 		return true
-	case Unwatched:
+	case WatchFilterUnwatched:
 		return true
-	case Watched:
+	case WatchFilterWatched:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetLibraryReportParamsShow.
+const (
+	GetLibraryReportParamsShowAll        GetLibraryReportParamsShow = "all"
+	GetLibraryReportParamsShowDuplicates GetLibraryReportParamsShow = "duplicates"
+	GetLibraryReportParamsShowStale      GetLibraryReportParamsShow = "stale"
+	GetLibraryReportParamsShowUnwatched  GetLibraryReportParamsShow = "unwatched"
+)
+
+// Valid indicates whether the value is a known member of the GetLibraryReportParamsShow enum.
+func (e GetLibraryReportParamsShow) Valid() bool {
+	switch e {
+	case GetLibraryReportParamsShowAll:
+		return true
+	case GetLibraryReportParamsShowDuplicates:
+		return true
+	case GetLibraryReportParamsShowStale:
+		return true
+	case GetLibraryReportParamsShowUnwatched:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetLibraryReportParamsQuality.
+const (
+	GetLibraryReportParamsQualityFhd GetLibraryReportParamsQuality = "fhd"
+	GetLibraryReportParamsQualityHd  GetLibraryReportParamsQuality = "hd"
+	GetLibraryReportParamsQualitySd  GetLibraryReportParamsQuality = "sd"
+	GetLibraryReportParamsQualityUhd GetLibraryReportParamsQuality = "uhd"
+)
+
+// Valid indicates whether the value is a known member of the GetLibraryReportParamsQuality enum.
+func (e GetLibraryReportParamsQuality) Valid() bool {
+	switch e {
+	case GetLibraryReportParamsQualityFhd:
+		return true
+	case GetLibraryReportParamsQualityHd:
+		return true
+	case GetLibraryReportParamsQualitySd:
+		return true
+	case GetLibraryReportParamsQualityUhd:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetLibraryReportParamsSort.
+const (
+	GetLibraryReportParamsSortAdded GetLibraryReportParamsSort = "added"
+	GetLibraryReportParamsSortPlays GetLibraryReportParamsSort = "plays"
+	GetLibraryReportParamsSortSize  GetLibraryReportParamsSort = "size"
+	GetLibraryReportParamsSortTitle GetLibraryReportParamsSort = "title"
+)
+
+// Valid indicates whether the value is a known member of the GetLibraryReportParamsSort enum.
+func (e GetLibraryReportParamsSort) Valid() bool {
+	switch e {
+	case GetLibraryReportParamsSortAdded:
+		return true
+	case GetLibraryReportParamsSortPlays:
+		return true
+	case GetLibraryReportParamsSortSize:
+		return true
+	case GetLibraryReportParamsSortTitle:
 		return true
 	default:
 		return false
@@ -1601,6 +1694,9 @@ type Activity struct {
 
 	// RecentlyAdded The last movies and shows added, newest first (10 at most).
 	RecentlyAdded []ItemSummary `json:"recentlyAdded"`
+
+	// Totals The plays of the period, all of them (not only the last 50).
+	Totals ActivityTotals `json:"totals"`
 }
 
 // ActivityDay defines model for ActivityDay.
@@ -1610,6 +1706,29 @@ type ActivityDay struct {
 	// Hours Hours watched that day, all accounts.
 	Hours float32 `json:"hours"`
 	Plays int     `json:"plays"`
+}
+
+// ActivityTop The title played most in the period; absent with no plays.
+type ActivityTop struct {
+	ItemId string `json:"itemId"`
+	Plays  int    `json:"plays"`
+	Title  string `json:"title"`
+}
+
+// ActivityTotals The plays of the period, all of them (not only the last 50).
+type ActivityTotals struct {
+	// DirectPlay Plays sent as is.
+	DirectPlay int `json:"directPlay"`
+
+	// People Accounts that watched something.
+	People int `json:"people"`
+	Plays  int `json:"plays"`
+
+	// Top The title played most in the period; absent with no plays.
+	Top *ActivityTop `json:"top,omitempty"`
+
+	// Transcoded Plays converted by the server.
+	Transcoded int `json:"transcoded"`
 }
 
 // AdminUser defines model for AdminUser.
@@ -2025,6 +2144,22 @@ type Device struct {
 	Type DeviceType `json:"type"`
 }
 
+// DeviceHealth defines model for DeviceHealth.
+type DeviceHealth struct {
+	// CodecIssues Plays converted because the device couldn't decode a codec or format.
+	CodecIssues  int       `json:"codecIssues"`
+	DeviceName   string    `json:"deviceName"`
+	DirectPlay   int       `json:"directPlay"`
+	DirectStream int       `json:"directStream"`
+	DisplayName  string    `json:"displayName"`
+	LastAt       time.Time `json:"lastAt"`
+	Plays        int       `json:"plays"`
+
+	// Score Half the direct play rate, 30 for few transcodes, 20 for few codec problems.
+	Score      int `json:"score"`
+	Transcoded int `json:"transcoded"`
+}
+
 // DeviceType defines model for DeviceType.
 type DeviceType string
 
@@ -2208,14 +2343,25 @@ type IdentifyRequest struct {
 
 // Invitation defines model for Invitation.
 type Invitation struct {
-	CreatedAt time.Time `json:"createdAt"`
-	ExpiresAt time.Time `json:"expiresAt"`
-	GroupIds  []string  `json:"groupIds"`
-	Id        string    `json:"id"`
+	AcceptedAt *time.Time `json:"acceptedAt,omitempty"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	ExpiresAt  time.Time  `json:"expiresAt"`
+	GroupIds   []string   `json:"groupIds"`
+	Id         string     `json:"id"`
 
 	// Name Who it is for, as the admin wrote it.
-	Name string `json:"name"`
+	Name   string           `json:"name"`
+	Status InvitationStatus `json:"status"`
+
+	// Token The link's token, for a pending invitation (the link is `/invite/{token}`). Admins only.
+	Token *string `json:"token,omitempty"`
+
+	// UserId The account it created, when accepted.
+	UserId *string `json:"userId,omitempty"`
 }
+
+// InvitationStatus defines model for Invitation.Status.
+type InvitationStatus string
 
 // InvitationPreview defines model for InvitationPreview.
 type InvitationPreview struct {
@@ -2552,6 +2698,44 @@ type LibraryMetadataCounts struct {
 	Unmatched  int  `json:"unmatched"`
 }
 
+// LibraryReport defines model for LibraryReport.
+type LibraryReport struct {
+	Genres []ReportGenre       `json:"genres"`
+	Items  []LibraryReportItem `json:"items"`
+
+	// Total Titles matching the filters.
+	Total int `json:"total"`
+
+	// Totals Over the whole library (or all), whatever the filters.
+	Totals LibraryReportTotals `json:"totals"`
+}
+
+// LibraryReportItem defines model for LibraryReportItem.
+type LibraryReportItem struct {
+	AddedAt   time.Time `json:"addedAt"`
+	Bytes     int64     `json:"bytes"`
+	Duplicate bool      `json:"duplicate"`
+	Files     int       `json:"files"`
+
+	// Height The best picture's lines, 0 when unknown.
+	Height       int         `json:"height"`
+	Item         ItemSummary `json:"item"`
+	LastPlayedAt *time.Time  `json:"lastPlayedAt,omitempty"`
+	Plays        int         `json:"plays"`
+}
+
+// LibraryReportTotals Over the whole library (or all), whatever the filters.
+type LibraryReportTotals struct {
+	Bytes          int64 `json:"bytes"`
+	DuplicateBytes int64 `json:"duplicateBytes"`
+	Duplicates     int   `json:"duplicates"`
+	Stale          int   `json:"stale"`
+	StaleBytes     int64 `json:"staleBytes"`
+	Titles         int   `json:"titles"`
+	Unwatched      int   `json:"unwatched"`
+	UnwatchedBytes int64 `json:"unwatchedBytes"`
+}
+
 // LibraryType defines model for LibraryType.
 type LibraryType string
 
@@ -2735,6 +2919,57 @@ type MetadataStatus struct {
 	Providers []ProviderStatus        `json:"providers"`
 }
 
+// Monitoring defines model for Monitoring.
+type Monitoring struct {
+	// Days One per day, oldest first.
+	Days []MonitoringDay `json:"days"`
+
+	// Devices Worst health first.
+	Devices []DeviceHealth `json:"devices"`
+
+	// GeoipReady The geolocation database is downloaded.
+	GeoipReady bool `json:"geoipReady"`
+	Local      int  `json:"local"`
+
+	// People Most data first.
+	People []MonitoringPerson `json:"people"`
+
+	// Places Cities remote plays came from, most plays first.
+	Places []MonitoringPlace `json:"places"`
+	Remote int               `json:"remote"`
+
+	// Unplaced Remote plays without a place (no database yet, or an unknown address).
+	Unplaced int `json:"unplaced"`
+}
+
+// MonitoringDay defines model for MonitoringDay.
+type MonitoringDay struct {
+	Bytes int64              `json:"bytes"`
+	Date  openapi_types.Date `json:"date"`
+}
+
+// MonitoringPerson defines model for MonitoringPerson.
+type MonitoringPerson struct {
+	Bytes       int64   `json:"bytes"`
+	DisplayName string  `json:"displayName"`
+	Plays       int     `json:"plays"`
+	UserId      *string `json:"userId,omitempty"`
+	WatchedMs   int64   `json:"watchedMs"`
+}
+
+// MonitoringPlace defines model for MonitoringPlace.
+type MonitoringPlace struct {
+	City *string `json:"city,omitempty"`
+
+	// Country ISO 3166-1 alpha-2.
+	Country string    `json:"country"`
+	LastAt  time.Time `json:"lastAt"`
+	Lat     float64   `json:"lat"`
+	Lon     float64   `json:"lon"`
+	People  int       `json:"people"`
+	Plays   int       `json:"plays"`
+}
+
 // PairingPending defines model for PairingPending.
 type PairingPending struct {
 	Status PairingPendingStatus `json:"status"`
@@ -2756,6 +2991,25 @@ type PairingStarted struct {
 
 // PartyRight What a person may do with Plaid Party (F010).
 type PartyRight string
+
+// PartySettings defines model for PartySettings.
+type PartySettings struct {
+	// Enabled Watch together, at home or away. On by default.
+	Enabled bool `json:"enabled"`
+
+	// Guests Someone without an account can join from the party's link. Off by default.
+	Guests bool `json:"guests"`
+
+	// MaxPeople People per party, the host included. 8 by default.
+	MaxPeople int `json:"maxPeople"`
+}
+
+// PartySettingsUpdate defines model for PartySettingsUpdate.
+type PartySettingsUpdate struct {
+	Enabled   *bool `json:"enabled,omitempty"`
+	Guests    *bool `json:"guests,omitempty"`
+	MaxPeople *int  `json:"maxPeople,omitempty"`
+}
 
 // Person defines model for Person.
 type Person struct {
@@ -3115,6 +3369,12 @@ type RemoteStep struct {
 
 // RemoteStepState defines model for RemoteStep.State.
 type RemoteStepState string
+
+// ReportGenre defines model for ReportGenre.
+type ReportGenre struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
 
 // ResetPasswordRequest defines model for ResetPasswordRequest.
 type ResetPasswordRequest struct {
@@ -3638,6 +3898,9 @@ type GetActivityParams struct {
 	// Days How many days back, today included; defaults to 7.
 	Days *int `form:"days,omitempty" json:"days,omitempty"`
 
+	// UserId Only this account's plays (the totals and the days too).
+	UserId *string `form:"userId,omitempty" json:"userId,omitempty"`
+
 	// TzOffsetMinutes The browser's offset from UTC (JavaScript's getTimezoneOffset), so days are local.
 	TzOffsetMinutes *int `form:"tzOffsetMinutes,omitempty" json:"tzOffsetMinutes,omitempty"`
 }
@@ -3742,6 +4005,28 @@ type ListUnrecognizedFilesParams struct {
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// GetLibraryReportParams defines parameters for GetLibraryReport.
+type GetLibraryReportParams struct {
+	LibraryId *string                     `form:"libraryId,omitempty" json:"libraryId,omitempty"`
+	Show      *GetLibraryReportParamsShow `form:"show,omitempty" json:"show,omitempty"`
+
+	// Quality The best picture's class.
+	Quality *GetLibraryReportParamsQuality `form:"quality,omitempty" json:"quality,omitempty"`
+	GenreId *int                           `form:"genreId,omitempty" json:"genreId,omitempty"`
+	Sort    *GetLibraryReportParamsSort    `form:"sort,omitempty" json:"sort,omitempty"`
+	Offset  *int                           `form:"offset,omitempty" json:"offset,omitempty"`
+	Limit   *int                           `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetLibraryReportParamsShow defines parameters for GetLibraryReport.
+type GetLibraryReportParamsShow string
+
+// GetLibraryReportParamsQuality defines parameters for GetLibraryReport.
+type GetLibraryReportParamsQuality string
+
+// GetLibraryReportParamsSort defines parameters for GetLibraryReport.
+type GetLibraryReportParamsSort string
+
 // ListContinueWatchingParams defines parameters for ListContinueWatching.
 type ListContinueWatchingParams struct {
 	// Cursor Opaque `nextCursor` of the previous page.
@@ -3759,6 +4044,12 @@ type SearchMetadataParams struct {
 
 // SearchMetadataParamsKind defines parameters for SearchMetadata.
 type SearchMetadataParamsKind string
+
+// GetMonitoringParams defines parameters for GetMonitoring.
+type GetMonitoringParams struct {
+	Days            *int `form:"days,omitempty" json:"days,omitempty"`
+	TzOffsetMinutes *int `form:"tzOffsetMinutes,omitempty" json:"tzOffsetMinutes,omitempty"`
+}
 
 // PollPairingParams defines parameters for PollPairing.
 type PollPairingParams struct {
@@ -3861,6 +4152,9 @@ type UpdateRemoteAccessJSONRequestBody = RemoteAccessUpdate
 // SelectProfileJSONRequestBody defines body for SelectProfile for application/json ContentType.
 type SelectProfileJSONRequestBody = SelectProfileRequest
 
+// UpdatePartySettingsJSONRequestBody defines body for UpdatePartySettings for application/json ContentType.
+type UpdatePartySettingsJSONRequestBody = PartySettingsUpdate
+
 // UpdatePlaybackSettingsJSONRequestBody defines body for UpdatePlaybackSettings for application/json ContentType.
 type UpdatePlaybackSettingsJSONRequestBody = PlaybackSettingsUpdate
 
@@ -3929,7 +4223,7 @@ type ServerInterface interface {
 	// GetImage An artwork image, resized for the client (F005 R19)
 	// (GET /images/{imageId})
 	GetImage(w http.ResponseWriter, r *http.Request, imageId string, params GetImageParams)
-	// ListInvitations Invitations not used yet and not expired (admin, F009)
+	// ListInvitations Pending invitations, then those accepted or expired in the last 30 days (admin, F009)
 	// (GET /invitations)
 	ListInvitations(w http.ResponseWriter, r *http.Request)
 	// CreateInvitation Create a single-use invitation link (admin, F009)
@@ -4022,6 +4316,9 @@ type ServerInterface interface {
 	// ListUnrecognizedFiles Files whose name couldn't be understood (admin)
 	// (GET /libraries/{libraryId}/unrecognized)
 	ListUnrecognizedFiles(w http.ResponseWriter, r *http.Request, libraryId LibraryId, params ListUnrecognizedFilesParams)
+	// GetLibraryReport Every movie and show with its size, picture, files and plays (admin)
+	// (GET /library-report)
+	GetLibraryReport(w http.ResponseWriter, r *http.Request, params GetLibraryReportParams)
 	// GetMe The signed-in account, its profiles and the active one
 	// (GET /me)
 	GetMe(w http.ResponseWriter, r *http.Request)
@@ -4079,6 +4376,9 @@ type ServerInterface interface {
 	// GetMetadataStatus Providers and per-library progress (admin, F005 R35)
 	// (GET /metadata/status)
 	GetMetadataStatus(w http.ResponseWriter, r *http.Request)
+	// GetMonitoring Data sent, where remote plays come from, and device health (admin)
+	// (GET /monitoring)
+	GetMonitoring(w http.ResponseWriter, r *http.Request, params GetMonitoringParams)
 	// StartPairing Get a code to pair a TV
 	// (POST /pairing)
 	StartPairing(w http.ResponseWriter, r *http.Request)
@@ -4139,6 +4439,12 @@ type ServerInterface interface {
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(w http.ResponseWriter, r *http.Request)
+	// GetPartySettings Plaid Party settings (admin, step 21, ahead of F010)
+	// (GET /settings/party)
+	GetPartySettings(w http.ResponseWriter, r *http.Request)
+	// UpdatePartySettings Change the Plaid Party settings (admin)
+	// (PATCH /settings/party)
+	UpdatePartySettings(w http.ResponseWriter, r *http.Request)
 	// GetPlaybackSettings Playback settings (admin, F006 R30)
 	// (GET /settings/playback)
 	GetPlaybackSettings(w http.ResponseWriter, r *http.Request)
@@ -4201,6 +4507,19 @@ func (siw *ServerInterfaceWrapper) GetActivity(w http.ResponseWriter, r *http.Re
 			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "days"})
 		} else {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "days", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "userId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "userId", r.URL.Query(), &params.UserId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "userId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
 		}
 		return
 	}
@@ -5714,6 +6033,117 @@ func (siw *ServerInterfaceWrapper) ListUnrecognizedFiles(w http.ResponseWriter, 
 	handler.ServeHTTP(w, r)
 }
 
+// GetLibraryReport operation middleware
+func (siw *ServerInterfaceWrapper) GetLibraryReport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetLibraryReportParams
+
+	// ------------- Optional query parameter "libraryId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "libraryId", r.URL.Query(), &params.LibraryId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "libraryId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "libraryId", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "show" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "show", r.URL.Query(), &params.Show, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "show"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "show", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "quality" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "quality", r.URL.Query(), &params.Quality, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "quality"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "quality", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "genreId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "genreId", r.URL.Query(), &params.GenreId, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "genreId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "genreId", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "sort", r.URL.Query(), &params.Sort, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "offset", r.URL.Query(), &params.Offset, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "offset"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLibraryReport(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetMe operation middleware
 func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
 
@@ -6154,6 +6584,52 @@ func (siw *ServerInterfaceWrapper) GetMetadataStatus(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r)
 }
 
+// GetMonitoring operation middleware
+func (siw *ServerInterfaceWrapper) GetMonitoring(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetMonitoringParams
+
+	// ------------- Optional query parameter "days" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "days", r.URL.Query(), &params.Days, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "days"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "days", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "tzOffsetMinutes" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "tzOffsetMinutes", r.URL.Query(), &params.TzOffsetMinutes, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "tzOffsetMinutes"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "tzOffsetMinutes", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMonitoring(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // StartPairing operation middleware
 func (siw *ServerInterfaceWrapper) StartPairing(w http.ResponseWriter, r *http.Request) {
 
@@ -6557,6 +7033,34 @@ func (siw *ServerInterfaceWrapper) SelectProfile(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SelectProfile(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPartySettings operation middleware
+func (siw *ServerInterfaceWrapper) GetPartySettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPartySettings(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdatePartySettings operation middleware
+func (siw *ServerInterfaceWrapper) UpdatePartySettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdatePartySettings(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -6997,10 +7501,14 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/playback/{sessionId}/progress", wrapper.ReportPlaybackProgress)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/settings/playback", wrapper.GetPlaybackSettings)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/playback", wrapper.UpdatePlaybackSettings)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/settings/party", wrapper.GetPartySettings)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/settings/party", wrapper.UpdatePartySettings)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/fs/browse", wrapper.BrowseFolders)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/stats", wrapper.GetServerStats)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/stats/history", wrapper.GetServerStatsHistory)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/activity", wrapper.GetActivity)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/monitoring", wrapper.GetMonitoring)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/library-report", wrapper.GetLibraryReport)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/server/capabilities", wrapper.GetServerCapabilities)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/server/capabilities/hardware-test", wrapper.TestServerHardware)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/remote-access", wrapper.GetRemoteAccess)
@@ -9001,6 +9509,45 @@ func (response ListUnrecognizedFilesdefaultJSONResponse) VisitListUnrecognizedFi
 	return err
 }
 
+type GetLibraryReportRequestObject struct {
+	Params GetLibraryReportParams
+}
+
+type GetLibraryReportResponseObject interface {
+	VisitGetLibraryReportResponse(w http.ResponseWriter) error
+}
+
+type GetLibraryReport200JSONResponse LibraryReport
+
+func (response GetLibraryReport200JSONResponse) VisitGetLibraryReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLibraryReportdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetLibraryReportdefaultJSONResponse) VisitGetLibraryReportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetMeRequestObject struct {
 }
 
@@ -9712,6 +10259,45 @@ type GetMetadataStatusdefaultJSONResponse struct {
 }
 
 func (response GetMetadataStatusdefaultJSONResponse) VisitGetMetadataStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMonitoringRequestObject struct {
+	Params GetMonitoringParams
+}
+
+type GetMonitoringResponseObject interface {
+	VisitGetMonitoringResponse(w http.ResponseWriter) error
+}
+
+type GetMonitoring200JSONResponse Monitoring
+
+func (response GetMonitoring200JSONResponse) VisitGetMonitoringResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMonitoringdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetMonitoringdefaultJSONResponse) VisitGetMonitoringResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -10500,6 +11086,83 @@ func (response SelectProfiledefaultJSONResponse) VisitSelectProfileResponse(w ht
 	return err
 }
 
+type GetPartySettingsRequestObject struct {
+}
+
+type GetPartySettingsResponseObject interface {
+	VisitGetPartySettingsResponse(w http.ResponseWriter) error
+}
+
+type GetPartySettings200JSONResponse PartySettings
+
+func (response GetPartySettings200JSONResponse) VisitGetPartySettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPartySettingsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetPartySettingsdefaultJSONResponse) VisitGetPartySettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartySettingsRequestObject struct {
+	Body *UpdatePartySettingsJSONRequestBody
+}
+
+type UpdatePartySettingsResponseObject interface {
+	VisitUpdatePartySettingsResponse(w http.ResponseWriter) error
+}
+
+type UpdatePartySettings200JSONResponse PartySettings
+
+func (response UpdatePartySettings200JSONResponse) VisitUpdatePartySettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartySettingsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdatePartySettingsdefaultJSONResponse) VisitUpdatePartySettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetPlaybackSettingsRequestObject struct {
 }
 
@@ -10964,7 +11627,7 @@ type StrictServerInterface interface {
 	// GetImage An artwork image, resized for the client (F005 R19)
 	// (GET /images/{imageId})
 	GetImage(ctx context.Context, request GetImageRequestObject) (GetImageResponseObject, error)
-	// ListInvitations Invitations not used yet and not expired (admin, F009)
+	// ListInvitations Pending invitations, then those accepted or expired in the last 30 days (admin, F009)
 	// (GET /invitations)
 	ListInvitations(ctx context.Context, request ListInvitationsRequestObject) (ListInvitationsResponseObject, error)
 	// CreateInvitation Create a single-use invitation link (admin, F009)
@@ -11057,6 +11720,9 @@ type StrictServerInterface interface {
 	// ListUnrecognizedFiles Files whose name couldn't be understood (admin)
 	// (GET /libraries/{libraryId}/unrecognized)
 	ListUnrecognizedFiles(ctx context.Context, request ListUnrecognizedFilesRequestObject) (ListUnrecognizedFilesResponseObject, error)
+	// GetLibraryReport Every movie and show with its size, picture, files and plays (admin)
+	// (GET /library-report)
+	GetLibraryReport(ctx context.Context, request GetLibraryReportRequestObject) (GetLibraryReportResponseObject, error)
 	// GetMe The signed-in account, its profiles and the active one
 	// (GET /me)
 	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
@@ -11114,6 +11780,9 @@ type StrictServerInterface interface {
 	// GetMetadataStatus Providers and per-library progress (admin, F005 R35)
 	// (GET /metadata/status)
 	GetMetadataStatus(ctx context.Context, request GetMetadataStatusRequestObject) (GetMetadataStatusResponseObject, error)
+	// GetMonitoring Data sent, where remote plays come from, and device health (admin)
+	// (GET /monitoring)
+	GetMonitoring(ctx context.Context, request GetMonitoringRequestObject) (GetMonitoringResponseObject, error)
 	// StartPairing Get a code to pair a TV
 	// (POST /pairing)
 	StartPairing(ctx context.Context, request StartPairingRequestObject) (StartPairingResponseObject, error)
@@ -11174,6 +11843,12 @@ type StrictServerInterface interface {
 	// SelectProfile Set the active profile of the current session
 	// (POST /session/profile)
 	SelectProfile(ctx context.Context, request SelectProfileRequestObject) (SelectProfileResponseObject, error)
+	// GetPartySettings Plaid Party settings (admin, step 21, ahead of F010)
+	// (GET /settings/party)
+	GetPartySettings(ctx context.Context, request GetPartySettingsRequestObject) (GetPartySettingsResponseObject, error)
+	// UpdatePartySettings Change the Plaid Party settings (admin)
+	// (PATCH /settings/party)
+	UpdatePartySettings(ctx context.Context, request UpdatePartySettingsRequestObject) (UpdatePartySettingsResponseObject, error)
 	// GetPlaybackSettings Playback settings (admin, F006 R30)
 	// (GET /settings/playback)
 	GetPlaybackSettings(ctx context.Context, request GetPlaybackSettingsRequestObject) (GetPlaybackSettingsResponseObject, error)
@@ -12593,6 +13268,32 @@ func (sh *strictHandler) ListUnrecognizedFiles(w http.ResponseWriter, r *http.Re
 	}
 }
 
+// GetLibraryReport operation middleware
+func (sh *strictHandler) GetLibraryReport(w http.ResponseWriter, r *http.Request, params GetLibraryReportParams) {
+	var request GetLibraryReportRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLibraryReport(ctx, request.(GetLibraryReportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLibraryReport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLibraryReportResponseObject); ok {
+		if err := validResponse.VisitGetLibraryReportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetMe operation middleware
 func (sh *strictHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	var request GetMeRequestObject
@@ -13112,6 +13813,32 @@ func (sh *strictHandler) GetMetadataStatus(w http.ResponseWriter, r *http.Reques
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetMetadataStatusResponseObject); ok {
 		if err := validResponse.VisitGetMetadataStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMonitoring operation middleware
+func (sh *strictHandler) GetMonitoring(w http.ResponseWriter, r *http.Request, params GetMonitoringParams) {
+	var request GetMonitoringRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMonitoring(ctx, request.(GetMonitoringRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMonitoring")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMonitoringResponseObject); ok {
+		if err := validResponse.VisitGetMonitoringResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -13659,6 +14386,61 @@ func (sh *strictHandler) SelectProfile(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(SelectProfileResponseObject); ok {
 		if err := validResponse.VisitSelectProfileResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetPartySettings operation middleware
+func (sh *strictHandler) GetPartySettings(w http.ResponseWriter, r *http.Request) {
+	var request GetPartySettingsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPartySettings(ctx, request.(GetPartySettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPartySettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPartySettingsResponseObject); ok {
+		if err := validResponse.VisitGetPartySettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdatePartySettings operation middleware
+func (sh *strictHandler) UpdatePartySettings(w http.ResponseWriter, r *http.Request) {
+	var request UpdatePartySettingsRequestObject
+
+	var body UpdatePartySettingsJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdatePartySettings(ctx, request.(UpdatePartySettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdatePartySettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdatePartySettingsResponseObject); ok {
+		if err := validResponse.VisitUpdatePartySettingsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { errorMessage, failure, type Failure } from '../auth/errors'
-import { Avatar, Button, Dialog, EmptyState, Mark, TextField } from '../ui'
+import { Avatar, Button, Dialog, EmptyState, Icon, Mark, TextField } from '../ui'
 import { useAdmin } from './AdminLayout'
 import { Group, Loading, Row, Section, Switch } from './v2'
 
@@ -26,7 +26,10 @@ type SharingData = {
   groups: SharingGroup[]
   libraries: Library[]
   users: AdminUser[]
+  /** The pending ones. */
   invitations: Invitation[]
+  /** Pending, then accepted or expired in the last 30 days. */
+  history: Invitation[]
 }
 
 async function fetchSharing(): Promise<SharingData> {
@@ -40,7 +43,8 @@ async function fetchSharing(): Promise<SharingData> {
     groups: g.data ?? [],
     libraries: l.data ?? [],
     users: u.data ?? [],
-    invitations: i.data ?? [],
+    invitations: (i.data ?? []).filter((x) => x.status === 'pending'),
+    history: i.data ?? [],
   }
 }
 
@@ -524,7 +528,7 @@ export function GroupPage() {
   const [inviting, setInviting] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const back = { to: '/admin/people', label: t('people.title') }
+  const back = { to: '/admin/groups', label: t('sharing.groups.title') }
   const group = data?.groups.find((g) => g.id === id)
 
   if (!data || !group)
@@ -554,33 +558,45 @@ export function GroupPage() {
     <Section
       title={g.name}
       back={back}
-      glyph="people"
-      paneTitle={g.name}
-      paneSub={
+      sub={t('sharing.group.lead', { count: g.memberIds.length })}
+      actions={
+        <Button variant="secondary" size="sm" onClick={() => setRenaming(true)}>
+          {t('sharing.group.rename')}
+        </Button>
+      }
+      aside={
         <>
-          {t('sharing.group.lead', { count: g.memberIds.length })}
-          {exceptions > 0 && (
-            <>
-              <br />
-              {t('sharing.group.exceptions', { count: exceptions })}
-            </>
-          )}
+          <Group
+            title={t('admin.groups.members')}
+            meta={exceptions > 0 ? t('sharing.group.exceptions', { count: exceptions }) : undefined}
+          >
+            {g.memberIds.length === 0 && <Row muted label={t('admin.groups.noMembers')} />}
+            {g.memberIds
+              .map((m) => data.users.find((u) => u.id === m))
+              .filter((u) => u !== undefined)
+              .map((u) => (
+                <Row
+                  key={u.id}
+                  to={`/admin/people/${u.id}`}
+                  avatar={<Avatar name={u.displayName} size={28} picture={u.avatar.url} />}
+                  label={u.displayName}
+                  sub={
+                    u.extraLibraryIds.length
+                      ? t('admin.groups.exception', { count: u.extraLibraryIds.length })
+                      : u.username
+                  }
+                />
+              ))}
+          </Group>
+          <div>
+            <Button size="sm" onClick={() => setInviting(true)}>
+              <Icon name="plus" size={14} />
+              {t('sharing.group.invite')}
+            </Button>
+          </div>
         </>
       }
     >
-      <Group>
-        <Row
-          avatar={<Faces ids={g.memberIds} users={data.users} />}
-          label={t('admin.people.count', { count: g.memberIds.length })}
-          sub={g.memberIds
-            .map((m) => data.users.find((u) => u.id === m)?.displayName)
-            .filter(Boolean)
-            .join(', ')}
-        />
-        <Row label={t('sharing.group.invite')} onClick={() => setInviting(true)} />
-        <Row label={t('sharing.group.rename')} value={g.name} onClick={() => setRenaming(true)} />
-      </Group>
-
       <Group
         title={t('sharing.libraries.title')}
         foot={g.household ? t('sharing.group.householdFoot') : undefined}

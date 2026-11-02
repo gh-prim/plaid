@@ -2,6 +2,8 @@ package playback
 
 import (
 	"context"
+	"database/sql"
+	"strings"
 	"sync"
 	"time"
 
@@ -88,10 +90,23 @@ func (s *Service) logPlay(sess Session) {
 		display = sess.Owner.Username
 	}
 	const layout = "2006-01-02T15:04:05.000Z"
+	var (
+		country, city sql.NullString
+		lat, lon      sql.NullFloat64
+	)
+	if sess.Remote && s.o.Geo != nil && sess.ClientIP.IsValid() {
+		if p, ok := s.o.Geo.Lookup(sess.ClientIP.String()); ok {
+			country = sql.NullString{String: p.Country, Valid: true}
+			city = sql.NullString{String: p.City, Valid: p.City != ""}
+			lat, lon = sql.NullFloat64{Float64: p.Lat, Valid: true}, sql.NullFloat64{Float64: p.Lon, Valid: true}
+		}
+	}
 	_, err := s.o.DB.ExecContext(ctx, `INSERT INTO play_log (id, user_id, display_name, profile_name, item_id, title, device_name,
-		method, remote, started_at, ended_at, watched_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		method, remote, started_at, ended_at, watched_ms, bitrate_bps, reasons, country, city, lat, lon)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		uuid.Must(uuid.NewV7()).String(), sess.UserID, display, sess.Owner.ProfileName, sess.ItemID, sess.ItemTitle,
-		sess.Owner.DeviceName, method, sess.Remote, sess.CreatedAt.UTC().Format(layout), end.Format(layout), watched)
+		sess.Owner.DeviceName, method, sess.Remote, sess.CreatedAt.UTC().Format(layout), end.Format(layout), watched,
+		sess.BitrateBps(), strings.Join(sess.Decision.Reasons, ","), country, city, lat, lon)
 	if err != nil {
 		s.o.Log.Warn("play not logged", "playback_id", sess.ID, "err", err)
 	}
@@ -112,10 +127,19 @@ type Day struct {
 	Plays int
 }
 
+// Totals sums up the plays of a period.
+type Totals struct {
+	Plays, People, DirectPlay, Transcoded int
+	// The title played most, with its count; empty with no plays.
+	TopItemID, TopTitle string
+	TopPlays            int
+}
+
 // Activity returns the hours watched per local day over the last days
-// (today last) and the last plays, newest first. offset is the browser's
-// getTimezoneOffset, in minutes.
-func (s *Service) Activity(ctx context.Context, days, offset int) ([]Day, []Play, error) {
+// (today last), the last plays, newest first, and the period's totals.
+// offset is the browser's getTimezoneOffset, in minutes; userID, when
+// set, keeps one account's plays.
+func (s *Service) Activity(ctx context.Context, days, offset int, userID string) ([]Day, []Play, Totals, error) {
 	loc := time.FixedZone("", -offset*60)
 	now := s.o.Now().In(loc)
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
@@ -128,14 +152,17 @@ func (s *Service) Activity(ctx context.Context, days, offset int) ([]Day, []Play
 		index[d] = i
 	}
 	const layout = "2006-01-02T15:04:05.000Z"
+	var tot Totals
 	rows, err := s.o.DB.QueryContext(ctx, `SELECT item_id, title, COALESCE(user_id, ''), display_name, profile_name,
-		device_name, method, remote, started_at, watched_ms FROM play_log WHERE started_at >= ? ORDER BY started_at DESC`,
-		from.UTC().Format(layout))
+		device_name, method, remote, started_at, watched_ms FROM play_log
+		WHERE started_at >= ? AND (? = '' OR user_id = ?) ORDER BY started_at DESC`,
+		from.UTC().Format(layout), userID, userID)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, tot, err
 	}
 	defer rows.Close()
 	var plays []Play
+	people, count := map[string]bool{}, map[string]int{}
 	for rows.Next() {
 		var (
 			p       Play
@@ -143,9 +170,21 @@ func (s *Service) Activity(ctx context.Context, days, offset int) ([]Day, []Play
 		)
 		if err := rows.Scan(&p.ItemID, &p.Title, &p.UserID, &p.DisplayName, &p.ProfileName, &p.DeviceName, &p.Method,
 			&p.Remote, &started, &p.WatchedMs); err != nil {
-			return nil, nil, err
+			return nil, nil, tot, err
 		}
 		p.StartedAt, _ = time.Parse(layout, started)
+		tot.Plays++
+		people[p.UserID+"\x00"+p.DisplayName] = true
+		switch p.Method {
+		case "direct_play":
+			tot.DirectPlay++
+		case "transcode":
+			tot.Transcoded++
+		}
+		count[p.ItemID]++
+		if c := count[p.ItemID]; c > tot.TopPlays {
+			tot.TopItemID, tot.TopTitle, tot.TopPlays = p.ItemID, p.Title, c
+		}
 		if i, ok := index[p.StartedAt.In(loc).Format("2006-01-02")]; ok {
 			out[i].Hours += float64(p.WatchedMs) / 3.6e6
 			out[i].Plays++
@@ -154,5 +193,6 @@ func (s *Service) Activity(ctx context.Context, days, offset int) ([]Day, []Play
 			plays = append(plays, p)
 		}
 	}
-	return out, plays, rows.Err()
+	tot.People = len(people)
+	return out, plays, tot, rows.Err()
 }

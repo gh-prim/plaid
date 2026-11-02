@@ -3,9 +3,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 /**
  * Calls `load` now and every `everyMs` while the page is visible, so the
  * admin screens never poll the server from a background tab (F007 NFR).
- * `refresh` runs it again at once.
+ * `refresh` runs it again at once; a change in `deps` (a filter) too.
  */
-export function usePolling<T>(load: () => Promise<T>, everyMs: number) {
+export function usePolling<T>(
+  load: () => Promise<T>,
+  everyMs: number,
+  deps: readonly unknown[] = [],
+) {
+  const key = JSON.stringify(deps)
   const [data, setData] = useState<T>()
   const [error, setError] = useState<unknown>()
   const loadRef = useRef(load)
@@ -40,7 +45,8 @@ export function usePolling<T>(load: () => Promise<T>, everyMs: number) {
       stop()
       document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [run, everyMs])
+    // key: a new filter loads again and restarts the timer.
+  }, [run, everyMs, key])
 
   return { data, error, refresh: run }
 }

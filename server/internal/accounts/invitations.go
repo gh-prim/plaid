@@ -27,7 +27,24 @@ type Invitation struct {
 	GroupIDs  []string
 	CreatedAt time.Time
 	ExpiresAt time.Time
+	// Status is pending, accepted or expired.
+	Status string
+	// Token is the link's token while pending, when it was kept (step 21).
+	Token string
+	// UsedAt and UserID when accepted.
+	UsedAt *time.Time
+	UserID string
 }
+
+// Invitation statuses.
+const (
+	InvitePending  = "pending"
+	InviteAccepted = "accepted"
+	InviteExpired  = "expired"
+)
+
+// inviteHistory is how long accepted and expired invitations stay listed.
+const inviteHistory = 30 * 24 * time.Hour
 
 // InvitationPreview is what the invited person sees before signing up.
 type InvitationPreview struct {
@@ -65,10 +82,10 @@ func (s *Service) CreateInvitation(ctx context.Context, actor auth.Principal, in
 	token := auth.NewToken()
 	now := s.now()
 	inv := Invitation{ID: newID(), Name: in.Name, GroupIDs: dedupe(in.GroupIDs), CreatedAt: now,
-		ExpiresAt: now.Add(time.Duration(in.Days) * 24 * time.Hour)}
+		ExpiresAt: now.Add(time.Duration(in.Days) * 24 * time.Hour), Status: InvitePending, Token: token}
 	err := s.inTx(ctx, func(tx *sql.Tx) error {
-		_, err := tx.ExecContext(ctx, `INSERT INTO invitations (id, token_hash, name, created_by, created_at, expires_at)
-			VALUES (?, ?, ?, ?, ?, ?)`, inv.ID, auth.HashToken(token), inv.Name, actor.UserID, ts(now), ts(inv.ExpiresAt))
+		_, err := tx.ExecContext(ctx, `INSERT INTO invitations (id, token_hash, token, name, created_by, created_at, expires_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?)`, inv.ID, auth.HashToken(token), token, inv.Name, actor.UserID, ts(now), ts(inv.ExpiresAt))
 		if err != nil {
 			return err
 		}
@@ -93,25 +110,28 @@ func (s *Service) CreateInvitation(ctx context.Context, actor auth.Principal, in
 	return inv, token, nil
 }
 
-// ListInvitations returns the invitations not used, cancelled or expired,
-// newest first.
+// ListInvitations returns the pending invitations, then the ones accepted
+// or expired in the last 30 days, newest first. Cancelled ones are gone.
 func (s *Service) ListInvitations(ctx context.Context) ([]Invitation, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT i.id, i.name, i.created_at, i.expires_at, COALESCE(GROUP_CONCAT(g.group_id), '')
+	now := s.now()
+	rows, err := s.db.QueryContext(ctx, `SELECT i.id, i.name, i.created_at, i.expires_at, i.used_at, COALESCE(i.used_by, ''),
+		COALESCE(i.token, ''), COALESCE(GROUP_CONCAT(g.group_id), '')
 		FROM invitations i LEFT JOIN invitation_groups g ON g.invitation_id = i.id
-		WHERE i.used_at IS NULL AND i.revoked_at IS NULL AND i.expires_at > ?
-		GROUP BY i.id ORDER BY i.created_at DESC, i.id DESC`, ts(s.now()))
+		WHERE i.revoked_at IS NULL AND (i.expires_at > ? OR COALESCE(i.used_at, i.expires_at) > ?)
+		GROUP BY i.id ORDER BY i.created_at DESC, i.id DESC`, ts(now), ts(now.Add(-inviteHistory)))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	out := []Invitation{}
+	var pending, past []Invitation
 	for rows.Next() {
 		var (
 			inv              Invitation
 			created, expires string
+			used             sql.NullString
 			groups           string
 		)
-		if err := rows.Scan(&inv.ID, &inv.Name, &created, &expires, &groups); err != nil {
+		if err := rows.Scan(&inv.ID, &inv.Name, &created, &expires, &used, &inv.UserID, &inv.Token, &groups); err != nil {
 			return nil, err
 		}
 		inv.CreatedAt, inv.ExpiresAt = parseTS(created), parseTS(expires)
@@ -119,14 +139,27 @@ func (s *Service) ListInvitations(ctx context.Context) ([]Invitation, error) {
 		if groups != "" {
 			inv.GroupIDs = strings.Split(groups, ",")
 		}
-		out = append(out, inv)
+		switch {
+		case used.Valid:
+			at := parseTS(used.String)
+			inv.Status, inv.UsedAt, inv.Token = InviteAccepted, &at, ""
+		case !now.Before(inv.ExpiresAt):
+			inv.Status, inv.Token = InviteExpired, ""
+		default:
+			inv.Status = InvitePending
+		}
+		if inv.Status == InvitePending {
+			pending = append(pending, inv)
+		} else {
+			past = append(past, inv)
+		}
 	}
-	return out, rows.Err()
+	return append(append([]Invitation{}, pending...), past...), rows.Err()
 }
 
 // RevokeInvitation cancels an invitation that wasn't used.
 func (s *Service) RevokeInvitation(ctx context.Context, actor auth.Principal, id string) error {
-	res, err := s.db.ExecContext(ctx, `UPDATE invitations SET revoked_at = ? WHERE id = ? AND used_at IS NULL AND revoked_at IS NULL`,
+	res, err := s.db.ExecContext(ctx, `UPDATE invitations SET revoked_at = ?, token = NULL WHERE id = ? AND used_at IS NULL AND revoked_at IS NULL`,
 		ts(s.now()), id)
 	if err != nil {
 		return err
@@ -224,7 +257,7 @@ func (s *Service) AcceptInvitation(ctx context.Context, in AcceptInput) (AuthRes
 			SELECT group_id, ? FROM invitation_groups WHERE invitation_id = ?`, user.ID, id); err != nil {
 			return err
 		}
-		if _, err := tx.ExecContext(ctx, `UPDATE invitations SET used_at = ?, used_by = ? WHERE id = ?`,
+		if _, err := tx.ExecContext(ctx, `UPDATE invitations SET used_at = ?, used_by = ?, token = NULL WHERE id = ?`,
 			ts(s.now()), user.ID, id); err != nil {
 			return err
 		}

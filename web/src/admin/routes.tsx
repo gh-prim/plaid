@@ -5,6 +5,9 @@ import { Dashboard } from './Dashboard'
 import { Devices } from './Devices'
 import { Libraries, LibraryPage } from './Libraries'
 import { People, Person } from './People'
+import { MonitoringPage } from './Monitoring'
+import { PartyPage } from './Party'
+import { ReportPage } from './Report'
 import { Playing } from './Playing'
 import { ActivityPage, GroupsPage, InvitationsPage, UnmatchedPage } from './Lists'
 import { GroupPage } from './Sharing'
@@ -24,6 +27,8 @@ export default function AdminApp() {
         <Route path="settings" element={<AdminSettings />} />
         <Route path="playing" element={<Playing />} />
         <Route path="activity" element={<ActivityPage />} />
+        <Route path="monitoring" element={<MonitoringPage />} />
+        <Route path="report" element={<ReportPage />} />
         <Route path="unmatched" element={<UnmatchedPage />} />
         <Route path="groups" element={<GroupsPage />} />
         <Route path="invitations" element={<InvitationsPage />} />
@@ -39,6 +44,7 @@ export default function AdminApp() {
         <Route path="metadata" element={<Metadata />} />
         <Route path="problems" element={<Problems />} />
         <Route path="remote-access" element={<RemoteAccess />} />
+        <Route path="party" element={<PartyPage />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
     </Routes>
