@@ -44,6 +44,14 @@ export function UpcomingPage() {
   const [reload, setReload] = useState(0)
   const openParty = params.get('party')
   const grid = useMemo(() => monthGrid(month), [month])
+  // The home's lit title, for when nothing planned has a picture.
+  const [ambient, setAmbient] = useState<string>()
+  useEffect(() => {
+    void api
+      .GET('/home')
+      .then(({ data }) => setAmbient(data?.ambient?.backdrop?.imageId))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const from = new Date()
@@ -70,10 +78,10 @@ export function UpcomingPage() {
     return out.sort((a, b) => a.day.localeCompare(b.day))
   }, [data, view])
 
-  // The page is lit by the next party's title, else the next release's show
-  // (PartiesWeb: the blurred backdrop behind the top of the page).
+  // The page is lit by the next party's title, else the next release's show,
+  // else the home's (PartiesWeb: the blurred backdrop behind the top).
   const backdrop = useMemo(() => {
-    if (!data) return undefined
+    if (!data) return ambient
     const parties = [...data.parties, ...data.invitations].sort((a, b) =>
       (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''),
     )
@@ -81,9 +89,10 @@ export function UpcomingPage() {
     return (
       parties.find((p) => p.item?.backdropId)?.item?.backdropId ??
       data.episodes.find((e) => e.backdropId && e.airDate >= today)?.backdropId ??
-      data.episodes.find((e) => e.backdropId)?.backdropId
+      data.episodes.find((e) => e.backdropId)?.backdropId ??
+      ambient
     )
-  }, [data])
+  }, [data, ambient])
 
   const dayLabel = (day: string) => {
     const d = new Date(`${day}T12:00:00`)
