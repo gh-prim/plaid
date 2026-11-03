@@ -2011,6 +2011,9 @@
       "more": "+{{n}} more",
       "next": "Next month",
       "nothing": "Nothing on this day.",
+      "notifiedEdit": "Notified · change",
+      "notifyHint": "You’ll be told as soon as the episode is on the server.",
+      "planRelease": "Plan a party for the release",
       "previous": "Previous month"
     },
     "empty": "Nothing coming up. Follow a show or plan a party.",

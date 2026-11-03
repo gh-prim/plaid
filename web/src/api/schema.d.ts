@@ -3540,6 +3540,8 @@ export interface components {
       showTitle?: string
       season?: number
       episode?: number
+      /** @description The selected backdrop (the show's for an episode); fetch it with GET /images/{imageId}?w=. */
+      backdropId?: string
       /** Format: int64 */
       runtimeMs?: number
     }
@@ -3732,6 +3734,8 @@ export interface components {
       status: 'released_on_server' | 'released_pending_file' | 'upcoming'
       /** @description The episode on the server, when it's there. */
       itemId?: string
+      /** @description The show's selected backdrop; fetch it with GET /images/{imageId}?w=. */
+      backdropId?: string
       /** @description Notify me is on. */
       alert: boolean
     }

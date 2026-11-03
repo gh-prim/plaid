@@ -4,13 +4,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { GlassSheet } from '../browse/GlassSheet'
-import { InviteSheet } from '../party/LaunchSheet'
-import { JoinCode } from '../party/JoinCode'
+import { Img } from '../browse/Img'
+import { imageSrc } from '../browse/media'
+import { InviteSheet, LaunchSheet } from '../party/LaunchSheet'
 import { useNotify } from '../party/notify'
 import { PartyAvatar } from '../party/PartyAvatar'
 import { VoteModal } from '../party/VoteModal'
 import '../party/party.css'
-import { Button, Icon, SegmentedControl, Spinner, cx } from '../ui'
+import { Button, Icon, Spinner, cx } from '../ui'
 import './upcoming.css'
 
 type Upcoming = components['schemas']['Upcoming']
@@ -36,7 +37,6 @@ export function UpcomingPage() {
   const [kind, setKind] = useState<Kind>('all')
   const [view, setView] = useState<'list' | 'calendar'>('list')
   const [data, setData] = useState<Upcoming | null | undefined>(undefined)
-  const [join, setJoin] = useState(false)
   const [plan, setPlan] = useState(false)
   // The month shown by the calendar, as an offset from this month.
   const [month, setMonth] = useState(0)
@@ -70,6 +70,21 @@ export function UpcomingPage() {
     return out.sort((a, b) => a.day.localeCompare(b.day))
   }, [data, view])
 
+  // The page is lit by the next party's title, else the next release's show
+  // (PartiesWeb: the blurred backdrop behind the top of the page).
+  const backdrop = useMemo(() => {
+    if (!data) return undefined
+    const parties = [...data.parties, ...data.invitations].sort((a, b) =>
+      (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''),
+    )
+    const today = dayOf(new Date())
+    return (
+      parties.find((p) => p.item?.backdropId)?.item?.backdropId ??
+      data.episodes.find((e) => e.backdropId && e.airDate >= today)?.backdropId ??
+      data.episodes.find((e) => e.backdropId)?.backdropId
+    )
+  }, [data])
+
   const dayLabel = (day: string) => {
     const d = new Date(`${day}T12:00:00`)
     const rel = Math.round(
@@ -88,6 +103,11 @@ export function UpcomingPage() {
 
   return (
     <section className="br-page up-page">
+      {backdrop && (
+        <div className="up-light" aria-hidden="true">
+          <Img src={imageSrc(backdrop, 1280)} alt="" decoding="async" />
+        </div>
+      )}
       <header className="up-head">
         {view === 'calendar' ? (
           <div className="up-cal-title">
@@ -120,7 +140,7 @@ export function UpcomingPage() {
           </div>
         )}
         <div className="up-tools">
-          <SegmentedControl
+          <GlassSeg
             label={t('upcoming.filter.label')}
             value={kind}
             options={[
@@ -130,18 +150,15 @@ export function UpcomingPage() {
             ]}
             onChange={setKind}
           />
-          <SegmentedControl
+          <GlassSeg
             label={t('upcoming.view.label')}
             value={view}
             options={[
-              { value: 'list', label: t('upcoming.view.list') },
-              { value: 'calendar', label: t('upcoming.view.calendar') },
+              { value: 'list', label: t('upcoming.view.list'), icon: 'list' },
+              { value: 'calendar', label: t('upcoming.view.calendar'), icon: 'calendar' },
             ]}
             onChange={setView}
           />
-          <Button variant="secondary" size="sm" onClick={() => setJoin(true)}>
-            {t('party.join.title')}
-          </Button>
           <button type="button" className="up-new vm-lg pl-focusable" onClick={() => setPlan(true)}>
             <Icon name="plus" size={16} />
             {t('upcoming.newParty')}
@@ -194,9 +211,8 @@ export function UpcomingPage() {
           onPlan={() => setPlan(true)}
         />
       )}
-      <p className="pv-party-muted up-foot">{t('upcoming.followHint')}</p>
+      {view === 'list' && <p className="pv-party-muted up-foot">{t('upcoming.followHint')}</p>}
 
-      {join && <JoinCode onClose={() => setJoin(false)} />}
       {plan && (
         <VoteModal
           onClose={() => {
@@ -215,6 +231,37 @@ export function UpcomingPage() {
         />
       )}
     </section>
+  )
+}
+
+/** The board's glass pill switch: a frosted track, the chosen one lit. */
+function GlassSeg<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: T
+  options: { value: T; label: string; icon?: 'list' | 'calendar' }[]
+  onChange: (v: T) => void
+}) {
+  return (
+    <div className="up-seg vm-lg" role="radiogroup" aria-label={label}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={value === o.value}
+          className={cx('up-seg__item pl-focusable', value === o.value && 'is-on')}
+          onClick={() => onChange(o.value)}
+        >
+          {o.icon && <Icon name={o.icon} size={15} />}
+          {o.label}
+        </button>
+      ))}
+    </div>
   )
 }
 
@@ -387,8 +434,11 @@ function Month({
 }) {
   const { t, i18n } = useTranslation()
   const today = dayOf(new Date())
-  const [picked, setPicked] = useState(today)
+  // Until a day is clicked, the side shows the next day with something on it.
+  const [chosen, setChosen] = useState<string | null>(null)
   const byDay = new Map(groupByDay(entries))
+  const picked = chosen ?? entries.find((e) => e.day >= today)?.day ?? today
+  const setPicked = setChosen
   const weekday = new Intl.DateTimeFormat(i18n.language, { weekday: 'short' })
   const time = new Intl.DateTimeFormat(i18n.language, { timeStyle: 'short' })
   const selected = byDay.get(picked) ?? []
@@ -518,6 +568,12 @@ function Month({
 
 function SideEpisode({ e, onChange }: { e: Episode; onChange: () => void }) {
   const { t } = useTranslation()
+  const [plan, setPlan] = useState(false)
+  const code = t('upcoming.episode.code', {
+    show: e.showTitle,
+    season: e.season,
+    episode: e.episode,
+  })
   async function alert(on: boolean) {
     const path = { showId: e.showId, season: e.season, episode: e.episode }
     await (
@@ -529,13 +585,25 @@ function SideEpisode({ e, onChange }: { e: Episode; onChange: () => void }) {
   }
   return (
     <div className="up-side__item">
+      <SideArt id={e.backdropId} />
       <p className="up-side__kicker">
         <Icon name="tv" size={14} />
-        {t('upcoming.episode.code', { show: e.showTitle, season: e.season, episode: e.episode })}
+        {code}
       </p>
-      {e.title && <p className="up-side__title">{e.title}</p>}
+      <p className="up-side__title">{e.title ?? code}</p>
+      {e.status !== 'released_on_server' && (
+        <p className="up-side__hint">{t('upcoming.calendar.notifyHint')}</p>
+      )}
       <span className="up-side__badge">{t(`upcoming.episode.${e.status}`)}</span>
       <div className="up-side__acts">
+        <button
+          type="button"
+          className="up-side__btn up-side__btn--lit vm-lg pl-focusable"
+          onClick={() => setPlan(true)}
+        >
+          <Icon name="users" size={16} />
+          {t('upcoming.calendar.planRelease')}
+        </button>
         {e.status === 'released_on_server' && e.itemId ? (
           <Link to={`/item/${e.itemId}`} className="up-side__btn vm-lg pl-focusable">
             <Icon name="play" size={15} />
@@ -549,10 +617,35 @@ function SideEpisode({ e, onChange }: { e: Episode; onChange: () => void }) {
             onClick={() => void alert(!e.alert)}
           >
             <Icon name="bell" size={16} />
-            {e.alert ? t('upcoming.notified') : t('upcoming.notifyMe')}
+            {e.alert ? t('upcoming.calendar.notifiedEdit') : t('upcoming.notifyMe')}
           </button>
         )}
       </div>
+      {plan && (
+        <LaunchSheet
+          itemId={e.itemId}
+          future={
+            e.itemId
+              ? undefined
+              : { showId: e.showId, season: e.season, episode: e.episode, airDate: e.airDate }
+          }
+          title={code}
+          onClose={() => {
+            setPlan(false)
+            onChange()
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+/** The selected title's picture, 180 px high (PartiesWeb side panel). */
+function SideArt({ id }: { id?: string }) {
+  if (!id) return null
+  return (
+    <div className="up-side__art">
+      <Img src={imageSrc(id, 720)} alt="" decoding="async" />
     </div>
   )
 }
@@ -566,6 +659,7 @@ function SideParty({ p }: { p: Party }) {
     : ''
   return (
     <div className="up-side__item">
+      <SideArt id={p.item?.backdropId} />
       <p className="up-side__kicker">
         <Icon name="party" size={14} />
         {kind === 'live' ? t('party.row.live') : `${t('party.title')} · ${time}`}

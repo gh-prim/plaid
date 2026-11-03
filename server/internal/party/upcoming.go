@@ -319,9 +319,11 @@ func (s *Service) ItemsCreated(_ string, itemIDs []string) {
 type UpcomingEpisodeView struct {
 	UpcomingEpisode
 	ShowTitle string
-	Status    string
-	ItemID    string
-	Alert     bool
+	// BackdropID is the show's selected backdrop.
+	BackdropID string
+	Status     string
+	ItemID     string
+	Alert      bool
 }
 
 // UpcomingView is the Upcoming tab (R37).
@@ -374,14 +376,13 @@ func (s *Service) Upcoming(ctx context.Context, p auth.Principal, from, to time.
 		return out, err
 	}
 	today := s.o.Now().Format(dateLayout)
-	titles := map[string]string{}
+	shown := map[string]Item{}
 	for _, e := range rel {
 		v := UpcomingEpisodeView{UpcomingEpisode: e, Alert: alerts[alertKey(e.ShowID, e.Season, e.Episode)]}
-		if _, ok := titles[e.ShowID]; !ok {
-			it, _ := s.store.Item(ctx, e.ShowID)
-			titles[e.ShowID] = it.Title
+		if _, ok := shown[e.ShowID]; !ok {
+			shown[e.ShowID], _ = s.store.Item(ctx, e.ShowID)
 		}
-		v.ShowTitle = titles[e.ShowID]
+		v.ShowTitle, v.BackdropID = shown[e.ShowID].Title, shown[e.ShowID].BackdropID
 		v.ItemID, _ = s.store.EpisodeOf(ctx, e.ShowID, e.Season, e.Episode)
 		switch {
 		case v.ItemID != "":

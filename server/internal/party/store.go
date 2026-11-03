@@ -477,6 +477,8 @@ type Item struct {
 	Season    int
 	Episode   int
 	RuntimeMs int64
+	// BackdropID is the selected backdrop: the show's for an episode.
+	BackdropID string
 }
 
 // Item returns an item with its matched title, or ErrNotFound.
@@ -484,17 +486,19 @@ func (s *Store) Item(ctx context.Context, id string) (Item, error) {
 	var it Item
 	var year, season, episode, runtime sql.NullInt64
 	var age sql.NullInt64
-	var show, showTitle sql.NullString
+	var show, showTitle, backdrop sql.NullString
 	err := s.db.QueryRowContext(ctx, `
 		SELECT i.id, i.kind, COALESCE(m.title, i.title, ''), COALESCE(CAST(substr(m.release_date, 1, 4) AS INTEGER), i.year), i.library_id, m.age_rating,
-		       sh.id, COALESCE(shm.title, sh.title), se.season_number, i.episode_number, m.runtime_minutes
+		       sh.id, COALESCE(shm.title, sh.title), se.season_number, i.episode_number, m.runtime_minutes,
+		       (SELECT a.id FROM artwork a WHERE a.owner_type = 'item' AND a.owner_id = COALESCE(sh.id, i.id)
+		          AND a.kind = 'backdrop' AND a.selected = 1 LIMIT 1)
 		FROM items i
 		LEFT JOIN item_metadata m ON m.item_id = i.id
 		LEFT JOIN items se ON i.kind = 'episode' AND se.id = i.parent_id
 		LEFT JOIN items sh ON sh.id = se.parent_id
 		LEFT JOIN item_metadata shm ON shm.item_id = sh.id
 		WHERE i.id = ?`, id).Scan(&it.ID, &it.Kind, &it.Title, &year, &it.LibraryID, &age,
-		&show, &showTitle, &season, &episode, &runtime)
+		&show, &showTitle, &season, &episode, &runtime, &backdrop)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Item{}, ErrNotFound
 	}
@@ -502,7 +506,7 @@ func (s *Store) Item(ctx context.Context, id string) (Item, error) {
 		return Item{}, err
 	}
 	it.Year, it.Season, it.Episode = int(year.Int64), int(season.Int64), int(episode.Int64)
-	it.ShowID, it.ShowTitle = show.String, showTitle.String
+	it.ShowID, it.ShowTitle, it.BackdropID = show.String, showTitle.String, backdrop.String
 	it.RuntimeMs = runtime.Int64 * 60_000
 	if age.Valid {
 		a := int(age.Int64)

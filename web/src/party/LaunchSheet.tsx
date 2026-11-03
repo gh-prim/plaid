@@ -43,25 +43,44 @@ function localInput(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+/** An episode not on the server yet: the party plays it once it's there (R38). */
+export interface FutureEpisode {
+  showId: string
+  season: number
+  episode: number
+  /** Its air date (YYYY-MM-DD): the party defaults to that evening. */
+  airDate: string
+}
+
+/** 21:00 on the air date, or the next quarter hour if that's past. */
+function releaseTime(airDate: string): Date {
+  const d = new Date(`${airDate}T21:00:00`)
+  return d.getTime() > Date.now() + 15 * 60 * 1000 ? d : defaultTime()
+}
+
 /**
  * Start or schedule a Plaid Party from a title (Party04, Party05), then
- * share it (Party06).
+ * share it (Party06). For an episode still to come, it's always scheduled.
  */
 export function LaunchSheet({
   itemId,
+  future,
   title,
   onClose,
 }: {
-  itemId: string
+  itemId?: string
+  future?: FutureEpisode
   title: string
   onClose: () => void
 }) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  const [when, setWhen] = useState<'now' | 'schedule'>('now')
+  const [when, setWhen] = useState<'now' | 'schedule'>(future ? 'schedule' : 'now')
   const [where, setWhere] = useState('this')
   const [mode, setMode] = useState<'host' | 'everyone'>('host')
-  const [at, setAt] = useState(() => localInput(defaultTime()))
+  const [at, setAt] = useState(() =>
+    localInput(future ? releaseTime(future.airDate) : defaultTime()),
+  )
   const [earliest] = useState(() => localInput(new Date(Date.now() + 15 * 60 * 1000)))
   const [people, setPeople] = useState<Person[] | null>(null)
   const [invite, setInvite] = useState<string[]>([])
@@ -84,6 +103,9 @@ export function LaunchSheet({
       .POST('/parties', {
         body: {
           itemId,
+          ...(future
+            ? { showId: future.showId, season: future.season, episode: future.episode }
+            : {}),
           controlMode: mode,
           invite,
           reminder: true,
@@ -136,15 +158,17 @@ export function LaunchSheet({
         </Button>
       }
     >
-      <SegmentedControl
-        label={t('party.start.whenLabel')}
-        value={when}
-        options={[
-          { value: 'now', label: t('party.start.now') },
-          { value: 'schedule', label: t('party.start.schedule') },
-        ]}
-        onChange={setWhen}
-      />
+      {!future && (
+        <SegmentedControl
+          label={t('party.start.whenLabel')}
+          value={when}
+          options={[
+            { value: 'now', label: t('party.start.now') },
+            { value: 'schedule', label: t('party.start.schedule') },
+          ]}
+          onChange={setWhen}
+        />
+      )}
       {when === 'schedule' && (
         <label className="pl-field">
           <span className="pl-field__label">{t('party.schedule.when')}</span>

@@ -2111,6 +2111,9 @@
       "more": "+{{n}} autres",
       "next": "Mois suivant",
       "nothing": "Rien ce jour-là.",
+      "notifiedEdit": "Prévenu · modifier",
+      "notifyHint": "Tu seras prévenu dès que l’épisode est sur le serveur.",
+      "planRelease": "Planifier une party pour la sortie",
       "previous": "Mois précédent"
     },
     "empty": "Rien à venir. Suis une série ou planifie une party.",

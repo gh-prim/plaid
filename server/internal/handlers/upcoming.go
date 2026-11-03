@@ -66,6 +66,9 @@ func (h *Handlers) GetUpcoming(ctx context.Context, req api.GetUpcomingRequestOb
 		if e.ItemID != "" {
 			ep.ItemId = &e.ItemID
 		}
+		if e.BackdropID != "" {
+			ep.BackdropId = &e.BackdropID
+		}
 		out.Episodes = append(out.Episodes, ep)
 	}
 	return out, nil

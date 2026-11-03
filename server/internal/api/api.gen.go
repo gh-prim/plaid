@@ -3397,15 +3397,17 @@ type PartyInviteAnswer string
 
 // PartyItem A party's title. Episodes carry their show and numbers.
 type PartyItem struct {
-	Episode   *int          `json:"episode,omitempty"`
-	Id        string        `json:"id"`
-	Kind      PartyItemKind `json:"kind"`
-	RuntimeMs *int64        `json:"runtimeMs,omitempty"`
-	Season    *int          `json:"season,omitempty"`
-	ShowId    *string       `json:"showId,omitempty"`
-	ShowTitle *string       `json:"showTitle,omitempty"`
-	Title     string        `json:"title"`
-	Year      *int          `json:"year,omitempty"`
+	// BackdropId The selected backdrop (the show's for an episode); fetch it with GET /images/{imageId}?w=.
+	BackdropId *string       `json:"backdropId,omitempty"`
+	Episode    *int          `json:"episode,omitempty"`
+	Id         string        `json:"id"`
+	Kind       PartyItemKind `json:"kind"`
+	RuntimeMs  *int64        `json:"runtimeMs,omitempty"`
+	Season     *int          `json:"season,omitempty"`
+	ShowId     *string       `json:"showId,omitempty"`
+	ShowTitle  *string       `json:"showTitle,omitempty"`
+	Title      string        `json:"title"`
+	Year       *int          `json:"year,omitempty"`
 }
 
 // PartyItemKind defines model for PartyItem.Kind.
@@ -4266,8 +4268,11 @@ type UpcomingEpisode struct {
 	AirDate openapi_types.Date `json:"airDate"`
 
 	// Alert Notify me is on.
-	Alert   bool `json:"alert"`
-	Episode int  `json:"episode"`
+	Alert bool `json:"alert"`
+
+	// BackdropId The show's selected backdrop; fetch it with GET /images/{imageId}?w=.
+	BackdropId *string `json:"backdropId,omitempty"`
+	Episode    int     `json:"episode"`
 
 	// ItemId The episode on the server, when it's there.
 	ItemId    *string               `json:"itemId,omitempty"`

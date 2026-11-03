@@ -5458,6 +5458,9 @@ components:
           type: integer
         episode:
           type: integer
+        backdropId:
+          type: string
+          description: The selected backdrop (the show's for an episode); fetch it with GET /images/{imageId}?w=.
         runtimeMs:
           type: integer
           format: int64
@@ -5787,6 +5790,9 @@ components:
         itemId:
           type: string
           description: The episode on the server, when it's there.
+        backdropId:
+          type: string
+          description: The show's selected backdrop; fetch it with GET /images/{imageId}?w=.
         alert:
           type: boolean
           description: Notify me is on.

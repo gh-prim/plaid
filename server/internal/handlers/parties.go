@@ -45,6 +45,9 @@ func (h *Handlers) partyLink(ctx context.Context, code string) string {
 
 func toPartyItem(it party.Item) api.PartyItem {
 	out := api.PartyItem{Id: it.ID, Kind: api.PartyItemKind(it.Kind), Title: it.Title}
+	if it.BackdropID != "" {
+		out.BackdropId = &it.BackdropID
+	}
 	if it.Year != 0 {
 		out.Year = &it.Year
 	}
