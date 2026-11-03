@@ -29,7 +29,7 @@ struct UpcomingView: View {
                 }
                 HStack(spacing: 8) {
                     Picker(selection: $kind) {
-                        ForEach(Kind.allCases, id: \.self) { k in Text(LocalizedStringKey("upcoming.filter.\(k.rawValue)")).tag(k) }
+                        ForEach(Kind.allCases, id: \.self) { k in Text(localized("upcoming.filter.\(k.rawValue)")).tag(k) }
                     } label: { EmptyView() }
                     .pickerStyle(.segmented)
                     Picker(selection: $calendar) {
@@ -165,7 +165,7 @@ private struct EpisodeRelease: View {
             Text(verbatim: "\(episode.showTitle) · \(tr("card.episodeShort %lld %lld", episode.season, episode.episode))")
                 .font(Theme.sans(12, .semibold)).foregroundStyle(Theme.textSecondary)
             Text(verbatim: episode.title ?? "").font(Theme.display(18)).lineLimit(1)
-            Text(LocalizedStringKey("upcoming.episode.\(episode.status)")).font(Theme.sans(12, .medium)).foregroundStyle(Theme.textTertiary)
+            Text(localized("upcoming.episode.\(episode.status)")).font(Theme.sans(12, .medium)).foregroundStyle(Theme.textTertiary)
             HStack(spacing: 8) {
                 if episode.status != "released_on_server" {
                     let on = alert ?? episode.alert
@@ -271,7 +271,7 @@ struct InvitationRow: View {
                             answered()
                         }
                     } label: {
-                        Text(LocalizedStringKey("party.answer.\(a)")).font(Theme.sans(13, .semibold))
+                        Text(localized("party.answer.\(a)")).font(Theme.sans(13, .semibold))
                             .frame(maxWidth: .infinity).frame(height: 36)
                             .foregroundStyle(a == "yes" ? Theme.onCream : Theme.textPrimary)
                             .background(Capsule().fill(a == "yes" ? Theme.cream : Color.white.opacity(0.08)))

@@ -109,7 +109,7 @@ export function PartyPanel({
                 ? t('party.people.loading')
                 : p.state === 'away'
                   ? t('party.people.away')
-                  : [p.screen && t(`party.device.${p.screen}`, p.screen), p.quality]
+                  : [p.screen && t(`party.screen.${p.screen}`, p.screen), p.quality]
                       .filter(Boolean)
                       .join(' · ')}
             </span>

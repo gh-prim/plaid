@@ -35,7 +35,7 @@ export function HostSheet({ party, onClose }: { party: PartyApi; onClose: () => 
                 <small>
                   {[
                     p.guest && t('party.people.guest'),
-                    p.screen && t(`party.device.${p.screen}`, p.screen),
+                    p.screen && t(`party.screen.${p.screen}`, p.screen),
                     p.quality,
                   ]
                     .filter(Boolean)

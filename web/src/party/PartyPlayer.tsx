@@ -127,7 +127,7 @@ export function PartyPlayer({ target, onLeave }: { target: JoinTarget; onLeave: 
           {party$?.item && <p className="pv-party-title">{party$.item.title}</p>}
           <div className="pv-party-remote__buttons">
             <Button
-              variant="icon"
+              variant="secondary"
               aria-label={t('party.companion.back10')}
               onClick={() => control('seek', Math.max(0, at - 10_000))}
             >
@@ -140,7 +140,7 @@ export function PartyPlayer({ target, onLeave }: { target: JoinTarget; onLeave: 
               onClick={() => control(pb?.state === 'playing' ? 'pause' : 'play', at)}
             />
             <Button
-              variant="icon"
+              variant="secondary"
               aria-label={t('party.companion.forward10')}
               onClick={() => control('seek', at + 10_000)}
             >

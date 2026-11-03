@@ -1255,6 +1255,16 @@
       "reminder": "Rappel à tout le monde 15 min avant.",
       "when": "Date et heure"
     },
+    "screen": {
+      "android": "Android",
+      "androidtv": "Android TV",
+      "browser": "Navigateur",
+      "ios": "iPhone",
+      "ipados": "iPad",
+      "other": "Appareil",
+      "tvos": "Apple TV",
+      "web": "Navigateur"
+    },
     "settings": {
       "guests": "Invités sans compte",
       "guestsHelp": "Ils rejoignent depuis le lien de la soirée.",

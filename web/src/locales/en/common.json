@@ -1187,6 +1187,16 @@
       "reminder": "Everyone gets a reminder 15 min before.",
       "when": "Date and time"
     },
+    "screen": {
+      "android": "Android",
+      "androidtv": "Android TV",
+      "browser": "Browser",
+      "ios": "iPhone",
+      "ipados": "iPad",
+      "other": "Device",
+      "tvos": "Apple TV",
+      "web": "Browser"
+    },
     "settings": {
       "guests": "Guests without an account",
       "guestsHelp": "They join from the party’s link.",

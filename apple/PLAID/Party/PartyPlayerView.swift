@@ -414,7 +414,7 @@ private struct TVLastMessage: View {
         }
         .padding(20)
         .frame(maxWidth: 760, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial))
+        .background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial).overlay(RoundedRectangle(cornerRadius: 24).fill(Color.black.opacity(0.45))))
         .opacity(shown ? 1 : 0)
         .task {
             try? await Task.sleep(for: .seconds(10))
@@ -445,7 +445,7 @@ private struct TVPartyInfo: View {
             }
         }
         .padding(28)
-        .background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial))
+        .background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial).overlay(RoundedRectangle(cornerRadius: 24).fill(Color.black.opacity(0.45))))
     }
 }
 

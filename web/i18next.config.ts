@@ -13,6 +13,7 @@ export default defineConfig({
     preservePatterns: [
       'party.error.*',
       'party.device.*',
+      'party.screen.*',
       'party.chat.system.*',
       'party.answer.state.*',
       'party.vote.phase.*',

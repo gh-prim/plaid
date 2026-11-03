@@ -199,7 +199,10 @@ export function LaunchSheet({
       ) : (
         <div className="pv-party-invitees">
           {people.map((p) => (
-            <label key={p.userId} className="pl-check">
+            <label
+              key={p.userId}
+              className={`pl-check${invite.includes(p.userId) ? ' is-checked' : ''}`}
+            >
               <input
                 type="checkbox"
                 checked={invite.includes(p.userId)}
@@ -209,6 +212,9 @@ export function LaunchSheet({
                   )
                 }
               />
+              <span className="pl-check__box" aria-hidden="true">
+                {invite.includes(p.userId) && <Icon name="check" size={14} />}
+              </span>
               {p.name}
             </label>
           ))}

@@ -1,7 +1,9 @@
 package party
 
 import (
+	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -98,6 +100,9 @@ func TestRoomJoinHostAndSnapshot(t *testing.T) {
 		t.Errorf("snapshot to %+v", snap.to)
 	}
 	m := snap.data.(map[string]any)
+	if raw, _ := json.Marshal(m); strings.Contains(string(raw), "null") {
+		t.Errorf("snapshot has a null: %s", raw)
+	}
 	if m["me"] != alex.ID || m["itemId"] != "nosferatu" {
 		t.Errorf("snapshot = %+v", m)
 	}

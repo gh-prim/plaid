@@ -872,7 +872,7 @@ type Summary struct {
 // Summarize builds the end summary; names maps person ids to names for
 // people who already left.
 func (r *Room) Summarize(now time.Time, names map[string]string) Summary {
-	s := Summary{TogetherMs: now.Sub(r.startedAt).Milliseconds(), Reactions: r.reactions, PauseRequests: r.pauseAsked}
+	s := Summary{People: []string{}, TogetherMs: now.Sub(r.startedAt).Milliseconds(), Reactions: r.reactions, PauseRequests: r.pauseAsked}
 	for _, id := range r.everJoined {
 		if p := r.people[id]; p != nil {
 			s.People = append(s.People, p.Name)
@@ -939,7 +939,8 @@ func (r *Room) presence() map[string]any {
 
 // Snapshot is everything a joining client needs (party.snapshot).
 func (r *Room) Snapshot(_ time.Time, me string) map[string]any {
-	chat := r.chat
+	// Lists are never null: clients decode them as arrays.
+	chat := append([]ChatMessage{}, r.chat...)
 	asks := make([]map[string]any, 0, len(r.pendingAsks))
 	ids := make([]int64, 0, len(r.pendingAsks))
 	for id := range r.pendingAsks {

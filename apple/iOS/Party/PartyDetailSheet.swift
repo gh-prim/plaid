@@ -137,7 +137,7 @@ struct PartyDetailSheet: View {
                 ForEach(["yes", "maybe", "no"], id: \.self) { a in
                     let on = p.myAnswer == a
                     Button { answer(a) } label: {
-                        Text(LocalizedStringKey("party.answer.\(a)")).font(Theme.sans(14, .semibold))
+                        Text(localized("party.answer.\(a)")).font(Theme.sans(14, .semibold))
                             .frame(maxWidth: .infinity).frame(height: 42)
                             .foregroundStyle(on ? Theme.onCream : Theme.textPrimary)
                             .background(Capsule().fill(on ? Theme.cream : Color.white.opacity(0.08)))
@@ -159,7 +159,7 @@ struct PartyDetailSheet: View {
             PartySectionTitle("party.detail.people")
             row(p.organizer, Text("party.people.host"))
             ForEach(p.invites, id: \.person.userId) { i in
-                row(i.person, Text(LocalizedStringKey("party.answer.state.\(i.answer)")))
+                row(i.person, Text(localized("party.answer.state.\(i.answer)")))
             }
         }
     }
