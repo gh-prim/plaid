@@ -6,7 +6,8 @@ import AVFoundation
 /// 1.05 (behind) or 0.95 (ahead) until within 50 ms; beyond 3 s it seeks.
 /// When the player doesn't honour the rate, it seeks past 1 s instead. It
 /// also reports what the screen shows: loading, ready, playing, paused,
-/// buffering, ended, blocked and credits.
+/// buffering, ended, blocked and credits. The short waits its own rate
+/// changes and catch-up seeks cause are not reported as buffering.
 final class PartySync {
     private let room: PartyRoom
     private let model: PlayerModel
@@ -145,9 +146,12 @@ final class PartySync {
         }
     }
 
+    /// Catching up while playing lands on the nearest frame AVPlayer can show
+    /// quickly (within 0.5 s, the rate then closes the gap); still, it's exact.
     private func seek(_ p: AVPlayer, to ms: Int64, thenPlay: Bool = false) {
         seeking = true
-        p.seek(to: CMTime(value: max(0, ms), timescale: 1000), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+        let tolerance = thenPlay && !noRate ? CMTime(value: 500, timescale: 1000) : .zero
+        p.seek(to: CMTime(value: max(0, ms), timescale: 1000), toleranceBefore: tolerance, toleranceAfter: tolerance) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
                 self.seeking = false
@@ -164,7 +168,15 @@ final class PartySync {
             readySent = true
             return "playing"
         case .waitingToPlayAtSpecifiedRate:
-            return p.reasonForWaitingToPlay == .noItemToPlay ? "loading" : "buffering"
+            if p.reasonForWaitingToPlay == .noItemToPlay { return "loading" }
+            // A rate change or our own catch-up seek makes AVPlayer wait for
+            // a moment; that isn't the room's business, or one catch-up
+            // would pause everyone (R11).
+            if seeking || correcting != nil || p.reasonForWaitingToPlay == .evaluatingBufferingRate
+                || item.isPlaybackLikelyToKeepUp {
+                return reported == "buffering" || reported.isEmpty ? "playing" : reported
+            }
+            return "buffering"
         case .paused:
             if seeking { return reported.isEmpty ? "loading" : reported }
             if state == "waiting" || !readySent || !room.started {
