@@ -67,6 +67,7 @@ type Party struct {
 	StartedAt          *time.Time
 	EndedAt            *time.Time
 	SummaryJSON        string
+	NoReminder         bool
 }
 
 // Invite is one person's invitation and answer.
@@ -189,7 +190,7 @@ func HashToken(token string) []byte {
 
 const partyCols = `id, code, status, item_id, future_show_id, future_season, future_episode,
 	organizer_user_id, organizer_profile_id, control_mode, scheduled_at, note,
-	created_at, started_at, ended_at, summary_json`
+	created_at, started_at, ended_at, summary_json, no_reminder`
 
 type scanner interface{ Scan(...any) error }
 
@@ -201,7 +202,7 @@ func scanParty(r scanner) (Party, error) {
 	var created string
 	err := r.Scan(&p.ID, &p.Code, &p.Status, &item, &fshow, &fseason, &fep,
 		&p.OrganizerUserID, &oprof, &p.ControlMode, &sched, &note,
-		&created, &started, &ended, &summary)
+		&created, &started, &ended, &summary, &p.NoReminder)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Party{}, ErrNotFound
 	}
@@ -225,10 +226,10 @@ func (s *Store) Create(ctx context.Context, p Party, invitees []string) error {
 	}
 	defer tx.Rollback()
 	_, err = tx.ExecContext(ctx, `INSERT INTO parties (`+partyCols+`)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		p.ID, p.Code, p.Status, nullStr(p.ItemID), nullStr(p.FutureShowID), nullInt(p.FutureSeason), nullInt(p.FutureEpisode),
 		p.OrganizerUserID, nullStr(p.OrganizerProfileID), p.ControlMode, nullTS(p.ScheduledAt), nullStr(p.Note),
-		ts(p.CreatedAt), nullTS(p.StartedAt), nullTS(p.EndedAt), nullStr(p.SummaryJSON))
+		ts(p.CreatedAt), nullTS(p.StartedAt), nullTS(p.EndedAt), nullStr(p.SummaryJSON), p.NoReminder)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed: parties.code") {
 			return ErrCodeTaken

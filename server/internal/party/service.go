@@ -334,6 +334,8 @@ type NewParty struct {
 	// Future episode (R38): show and numbers when ItemID is empty.
 	ShowID          string
 	Season, Episode int
+	// NoReminder turns off the 15-minute reminder of a scheduled party.
+	NoReminder bool
 }
 
 // VoteDeadlines are a vote's two deadlines.
@@ -410,6 +412,7 @@ func (s *Service) Create(ctx context.Context, p auth.Principal, in NewParty) (Pa
 		ID: NewID(), ItemID: in.ItemID, OrganizerUserID: p.UserID, OrganizerProfileID: p.ProfileID,
 		ControlMode: in.ControlMode, ScheduledAt: in.ScheduledAt, Note: in.Note, CreatedAt: now,
 		FutureShowID: in.ShowID, FutureSeason: in.Season, FutureEpisode: in.Episode,
+		NoReminder: in.NoReminder,
 	}
 	switch {
 	case in.Vote != nil:

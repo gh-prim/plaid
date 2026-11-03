@@ -3610,6 +3610,8 @@ export interface components {
         /** Format: int64 */
         positionMs: number
       }
+      /** @description Whether the 15-minute reminder is on (scheduled parties). */
+      reminder?: boolean
       vote?: {
         /** Format: date-time */
         proposalsUntil: string
@@ -3630,6 +3632,11 @@ export interface components {
       scheduledAt?: string
       note?: string
       invite?: string[]
+      /**
+       * @description Remind the organizer and the invitees who said yes or maybe 15 minutes before (R29).
+       * @default true
+       */
+      reminder: boolean
       vote?: {
         /** Format: date-time */
         proposalsUntil: string

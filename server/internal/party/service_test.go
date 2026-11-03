@@ -377,3 +377,26 @@ func TestUpcoming(t *testing.T) {
 		t.Error("alert fired twice")
 	}
 }
+
+// TestNoReminder: a party with its reminder off keeps the setting and still
+// opens its lobby 15 minutes before.
+func TestNoReminder(t *testing.T) {
+	st := fixture(t)
+	ctx := context.Background()
+	now := t0
+	svc := New(Options{Store: st, Accounts: fakeAccounts{}, Now: func() time.Time { return now }})
+	at := now.Add(time.Hour)
+	pt, err := svc.Create(ctx, auth.Principal{UserID: "alex", ProfileID: "p-alex"},
+		NewParty{ItemID: "nosferatu", ScheduledAt: &at, Invite: []string{"mia"}, NoReminder: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := st.Get(ctx, pt.ID); !got.NoReminder {
+		t.Fatal("reminder setting not stored")
+	}
+	now = at.Add(-15 * time.Minute)
+	svc.schedule(ctx)
+	if got, _ := st.Get(ctx, pt.ID); got.Status != StatusLobby {
+		t.Errorf("lobby: %s", got.Status)
+	}
+}

@@ -4,12 +4,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { GlassSheet } from '../browse/GlassSheet'
-import { InviteSheet, LaunchSheet } from '../party/LaunchSheet'
+import { InviteSheet } from '../party/LaunchSheet'
 import { JoinCode } from '../party/JoinCode'
 import { useNotify } from '../party/notify'
 import { PartyAvatar } from '../party/PartyAvatar'
+import { VoteModal } from '../party/VoteModal'
 import '../party/party.css'
-import { Button, SegmentedControl, Spinner } from '../ui'
+import { Button, Icon, SegmentedControl, Spinner, cx } from '../ui'
 import './upcoming.css'
 
 type Upcoming = components['schemas']['Upcoming']
@@ -37,29 +38,37 @@ export function UpcomingPage() {
   const [data, setData] = useState<Upcoming | null | undefined>(undefined)
   const [join, setJoin] = useState(false)
   const [plan, setPlan] = useState(false)
+  // The month shown by the calendar, as an offset from this month.
+  const [month, setMonth] = useState(0)
   const tick = useNotify()
   const [reload, setReload] = useState(0)
   const openParty = params.get('party')
+  const grid = useMemo(() => monthGrid(month), [month])
 
   useEffect(() => {
     const from = new Date()
     from.setDate(from.getDate() - 7)
+    const range =
+      view === 'calendar'
+        ? { from: dayOf(grid.days[0]!), to: dayOf(grid.days[grid.days.length - 1]!) }
+        : { from: dayOf(from) }
     void api
-      .GET('/upcoming', { params: { query: { kind, from: dayOf(from) } } })
+      .GET('/upcoming', { params: { query: { kind, ...range } } })
       .then(({ data }) => setData(data ?? null))
       .catch(() => setData(null))
-  }, [kind, tick, reload])
+  }, [kind, tick, reload, view, grid])
 
   const entries = useMemo(() => {
     if (!data) return []
     const out: Entry[] = []
     for (const e of data.episodes) out.push({ day: e.airDate, episode: e })
-    for (const p of data.parties) {
+    const parties = view === 'calendar' ? [...data.parties, ...data.invitations] : data.parties
+    for (const p of parties) {
       const when = p.scheduledAt ? new Date(p.scheduledAt) : new Date()
       out.push({ day: dayOf(when), party: p })
     }
     return out.sort((a, b) => a.day.localeCompare(b.day))
-  }, [data])
+  }, [data, view])
 
   const dayLabel = (day: string) => {
     const d = new Date(`${day}T12:00:00`)
@@ -80,10 +89,36 @@ export function UpcomingPage() {
   return (
     <section className="br-page up-page">
       <header className="up-head">
-        <div>
-          <h1 className="br-page__title">{t('upcoming.title')}</h1>
-          <p className="pv-party-muted">{t('upcoming.hint')}</p>
-        </div>
+        {view === 'calendar' ? (
+          <div className="up-cal-title">
+            <h1 className="br-page__title">
+              {new Intl.DateTimeFormat(i18n.language, { month: 'long', year: 'numeric' }).format(
+                grid.first,
+              )}
+            </h1>
+            <button
+              type="button"
+              className="up-round vm-lg pl-focusable"
+              aria-label={t('upcoming.calendar.previous')}
+              onClick={() => setMonth((m) => m - 1)}
+            >
+              <Icon name="chevronLeft" size={17} />
+            </button>
+            <button
+              type="button"
+              className="up-round vm-lg pl-focusable"
+              aria-label={t('upcoming.calendar.next')}
+              onClick={() => setMonth((m) => m + 1)}
+            >
+              <Icon name="chevronRight" size={17} />
+            </button>
+          </div>
+        ) : (
+          <div>
+            <h1 className="br-page__title">{t('upcoming.title')}</h1>
+            <p className="pv-party-muted">{t('upcoming.hint')}</p>
+          </div>
+        )}
         <div className="up-tools">
           <SegmentedControl
             label={t('upcoming.filter.label')}
@@ -107,20 +142,21 @@ export function UpcomingPage() {
           <Button variant="secondary" size="sm" onClick={() => setJoin(true)}>
             {t('party.join.title')}
           </Button>
-          <Button variant="cream" size="sm" onClick={() => setPlan(true)}>
-            {t('party.vote.launch.menu')}
-          </Button>
+          <button type="button" className="up-new vm-lg pl-focusable" onClick={() => setPlan(true)}>
+            <Icon name="plus" size={16} />
+            {t('upcoming.newParty')}
+          </button>
         </div>
       </header>
 
-      {data === undefined && (
+      {data === undefined && view === 'list' && (
         <div className="up-loading" role="status" aria-label={t('common.loading')}>
           <Spinner size={28} />
         </div>
       )}
       {data === null && <p className="pv-party-muted">{t('errors.generic')}</p>}
 
-      {data && data.invitations.length > 0 && (
+      {data && view === 'list' && data.invitations.length > 0 && (
         <section
           className="up-invites"
           aria-label={t('upcoming.invitations', { count: data.invitations.length })}
@@ -149,12 +185,20 @@ export function UpcomingPage() {
           {entries.length === 0 && <p className="pv-party-muted">{t('upcoming.empty')}</p>}
         </ol>
       )}
-      {data && view === 'calendar' && <Month entries={entries} />}
+      {view === 'calendar' && (
+        <Month
+          grid={grid}
+          entries={entries}
+          loading={data === undefined}
+          onChange={() => setReload((n) => n + 1)}
+          onPlan={() => setPlan(true)}
+        />
+      )}
       <p className="pv-party-muted up-foot">{t('upcoming.followHint')}</p>
 
       {join && <JoinCode onClose={() => setJoin(false)} />}
       {plan && (
-        <LaunchSheet
+        <VoteModal
           onClose={() => {
             setPlan(false)
             setReload((n) => n + 1)
@@ -302,10 +346,10 @@ function InvitationCard({ party, onAnswered }: { party: Party; onAnswered: () =>
 }
 
 /** The month calendar (PartiesWeb "Vue calendrier"). */
-function Month({ entries }: { entries: Entry[] }) {
-  const { i18n } = useTranslation()
-  const today = new Date()
-  const first = new Date(today.getFullYear(), today.getMonth(), 1)
+/** The six weeks shown for a month, Monday first. */
+function monthGrid(offset: number): { first: Date; days: Date[] } {
+  const now = new Date()
+  const first = new Date(now.getFullYear(), now.getMonth() + offset, 1)
   const start = new Date(first)
   start.setDate(1 - ((first.getDay() + 6) % 7))
   const days = Array.from({ length: 42 }, (_, i) => {
@@ -313,41 +357,240 @@ function Month({ entries }: { entries: Entry[] }) {
     d.setDate(start.getDate() + i)
     return d
   })
+  return { first, days }
+}
+
+/** How a party sits in the calendar (the board's legend). */
+function partyKind(p: Party): 'live' | 'hosting' | 'going' | 'invited' {
+  if (p.status === 'live') return 'live'
+  if (p.myAnswer === undefined) return 'hosting'
+  return p.myAnswer === 'yes' || p.myAnswer === 'maybe' ? 'going' : 'invited'
+}
+
+/**
+ * The month calendar (PartiesWeb "Vue calendrier"): a legend, six weeks of
+ * days with their releases and parties, and the selected day on the side.
+ * It shows even when nothing is planned.
+ */
+function Month({
+  grid,
+  entries,
+  loading,
+  onChange,
+  onPlan,
+}: {
+  grid: { first: Date; days: Date[] }
+  entries: Entry[]
+  loading: boolean
+  onChange: () => void
+  onPlan: () => void
+}) {
+  const { t, i18n } = useTranslation()
+  const today = dayOf(new Date())
+  const [picked, setPicked] = useState(today)
   const byDay = new Map(groupByDay(entries))
   const weekday = new Intl.DateTimeFormat(i18n.language, { weekday: 'short' })
+  const time = new Intl.DateTimeFormat(i18n.language, { timeStyle: 'short' })
+  const selected = byDay.get(picked) ?? []
   return (
-    <div
-      className="up-month"
-      role="grid"
-      aria-label={new Intl.DateTimeFormat(i18n.language, { month: 'long', year: 'numeric' }).format(
-        today,
-      )}
-    >
-      {days.slice(0, 7).map((d) => (
-        <span key={`h${d.getDay()}`} className="up-month__head" role="columnheader">
-          {weekday.format(d)}
-        </span>
-      ))}
-      {days.map((d) => {
-        const key = dayOf(d)
-        const list = byDay.get(key) ?? []
-        return (
-          <div
-            key={key}
-            role="gridcell"
-            className={`up-month__day${d.getMonth() !== today.getMonth() ? ' is-other' : ''}${key === dayOf(today) ? ' is-today' : ''}`}
-          >
-            <span className="up-month__n">{d.getDate()}</span>
-            {list.map((e, i) => (
-              <span key={i} className={`up-month__ev${e.party ? ' is-party' : ''}`}>
-                {e.episode
-                  ? `${e.episode.showTitle} S${e.episode.season} E${e.episode.episode}`
-                  : (e.party?.item?.title ?? '…')}
+    <>
+      <ul className="up-legend" aria-label={t('upcoming.calendar.legend')}>
+        <li>
+          <Icon name="tv" size={14} />
+          {t('upcoming.calendar.episode')}
+        </li>
+        <li>
+          <span className="up-swatch is-hosting" />
+          {t('upcoming.party.hosting')}
+        </li>
+        <li>
+          <span className="up-swatch is-going" />
+          {t('upcoming.calendar.going')}
+        </li>
+        <li>
+          <span className="up-swatch is-invited" />
+          {t('upcoming.calendar.invitation')}
+        </li>
+      </ul>
+      <div className="up-cal">
+        <div
+          className={cx('up-month', loading && 'is-loading')}
+          role="grid"
+          aria-busy={loading || undefined}
+          aria-label={new Intl.DateTimeFormat(i18n.language, {
+            month: 'long',
+            year: 'numeric',
+          }).format(grid.first)}
+        >
+          <div role="row" className="up-month__row">
+            {grid.days.slice(0, 7).map((d) => (
+              <span key={d.getDay()} className="up-month__head" role="columnheader">
+                {weekday.format(d)}
               </span>
             ))}
           </div>
-        )
-      })}
+          {[0, 1, 2, 3, 4, 5].map((w) => (
+            <div key={w} role="row" className="up-month__row">
+              {grid.days.slice(w * 7, w * 7 + 7).map((d) => {
+                const key = dayOf(d)
+                const list = byDay.get(key) ?? []
+                const other = d.getMonth() !== grid.first.getMonth()
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="gridcell"
+                    aria-selected={picked === key}
+                    className={cx(
+                      'up-month__day pl-focusable',
+                      other && 'is-other',
+                      key === today && 'is-today',
+                      picked === key && 'is-picked',
+                    )}
+                    onClick={() => setPicked(key)}
+                  >
+                    <span className="up-month__n">{d.getDate()}</span>
+                    {list.slice(0, 2).map((e, i) =>
+                      e.episode ? (
+                        <span key={i} className="up-chip up-chip--episode">
+                          <Icon name="tv" size={13} />
+                          <span>
+                            {t('upcoming.calendar.code', {
+                              show: e.episode.showTitle,
+                              season: e.episode.season,
+                              episode: e.episode.episode,
+                            })}
+                          </span>
+                        </span>
+                      ) : (
+                        <span key={i} className={`up-chip is-${partyKind(e.party!)}`}>
+                          <span className="up-chip__when">
+                            {e.party!.status === 'live'
+                              ? t('upcoming.calendar.live')
+                              : e.party!.scheduledAt
+                                ? time.format(new Date(e.party!.scheduledAt))
+                                : ''}
+                          </span>{' '}
+                          {e.party!.item?.title ?? t('party.vote.pending')}
+                        </span>
+                      ),
+                    )}
+                    {list.length > 2 && (
+                      <span className="up-chip__more">
+                        {t('upcoming.calendar.more', { n: list.length - 2 })}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+        <aside className="up-side" aria-live="polite">
+          <p className="up-side__day">
+            {new Intl.DateTimeFormat(i18n.language, {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            }).format(new Date(`${picked}T12:00:00`))}
+          </p>
+          {selected.length === 0 && (
+            <>
+              <p className="up-side__empty">{t('upcoming.calendar.nothing')}</p>
+              <button type="button" className="up-side__btn vm-lg pl-focusable" onClick={onPlan}>
+                <Icon name="plus" size={16} />
+                {t('upcoming.newParty')}
+              </button>
+            </>
+          )}
+          {selected.map((e, i) =>
+            e.episode ? (
+              <SideEpisode key={i} e={e.episode} onChange={onChange} />
+            ) : (
+              <SideParty key={i} p={e.party!} />
+            ),
+          )}
+        </aside>
+      </div>
+    </>
+  )
+}
+
+function SideEpisode({ e, onChange }: { e: Episode; onChange: () => void }) {
+  const { t } = useTranslation()
+  async function alert(on: boolean) {
+    const path = { showId: e.showId, season: e.season, episode: e.episode }
+    await (
+      on
+        ? api.PUT('/shows/{showId}/alerts/{season}/{episode}', { params: { path } })
+        : api.DELETE('/shows/{showId}/alerts/{season}/{episode}', { params: { path } })
+    ).catch(() => {})
+    onChange()
+  }
+  return (
+    <div className="up-side__item">
+      <p className="up-side__kicker">
+        <Icon name="tv" size={14} />
+        {t('upcoming.episode.code', { show: e.showTitle, season: e.season, episode: e.episode })}
+      </p>
+      {e.title && <p className="up-side__title">{e.title}</p>}
+      <span className="up-side__badge">{t(`upcoming.episode.${e.status}`)}</span>
+      <div className="up-side__acts">
+        {e.status === 'released_on_server' && e.itemId ? (
+          <Link to={`/item/${e.itemId}`} className="up-side__btn vm-lg pl-focusable">
+            <Icon name="play" size={15} />
+            {t('item.play')}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="up-side__btn vm-lg pl-focusable"
+            aria-pressed={e.alert}
+            onClick={() => void alert(!e.alert)}
+          >
+            <Icon name="bell" size={16} />
+            {e.alert ? t('upcoming.notified') : t('upcoming.notifyMe')}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SideParty({ p }: { p: Party }) {
+  const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
+  const kind = partyKind(p)
+  const time = p.scheduledAt
+    ? new Intl.DateTimeFormat(i18n.language, { timeStyle: 'short' }).format(new Date(p.scheduledAt))
+    : ''
+  return (
+    <div className="up-side__item">
+      <p className="up-side__kicker">
+        <Icon name="party" size={14} />
+        {kind === 'live' ? t('party.row.live') : `${t('party.title')} · ${time}`}
+      </p>
+      <p className="up-side__title">{p.item?.title ?? t('party.vote.pending')}</p>
+      <p className="up-side__meta">
+        {kind === 'hosting'
+          ? t('upcoming.party.hosting')
+          : t('upcoming.party.by', { name: p.organizer.name })}
+      </p>
+      <div className="up-side__acts">
+        {kind === 'live' ? (
+          <button
+            type="button"
+            className="up-side__btn vm-lg pl-focusable"
+            onClick={() => void navigate(`/party/${p.id}`)}
+          >
+            {t('party.join.cta')}
+          </button>
+        ) : (
+          <Link to={`?party=${p.id}`} className="up-side__btn vm-lg pl-focusable">
+            {t('upcoming.party.open')}
+          </Link>
+        )}
+      </div>
     </div>
   )
 }

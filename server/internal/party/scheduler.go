@@ -146,6 +146,9 @@ func (s *Service) remind(ctx context.Context, pt Party, now time.Time) error {
 	if err := s.store.MarkReminded(ctx, pt.ID, now); err != nil {
 		return err
 	}
+	if pt.NoReminder {
+		return nil
+	}
 	s.notifyInvites(pt, users, "party.reminder")
 	return nil
 }

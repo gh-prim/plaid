@@ -5574,6 +5574,9 @@ components:
             positionMs:
               type: integer
               format: int64
+        reminder:
+          type: boolean
+          description: Whether the 15-minute reminder is on (scheduled parties).
         vote:
           type: object
           required: [proposalsUntil, rankingUntil, closed]
@@ -5607,6 +5610,10 @@ components:
           type: array
           items:
             type: string
+        reminder:
+          type: boolean
+          default: true
+          description: Remind the organizer and the invitees who said yes or maybe 15 minutes before (R29).
         vote:
           type: object
           required: [proposalsUntil, rankingUntil]

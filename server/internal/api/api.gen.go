@@ -3326,12 +3326,15 @@ type Party struct {
 	} `json:"live,omitempty"`
 
 	// MyAnswer The caller's answer, when invited.
-	MyAnswer    *PartyMyAnswer `json:"myAnswer,omitempty"`
-	Note        *string        `json:"note,omitempty"`
-	Organizer   PartyPerson    `json:"organizer"`
-	ScheduledAt *time.Time     `json:"scheduledAt,omitempty"`
-	StartedAt   *time.Time     `json:"startedAt,omitempty"`
-	Status      PartyStatus    `json:"status"`
+	MyAnswer  *PartyMyAnswer `json:"myAnswer,omitempty"`
+	Note      *string        `json:"note,omitempty"`
+	Organizer PartyPerson    `json:"organizer"`
+
+	// Reminder Whether the 15-minute reminder is on (scheduled parties).
+	Reminder    *bool       `json:"reminder,omitempty"`
+	ScheduledAt *time.Time  `json:"scheduledAt,omitempty"`
+	StartedAt   *time.Time  `json:"startedAt,omitempty"`
+	Status      PartyStatus `json:"status"`
 
 	// Summary The end screen (F010-R21).
 	Summary *PartySummary `json:"summary,omitempty"`
@@ -3358,9 +3361,12 @@ type PartyCreate struct {
 	Invite      *[]string               `json:"invite,omitempty"`
 	ItemId      *string                 `json:"itemId,omitempty"`
 	Note        *string                 `json:"note,omitempty"`
-	ScheduledAt *time.Time              `json:"scheduledAt,omitempty"`
-	Season      *int                    `json:"season,omitempty"`
-	ShowId      *string                 `json:"showId,omitempty"`
+
+	// Reminder Remind the organizer and the invitees who said yes or maybe 15 minutes before (R29).
+	Reminder    *bool      `json:"reminder,omitempty"`
+	ScheduledAt *time.Time `json:"scheduledAt,omitempty"`
+	Season      *int       `json:"season,omitempty"`
+	ShowId      *string    `json:"showId,omitempty"`
 	Vote        *struct {
 		ProposalsUntil time.Time `json:"proposalsUntil"`
 		RankingUntil   time.Time `json:"rankingUntil"`

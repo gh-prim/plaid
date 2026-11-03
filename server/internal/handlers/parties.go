@@ -90,6 +90,10 @@ func (h *Handlers) toParty(ctx context.Context, svc *party.Service, p auth.Princ
 	if pt.Note != "" {
 		out.Note = &pt.Note
 	}
+	if pt.ScheduledAt != nil {
+		on := !pt.NoReminder
+		out.Reminder = &on
+	}
 	if pt.ItemID != "" {
 		if it, err := svc.Store().Item(ctx, pt.ItemID); err == nil {
 			item := toPartyItem(it)
@@ -188,6 +192,9 @@ func (h *Handlers) CreateParty(ctx context.Context, req api.CreatePartyRequestOb
 		Invite: derefSlice(b.Invite), ShowID: deref(b.ShowId), Season: derefInt(b.Season), Episode: derefInt(b.Episode)}
 	if b.ControlMode != nil {
 		in.ControlMode = string(*b.ControlMode)
+	}
+	if b.Reminder != nil {
+		in.NoReminder = !*b.Reminder
 	}
 	if b.Vote != nil {
 		in.Vote = &party.VoteDeadlines{ProposalsUntil: b.Vote.ProposalsUntil, RankingUntil: b.Vote.RankingUntil}
