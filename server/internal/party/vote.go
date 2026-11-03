@@ -172,6 +172,12 @@ func (s *Store) SetSeed(ctx context.Context, partyID, seed string) error {
 	return err
 }
 
+// EndProposals moves the proposal deadline to at.
+func (s *Store) EndProposals(ctx context.Context, partyID string, at time.Time) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE party_votes SET proposals_until = ? WHERE party_id = ?`, ts(at), partyID)
+	return err
+}
+
 // CloseVote records the winner.
 func (s *Store) CloseVote(ctx context.Context, partyID, winner string, at time.Time) error {
 	_, err := s.db.ExecContext(ctx, `UPDATE party_votes SET closed_at = ?, winner_item_id = ? WHERE party_id = ?`,

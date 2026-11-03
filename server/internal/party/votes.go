@@ -37,8 +37,9 @@ type ProposalView struct {
 
 // Voter is someone who may vote, and whether they did.
 type Voter struct {
-	Name  string
-	Voted bool
+	UserID string
+	Name   string
+	Voted  bool
 }
 
 func (v Vote) phase(now time.Time) string {
@@ -117,7 +118,7 @@ func (s *Service) voteView(ctx context.Context, p auth.Principal, pt Party, v Vo
 		return out, err
 	}
 	for _, u := range vs {
-		out.Voters = append(out.Voters, Voter{Name: names[u], Voted: voted[u]})
+		out.Voters = append(out.Voters, Voter{UserID: u, Name: names[u], Voted: voted[u]})
 	}
 	if out.Phase == PhaseClosed {
 		r := Tally(props, ballots, v.Seed)
@@ -299,6 +300,29 @@ func (s *Service) closeVote(ctx context.Context, pt Party) error {
 	s.notifyInvites(pt, users, kind)
 	s.o.Log.Info("party vote closed", "party_id", pt.ID, "winner", r.Winner, "tied", len(r.Tied))
 	return nil
+}
+
+// StartRanking closes the proposals now (the host's "Rank now"): every
+// voter is told the ranking is open.
+func (s *Service) StartRanking(ctx context.Context, p auth.Principal, id string) (VoteView, error) {
+	pt, v, err := s.voteParty(ctx, p, id)
+	if err != nil {
+		return VoteView{}, err
+	}
+	if pt.OrganizerUserID != p.UserID && !p.IsAdmin() {
+		return VoteView{}, errNotAllowed
+	}
+	now := s.o.Now()
+	if v.phase(now) != PhaseProposals {
+		return VoteView{}, apierr.New(409, "vote_not_proposing", "the proposals are already closed")
+	}
+	if err := s.store.EndProposals(ctx, pt.ID, now); err != nil {
+		return VoteView{}, err
+	}
+	v.ProposalsUntil = now
+	users, _ := s.voters(ctx, pt)
+	s.notifyInvites(pt, users, "party.vote.ranking")
+	return s.voteView(ctx, p, pt, v)
 }
 
 // maxSuggestions caps R34's list.

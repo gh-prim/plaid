@@ -9,6 +9,7 @@ import { ItemPage } from './browse/ItemPage'
 import { PersonPage } from './browse/PersonPage'
 import { SearchPage } from './browse/SearchPage'
 import { UpcomingPage } from './upcoming/UpcomingPage'
+import { PartyHostPage } from './party/PartyHost'
 import { VotePage } from './party/VotePage'
 import { LibraryGrid } from './browse/LibraryGrid'
 import { Shell } from './browse/Shell'
@@ -127,6 +128,7 @@ export function AppRoutes() {
           <Route path="/person/:personId" element={<PersonPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/upcoming" element={<UpcomingPage />} />
+          <Route path="/upcoming/:partyId" element={<PartyHostPage />} />
           <Route path="/party/:partyId/vote" element={<VotePage />} />
         </Route>
         <Route

@@ -400,3 +400,55 @@ func TestNoReminder(t *testing.T) {
 		t.Errorf("lobby: %s", got.Status)
 	}
 }
+
+func TestHostActions(t *testing.T) {
+	st := fixture(t)
+	ctx := context.Background()
+	now := t0
+	svc := New(Options{Store: st, Accounts: fakeAccounts{}, Now: func() time.Time { return now }})
+	alexP := auth.Principal{UserID: "alex", ProfileID: "p-alex"}
+	miaP := auth.Principal{UserID: "mia", ProfileID: "p-mia"}
+	sched := now.Add(5 * 24 * time.Hour)
+	ranking := now.Add(72 * time.Hour)
+	pt, err := svc.Create(ctx, alexP, NewParty{ScheduledAt: &sched, Invite: []string{"mia"},
+		Vote: &VoteDeadlines{ProposalsUntil: now.Add(48 * time.Hour), RankingUntil: ranking}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Rescheduling keeps the party after the ranking.
+	early := ranking.Add(-time.Hour)
+	if _, err := svc.Update(ctx, alexP, pt.ID, Patch{ScheduledAt: &early}); err == nil {
+		t.Error("party moved before the ranking ends")
+	}
+	off := false
+	if got, err := svc.Update(ctx, alexP, pt.ID, Patch{Reminder: &off}); err != nil || !got.NoReminder {
+		t.Errorf("reminder off: %+v, %v", got.NoReminder, err)
+	}
+
+	// Only invitees who didn't decline, and only by the organizer.
+	if err := svc.Nudge(ctx, miaP, pt.ID, []string{"alex"}); err == nil {
+		t.Error("an invitee nudged")
+	}
+	if err := svc.Nudge(ctx, alexP, pt.ID, []string{"sam"}); err == nil {
+		t.Error("nudged someone not invited")
+	}
+	if err := svc.Nudge(ctx, alexP, pt.ID, []string{"mia"}); err != nil {
+		t.Error(err)
+	}
+
+	// Rank now closes the proposals, once.
+	if _, err := svc.StartRanking(ctx, miaP, pt.ID); err == nil {
+		t.Error("an invitee started the ranking")
+	}
+	v, err := svc.StartRanking(ctx, alexP, pt.ID)
+	if err != nil || v.Phase != PhaseRanking || !v.Vote.ProposalsUntil.Equal(now) {
+		t.Fatalf("ranking = %+v, %v", v, err)
+	}
+	if _, err := svc.StartRanking(ctx, alexP, pt.ID); err == nil {
+		t.Error("ranking started twice")
+	}
+	if v.Voters[0].UserID != "alex" {
+		t.Errorf("voters = %+v", v.Voters)
+	}
+}

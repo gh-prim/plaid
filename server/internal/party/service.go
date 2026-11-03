@@ -586,6 +586,7 @@ type Patch struct {
 	Note        *string
 	ItemID      *string
 	ControlMode *string
+	Reminder    *bool
 }
 
 // Update changes a party not started yet (or its mode, live).
@@ -605,7 +606,14 @@ func (s *Service) Update(ctx context.Context, p auth.Principal, id string, in Pa
 		if pt.Status == StatusLive || lead < 0 || lead > maxScheduleLead {
 			return Party{}, apierr.ValidationFailed(apierr.Detail{Field: "scheduledAt", Code: "out_of_range"})
 		}
+		// A vote's ranking ends before the party starts.
+		if v, err := s.store.Vote(ctx, pt.ID); err == nil && v.ClosedAt == nil && !in.ScheduledAt.After(v.RankingUntil) {
+			return Party{}, apierr.ValidationFailed(apierr.Detail{Field: "scheduledAt", Code: "before_vote"})
+		}
 		pt.ScheduledAt = in.ScheduledAt
+	}
+	if in.Reminder != nil {
+		pt.NoReminder = !*in.Reminder
 	}
 	if in.Note != nil {
 		n := strings.TrimSpace(*in.Note)
@@ -706,6 +714,37 @@ func (s *Service) InviteMore(ctx context.Context, p auth.Principal, id string, u
 		return err
 	}
 	s.notifyInvites(pt, ids, "party.invite")
+	return nil
+}
+
+// Nudge reminds invitees who haven't answered, proposed or voted.
+func (s *Service) Nudge(ctx context.Context, p auth.Principal, id string, users []string) error {
+	pt, err := s.Get(ctx, p, id)
+	if err != nil {
+		return err
+	}
+	if pt.OrganizerUserID != p.UserID && !p.IsAdmin() {
+		return errNotAllowed
+	}
+	if pt.Status == StatusEnded || pt.Status == StatusCancelled {
+		return apierr.New(409, "party_ended", "this party is over")
+	}
+	invites, err := s.store.Invites(ctx, pt.ID)
+	if err != nil {
+		return err
+	}
+	may := map[string]bool{}
+	for _, in := range invites {
+		may[in.UserID] = in.Answer != AnswerNo
+	}
+	var to []string
+	for _, u := range users {
+		if !may[u] {
+			return apierr.ValidationFailed(apierr.Detail{Field: "userIds", Code: "not_invited"})
+		}
+		to = append(to, u)
+	}
+	s.notifyInvites(pt, to, "party.nudge")
 	return nil
 }
 

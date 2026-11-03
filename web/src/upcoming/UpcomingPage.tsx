@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { GlassSheet } from '../browse/GlassSheet'
@@ -349,7 +349,10 @@ function PartyRow({ p }: { p: Party }) {
             {t('party.join.cta')}
           </Button>
         ) : (
-          <Link to={`?party=${p.id}`} className="pl-btn pl-btn--ghost pl-btn--sm pl-focusable">
+          <Link
+            to={hosting ? `/upcoming/${p.id}` : `?party=${p.id}`}
+            className="pl-btn pl-btn--ghost pl-btn--sm pl-focusable"
+          >
             {t('upcoming.party.open')}
           </Link>
         )}
@@ -689,7 +692,10 @@ function SideParty({ p }: { p: Party }) {
             {t('party.join.cta')}
           </button>
         ) : (
-          <Link to={`?party=${p.id}`} className="up-side__btn vm-lg pl-focusable">
+          <Link
+            to={kind === 'hosting' ? `/upcoming/${p.id}` : `?party=${p.id}`}
+            className="up-side__btn vm-lg pl-focusable"
+          >
             {t('upcoming.party.open')}
           </Link>
         )}
@@ -711,6 +717,7 @@ function PartySheet({ id, onClose }: { id: string; onClose: () => void }) {
       .catch(() => {})
   }, [id])
   if (!party) return null
+  if (party.myAnswer === undefined) return <Navigate to={`/upcoming/${party.id}`} replace />
   if (share) return <InviteSheet party={party} onClose={onClose} onGo={onClose} />
   const when = party.scheduledAt
     ? new Intl.DateTimeFormat(i18n.language, { dateStyle: 'full', timeStyle: 'short' }).format(

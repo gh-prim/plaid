@@ -1558,6 +1558,50 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/parties/{partyId}/nudge': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Remind invitees who haven't answered, proposed or voted (organizer)
+     * @description Each one gets a `party.nudge` notification. Only invitees of the party who didn't decline.
+     */
+    post: operations['nudgeParty']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}/vote/ranking': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Close the proposals now and open the ranking (organizer)
+     * @description Moves the proposal deadline to now; every voter gets a `party.vote.ranking` notification. 409 outside the proposals phase.
+     */
+    post: operations['startPartyRanking']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/parties/{partyId}/vote': {
     parameters: {
       query?: never
@@ -3660,6 +3704,8 @@ export interface components {
       episode?: number
     }
     PartyUpdate: {
+      /** @description Turn the 15-minute reminder on or off (R29). */
+      reminder?: boolean
       /** Format: date-time */
       scheduledAt?: string
       note?: string
@@ -3700,6 +3746,7 @@ export interface components {
       proposals: components['schemas']['PartyProposal'][]
       /** @description Who voted, never what (R32). */
       voters: {
+        userId: string
         name: string
         voted: boolean
       }[]
@@ -6574,6 +6621,56 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  nudgeParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          userIds: string[]
+        }
+      }
+    }
+    responses: {
+      /** @description Nudged */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  startPartyRanking: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The vote */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyVote']
+        }
       }
       default: components['responses']['Error']
     }

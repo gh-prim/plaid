@@ -3498,7 +3498,10 @@ type PartyUpdate struct {
 	ControlMode *PartyUpdateControlMode `json:"controlMode,omitempty"`
 	ItemId      *string                 `json:"itemId,omitempty"`
 	Note        *string                 `json:"note,omitempty"`
-	ScheduledAt *time.Time              `json:"scheduledAt,omitempty"`
+
+	// Reminder Turn the 15-minute reminder on or off (R29).
+	Reminder    *bool      `json:"reminder,omitempty"`
+	ScheduledAt *time.Time `json:"scheduledAt,omitempty"`
 }
 
 // PartyUpdateControlMode defines model for PartyUpdate.ControlMode.
@@ -3529,8 +3532,9 @@ type PartyVote struct {
 
 	// Voters Who voted, never what (R32).
 	Voters []struct {
-		Name  string `json:"name"`
-		Voted bool   `json:"voted"`
+		Name   string `json:"name"`
+		UserId string `json:"userId"`
+		Voted  bool   `json:"voted"`
 	} `json:"voters"`
 }
 
@@ -4644,6 +4648,11 @@ type InviteToPartyJSONBody struct {
 	UserIds []string `json:"userIds"`
 }
 
+// NudgePartyJSONBody defines parameters for NudgeParty.
+type NudgePartyJSONBody struct {
+	UserIds []string `json:"userIds"`
+}
+
 // CastPartyBallotJSONBody defines parameters for CastPartyBallot.
 type CastPartyBallotJSONBody struct {
 	Ranking []string                  `json:"ranking"`
@@ -4756,6 +4765,9 @@ type AnswerPartyJSONRequestBody AnswerPartyJSONBody
 
 // InviteToPartyJSONRequestBody defines body for InviteToParty for application/json ContentType.
 type InviteToPartyJSONRequestBody InviteToPartyJSONBody
+
+// NudgePartyJSONRequestBody defines body for NudgeParty for application/json ContentType.
+type NudgePartyJSONRequestBody NudgePartyJSONBody
 
 // CastPartyBallotJSONRequestBody defines body for CastPartyBallot for application/json ContentType.
 type CastPartyBallotJSONRequestBody CastPartyBallotJSONBody
@@ -5038,6 +5050,9 @@ type ServerInterface interface {
 	// InviteToParty Invite more people, also during a live party (F010-R3)
 	// (POST /parties/{partyId}/invites)
 	InviteToParty(w http.ResponseWriter, r *http.Request, partyId string)
+	// NudgeParty Remind invitees who haven't answered, proposed or voted (organizer)
+	// (POST /parties/{partyId}/nudge)
+	NudgeParty(w http.ResponseWriter, r *http.Request, partyId string)
 	// GetPartyVote A party's vote (F010-R31–R33)
 	// (GET /parties/{partyId}/vote)
 	GetPartyVote(w http.ResponseWriter, r *http.Request, partyId string)
@@ -5050,6 +5065,9 @@ type ServerInterface interface {
 	// ProposeForParty Propose a title (2 each, until the proposal deadline, R31)
 	// (PUT /parties/{partyId}/vote/proposals/{itemId})
 	ProposeForParty(w http.ResponseWriter, r *http.Request, partyId string, itemId string)
+	// StartPartyRanking Close the proposals now and open the ranking (organizer)
+	// (POST /parties/{partyId}/vote/ranking)
+	StartPartyRanking(w http.ResponseWriter, r *http.Request, partyId string)
 	// PartyVoteSuggestions Titles nobody invited has watched (R34)
 	// (GET /parties/{partyId}/vote/suggestions)
 	PartyVoteSuggestions(w http.ResponseWriter, r *http.Request, partyId string)
@@ -7592,6 +7610,32 @@ func (siw *ServerInterfaceWrapper) InviteToParty(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// NudgeParty operation middleware
+func (siw *ServerInterfaceWrapper) NudgeParty(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.NudgeParty(w, r, partyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetPartyVote operation middleware
 func (siw *ServerInterfaceWrapper) GetPartyVote(w http.ResponseWriter, r *http.Request) {
 
@@ -7705,6 +7749,32 @@ func (siw *ServerInterfaceWrapper) ProposeForParty(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ProposeForParty(w, r, partyId, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StartPartyRanking operation middleware
+func (siw *ServerInterfaceWrapper) StartPartyRanking(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "partyId" -------------
+	var partyId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partyId", r.PathValue("partyId"), &partyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "partyId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartPartyRanking(w, r, partyId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -8816,6 +8886,8 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/parties/{partyId}", wrapper.UpdateParty)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/parties/{partyId}/invites", wrapper.InviteToParty)
 	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/parties/{partyId}/answer", wrapper.AnswerParty)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/parties/{partyId}/nudge", wrapper.NudgeParty)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/parties/{partyId}/vote/ranking", wrapper.StartPartyRanking)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/parties/{partyId}/vote", wrapper.GetPartyVote)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/parties/{partyId}/vote/proposals/{itemId}", wrapper.WithdrawPartyProposal)
 	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/parties/{partyId}/vote/proposals/{itemId}", wrapper.ProposeForParty)
@@ -12063,6 +12135,40 @@ func (response InviteToPartydefaultJSONResponse) VisitInviteToPartyResponse(w ht
 	return err
 }
 
+type NudgePartyRequestObject struct {
+	PartyId string `json:"partyId"`
+	Body    *NudgePartyJSONRequestBody
+}
+
+type NudgePartyResponseObject interface {
+	VisitNudgePartyResponse(w http.ResponseWriter) error
+}
+
+type NudgeParty204Response struct {
+}
+
+func (response NudgeParty204Response) VisitNudgePartyResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type NudgePartydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response NudgePartydefaultJSONResponse) VisitNudgePartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetPartyVoteRequestObject struct {
 	PartyId string `json:"partyId"`
 }
@@ -12211,6 +12317,45 @@ type ProposeForPartydefaultJSONResponse struct {
 }
 
 func (response ProposeForPartydefaultJSONResponse) VisitProposeForPartyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartPartyRankingRequestObject struct {
+	PartyId string `json:"partyId"`
+}
+
+type StartPartyRankingResponseObject interface {
+	VisitStartPartyRankingResponse(w http.ResponseWriter) error
+}
+
+type StartPartyRanking200JSONResponse PartyVote
+
+func (response StartPartyRanking200JSONResponse) VisitStartPartyRankingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartPartyRankingdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response StartPartyRankingdefaultJSONResponse) VisitStartPartyRankingResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -13941,6 +14086,9 @@ type StrictServerInterface interface {
 	// InviteToParty Invite more people, also during a live party (F010-R3)
 	// (POST /parties/{partyId}/invites)
 	InviteToParty(ctx context.Context, request InviteToPartyRequestObject) (InviteToPartyResponseObject, error)
+	// NudgeParty Remind invitees who haven't answered, proposed or voted (organizer)
+	// (POST /parties/{partyId}/nudge)
+	NudgeParty(ctx context.Context, request NudgePartyRequestObject) (NudgePartyResponseObject, error)
 	// GetPartyVote A party's vote (F010-R31–R33)
 	// (GET /parties/{partyId}/vote)
 	GetPartyVote(ctx context.Context, request GetPartyVoteRequestObject) (GetPartyVoteResponseObject, error)
@@ -13953,6 +14101,9 @@ type StrictServerInterface interface {
 	// ProposeForParty Propose a title (2 each, until the proposal deadline, R31)
 	// (PUT /parties/{partyId}/vote/proposals/{itemId})
 	ProposeForParty(ctx context.Context, request ProposeForPartyRequestObject) (ProposeForPartyResponseObject, error)
+	// StartPartyRanking Close the proposals now and open the ranking (organizer)
+	// (POST /parties/{partyId}/vote/ranking)
+	StartPartyRanking(ctx context.Context, request StartPartyRankingRequestObject) (StartPartyRankingResponseObject, error)
 	// PartyVoteSuggestions Titles nobody invited has watched (R34)
 	// (GET /parties/{partyId}/vote/suggestions)
 	PartyVoteSuggestions(ctx context.Context, request PartyVoteSuggestionsRequestObject) (PartyVoteSuggestionsResponseObject, error)
@@ -16355,6 +16506,39 @@ func (sh *strictHandler) InviteToParty(w http.ResponseWriter, r *http.Request, p
 	}
 }
 
+// NudgeParty operation middleware
+func (sh *strictHandler) NudgeParty(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request NudgePartyRequestObject
+
+	request.PartyId = partyId
+
+	var body NudgePartyJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.NudgeParty(ctx, request.(NudgePartyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "NudgeParty")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(NudgePartyResponseObject); ok {
+		if err := validResponse.VisitNudgePartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetPartyVote operation middleware
 func (sh *strictHandler) GetPartyVote(w http.ResponseWriter, r *http.Request, partyId string) {
 	var request GetPartyVoteRequestObject
@@ -16461,6 +16645,32 @@ func (sh *strictHandler) ProposeForParty(w http.ResponseWriter, r *http.Request,
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ProposeForPartyResponseObject); ok {
 		if err := validResponse.VisitProposeForPartyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// StartPartyRanking operation middleware
+func (sh *strictHandler) StartPartyRanking(w http.ResponseWriter, r *http.Request, partyId string) {
+	var request StartPartyRankingRequestObject
+
+	request.PartyId = partyId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StartPartyRanking(ctx, request.(StartPartyRankingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StartPartyRanking")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StartPartyRankingResponseObject); ok {
+		if err := validResponse.VisitStartPartyRankingResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

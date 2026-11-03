@@ -16,6 +16,7 @@ export default defineConfig({
       'party.screen.*',
       'party.chat.system.*',
       'party.answer.state.*',
+      'party.host.answer.*',
       'party.vote.phase.*',
       'party.sync.*',
       'upcoming.episode.*',

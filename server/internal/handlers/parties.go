@@ -315,7 +315,7 @@ func (h *Handlers) UpdateParty(ctx context.Context, req api.UpdatePartyRequestOb
 	if err != nil {
 		return nil, err
 	}
-	in := party.Patch{ScheduledAt: b.ScheduledAt, Note: b.Note, ItemID: b.ItemId}
+	in := party.Patch{ScheduledAt: b.ScheduledAt, Note: b.Note, ItemID: b.ItemId, Reminder: b.Reminder}
 	if b.ControlMode != nil {
 		m := string(*b.ControlMode)
 		in.ControlMode = &m
@@ -367,6 +367,44 @@ func (h *Handlers) InviteToParty(ctx context.Context, req api.InviteToPartyReque
 	return api.InviteToParty204Response{}, nil
 }
 
+// NudgeParty reminds invitees.
+func (h *Handlers) NudgeParty(ctx context.Context, req api.NudgePartyRequestObject) (api.NudgePartyResponseObject, error) {
+	p, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	svc, err := h.partySvc()
+	if err != nil {
+		return nil, err
+	}
+	b, err := body(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := svc.Nudge(ctx, p, req.PartyId, b.UserIds); err != nil {
+		return nil, err
+	}
+	return api.NudgeParty204Response{}, nil
+}
+
+// StartPartyRanking closes the proposals now.
+func (h *Handlers) StartPartyRanking(ctx context.Context, req api.StartPartyRankingRequestObject) (api.StartPartyRankingResponseObject, error) {
+	p, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	svc, err := h.partySvc()
+	if err != nil {
+		return nil, err
+	}
+	v, err := svc.StartRanking(ctx, p, req.PartyId)
+	if err != nil {
+		return nil, err
+	}
+	out, err := h.toPartyVote(ctx, v)
+	return api.StartPartyRanking200JSONResponse(out), err
+}
+
 // AnswerParty records an answer.
 func (h *Handlers) AnswerParty(ctx context.Context, req api.AnswerPartyRequestObject) (api.AnswerPartyResponseObject, error) {
 	p, err := principal(ctx)
@@ -407,14 +445,16 @@ func (h *Handlers) toPartyVote(ctx context.Context, v party.VoteView) (api.Party
 			Proposer:   toPartyPerson(pr.ProposerID, names[pr.ProposerID], profiles[pr.ProposerID])})
 	}
 	out.Voters = []struct {
-		Name  string `json:"name"`
-		Voted bool   `json:"voted"`
+		Name   string `json:"name"`
+		UserId string `json:"userId"` //nolint:revive // the generated type's field
+		Voted  bool   `json:"voted"`
 	}{}
 	for _, vt := range v.Voters {
 		out.Voters = append(out.Voters, struct {
-			Name  string `json:"name"`
-			Voted bool   `json:"voted"`
-		}{Name: vt.Name, Voted: vt.Voted})
+			Name   string `json:"name"`
+			UserId string `json:"userId"` //nolint:revive // the generated type's field
+			Voted  bool   `json:"voted"`
+		}{Name: vt.Name, UserId: vt.UserID, Voted: vt.Voted})
 	}
 	if r := v.Result; r != nil {
 		res := &struct {

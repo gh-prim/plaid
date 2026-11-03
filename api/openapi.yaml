@@ -2100,6 +2100,57 @@ paths:
           description: Recorded
         default:
           $ref: "#/components/responses/Error"
+  /parties/{partyId}/nudge:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: nudgeParty
+      summary: Remind invitees who haven't answered, proposed or voted (organizer)
+      description: Each one gets a `party.nudge` notification. Only invitees of the party who didn't decline.
+      tags: [party]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userIds]
+              properties:
+                userIds:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+      responses:
+        "204":
+          description: Nudged
+        default:
+          $ref: "#/components/responses/Error"
+  /parties/{partyId}/vote/ranking:
+    parameters:
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: startPartyRanking
+      summary: Close the proposals now and open the ranking (organizer)
+      description: Moves the proposal deadline to now; every voter gets a `party.vote.ranking` notification. 409 outside the proposals phase.
+      tags: [party]
+      responses:
+        "200":
+          description: The vote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartyVote"
+        default:
+          $ref: "#/components/responses/Error"
   /parties/{partyId}/vote:
     parameters:
       - name: partyId
@@ -5653,6 +5704,9 @@ components:
     PartyUpdate:
       type: object
       properties:
+        reminder:
+          type: boolean
+          description: Turn the 15-minute reminder on or off (R29).
         scheduledAt:
           type: string
           format: date-time
@@ -5726,8 +5780,10 @@ components:
           description: Who voted, never what (R32).
           items:
             type: object
-            required: [name, voted]
+            required: [userId, name, voted]
             properties:
+              userId:
+                type: string
               name:
                 type: string
               voted:
