@@ -3402,12 +3402,15 @@ type PartyItem struct {
 	Episode    *int          `json:"episode,omitempty"`
 	Id         string        `json:"id"`
 	Kind       PartyItemKind `json:"kind"`
-	RuntimeMs  *int64        `json:"runtimeMs,omitempty"`
-	Season     *int          `json:"season,omitempty"`
-	ShowId     *string       `json:"showId,omitempty"`
-	ShowTitle  *string       `json:"showTitle,omitempty"`
-	Title      string        `json:"title"`
-	Year       *int          `json:"year,omitempty"`
+
+	// PosterId The selected poster (the show's for an episode); fetch it with GET /images/{imageId}?w=.
+	PosterId  *string `json:"posterId,omitempty"`
+	RuntimeMs *int64  `json:"runtimeMs,omitempty"`
+	Season    *int    `json:"season,omitempty"`
+	ShowId    *string `json:"showId,omitempty"`
+	ShowTitle *string `json:"showTitle,omitempty"`
+	Title     string  `json:"title"`
+	Year      *int    `json:"year,omitempty"`
 }
 
 // PartyItemKind defines model for PartyItem.Kind.
@@ -3440,6 +3443,17 @@ type PartyPreview struct {
 
 // PartyPreviewStatus defines model for PartyPreview.Status.
 type PartyPreviewStatus string
+
+// PartyProposal A title proposed for the vote, and who proposed it (R31).
+type PartyProposal struct {
+	// Item A party's title. Episodes carry their show and numbers.
+	Item PartyItem `json:"item"`
+	Mine bool      `json:"mine"`
+
+	// ProposedBy The proposer's display name.
+	ProposedBy string      `json:"proposedBy"`
+	Proposer   PartyPerson `json:"proposer"`
+}
 
 // PartyRight What a person may do with Plaid Party (F010).
 type PartyRight string
@@ -3492,19 +3506,12 @@ type PartyUpdateControlMode string
 
 // PartyVote defines model for PartyVote.
 type PartyVote struct {
-	MyRanking []string       `json:"myRanking"`
-	MyVeto    *string        `json:"myVeto,omitempty"`
-	Phase     PartyVotePhase `json:"phase"`
-	Proposals []struct {
-		// Item A party's title. Episodes carry their show and numbers.
-		Item PartyItem `json:"item"`
-		Mine bool      `json:"mine"`
-
-		// ProposedBy The proposer's display name.
-		ProposedBy string `json:"proposedBy"`
-	} `json:"proposals"`
-	ProposalsUntil time.Time `json:"proposalsUntil"`
-	RankingUntil   time.Time `json:"rankingUntil"`
+	MyRanking      []string        `json:"myRanking"`
+	MyVeto         *string         `json:"myVeto,omitempty"`
+	Phase          PartyVotePhase  `json:"phase"`
+	Proposals      []PartyProposal `json:"proposals"`
+	ProposalsUntil time.Time       `json:"proposalsUntil"`
+	RankingUntil   time.Time       `json:"rankingUntil"`
 
 	// Result Once closed.
 	Result *struct {

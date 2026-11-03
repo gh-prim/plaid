@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { api } from '../api/client'
@@ -6,10 +6,10 @@ import type { components } from '../api/schema'
 import { Button, Spinner } from '../ui'
 import '../upcoming/upcoming.css'
 import './party.css'
+import { VotePropose } from './VotePropose'
 
 type Vote = components['schemas']['PartyVote']
-type Item = components['schemas']['PartyItem']
-type Summary = components['schemas']['ItemSummary']
+type Party = components['schemas']['Party']
 
 /**
  * The movie vote (VoteBig web, VotePh; R31–R34): everyone proposes 2
@@ -21,12 +21,17 @@ export function VotePage() {
   const { t, i18n } = useTranslation()
   const [vote, setVote] = useState<Vote | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
+  const [party, setParty] = useState<Party | null>(null)
 
   useEffect(() => {
     void api
       .GET('/parties/{partyId}/vote', { params: { path: { partyId } } })
       .then(({ data }) => setVote(data ?? null))
       .catch(() => setVote(null))
+    void api
+      .GET('/parties/{partyId}', { params: { path: { partyId } } })
+      .then(({ data }) => setParty(data ?? null))
+      .catch(() => {})
   }, [partyId])
 
   const fail = (err: unknown) =>
@@ -46,6 +51,18 @@ export function VotePage() {
       </section>
     )
   }
+  if (vote.phase === 'proposals') {
+    return (
+      <section className="br-page vp-page">
+        <VotePropose vote={vote} party={party} partyId={partyId} onVote={setVote} onError={fail} />
+        {error && (
+          <p className="pv-party-error" role="alert">
+            {t(`party.error.${error}`, t('party.error.generic'))}
+          </p>
+        )}
+      </section>
+    )
+  }
   const until = (d: string) =>
     new Intl.DateTimeFormat(i18n.language, {
       weekday: 'long',
@@ -59,15 +76,6 @@ export function VotePage() {
         {t('upcoming.title')}
       </Link>
       <h1 className="br-page__title">{t(`party.vote.phase.${vote.phase}`)}</h1>
-      {vote.phase === 'proposals' && (
-        <Proposals
-          vote={vote}
-          partyId={partyId}
-          until={until(vote.proposalsUntil)}
-          onVote={setVote}
-          onError={fail}
-        />
-      )}
       {vote.phase === 'ranking' && (
         <Ranking
           vote={vote}
@@ -115,123 +123,6 @@ export function VotePage() {
         </p>
       )}
     </section>
-  )
-}
-
-function Proposals({
-  vote,
-  partyId,
-  until,
-  onVote,
-  onError,
-}: {
-  vote: Vote
-  partyId: string
-  until: string
-  onVote: (v: Vote) => void
-  onError: (e: unknown) => void
-}) {
-  const { t } = useTranslation()
-  const [q, setQ] = useState('')
-  const [found, setFound] = useState<Summary[]>([])
-  const [ideas, setIdeas] = useState<Item[]>([])
-  const mine = vote.proposals.filter((p) => p.mine).length
-  useEffect(() => {
-    void api
-      .GET('/parties/{partyId}/vote/suggestions', { params: { path: { partyId } } })
-      .then(({ data }) => setIdeas(data ?? []))
-      .catch(() => {})
-  }, [partyId])
-
-  async function search(e: FormEvent) {
-    e.preventDefault()
-    const { data } = await api
-      .GET('/search', { params: { query: { q } } })
-      .catch(() => ({ data: undefined }))
-    setFound(data?.movies ?? [])
-  }
-  async function propose(itemId: string) {
-    const { data, error } = await api.PUT('/parties/{partyId}/vote/proposals/{itemId}', {
-      params: { path: { partyId, itemId } },
-    })
-    if (data) onVote(data)
-    else onError(error)
-  }
-  async function withdraw(itemId: string) {
-    const { data } = await api.DELETE('/parties/{partyId}/vote/proposals/{itemId}', {
-      params: { path: { partyId, itemId } },
-    })
-    if (data) onVote(data)
-  }
-  return (
-    <>
-      <p className="pv-party-muted">{t('party.vote.proposeHint', { count: 2 - mine, until })}</p>
-      <form className="pv-party-compose" onSubmit={search}>
-        <input
-          className="pv-party-input"
-          value={q}
-          placeholder={t('party.vote.search')}
-          aria-label={t('party.vote.search')}
-          onChange={(e) => setQ(e.target.value)}
-        />
-        <Button type="submit" variant="secondary">
-          {t('nav.search')}
-        </Button>
-      </form>
-      <ul className="vt-list">
-        {found.map((m) => (
-          <li key={m.id}>
-            <span>{m.displayTitle}</span>
-            <Button
-              variant="cream"
-              size="sm"
-              disabled={mine >= 2}
-              onClick={() => void propose(m.id)}
-            >
-              {t('party.vote.propose')}
-            </Button>
-          </li>
-        ))}
-      </ul>
-      {ideas.length > 0 && (
-        <>
-          <h2 className="up-h">{t('party.vote.suggests')}</h2>
-          <ul className="vt-list">
-            {ideas.map((m) => (
-              <li key={m.id}>
-                <span>
-                  {m.title} <small className="pv-party-muted">{t('party.vote.nobodySaw')}</small>
-                </span>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  disabled={mine >= 2}
-                  onClick={() => void propose(m.id)}
-                >
-                  {t('party.vote.propose')}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      <h2 className="up-h">{t('party.vote.proposed', { count: vote.proposals.length })}</h2>
-      <ul className="vt-list">
-        {vote.proposals.map((p) => (
-          <li key={p.item.id}>
-            <span>
-              {p.item.title}{' '}
-              <small className="pv-party-muted">{t('party.vote.by', { name: p.proposedBy })}</small>
-            </span>
-            {p.mine && (
-              <Button size="sm" variant="ghost" onClick={() => void withdraw(p.item.id)}>
-                {t('party.vote.withdraw')}
-              </Button>
-            )}
-          </li>
-        ))}
-      </ul>
-    </>
   )
 }
 

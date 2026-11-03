@@ -31,6 +31,7 @@ type VoteView struct {
 type ProposalView struct {
 	Item       Item
 	ProposedBy string
+	ProposerID string
 	Mine       bool
 }
 
@@ -98,7 +99,7 @@ func (s *Service) voteView(ctx context.Context, p auth.Principal, pt Party, v Vo
 		if err != nil {
 			continue
 		}
-		out.Proposals = append(out.Proposals, ProposalView{Item: it, ProposedBy: names[pr.UserID], Mine: pr.UserID == p.UserID})
+		out.Proposals = append(out.Proposals, ProposalView{Item: it, ProposedBy: names[pr.UserID], ProposerID: pr.UserID, Mine: pr.UserID == p.UserID})
 	}
 	ballots, err := s.store.Ballots(ctx, pt.ID)
 	if err != nil {

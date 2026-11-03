@@ -48,6 +48,9 @@ func toPartyItem(it party.Item) api.PartyItem {
 	if it.BackdropID != "" {
 		out.BackdropId = &it.BackdropID
 	}
+	if it.PosterID != "" {
+		out.PosterId = &it.PosterID
+	}
 	if it.Year != 0 {
 		out.Year = &it.Year
 	}
@@ -384,7 +387,11 @@ func (h *Handlers) AnswerParty(ctx context.Context, req api.AnswerPartyRequestOb
 	return api.AnswerParty204Response{}, nil
 }
 
-func toPartyVote(v party.VoteView) api.PartyVote {
+func (h *Handlers) toPartyVote(ctx context.Context, v party.VoteView) (api.PartyVote, error) {
+	names, profiles, err := h.people(ctx)
+	if err != nil {
+		return api.PartyVote{}, err
+	}
 	out := api.PartyVote{ProposalsUntil: v.Vote.ProposalsUntil, RankingUntil: v.Vote.RankingUntil,
 		Phase: api.PartyVotePhase(v.Phase), MyRanking: v.Mine.Ranks}
 	if out.MyRanking == nil {
@@ -393,17 +400,11 @@ func toPartyVote(v party.VoteView) api.PartyVote {
 	if v.Mine.Veto != "" {
 		out.MyVeto = &v.Mine.Veto
 	}
-	out.Proposals = []struct {
-		Item       api.PartyItem `json:"item"`
-		Mine       bool          `json:"mine"`
-		ProposedBy string        `json:"proposedBy"`
-	}{}
+	out.Proposals = []api.PartyProposal{}
 	for _, pr := range v.Proposals {
-		out.Proposals = append(out.Proposals, struct {
-			Item       api.PartyItem `json:"item"`
-			Mine       bool          `json:"mine"`
-			ProposedBy string        `json:"proposedBy"`
-		}{Item: toPartyItem(pr.Item), Mine: pr.Mine, ProposedBy: pr.ProposedBy})
+		out.Proposals = append(out.Proposals, api.PartyProposal{Item: toPartyItem(pr.Item), Mine: pr.Mine,
+			ProposedBy: pr.ProposedBy,
+			Proposer:   toPartyPerson(pr.ProposerID, names[pr.ProposerID], profiles[pr.ProposerID])})
 	}
 	out.Voters = []struct {
 		Name  string `json:"name"`
@@ -441,7 +442,7 @@ func toPartyVote(v party.VoteView) api.PartyVote {
 		}
 		out.Result = res
 	}
-	return out
+	return out, nil
 }
 
 // GetPartyVote returns a vote.
@@ -458,7 +459,8 @@ func (h *Handlers) GetPartyVote(ctx context.Context, req api.GetPartyVoteRequest
 	if err != nil {
 		return nil, err
 	}
-	return api.GetPartyVote200JSONResponse(toPartyVote(v)), nil
+	out, err := h.toPartyVote(ctx, v)
+	return api.GetPartyVote200JSONResponse(out), err
 }
 
 // ProposeForParty proposes a title.
@@ -475,7 +477,8 @@ func (h *Handlers) ProposeForParty(ctx context.Context, req api.ProposeForPartyR
 	if err != nil {
 		return nil, err
 	}
-	return api.ProposeForParty200JSONResponse(toPartyVote(v)), nil
+	out, err := h.toPartyVote(ctx, v)
+	return api.ProposeForParty200JSONResponse(out), err
 }
 
 // WithdrawPartyProposal withdraws a proposal.
@@ -492,7 +495,8 @@ func (h *Handlers) WithdrawPartyProposal(ctx context.Context, req api.WithdrawPa
 	if err != nil {
 		return nil, err
 	}
-	return api.WithdrawPartyProposal200JSONResponse(toPartyVote(v)), nil
+	out, err := h.toPartyVote(ctx, v)
+	return api.WithdrawPartyProposal200JSONResponse(out), err
 }
 
 // CastPartyBallot saves a ballot.
@@ -517,7 +521,8 @@ func (h *Handlers) CastPartyBallot(ctx context.Context, req api.CastPartyBallotR
 	if err != nil {
 		return nil, err
 	}
-	return api.CastPartyBallot200JSONResponse(toPartyVote(v)), nil
+	out, err := h.toPartyVote(ctx, v)
+	return api.CastPartyBallot200JSONResponse(out), err
 }
 
 // PartyVoteSuggestions suggests titles nobody has watched.

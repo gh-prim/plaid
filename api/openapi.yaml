@@ -5458,12 +5458,29 @@ components:
           type: integer
         episode:
           type: integer
+        posterId:
+          type: string
+          description: The selected poster (the show's for an episode); fetch it with GET /images/{imageId}?w=.
         backdropId:
           type: string
           description: The selected backdrop (the show's for an episode); fetch it with GET /images/{imageId}?w=.
         runtimeMs:
           type: integer
           format: int64
+    PartyProposal:
+      type: object
+      description: A title proposed for the vote, and who proposed it (R31).
+      required: [item, proposedBy, proposer, mine]
+      properties:
+        item:
+          $ref: "#/components/schemas/PartyItem"
+        proposedBy:
+          type: string
+          description: The proposer's display name.
+        proposer:
+          $ref: "#/components/schemas/PartyPerson"
+        mine:
+          type: boolean
     PartyPerson:
       type: object
       required: [userId, name, avatarColor, avatar]
@@ -5703,16 +5720,7 @@ components:
         proposals:
           type: array
           items:
-            type: object
-            required: [item, proposedBy, mine]
-            properties:
-              item:
-                $ref: "#/components/schemas/PartyItem"
-              proposedBy:
-                type: string
-                description: The proposer's display name.
-              mine:
-                type: boolean
+            $ref: "#/components/schemas/PartyProposal"
         voters:
           type: array
           description: Who voted, never what (R32).

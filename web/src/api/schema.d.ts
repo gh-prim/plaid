@@ -3540,10 +3540,20 @@ export interface components {
       showTitle?: string
       season?: number
       episode?: number
+      /** @description The selected poster (the show's for an episode); fetch it with GET /images/{imageId}?w=. */
+      posterId?: string
       /** @description The selected backdrop (the show's for an episode); fetch it with GET /images/{imageId}?w=. */
       backdropId?: string
       /** Format: int64 */
       runtimeMs?: number
+    }
+    /** @description A title proposed for the vote, and who proposed it (R31). */
+    PartyProposal: {
+      item: components['schemas']['PartyItem']
+      /** @description The proposer's display name. */
+      proposedBy: string
+      proposer: components['schemas']['PartyPerson']
+      mine: boolean
     }
     PartyPerson: {
       userId: string
@@ -3687,12 +3697,7 @@ export interface components {
       rankingUntil: string
       /** @enum {string} */
       phase: 'proposals' | 'ranking' | 'closed'
-      proposals: {
-        item: components['schemas']['PartyItem']
-        /** @description The proposer's display name. */
-        proposedBy: string
-        mine: boolean
-      }[]
+      proposals: components['schemas']['PartyProposal'][]
       /** @description Who voted, never what (R32). */
       voters: {
         name: string
