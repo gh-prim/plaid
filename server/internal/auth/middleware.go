@@ -42,6 +42,9 @@ var publicRoutes = []string{
 	"GET /setup",
 	"POST /setup/admin",
 	"POST /auth/login",
+	// The sign-in page's poster wall.
+	"GET /auth/backdrop",
+	"GET /auth/backdrop/{imageId}",
 	"POST /pairing",
 	"GET /pairing/{pairingId}",
 	// Invitation links (F009): checked by the backoff on unknown tokens.

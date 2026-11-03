@@ -1731,8 +1731,10 @@
     }
   },
   "signIn": {
-    "forgot": "Mot de passe oublié ? Demande à un administrateur de le réinitialiser dans Personnes.",
-    "title": "Connexion à {{serverName}}"
+    "footer": "Plaid · serveur auto-hébergé · {{host}}",
+    "forgot": "Mot de passe oublié ? Demande à l’admin du serveur de le réinitialiser.",
+    "server": "Serveur :",
+    "title": "Bon retour"
   },
   "transcoding": {
     "cap": {
