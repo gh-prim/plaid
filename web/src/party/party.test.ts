@@ -34,7 +34,8 @@ describe('VideoSync', () => {
   it('drives the video from the room and reports buffering', () => {
     vi.useFakeTimers()
     const video = document.createElement('video')
-    Object.defineProperty(video, 'readyState', { value: 4 })
+    let readyState = 4
+    Object.defineProperty(video, 'readyState', { get: () => readyState })
     let paused = true
     Object.defineProperty(video, 'paused', { get: () => paused })
     video.play = vi.fn(() => {
@@ -57,11 +58,47 @@ describe('VideoSync', () => {
     vi.advanceTimersByTime(250)
     expect(video.playbackRate).toBe(rateFast)
 
-    video.dispatchEvent(new Event('waiting'))
-    expect(reports).toContain('buffering')
-    sync.apply({ state: 'paused', positionMs: 61_000, atServerMs: 11_300, rate: 1 })
+    expect(reports.at(-1)).toBe('playing')
+
+    // Out of data past our own seek's window: buffering.
+    readyState = 2
+    vi.advanceTimersByTime(3250)
+    expect(reports.at(-1)).toBe('buffering')
+
+    // The room waits for us: paused, the data back, we say ready without
+    // any media event (the screen was stuck "loading" before).
+    sync.apply({ state: 'waiting', positionMs: 61_000, atServerMs: 11_300, rate: 1 })
     expect(video.pause).toHaveBeenCalled()
     expect(video.playbackRate).toBe(1)
+    readyState = 4
+    vi.advanceTimersByTime(250)
+    expect(reports.at(-1)).toBe('ready')
+    sync.destroy()
+    vi.useRealTimers()
+  })
+
+  it("doesn't report its own catch-up seek as buffering", () => {
+    vi.useFakeTimers()
+    const video = document.createElement('video')
+    let readyState = 4
+    Object.defineProperty(video, 'readyState', { get: () => readyState })
+    let paused = true
+    Object.defineProperty(video, 'paused', { get: () => paused })
+    video.play = vi.fn(() => {
+      paused = false
+      return Promise.resolve()
+    })
+    const reports: string[] = []
+    let now = 10_000
+    const sync = new VideoSync(video, { serverNow: () => now, report: (s) => reports.push(s) })
+    sync.apply({ state: 'playing', positionMs: 0, atServerMs: 10_000, rate: 1 })
+    vi.advanceTimersByTime(250)
+    expect(reports.at(-1)).toBe('playing')
+    // 5 s behind: a seek, which empties the buffer for a moment.
+    now = 15_250
+    readyState = 1
+    vi.advanceTimersByTime(250)
+    expect(reports).not.toContain('buffering')
     sync.destroy()
     vi.useRealTimers()
   })

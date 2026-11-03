@@ -243,6 +243,7 @@ func (s *Service) openRoom(ctx context.Context, p Party) (*live, error) {
 	l := &live{party: p, blocked: map[string]string{}}
 	l.room = NewRoom(p.ID, p.ItemID, p.ControlMode, set.MaxPeople, s.o.Now(), nil)
 	l.room.emit = s.emitter(p.ID)
+	l.room.Log = s.o.Log
 	if p.OrganizerUserID != "" {
 		// The organizer hosts until they hand over (R1).
 		l.room.SetHost(PersonID(p.OrganizerUserID, ""))

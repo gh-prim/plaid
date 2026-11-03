@@ -100,6 +100,9 @@ export class VideoSync {
   private lastState: ScreenState = 'loading'
   private canRate = true
   private applying = false
+  private hadPicture = false
+  /** Until then, a short wait is our own catch-up seek, not buffering. */
+  private ownSeekUntil = 0
   private listeners = new AbortController()
 
   constructor(
@@ -108,11 +111,10 @@ export class VideoSync {
   ) {
     const on = (e: string, fn: () => void) =>
       video.addEventListener(e, fn, { signal: this.listeners.signal })
-    on('waiting', () => this.state('buffering'))
-    on('stalled', () => this.state('buffering'))
-    on('canplay', () => this.state(this.pb?.state === 'playing' ? 'playing' : 'ready'))
-    on('playing', () => this.state('playing'))
-    on('ended', () => this.state('ended'))
+    // The state is worked out from the video on every tick; events only
+    // make the report come sooner. (`stalled` isn't buffering: it fires when
+    // the network pauses, often with seconds of video ahead.)
+    for (const e of ['waiting', 'canplay', 'playing', 'seeked', 'ended']) on(e, () => this.report())
     on('ratechange', () => {
       // Safari's native HLS may refuse a rate change: seek instead.
       if (this.applying && Math.abs(video.playbackRate - this.wanted) > 0.001) this.canRate = false
@@ -126,7 +128,27 @@ export class VideoSync {
     return this.video.currentTime * 1000
   }
 
-  private state(s: ScreenState) {
+  /**
+   * What the screen shows (R11). Without enough data to play it's buffering,
+   * unless it never had a picture (loading) or the wait is our own catch-up
+   * seek. With data: playing, or ready while the room is paused or waits,
+   * so a screen the room waited for always says when it can go again.
+   */
+  private screenState(): ScreenState {
+    const v = this.video
+    if (v.ended) return 'ended'
+    if (v.readyState < HTMLMediaElement.HAVE_FUTURE_DATA || v.seeking) {
+      if (!this.hadPicture) return 'loading'
+      if (Date.now() < this.ownSeekUntil && this.lastState !== 'buffering') return this.lastState
+      return 'buffering'
+    }
+    this.hadPicture = true
+    return this.pb?.state === 'playing' && !v.paused ? 'playing' : 'ready'
+  }
+
+  private report() {
+    if (!this.pb) return
+    const s = this.screenState()
     if (s === this.lastState) return
     this.lastState = s
     this.hooks.report(s, Math.round(this.pos()))
@@ -151,13 +173,15 @@ export class VideoSync {
     if (pb.state !== 'playing') {
       if (!v.paused) v.pause()
       this.setRate(1)
-      if (Math.abs(this.pos() - target) > driftIgnoreMs) v.currentTime = target / 1000
+      if (!v.seeking && Math.abs(this.pos() - target) > driftIgnoreMs) v.currentTime = target / 1000
+      this.report()
       return
     }
     if (v.paused) void v.play().catch(() => {})
     const c = correct(this.pos(), target, v.playbackRate, this.canRate)
-    if (c.seekMs !== undefined) {
+    if (c.seekMs !== undefined && !v.seeking) {
       const behind = target - this.pos()
+      this.ownSeekUntil = Date.now() + 3000
       v.currentTime = c.seekMs / 1000
       if (Math.abs(behind) > 1000) this.hooks.onCaughtUp?.(behind)
     } else if (c.rate !== 1 && v.playbackRate === 1) {
@@ -165,6 +189,7 @@ export class VideoSync {
       if (Math.abs(behind) > 1000) this.hooks.onCaughtUp?.(behind)
     }
     this.setRate(c.rate)
+    this.report()
   }
 
   private setRate(r: number) {

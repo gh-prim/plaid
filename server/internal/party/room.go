@@ -1,6 +1,7 @@
 package party
 
 import (
+	"log/slog"
 	"slices"
 	"sort"
 	"strings"
@@ -172,6 +173,8 @@ type Room struct {
 	ItemID    string
 	Mode      string
 	MaxPeople int
+	// Log traces screen states and waits, to debug sync; nil logs nothing.
+	Log *slog.Logger
 
 	host     string
 	people   map[string]*participant
@@ -479,6 +482,10 @@ func (r *Room) Report(now time.Time, conn string, rep Report) error {
 	}
 	prev := d.State
 	d.State = rep.State
+	if prev != rep.State && r.Log != nil {
+		r.Log.Info("party: screen", "party_id", r.PartyID, "name", p.Name, "device", d.Device.Type,
+			"from", prev, "state", rep.State, "position_ms", rep.PositionMs, "room", r.pb.State)
+	}
 	if rep.State != ScreenBuffering && rep.State != ScreenLoading && !d.announced {
 		d.announced = true
 		r.system(now, "joined", map[string]string{"name": p.Name, "device": d.Device.Type, "quality": d.Quality})
@@ -588,6 +595,12 @@ func (r *Room) Tick(now time.Time) bool {
 			}
 		}
 		if len(slow) > 0 {
+			if r.Log != nil {
+				for _, id := range slow {
+					r.Log.Info("party: waiting", "party_id", r.PartyID, "name", r.people[id].Name,
+						"buffering_ms", now.Sub(r.people[id].screen().bufSince).Milliseconds(), "position_ms", r.pb.At(nowMs))
+				}
+			}
 			r.pb = Playback{State: Waiting, PositionMs: r.pb.At(nowMs), AtMs: nowMs, Rate: 1}
 			r.waitFrom = now
 			for _, id := range slow {
@@ -647,6 +660,9 @@ func (r *Room) resolveWaiting(now time.Time) {
 	if len(r.waiting) > 0 {
 		r.emitWaiting(now)
 		return
+	}
+	if r.Log != nil {
+		r.Log.Info("party: resumed", "party_id", r.PartyID, "waited_ms", now.Sub(r.waitFrom).Milliseconds())
 	}
 	r.pb = Playback{State: Playing, PositionMs: r.pb.PositionMs, AtMs: now.UnixMilli(), Rate: 1}
 	r.broadcast("resume", "")
