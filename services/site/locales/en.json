@@ -151,7 +151,7 @@
       "eyebrow": "Apple TV",
       "title": "On the TV, it’s a real app.",
       "body": "It finds your server on the network, pairs with a short code, and remembers each person: their profile, their language, where they stopped.",
-      "alt": "The PLAID Apple TV app playing Big Buck Bunny.",
+      "alt": "The PLAID Apple TV app during a Plaid Party: the credits of a Caminandes episode roll while a card counts down to the next episode, three of four people ready.",
       "points": {
         "pins": "Profiles with PINs for the kids",
         "hdr": "4K HDR and Dolby Atmos, played as they are",
@@ -179,7 +179,7 @@
           "spec": "720p"
         }
       },
-      "badge": "Coming next"
+      "badge": "New in v0.5"
     },
     "install": {
       "eyebrow": "Install",
@@ -219,9 +219,14 @@
         "a": "Straight from your server to them. getplaid.direct only gives your server an address with a certificate."
       },
       "party": {
-        "q": "When is Plaid Party coming?",
-        "a": "Its intent is written; the spec comes next, then the code. Follow the roadmap on GitHub."
+        "q": "Is Plaid Party ready?",
+        "a": "Yes. It shipped in v0.5, on the web, iPhone, iPad and Apple TV. Follow the roadmap on GitHub for what comes next."
       }
+    },
+    "screens": {
+      "eyebrow": "Real screens",
+      "title": "This is what you get.",
+      "lead": "Straight from the design files the apps are built from, with public-domain and open films."
     }
   },
   "features": {
@@ -282,7 +287,7 @@
       },
       "ios": {
         "name": "iPhone and iPad",
-        "body": "SwiftUI, right after the Apple TV app."
+        "body": "SwiftUI, one codebase with the Apple TV app. Build it with Xcode for now; the App Store comes later."
       },
       "android": {
         "name": "Android and Android TV",
@@ -302,7 +307,7 @@
       },
       "sharing": {
         "name": "Library sharing",
-        "body": "Invite someone by link to one library or collection, with a quality cap and instant revocation."
+        "body": "Invite people by link into groups that decide which libraries they see, their best quality and how many streams they get. Revoke in one click."
       },
       "party": {
         "name": "Plaid Party",
@@ -314,9 +319,9 @@
   "party": {
     "meta": {
       "title": "Plaid Party · Watch together, in sync · PLAID",
-      "description": "Plaid Party keeps everyone on the same frame, wherever they are and whatever they watch on. Planned: the intent is written, the spec is next."
+      "description": "Plaid Party keeps everyone on the same frame, wherever they are and whatever they watch on. New in v0.5."
     },
-    "badge": "Planned · intent written, spec next",
+    "badge": "New in v0.5 · web, iPhone, iPad, Apple TV",
     "title": "Same film. Same second. Different couches.",
     "lead": "A Plaid Party keeps everyone on the same frame, wherever they are and whatever they watch on.",
     "bannerAlt": "Count Orlok in a doorway, in Nosferatu (1922).",
@@ -631,11 +636,11 @@
   "roadmap": {
     "meta": {
       "title": "Roadmap · PLAID",
-      "description": "Where PLAID is, honestly: ten features work today, four are designed, a few wait their turn."
+      "description": "Where PLAID is, honestly: twelve features work today, Android is next, a few wait their turn."
     },
     "eyebrow": "Roadmap",
     "title": "Where PLAID is, honestly.",
-    "lead": "Ten features work today, four are designed, a few wait their turn.",
+    "lead": "Twelve features work today, Android is next, a few wait their turn.",
     "bannerAlt": "Two characters in a strange machine world, in Elephants Dream.",
     "cols": {
       "today": {
@@ -700,7 +705,7 @@
       },
       "today": {
         "q": "Can I use it today?",
-        "a": "Yes, though it’s early. The server, the web app and the Apple TV app handle libraries, artwork, playback and remote access. Sharing and Plaid Party are coming; expect rough edges."
+        "a": "Yes, though it’s early. The server, the web app and the iPhone, iPad and Apple TV apps handle libraries, artwork, playback, remote access, library sharing and Plaid Party. Expect rough edges."
       },
       "fork": {
         "q": "Is it a Plex or Jellyfin fork?",
@@ -864,5 +869,34 @@
     "title": "This reel is missing.",
     "body": "The page you asked for isn’t here. The rest of the programme is.",
     "home": "Back to the start"
+  },
+  "shots": {
+    "title": {
+      "alt": "The PLAID web app on the Nosferatu (1922) page: full-screen backdrop, Play and Mark as watched, TMDB score, 1080p and 4K versions, English subtitles.",
+      "cap": "A title page in the web app."
+    },
+    "ios": {
+      "alt": "The PLAID home on iPad and iPhone: Tears of Steel as the hero, then Continue watching with Big Buck Bunny, Caminandes, Elephants Dream and Nosferatu.",
+      "cap": "Home on iPad and iPhone."
+    },
+    "appletv": {
+      "cap": "Apple TV, next episode together."
+    },
+    "party": {
+      "alt": "A Plaid Party on Nosferatu: reactions float over the film on the Apple TV while the host’s iPhone shows the remote, the chat and Mia’s request to pause.",
+      "cap": "The TV plays, the phone holds the chat and the remote."
+    },
+    "webParty": {
+      "alt": "The same party in a browser: the player, the four people with their device and quality, and the chat.",
+      "cap": "In the browser, guests included."
+    },
+    "ipadParty": {
+      "alt": "Watching the party on an iPad: the film on top, who is in the party below, the chat on the side.",
+      "cap": "Or watch it right on the iPad."
+    },
+    "remote": {
+      "alt": "The Remote access page of the PLAID admin: reachable from anywhere, a getplaid.direct link to share, a Let’s Encrypt certificate, port 32501 opened by UPnP, and stream and upload limits.",
+      "cap": "Remote access in the admin: one switch, then a link to share."
+    }
   }
 }

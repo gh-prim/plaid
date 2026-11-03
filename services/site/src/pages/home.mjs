@@ -1,4 +1,4 @@
-import { CODE, LINKS, ambient, btn, cmd, eyebrow, glyph, page, poster, POSTERS } from '../layout.mjs';
+import { CODE, LINKS, ambient, btn, cmd, eyebrow, page, poster, POSTERS, shot } from '../layout.mjs';
 
 const still = (img, alt, sizes, cls = '') =>
   `<img${cls ? ` class="${cls}"` : ''} src="/img/${img}.jpg" srcset="/img/${img}-800.jpg 800w, /img/${img}.jpg 1600w" sizes="${sizes}" width="1600" height="900" alt="${alt}" loading="lazy" decoding="async">`;
@@ -31,7 +31,8 @@ export default {
       )
       .join('');
 
-    const tv = `<div class="tv rv" role="img" aria-label="${attr('home.tv.alt')}"><div class="tv__screen" aria-hidden="true">${still('still-big-buck-bunny', '', '(min-width: 1100px) 700px, 100vw')}<b class="tv__title">${t('films.big-buck-bunny')}</b><span class="tv__bar"><i></i></span><span class="tv__pause">${glyph('pause', 14)}</span></div><div class="tv__foot" aria-hidden="true"></div></div>`;
+    // The Apple TV app, as designed, inside a drawn TV.
+    const tv = `<div class="tv rv"><div class="tv__screen tv__screen--shot"><img src="/img/screen-apple-tv-${ctx.locale}.jpg" srcset="/img/screen-apple-tv-${ctx.locale}-800.jpg 800w, /img/screen-apple-tv-${ctx.locale}.jpg 1600w" sizes="(min-width: 1100px) 700px, 100vw" width="1600" height="1000" alt="${attr('home.tv.alt')}" loading="lazy" decoding="async"></div><div class="tv__foot" aria-hidden="true"></div></div>`;
 
     const devices = ['tv', 'laptop', 'tablet', 'phone']
       .map(
@@ -74,6 +75,14 @@ ${eyebrow(t('home.what.eyebrow'), 'rv')}
 <div class="whatis__grid">${cards}</div>
 </section>
 
+<section class="wrap screens" aria-labelledby="screens-title">
+${eyebrow(t('home.screens.eyebrow'), 'rv')}
+<h2 class="h2 screens__h" id="screens-title" data-words>${t('home.screens.title')}</h2>
+<p class="lead screens__lead rv">${t('home.screens.lead')}</p>
+${shot(ctx, { name: 'title', alt: attr('shots.title.alt'), caption: t('shots.title.cap') })}
+${shot(ctx, { name: 'ios', alt: attr('shots.ios.alt'), caption: t('shots.ios.cap') })}
+</section>
+
 <section class="wrap trio" aria-labelledby="how-title">
 ${eyebrow(t('home.how.eyebrow'), 'rv')}
 <h2 class="h2 trio__h" id="how-title" data-words>${t('home.how.title')}</h2>
@@ -110,6 +119,7 @@ ${cmd(ctx, CODE.script, { variant: 'terminal', note: t('home.install.note') })}
 <h2 class="h2 teaser__h" id="party-title" data-words>${t('home.party.title')}</h2>
 <p class="lead teaser__lead rv">${t('home.party.body')}</p>
 <ul class="devices" data-devices>${devices}</ul>
+${shot(ctx, { name: 'party', alt: attr('shots.party.alt'), caption: t('shots.party.cap'), cls: 'shot--party' })}
 </section>
 
 <section class="wrap faqmini" aria-labelledby="faq-title">

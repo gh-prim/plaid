@@ -54,6 +54,25 @@ export function banner(ctx, { img, alt, credit, pos = 'center' }) {
   return `<figure class="banner rvi banner--${pos}"><img src="/img/${img}.jpg" srcset="/img/${img}-800.jpg 800w, /img/${img}.jpg 1600w" sizes="(min-width: 1260px) 1200px, 100vw" width="1600" height="900" alt="${alt}" fetchpriority="high" decoding="async"><figcaption class="credit">${credit}</figcaption></figure>`;
 }
 
+// Screenshots rendered from the design boards, one file per locale
+// (public/img/screen-<name>-<locale>.jpg, plus an -800 variant): [width, height].
+const SHOTS = {
+  title: [1600, 955],
+  ios: [1600, 850],
+  'apple-tv': [1600, 1000],
+  party: [1600, 833],
+  'web-party': [1600, 1000],
+  'ipad-party': [1600, 1117],
+  remote: [1600, 666],
+};
+
+// A screenshot of the apps in the page's language, with an optional caption.
+export function shot(ctx, { name, alt, caption = '', sizes = '(min-width: 1260px) 1200px, 100vw', cls = '' }) {
+  const [w, h] = SHOTS[name];
+  const src = `/img/screen-${name}-${ctx.locale}`;
+  return `<figure class="shot rvi${cls ? ` ${cls}` : ''}"><img src="${src}.jpg" srcset="${src}-800.jpg 800w, ${src}.jpg 1600w" sizes="${sizes}" width="${w}" height="${h}" alt="${alt}" loading="lazy" decoding="async">${caption ? `<figcaption class="shot__cap">${caption}</figcaption>` : ''}</figure>`;
+}
+
 // The blurred film-still field behind a page's first screen.
 export function ambient(imgs, cls = '') {
   return `<div class="ambient${cls ? ` ${cls}` : ''}" aria-hidden="true"><div class="ambient__field" data-ambient>${imgs

@@ -1,4 +1,4 @@
-import { ambient, banner, card, page, pageHero } from '../layout.mjs';
+import { ambient, banner, card, page, pageHero, shot } from '../layout.mjs';
 
 export default {
   id: 'remote',
@@ -46,6 +46,7 @@ ${pageHero(ctx, { eyebrow: t('remote.eyebrow'), title: t('remote.title'), lead: 
 <div class="wrap">
 ${banner(ctx, { img: 'still-tears-of-steel', alt: attr('remote.bannerAlt'), credit: t('credits.tearsOfSteel'), pos: 'center' })}
 <section class="grid4 steps" aria-label="${attr('remote.steps.label')}">${steps}</section>
+${shot(ctx, { name: 'remote', alt: attr('shots.remote.alt'), caption: t('shots.remote.cap'), cls: 'shot--wide' })}
 <section class="block" aria-labelledby="never-title">
 <h2 class="h2 h2--md" id="never-title" data-words>${t('remote.never.title')}</h2>
 <p class="lead lead--sm rv">${t('remote.never.body')}</p>
