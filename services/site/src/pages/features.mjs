@@ -1,4 +1,4 @@
-import { ambient, banner, icon, page, pageHero, status } from '../layout.mjs';
+import { ambient, banner, icon, page, pageHero, shot, status } from '../layout.mjs';
 
 // Each group lists [key, icon, status].
 const GROUPS = [
@@ -13,15 +13,15 @@ const GROUPS = [
       ['resume', 'resume', 'available'],
     ],
   ],
-  ['screens', [['web', 'globe', 'available'], ['appletv', 'tv', 'available'], ['ios', 'phone', 'planned'], ['android', 'android', 'planned']]],
+  ['screens', [['web', 'globe', 'available'], ['appletv', 'tv', 'available'], ['ios', 'phone', 'available'], ['android', 'android', 'planned']]],
   [
     'people',
     [
       ['accounts', 'people', 'available'],
       ['pairing', 'pair', 'available'],
       ['remote', 'link', 'available'],
-      ['sharing', 'share', 'planned'],
-      ['party', 'party', 'planned'],
+      ['sharing', 'share', 'available'],
+      ['party', 'party', 'available'],
     ],
   ],
 ];
@@ -31,6 +31,15 @@ export default {
   slug: 'features/',
   render(ctx) {
     const { t, attr } = ctx;
+    // Screenshots shown under a group, as designed.
+    const SHOTS = {
+      playback: [{ name: 'title', alt: attr('shots.title.alt'), caption: t('shots.title.cap') }],
+      screens: [
+        { name: 'ios', alt: attr('shots.ios.alt'), caption: t('shots.ios.cap') },
+        { name: 'apple-tv', alt: attr('home.tv.alt'), caption: t('shots.appletv.cap') },
+      ],
+      people: [{ name: 'party', alt: attr('shots.party.alt'), caption: t('shots.party.cap') }],
+    };
     const groups = GROUPS.map(
       ([g, items]) =>
         `<section class="fgroup" aria-labelledby="g-${g}"><h2 class="fgroup__title rv" id="g-${g}">${t(`features.groups.${g}`)}</h2><ul class="frows">${items
@@ -38,7 +47,7 @@ export default {
             ([k, ic, st]) =>
               `<li class="frow hl rv">${icon(ic, 30)}<h3 class="frow__name">${t(`features.items.${k}.name`)}</h3><p class="frow__body">${t(`features.items.${k}.body`)}</p>${status(ctx, st)}</li>`,
           )
-          .join('')}</ul></section>`,
+          .join('')}</ul>${(SHOTS[g] || []).map((s) => shot(ctx, { ...s, cls: 'shot--group' })).join('')}</section>`,
     ).join('');
 
     const body = `<div class="hero-zone hero-zone--page">

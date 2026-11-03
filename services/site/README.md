@@ -10,8 +10,9 @@ The site reproduces the Claude Design mockup of getplaid.tv as real, responsive 
 
 - One dark theme: `#0b0b0c` background, cream `#f4f0e9` text, Bricolage Grotesque (600 to 700) for display headings with tight negative tracking, Instrument Sans for text. Both fonts are self-hosted in `public/fonts` (SIL OFL).
 - A liquid-glass pill header that turns solid after the first screen and hides while scrolling down; cream pills for the main action, glass pills for the rest.
-- Each page opens on a blurred field of film stills, a display title and a lead, then a rounded still with its credit. The home page draws the web app in a tilted browser window, the Apple TV app and the Plaid Party devices.
+- Each page opens on a blurred field of film stills, a display title and a lead, then a rounded still with its credit. The home page draws the web app in a tilted browser window and the Plaid Party devices; real screens of the apps (`shot` in `src/layout.mjs`) appear on the home, features, Plaid Party and remote access pages.
 - Imagery: stills and posters of public-domain films and Blender open movies (CC BY), credited in the footer and under each still. No commercial posters.
+- Screenshots: `public/img/screen-<name>-<locale>.jpg` (1600 px, plus `-800`), rendered from the PLAID design canvas boards in each locale's language, so the French site shows French screens.
 - Motion is progressive: `src/js/boot.js` marks the page as scripted before first paint, and only then do scroll reveals hide content until it is seen. Hooks are explicit classes (`.rv`, `.rvi`, `.hl`, `[data-words]`, `[data-type]`, `[data-devices]`, `[data-copy]`). `prefers-reduced-motion` turns it all off.
 - The Content Security Policy forbids inline styles and scripts, so templates never use `style=""`; every variation is a class, and scripts only touch styles through the CSSOM.
 
@@ -21,7 +22,7 @@ The site reproduces the Claude Design mockup of getplaid.tv as real, responsive 
 |------|------|
 | `locales/en.json`, `locales/fr.json` | Every user-facing string. English is the source; French uses "tu". |
 | `src/pages/*.mjs` | One template per page, plain template literals. |
-| `src/layout.mjs` | `<head>` (Open Graph, hreflang, canonical), header, footer, and the shared components (`btn`, `cmd`, `banner`, `ambient`, `pageHero`, `card`, `ctaRow`, `posterParade`). |
+| `src/layout.mjs` | `<head>` (Open Graph, hreflang, canonical), header, footer, and the shared components (`btn`, `cmd`, `banner`, `ambient`, `pageHero`, `card`, `ctaRow`, `posterParade`, `shot`). |
 | `src/icons.mjs` | The line icons, stroked with the cream-to-blue gradient. |
 | `src/i18n.mjs` | Locale loading and the inline markup allowed in strings: `` `code` ``, `**strong**`, `[label](url)`, `{placeholder}`. |
 | `src/css/` | `fonts.css` and `site.css`, bundled and fingerprinted at build time. |

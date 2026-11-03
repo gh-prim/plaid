@@ -1,4 +1,4 @@
-import { ambient, banner, card, page, pageHero } from '../layout.mjs';
+import { ambient, banner, card, page, pageHero, shot } from '../layout.mjs';
 
 const BEATS = [
   ['start', '21:00', '21:00'],
@@ -48,6 +48,8 @@ ${banner(ctx, { img: 'still-nosferatu', alt: attr('party.bannerAlt'), credit: t(
 <ol class="night" aria-label="${attr('party.night.label')}">${night}</ol>
 ${room}
 </div>
+${shot(ctx, { name: 'party', alt: attr('shots.party.alt'), caption: t('shots.party.cap'), cls: 'shot--wide' })}
+<div class="shots2">${shot(ctx, { name: 'web-party', alt: attr('shots.webParty.alt'), caption: t('shots.webParty.cap'), sizes: '(min-width: 900px) 600px, 100vw' })}${shot(ctx, { name: 'ipad-party', alt: attr('shots.ipadParty.alt'), caption: t('shots.ipadParty.cap'), sizes: '(min-width: 900px) 600px, 100vw' })}</div>
 <section class="around" aria-labelledby="around-title">
 <h2 class="h2 h2--md" id="around-title" data-words>${t('party.around.title')}</h2>
 <div class="grid4">${around}</div>

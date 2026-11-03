@@ -841,6 +841,82 @@ main {
   text-align: right;
 }
 
+/* Screenshots from the design boards */
+.shot {
+  margin: 0;
+}
+
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+  box-shadow:
+    0 0 0 1px var(--line-4),
+    0 60px 120px -40px rgba(0, 0, 0, 0.9);
+}
+
+.shot__cap {
+  margin: 14px 4px 0;
+  font: 500 14px/1.4 var(--sans);
+  color: var(--t5);
+}
+
+.shot--wide {
+  margin-top: 96px;
+}
+
+.shot--group {
+  margin-top: 40px;
+}
+
+.shot--party {
+  margin-top: 72px;
+  text-align: left;
+}
+
+.shots2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 48px;
+}
+
+.screens {
+  margin-top: 150px;
+}
+
+.screens__lead {
+  max-width: 640px;
+  margin-top: 18px;
+}
+
+.screens .shot {
+  margin-top: 56px;
+}
+
+.tv__screen--shot::after {
+  content: none;
+}
+
+.tv__screen--shot > img {
+  object-position: 50% 50%;
+}
+
+@media (max-width: 760px) {
+  .shots2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shot img {
+    border-radius: 16px;
+  }
+
+  .screens {
+    margin-top: 100px;
+  }
+}
+
 /* ---------- home: the app window ---------- */
 
 .appwin-wrap {

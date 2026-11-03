@@ -151,7 +151,7 @@
       "eyebrow": "Apple TV",
       "title": "Sur la télé, c’est une vraie app.",
       "body": "Elle trouve ton serveur sur le réseau, se connecte avec un code court et se souvient de chacun : son profil, sa langue, l’endroit où il s’est arrêté.",
-      "alt": "L’app Apple TV de PLAID en train de lire Big Buck Bunny.",
+      "alt": "L’app Apple TV de PLAID pendant une Plaid Party : le générique d’un épisode de Caminandes défile pendant qu’une carte décompte l’épisode suivant, trois personnes sur quatre sont prêtes.",
       "points": {
         "pins": "Des profils protégés par code PIN pour les enfants",
         "hdr": "4K HDR et Dolby Atmos, sans conversion",
@@ -179,7 +179,7 @@
           "spec": "720p"
         }
       },
-      "badge": "Bientôt"
+      "badge": "Nouveau dans la v0.5"
     },
     "install": {
       "eyebrow": "Installer",
@@ -219,9 +219,14 @@
         "a": "Directement de ton serveur jusqu’à eux. getplaid.direct se contente de donner une adresse et un certificat à ton serveur."
       },
       "party": {
-        "q": "Quand arrive Plaid Party ?",
-        "a": "Le besoin est décrit ; la spec arrive ensuite, puis le code. Suis l’avancement sur la roadmap GitHub."
+        "q": "Plaid Party est prêt ?",
+        "a": "Oui. Il est sorti avec la v0.5, sur le web, l’iPhone, l’iPad et l’Apple TV. La suite est sur la roadmap GitHub."
       }
+    },
+    "screens": {
+      "eyebrow": "Les vrais écrans",
+      "title": "Voilà ce que tu obtiens.",
+      "lead": "Tout droit sortis des maquettes à partir desquelles les apps sont construites, avec des films libres de droits."
     }
   },
   "features": {
@@ -282,7 +287,7 @@
       },
       "ios": {
         "name": "iPhone et iPad",
-        "body": "En SwiftUI, juste après l’app Apple TV."
+        "body": "En SwiftUI, le même code que l’app Apple TV. À compiler avec Xcode pour l’instant ; l’App Store viendra plus tard."
       },
       "android": {
         "name": "Android et Android TV",
@@ -302,7 +307,7 @@
       },
       "sharing": {
         "name": "Partage de bibliothèque",
-        "body": "Invite quelqu’un par lien sur une bibliothèque ou une collection, avec une qualité maximale et un accès révocable à tout moment."
+        "body": "Invite des gens par lien dans des groupes qui décident des bibliothèques visibles, de la qualité maximale et du nombre de flux. Révocable en un clic."
       },
       "party": {
         "name": "Plaid Party",
@@ -314,9 +319,9 @@
   "party": {
     "meta": {
       "title": "Plaid Party · Regarder ensemble, en même temps · PLAID",
-      "description": "Plaid Party met tout le monde sur la même image, où qu’on soit et quel que soit l’écran. Prévu : le besoin est décrit, la spec arrive."
+      "description": "Plaid Party met tout le monde sur la même image, où qu’on soit et quel que soit l’écran. Nouveau dans la v0.5."
     },
-    "badge": "Prévu · besoin décrit, spec à venir",
+    "badge": "Nouveau dans la v0.5 · web, iPhone, iPad, Apple TV",
     "title": "Même film. Même seconde. Canapés différents.",
     "lead": "Une Plaid Party met tout le monde sur la même image, où qu’on soit et quel que soit l’écran.",
     "bannerAlt": "Le comte Orlok dans l’encadrement d’une porte, dans Nosferatu (1922).",
@@ -631,11 +636,11 @@
   "roadmap": {
     "meta": {
       "title": "Roadmap · PLAID",
-      "description": "Où en est PLAID, en toute honnêteté : dix fonctionnalités marchent déjà, quatre sont conçues, d’autres attendent leur tour."
+      "description": "Où en est PLAID, en toute honnêteté : douze fonctionnalités marchent déjà, Android est le prochain, d’autres attendent leur tour."
     },
     "eyebrow": "Roadmap",
     "title": "Où en est PLAID, en toute honnêteté.",
-    "lead": "Dix fonctionnalités marchent déjà, quatre sont conçues, d’autres attendent leur tour.",
+    "lead": "Douze fonctionnalités marchent déjà, Android est le prochain, d’autres attendent leur tour.",
     "bannerAlt": "Deux personnages dans un étrange monde de machines, dans Elephants Dream.",
     "cols": {
       "today": {
@@ -700,7 +705,7 @@
       },
       "today": {
         "q": "Je peux l’utiliser dès aujourd’hui ?",
-        "a": "Oui, même si c’est encore jeune. Le serveur, l’app web et l’app Apple TV gèrent les bibliothèques, les illustrations, la lecture et l’accès à distance. Le partage et Plaid Party arrivent ; attends-toi à quelques imperfections."
+        "a": "Oui, même si c’est encore jeune. Le serveur, l’app web et les apps iPhone, iPad et Apple TV gèrent les bibliothèques, les illustrations, la lecture, l’accès à distance, le partage et Plaid Party. Attends-toi à quelques imperfections."
       },
       "fork": {
         "q": "Est-ce un fork de Plex ou de Jellyfin ?",
@@ -864,5 +869,34 @@
     "title": "Cette bobine a disparu.",
     "body": "La page que tu cherches n’existe pas. Le reste du programme t’attend.",
     "home": "Revenir au début"
+  },
+  "shots": {
+    "title": {
+      "alt": "L’app web de PLAID sur la fiche de Nosferatu (1922) : image plein écran, Lecture et Marquer comme vu, note TMDB, versions 1080p et 4K, sous-titres français.",
+      "cap": "Une fiche film dans l’app web."
+    },
+    "ios": {
+      "alt": "L’accueil de PLAID sur iPad et iPhone : Tears of Steel en vedette, puis Reprendre avec Big Buck Bunny, Caminandes, Elephants Dream et Nosferatu.",
+      "cap": "L’accueil sur iPad et iPhone."
+    },
+    "appletv": {
+      "cap": "Apple TV, l’épisode suivant ensemble."
+    },
+    "party": {
+      "alt": "Une Plaid Party sur Nosferatu : les réactions flottent sur le film à l’Apple TV, pendant que l’iPhone de l’hôte affiche la télécommande, la discussion et la demande de pause de Mia.",
+      "cap": "La télé joue, le téléphone garde la discussion et la télécommande."
+    },
+    "webParty": {
+      "alt": "La même party dans un navigateur : le lecteur, les quatre personnes avec leur appareil et leur qualité, et la discussion.",
+      "cap": "Dans le navigateur, invités compris."
+    },
+    "ipadParty": {
+      "alt": "La party regardée sur un iPad : le film en haut, les personnes présentes dessous, la discussion sur le côté.",
+      "cap": "Ou directement sur l’iPad."
+    },
+    "remote": {
+      "alt": "La page Accès à distance de l’admin PLAID : joignable de partout, un lien getplaid.direct à partager, un certificat Let’s Encrypt, le port 32501 ouvert par UPnP, et les limites de flux et de débit montant.",
+      "cap": "L’accès à distance dans l’admin : un interrupteur, puis un lien à partager."
+    }
   }
 }
