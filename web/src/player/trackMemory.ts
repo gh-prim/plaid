@@ -3,7 +3,9 @@ import type { components } from '../api/schema'
 type Stream = components['schemas']['MediaStream']
 
 /** A subtitle choice: a kind of track in a language, or off. */
-export type SubtitleChoice = { language: string; forced: boolean; sdh: boolean } | 'off'
+/** `image`: the track was a picture one (PGS, DVD); absent in older choices. */
+export type SubtitleChoice =
+  { language: string; forced: boolean; sdh: boolean; image?: boolean } | 'off'
 
 export interface TrackChoice {
   audio?: string
@@ -81,9 +83,17 @@ export const rememberAutoplay = (profileId: string, on: boolean) =>
 /** The subtitle track a choice picks in a file, if one is in its language. */
 export function matchSubtitle(
   choice: Exclude<SubtitleChoice, 'off'>,
-  subs: Pick<Stream, 'index' | 'language' | 'forced' | 'sdh'>[],
+  subs: (Pick<Stream, 'index' | 'language' | 'forced' | 'sdh'> & { imageBased?: boolean })[],
 ): number | undefined {
-  const same = subs.filter((s) => sameLanguage(s.language, choice.language))
+  // Same kind first (text, unless a picture track was chosen): a release's
+  // first picture track is often only the forced lines.
+  const image = choice.image ?? false
+  const same = subs
+    .filter((s) => sameLanguage(s.language, choice.language))
+    .sort(
+      (a, b) =>
+        Number((a.imageBased ?? false) !== image) - Number((b.imageBased ?? false) !== image),
+    )
   const best =
     same.find((s) => s.forced === choice.forced && s.sdh === choice.sdh) ??
     same.find((s) => s.forced === choice.forced) ??
@@ -125,7 +135,7 @@ export function pickTracks(
  */
 export function cycleSubtitle(
   current: number | null,
-  subs: Pick<Stream, 'index' | 'language' | 'forced' | 'sdh'>[],
+  subs: (Pick<Stream, 'index' | 'language' | 'forced' | 'sdh'> & { imageBased?: boolean })[],
   remembered?: SubtitleChoice,
 ): number | null {
   if (current !== null || subs.length === 0) return null

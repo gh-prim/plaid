@@ -182,6 +182,12 @@ export function Playback({
   const engine = useRef<Engine | null>(null)
   const progress = useRef<Progress | null>(null)
   const retried = useRef(false)
+  // The subtitles on screen, for a retry started from an older callback.
+  const onScreen = useRef<{ index: number | null; burn: boolean }>({ index: null, burn: false })
+  useEffect(() => {
+    const burned = session?.subtitles.find((s) => s.selected && s.delivery === 'burn_in')
+    onScreen.current = burned ? { index: burned.index, burn: true } : { index: sub, burn: false }
+  }, [session, sub])
   const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const lastTap = useRef<{ at: number; x: number } | null>(null)
 
@@ -222,7 +228,12 @@ export function Playback({
   async function start(
     it: Item,
     atMs: number,
-    extra: { forceMethod?: 'transcode'; quality?: Quality } = {},
+    extra: {
+      forceMethod?: 'transcode'
+      quality?: Quality
+      subtitleStreamIndex?: number | null
+      burnSubtitles?: boolean
+    } = {},
   ) {
     setPhase({ k: 'starting' })
     setMenu(null)
@@ -281,9 +292,15 @@ export function Playback({
     }
     halt(at)
     if (f.kind === 'media' && !retried.current && it) {
-      // One automatic retry as a conversion (F008-R45).
+      // One automatic retry as a conversion (F008-R45), with the subtitles
+      // on screen rather than the remembered language's first track.
       retried.current = true
-      void start(it, at, { forceMethod: 'transcode' })
+      const { index, burn } = onScreen.current
+      void start(it, at, {
+        forceMethod: 'transcode',
+        subtitleStreamIndex: index,
+        burnSubtitles: burn,
+      })
       return
     }
     setPhase({
@@ -319,7 +336,12 @@ export function Playback({
     rememberSubtitles(
       profileId,
       target
-        ? { language: target.language, forced: target.forced, sdh: sdh.has(target.index) }
+        ? {
+            language: target.language,
+            forced: target.forced,
+            sdh: sdh.has(target.index),
+            image: target.delivery === 'burn_in' || isPgs(target),
+          }
         : 'off',
     )
     const burned = session.subtitles.find((s) => s.selected && s.delivery === 'burn_in')

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"mime"
 	"net/http"
 	"os"
@@ -111,6 +112,9 @@ func streamError(w http.ResponseWriter, err error) {
 		apierr.Write(w, e)
 		return
 	}
+	// Unexpected: the 500 alone says nothing (FFmpeg's message, a timeout,
+	// the client gone).
+	slog.Warn("stream error", "err", err)
 	apierr.Write(w, apierr.Internal())
 }
 

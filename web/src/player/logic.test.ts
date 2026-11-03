@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { shortcutFor } from './shortcuts'
 import {
+  matchSubtitle,
   cycleSubtitle,
   loadAutoplay,
   loadChoice,
@@ -142,5 +143,18 @@ describe('upNext', () => {
     expect(at({ ended: true, hasNext: false })).toBe('endOfShow')
     expect(at({ ended: true, hasNext: false, isEpisode: false })).toBe('leave')
     expect(at({ ended: true, hasNext: undefined })).toBe('leave')
+  })
+})
+
+describe('matchSubtitle', () => {
+  // 1917's English tracks: two DVD pictures (the first only the forced lines), then an SRT.
+  const subs = [
+    { index: 3, language: 'eng', forced: false, sdh: false, imageBased: true },
+    { index: 4, language: 'eng', forced: false, sdh: false, imageBased: true },
+    { index: 5, language: 'eng', forced: false, sdh: false, imageBased: false },
+  ]
+  it('prefers the same kind of track: text unless a picture one was chosen', () => {
+    expect(matchSubtitle({ language: 'eng', forced: false, sdh: false }, subs)).toBe(5)
+    expect(matchSubtitle({ language: 'eng', forced: false, sdh: false, image: true }, subs)).toBe(3)
   })
 })
