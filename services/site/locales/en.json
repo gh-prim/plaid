@@ -156,7 +156,8 @@
         "pins": "Profiles with PINs for the kids",
         "hdr": "4K HDR and Dolby Atmos, played as they are",
         "lang": "English and French, per person"
-      }
+      },
+      "beta": "Join the TestFlight beta"
     },
     "party": {
       "title": "Plaid Party. Everyone lands on the same frame.",
@@ -283,11 +284,11 @@
       },
       "appletv": {
         "name": "Apple TV",
-        "body": "A native tvOS app that finds the server and pairs with a code."
+        "body": "A native tvOS app that finds the server and pairs with a code. In public beta on TestFlight."
       },
       "ios": {
         "name": "iPhone and iPad",
-        "body": "SwiftUI, one codebase with the Apple TV app. Build it with Xcode for now; the App Store comes later."
+        "body": "SwiftUI, one codebase with the Apple TV app. In public beta on TestFlight."
       },
       "android": {
         "name": "Android and Android TV",
@@ -467,7 +468,13 @@
       "status": "Is it running?",
       "logs": "Follow the log"
     },
-    "parade": "After the first scan"
+    "parade": "After the first scan",
+    "apps": {
+      "kicker": "On your screens",
+      "title": "Get the iPhone, iPad and Apple TV apps",
+      "body": "The apps are in public beta on TestFlight. Install TestFlight from the App Store, open the link on your iPhone, iPad or Apple TV, then point the app at your server. The web app needs nothing: it comes with the server.",
+      "cta": "Join the beta on TestFlight"
+    }
   },
   "remote": {
     "meta": {

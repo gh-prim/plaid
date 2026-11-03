@@ -319,6 +319,18 @@ strong {
   justify-content: center;
 }
 
+.atv__actions {
+  margin-top: 36px;
+}
+
+.card--apps {
+  margin-top: 28px;
+}
+
+.card--apps .actions {
+  margin-top: 22px;
+}
+
 .more {
   display: inline-flex;
   align-items: center;
