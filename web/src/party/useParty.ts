@@ -297,6 +297,8 @@ export function useParty(target: JoinTarget | null, make?: () => PartySocket) {
       sync.current = new VideoSync(video, {
         serverNow: () => socket.current?.clock.now() ?? Date.now(),
         report,
+        log: (event, driftMs, rate, positionMs) =>
+          socket.current?.send('party.sync.log', { event, driftMs, rate, positionMs }),
         onCaughtUp: (behind) => {
           if (behind > 0) notice({ kind: 'caughtUp', seconds: Math.round(behind / 100) / 10 })
         },

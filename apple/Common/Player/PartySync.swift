@@ -108,6 +108,7 @@ final class PartySync {
         let drift = local - target
         let far = noRate ? Self.seekBeyondWithoutRate : Self.seekBeyond
         if abs(drift) > far {
+            room.syncLog("seek", driftMs: drift, rate: p.rate, positionMs: local)
             correcting = nil
             // Lands a little ahead: the stream needs a moment to start again.
             seek(p, to: target + 300, thenPlay: true)
@@ -117,6 +118,7 @@ final class PartySync {
         if let rate = correcting {
             let overshot = (rate > 1 && drift >= 0) || (rate < 1 && drift <= 0)
             if abs(drift) <= Self.settled || overshot {
+                room.syncLog("settled", driftMs: drift, rate: rate, positionMs: local)
                 p.rate = 1
                 correcting = nil
                 if abs(correctingFrom) > 1000 {
@@ -131,6 +133,7 @@ final class PartySync {
                 let wall = Date().timeIntervalSince(start.wall) * 1000
                 let effective = Double(local - start.local) / wall
                 if abs(effective - 1) < 0.015 {
+                    room.syncLog("noRate", driftMs: drift, rate: Float(effective), positionMs: local)
                     noRate = true
                     p.rate = 1
                     correcting = nil
@@ -139,6 +142,7 @@ final class PartySync {
             }
         } else if abs(drift) >= Self.tolerance {
             let rate: Float = drift < 0 ? 1.05 : 0.95
+            room.syncLog("rate", driftMs: drift, rate: rate, positionMs: local)
             correcting = rate
             correctingFrom = drift
             correctionStart = (local, Date())

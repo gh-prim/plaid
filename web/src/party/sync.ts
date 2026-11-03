@@ -84,6 +84,8 @@ export interface SyncHooks {
   /** Server time now. */
   serverNow(): number
   report(state: ScreenState, positionMs: number): void
+  /** What the screen did to stay in sync, for the server's logs. */
+  log?(event: 'seek' | 'rate' | 'settled', driftMs: number, rate: number, positionMs: number): void
   /** A drift larger than 1 s was corrected (Party15 toast). */
   onCaughtUp?(behindMs: number): void
 }
@@ -179,7 +181,9 @@ export class VideoSync {
     }
     if (v.paused) void v.play().catch(() => {})
     const c = correct(this.pos(), target, v.playbackRate, this.canRate)
+    const drift = Math.round(this.pos() - target)
     if (c.seekMs !== undefined && !v.seeking) {
+      this.hooks.log?.('seek', drift, v.playbackRate, Math.round(this.pos()))
       const behind = target - this.pos()
       this.ownSeekUntil = Date.now() + 3000
       v.currentTime = c.seekMs / 1000
@@ -187,6 +191,9 @@ export class VideoSync {
     } else if (c.rate !== 1 && v.playbackRate === 1) {
       const behind = target - this.pos()
       if (Math.abs(behind) > 1000) this.hooks.onCaughtUp?.(behind)
+    }
+    if (c.rate !== v.playbackRate && c.seekMs === undefined) {
+      this.hooks.log?.(c.rate === 1 ? 'settled' : 'rate', drift, c.rate, Math.round(this.pos()))
     }
     this.setRate(c.rate)
     this.report()

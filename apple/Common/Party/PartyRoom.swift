@@ -352,6 +352,13 @@ final class PartyRoom {
         socket?.post("party.report", Report(state: state, positionMs: positionMs, playbackSessionId: session, quality: quality))
     }
 
+    /// What the screen did to stay in sync (seek, rate, settled, noRate),
+    /// for the server's logs (api/events.md).
+    func syncLog(_ event: String, driftMs: Int64, rate: Float, positionMs: Int64) {
+        struct SyncLog: Encodable { let event: String; let driftMs: Int64; let rate: Float; let positionMs: Int64 }
+        socket?.post("party.sync.log", SyncLog(event: event, driftMs: driftMs, rate: rate, positionMs: positionMs))
+    }
+
     private func run(_ type: String, _ data: some Encodable) async {
         do {
             try await socket?.send(type, data)

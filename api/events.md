@@ -139,6 +139,14 @@ Screens report their state on every change and every 10 s while playing. `buffer
 
 States: `loading`, `ready`, `playing`, `paused`, `buffering`, `ended`, `blocked`, `credits`.
 
+A screen may tell what it did to stay in sync, for the server's logs only (nothing is sent back): `seek` (drift past the
+seek threshold), `rate` (a correction starts at 1.05 or 0.95), `settled`, `noRate` (the player ignores rates: seeks past 1 s
+from now on). `driftMs` is local minus room.
+
+```json client
+{ "type": "party.sync.log", "data": { "event": "seek", "driftMs": -3420, "rate": 1, "positionMs": 2292400 } }
+```
+
 Someone with control (host mode: the host and people given control; everyone mode: anyone):
 
 ```json client

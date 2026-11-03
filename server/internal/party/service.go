@@ -1054,6 +1054,27 @@ func (s *Service) Message(c *realtime.Conn, env realtime.Envelope) error {
 		err = l.room.ResumeWithout(now, me)
 	case "party.transcode.choose":
 		err = s.chooseTranscode(l, me, in.Choice, in.First, in.Quality)
+	case "party.sync.log":
+		// What a screen did to stay in sync (a seek, a rate), for the logs.
+		var sl struct {
+			Event      string  `json:"event"`
+			DriftMs    int64   `json:"driftMs"`
+			Rate       float64 `json:"rate"`
+			PositionMs int64   `json:"positionMs"`
+		}
+		if json.Unmarshal(env.Data, &sl) != nil || len(sl.Event) > 32 {
+			err = realtime.ErrBadMessage
+			break
+		}
+		name, device := "", ""
+		if p := l.room.people[me]; p != nil {
+			name = p.Name
+			if d := p.devices[c.ID]; d != nil {
+				device = d.Device.Type
+			}
+		}
+		s.o.Log.Info("party: sync", "party_id", l.party.ID, "name", name, "device", device, "event", sl.Event,
+			"drift_ms", sl.DriftMs, "rate", sl.Rate, "position_ms", sl.PositionMs, "room", l.room.pb.State)
 	case "party.next.stop":
 		if me != l.room.Host() {
 			err = ErrNotHost
