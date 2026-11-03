@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { PartiesRow } from '../party/PartiesRow'
 import { Link, useNavigate } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
@@ -77,6 +78,7 @@ export function HomePage() {
           <HomeHero item={hero} resume={resume} libraryName={heroLibrary} />
         </>
       )}
+      <PartiesRow />
       {home.rows.map((r) => (
         <Row
           key={r.id}

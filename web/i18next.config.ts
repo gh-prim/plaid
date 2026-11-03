@@ -9,6 +9,18 @@ export default defineConfig({
     defaultNS: 'common',
     primaryLanguage: 'en',
     removeUnusedKeys: true,
+    // Keys built from server values (error codes, device types, statuses).
+    preservePatterns: [
+      'party.error.*',
+      'party.device.*',
+      'party.screen.*',
+      'party.chat.system.*',
+      'party.answer.state.*',
+      'party.host.answer.*',
+      'party.vote.phase.*',
+      'party.sync.*',
+      'upcoming.episode.*',
+    ],
     sort: true,
     indentation: 2,
   },

@@ -341,19 +341,22 @@ func TestPartySettings(t *testing.T) {
 		Enabled   bool `json:"enabled"`
 		MaxPeople int  `json:"maxPeople"`
 		Guests    bool `json:"guests"`
+		Upload    int  `json:"uploadMbps"`
 	}
 	e.do("GET", "/settings/party", nil, bearer(e.admin)).json(&s)
 	if !s.Enabled || s.MaxPeople != 8 || s.Guests {
 		t.Fatalf("defaults = %+v", s)
 	}
-	r := e.do("PATCH", "/settings/party", map[string]any{"maxPeople": 4, "guests": true}, bearer(e.admin))
+	r := e.do("PATCH", "/settings/party", map[string]any{"maxPeople": 4, "guests": true, "uploadMbps": 40}, bearer(e.admin))
 	e.expect(r, http.StatusOK, "")
 	r.json(&s)
-	if !s.Enabled || s.MaxPeople != 4 || !s.Guests {
+	if !s.Enabled || s.MaxPeople != 4 || !s.Guests || s.Upload != 40 {
 		t.Errorf("after = %+v", s)
 	}
-	e.expect(e.do("PATCH", "/settings/party", map[string]any{"maxPeople": 40}, bearer(e.admin)),
+	e.expect(e.do("PATCH", "/settings/party", map[string]any{"maxPeople": 21}, bearer(e.admin)),
 		http.StatusUnprocessableEntity, "validation_failed")
+	e.expect(e.do("PATCH", "/settings/party", map[string]any{"maxPeople": 20}, bearer(e.admin)), http.StatusOK, "")
+	e.expect(e.do("PATCH", "/settings/party", map[string]any{"maxPeople": 4}, bearer(e.admin)), http.StatusOK, "")
 	e.expect(e.do("PATCH", "/settings/party", map[string]any{"enabled": false}, bearer(e.admin)), http.StatusOK, "")
 	e.do("GET", "/settings/party", nil, bearer(e.admin)).json(&s)
 	if s.Enabled || s.MaxPeople != 4 {

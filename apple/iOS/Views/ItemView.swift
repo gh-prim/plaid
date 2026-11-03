@@ -22,6 +22,7 @@ struct ItemView: View {
     /// The server no longer has it, or this profile can't see it.
     @State private var unavailable = false
     @Environment(\.previewsActive) private var previewsActive
+    @Environment(PartyNav.self) private var partyNav
 
     private var item: ItemSummary { detail?.summary ?? summary }
     private var gutter: CGFloat { wide ? Theme.wideGutter : Theme.gutter }
@@ -142,16 +143,22 @@ struct ItemView: View {
                             label: isWatched ? "item.markUnwatched" : "item.markWatched") {
                 Task { await toggleWatched(isWatched) }
             }
+            // Watch it together (F010, Party04): the movie, or the show's next episode.
+            if let target = playTarget {
+                GlassIconButton(systemImage: "party.popper", label: "party.title") { partyNav.launch = PartyTarget(item: target) }
+            }
         }
     }
 
-    /// The trailer, the version when there are several, and the preview's sound.
+    /// The trailer, the version when there are several, Follow for a show
+    /// (F010-R35), and the preview's sound.
     @ViewBuilder
     private var extras: some View {
         let showPreviewSound = (item.kind == .movie || item.kind == .show) && app.previewsOn
-        if bestTrailer != nil || versions.count > 1 || showPreviewSound {
+        if bestTrailer != nil || versions.count > 1 || showPreviewSound || item.kind == .show {
             HStack(spacing: 8) {
                 if let trailer = bestTrailer { TrailerButton(trailer: trailer) }
+                if item.kind == .show { FollowButton(showId: item.id) }
                 if versions.count > 1 {
                     Menu {
                         Picker(selection: $fileId) {
@@ -636,5 +643,28 @@ struct PersonView: View {
     private func load() async {
         guard let client = app.client else { return }
         do { person = try await client.get("/people/\(route.id)") } catch { failed = true }
+    }
+}
+
+/// "Follow" on a show's page (F010-R35): its episodes show in Upcoming. A
+/// show started and not finished is followed anyway.
+private struct FollowButton: View {
+    let showId: String
+    @Environment(AppState.self) private var app
+    @State private var state: ShowFollow?
+
+    var body: some View {
+        let on = state?.following ?? false
+        Button {
+            let explicit = state?.explicit ?? false
+            Task { if let s = try? await app.client?.setShowFollow(showId, !explicit) { state = s } }
+        } label: {
+            Label(on ? "item.following" : "item.follow", systemImage: on ? "bell.fill" : "bell")
+                .font(Theme.sans(13, .semibold))
+        }
+        .buttonStyle(.glass)
+        .opacity(state == nil ? 0.5 : 1)
+        .disabled(state == nil)
+        .task(id: showId) { state = try? await app.client?.showFollow(showId) }
     }
 }

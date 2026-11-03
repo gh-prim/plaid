@@ -26,7 +26,7 @@ export function Spinner({
 }
 
 type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'icon' | 'play'
+  variant?: 'primary' | 'cream' | 'secondary' | 'ghost' | 'icon' | 'play'
   size?: 'sm' | 'md'
   icon?: IconName
   /** Required for `icon` buttons: their accessible name. */

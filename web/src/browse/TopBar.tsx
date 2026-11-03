@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useInvitationCount } from '../party/notify'
 import { Link, NavLink, useLocation } from 'react-router'
 import type { components } from '../api/schema'
 import { Avatar, Icon, cx } from '../ui'
@@ -32,6 +33,7 @@ export function TopBar({
   streams?: ActivePlayback[]
 }) {
   const { t } = useTranslation()
+  const invitations = useInvitationCount()
   const [menu, setMenu] = useState(false)
   const scrolled = useScrolled()
   const { pathname } = useLocation()
@@ -72,6 +74,17 @@ export function TopBar({
             {l.name}
           </NavLink>
         ))}
+        <NavLink to="/upcoming" className="br-nav__tab pl-focusable">
+          {t('nav.upcoming')}
+          {invitations > 0 && (
+            <span
+              className="pl-badge pl-badge--count"
+              aria-label={t('upcoming.invitations', { count: invitations })}
+            >
+              {invitations}
+            </span>
+          )}
+        </NavLink>
         {onSearch ? (
           // On the search page the magnifier becomes the field (V2).
           <label className="br-nav__search" role="search">

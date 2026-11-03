@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // Keep the browser's Host header: the server's CSRF check compares it
       // with the Origin of state-changing requests (F003-R10).
-      '/api': { target: 'http://localhost:32500', changeOrigin: false },
+      '/api': { target: 'http://localhost:32500', changeOrigin: false, ws: true },
     },
   },
   build: {

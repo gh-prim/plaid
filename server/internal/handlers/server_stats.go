@@ -118,7 +118,7 @@ func (h *Handlers) GetActivity(ctx context.Context, req api.GetActivityRequestOb
 	if err != nil {
 		return nil, err
 	}
-	since := time.Now().AddDate(0, 0, -days).UTC().Format("2006-01-02T15:04:05.000Z")
+	since := h.now().AddDate(0, 0, -days).UTC().Format("2006-01-02T15:04:05.000Z")
 	for _, v := range seen {
 		if v.At >= since {
 			out.ActivePeople++

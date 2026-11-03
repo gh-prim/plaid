@@ -9,6 +9,9 @@ enum Section: Hashable {
 /// each library, Search and Settings, then the profile avatar.
 struct MainView: View {
     @Environment(AppState.self) private var app
+    @Environment(PartyCenter.self) private var party
+    @Environment(TVPartyNav.self) private var partyNav
+    @Environment(\.scenePhase) private var scenePhase
     @State private var libraries: [Library] = []
     @State private var section: Section = .home
     @State private var playing: PlayRequest?
@@ -166,6 +169,28 @@ struct MainView: View {
         .fullScreenCover(item: $playing) { req in
             PlayerView(request: req)
         }
+        .modifier(TVPartyPresenter(nav: partyNav))
+        // The socket stays open while the app is in the foreground (F010):
+        // the phone can cast a party here (R22) and see this TV as a screen.
+        .task { party.start(app.client) }
+        .onChange(of: scenePhase) { _, phase in
+            switch phase {
+            case .active: party.start(app.client)
+            case .background: party.stop()
+            default: break
+            }
+        }
+        .onChange(of: party.cast) { _, cast in
+            guard let cast else { return }
+            party.cast = nil
+            playing = nil
+            partyNav.open = .init(partyId: cast.partyId)
+        }
+        .onChange(of: party.voteClosed) { _, id in
+            guard let id, partyNav.open == nil, playing == nil else { return }
+            party.voteClosed = nil
+            partyNav.reveal = .init(partyId: id)
+        }
         .task {
             if let client = app.client, let libs: [Library] = try? await client.get("/libraries") {
                 libraries = libs
@@ -206,6 +231,17 @@ struct MainView: View {
                 .focusSection()
                 .padding(.leading, Theme.rail - Theme.systemMargin)
         }
+    }
+}
+
+/// The party player and the vote reveal, full screen (F010).
+private struct TVPartyPresenter: ViewModifier {
+    @Bindable var nav: TVPartyNav
+
+    func body(content: Content) -> some View {
+        content
+            .fullScreenCover(item: $nav.open) { PartyPlayerView(partyId: $0.partyId) }
+            .fullScreenCover(item: $nav.reveal) { VoteReveal(partyId: $0.partyId) }
     }
 }
 

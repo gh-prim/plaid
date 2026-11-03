@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { FollowButton, PartyButton } from '../party/PartyButton'
 import { Link, Navigate, useParams } from 'react-router'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
@@ -129,6 +130,7 @@ function MoviePage({ item, reload }: { item: ItemDetail; reload: () => Promise<v
           {t('playback.startOver')}
         </Link>
       )}
+      {!missing && files.length > 0 && <PartyButton itemId={item.id} title={item.displayTitle} />}
       {files.length > 1 && (
         <label className="br-select br-version">
           <span>{t('item.version')}</span>
@@ -241,6 +243,7 @@ function ShowPage({ item, reload }: { item: ItemDetail; reload: () => Promise<vo
         </Link>
       )}
       <WatchedButton item={item} reload={reload} />
+      <FollowButton showId={item.id} />
       <AdminEdit item={item} reload={reload} />
       {ep && <Left item={ep} />}
     </>
@@ -341,6 +344,7 @@ function EpisodePage({ item, reload }: { item: ItemDetail; reload: () => Promise
           {t('playback.startOver')}
         </Link>
       )}
+      {files.length > 0 && <PartyButton itemId={item.id} title={item.displayTitle} />}
       <WatchedButton item={item} reload={reload} />
       <Left item={item} />
     </>

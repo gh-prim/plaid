@@ -99,6 +99,48 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/auth/backdrop': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Posters for the sign-in page's wall
+     * @description Up to 60 posters of the server's movies and shows, in random order, for the animated wall behind the web sign-in page. Public: anyone who can reach the server sees them. Only matched, visible titles rated 12 or under, or unrated, are picked. Fetch each one from `/auth/backdrop/{imageId}`.
+     */
+    get: operations['getSignInBackdrop']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/auth/backdrop/{imageId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        imageId: string
+      }
+      cookie?: never
+    }
+    /**
+     * One poster of the sign-in wall
+     * @description Public. The same image as `/images/{imageId}`, but only for a poster `/auth/backdrop` may pick; any other id is a 404.
+     */
+    get: operations['getSignInBackdropImage']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/auth/logout': {
     parameters: {
       query?: never
@@ -1408,6 +1450,347 @@ export interface paths {
     patch: operations['updatePlaybackSettings']
     trace?: never
   }
+  '/parties': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * My Plaid Parties (F010-R37, R40)
+     * @description Parties not over that the caller organizes or is invited to, soonest first. An admin with `all=true` gets every party not over (R43).
+     */
+    get: operations['listParties']
+    put?: never
+    /**
+     * Start or schedule a Plaid Party (F010-R1, R2, R28, R31)
+     * @description Needs the `start` party right (F009). Without `scheduledAt` the party is live at once; with it, it's scheduled (15 min to 60 days ahead); with `vote`, the group picks the title first. `showId` + numbers plan a party on an episode not on the server yet (R38).
+     */
+    post: operations['createParty']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/people': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * People the caller can invite (F010-R28)
+     * @description Accounts with the `join` or `start` party right, other than the caller. Display names and pictures only.
+     */
+    get: operations['listPartyPeople']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/party-codes/{code}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        code: string
+      }
+      cookie?: never
+    }
+    /**
+     * What a party code leads to (F010-R3, Party14)
+     * @description Public, rate-limited per address like invitation links. 404 for an unknown code or a party that's over.
+     */
+    get: operations['lookupPartyCode']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/party-codes/{code}/guest': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        code: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Join a party without an account (F010-R5)
+     * @description Only when the admin allows guests. Returns a guest token scoped to that party (the web gets it as the `plaid_guest` cookie): its socket, its item's playback and artwork. Public, rate-limited per address.
+     */
+    post: operations['joinPartyAsGuest']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    /**
+     * One party (F010)
+     * @description For its organizer, its invitees, the people in its room, its guests and admins; 404 for anyone else.
+     */
+    get: operations['getParty']
+    put?: never
+    post?: never
+    /** Cancel a party, or end a live one for everyone (organizer, admin) */
+    delete: operations['cancelParty']
+    options?: never
+    head?: never
+    /** Change a party (organizer) */
+    patch: operations['updateParty']
+    trace?: never
+  }
+  '/parties/{partyId}/invites': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Invite more people, also during a live party (F010-R3) */
+    post: operations['inviteToParty']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}/answer': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    /** Answer an invitation (F010-R28) */
+    put: operations['answerParty']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}/nudge': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Remind invitees who haven't answered, proposed or voted (organizer)
+     * @description Each one gets a `party.nudge` notification. Only invitees of the party who didn't decline.
+     */
+    post: operations['nudgeParty']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}/vote/ranking': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Close the proposals now and open the ranking (organizer)
+     * @description Moves the proposal deadline to now; every voter gets a `party.vote.ranking` notification. 409 outside the proposals phase.
+     */
+    post: operations['startPartyRanking']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}/vote': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    /**
+     * A party's vote (F010-R31–R33)
+     * @description Proposals, who voted (never for what), the caller's own ballot, and the result once closed.
+     */
+    get: operations['getPartyVote']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}/vote/proposals/{itemId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+        itemId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    /** Propose a title (2 each, until the proposal deadline, R31) */
+    put: operations['proposeForParty']
+    post?: never
+    /** Withdraw one's own proposal */
+    delete: operations['withdrawPartyProposal']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}/vote/ballot': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Rank a top 3 and maybe veto one (R32)
+     * @description Anonymous; can be changed until the ranking deadline.
+     */
+    put: operations['castPartyBallot']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/parties/{partyId}/vote/suggestions': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    /** Titles nobody invited has watched (R34) */
+    get: operations['partyVoteSuggestions']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/upcoming': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * The Upcoming tab (F010-R37)
+     * @description For the active profile, between two dates (default today to 60 days ahead): invitations to answer, episodes of followed shows (started and not finished, or followed from their page) with their status, and parties.
+     */
+    get: operations['getUpcoming']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/shows/{showId}/follow': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+      }
+      cookie?: never
+    }
+    /** Whether the active profile follows a show (F010-R35) */
+    get: operations['getShowFollow']
+    /** Follow a show from its page */
+    put: operations['followShow']
+    post?: never
+    /** Stop following a show (one started stays followed until it's finished) */
+    delete: operations['unfollowShow']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/shows/{showId}/alerts/{season}/{episode}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+        season: number
+        episode: number
+      }
+      cookie?: never
+    }
+    get?: never
+    /** Notify me when this episode is on the server (F010-R38) */
+    put: operations['setReleaseAlert']
+    post?: never
+    /** Stop the alert */
+    delete: operations['clearReleaseAlert']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/settings/party': {
     parameters: {
       query?: never
@@ -1415,7 +1798,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** Plaid Party settings (admin, step 21, ahead of F010) */
+    /** Plaid Party settings (admin, F010-R42) */
     get: operations['getPartySettings']
     put?: never
     post?: never
@@ -1979,6 +2362,10 @@ export interface components {
       locale?: string
       setupCode?: string
       device?: components['schemas']['Device']
+    }
+    SignInBackdrop: {
+      /** @description Image ids, for `/auth/backdrop/{imageId}`. */
+      posters: string[]
     }
     LoginRequest: {
       username: string
@@ -3065,6 +3452,8 @@ export interface components {
       startPositionMs: number
       /** Format: int64 */
       maxBitrate?: number
+      /** @description Play as a screen of this Plaid Party (F010-R12): the party opens its title even outside the person's libraries (R6, the age limit still applies, 403 `party_age_limit`); guests always play their own party's title. */
+      partyId?: string
       quality?: components['schemas']['Quality']
       /** @default false */
       burnSubtitles: boolean
@@ -3230,18 +3619,245 @@ export interface components {
       hwDevice?: string
       hardware: components['schemas']['HardwareStatus']
     }
+    /** @description A party's title. Episodes carry their show and numbers. */
+    PartyItem: {
+      id: string
+      /** @enum {string} */
+      kind: 'movie' | 'episode'
+      title: string
+      year?: number
+      showId?: string
+      showTitle?: string
+      season?: number
+      episode?: number
+      /** @description The selected poster (the show's for an episode); fetch it with GET /images/{imageId}?w=. */
+      posterId?: string
+      /** @description The selected backdrop (the show's for an episode); fetch it with GET /images/{imageId}?w=. */
+      backdropId?: string
+      /** Format: int64 */
+      runtimeMs?: number
+    }
+    /** @description A title proposed for the vote, and who proposed it (R31). */
+    PartyProposal: {
+      item: components['schemas']['PartyItem']
+      /** @description The proposer's display name. */
+      proposedBy: string
+      proposer: components['schemas']['PartyPerson']
+      mine: boolean
+    }
+    PartyPerson: {
+      userId: string
+      name: string
+      avatarColor: number
+      avatar: components['schemas']['Avatar']
+    }
+    PartyInvite: {
+      person: components['schemas']['PartyPerson']
+      /** @enum {string} */
+      answer: 'pending' | 'yes' | 'maybe' | 'no'
+    }
+    /** @description The end screen (F010-R21). */
+    PartySummary: {
+      people: string[]
+      /** Format: int64 */
+      togetherMs: number
+      reactions: number
+      pauseRequests: number
+      /** Format: int64 */
+      peakPositionMs?: number
+      peakEmoji?: string
+    }
+    Party: {
+      id: string
+      /**
+       * @description Shown as XXX-XXX. For last-minute joiners; invitees join by id (F010-R3).
+       * @example K7P-4QX
+       */
+      code: string
+      /** @description The join link, `<public base>/p/<code>` (R2). */
+      link: string
+      /** @enum {string} */
+      status: 'scheduled' | 'voting' | 'lobby' | 'live' | 'ended' | 'cancelled'
+      item?: components['schemas']['PartyItem']
+      /** @description An episode not on the server yet (R38). */
+      futureEpisode?: {
+        showId: string
+        season: number
+        episode: number
+      }
+      organizer: components['schemas']['PartyPerson']
+      /** @enum {string} */
+      controlMode: 'host' | 'everyone'
+      /** Format: date-time */
+      scheduledAt?: string
+      note?: string
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      startedAt?: string
+      /** Format: date-time */
+      endedAt?: string
+      invites: components['schemas']['PartyInvite'][]
+      /**
+       * @description The caller's answer, when invited.
+       * @enum {string}
+       */
+      myAnswer?: 'pending' | 'yes' | 'maybe' | 'no'
+      /** @description The room, while it's open. */
+      live?: {
+        count: number
+        max: number
+        /** @description playing, paused or waiting. */
+        state: string
+        /** Format: int64 */
+        positionMs: number
+      }
+      /** @description Whether the 15-minute reminder is on (scheduled parties). */
+      reminder?: boolean
+      vote?: {
+        /** Format: date-time */
+        proposalsUntil: string
+        /** Format: date-time */
+        rankingUntil: string
+        closed: boolean
+      }
+      summary?: components['schemas']['PartySummary']
+    }
+    PartyCreate: {
+      itemId?: string
+      /**
+       * @default host
+       * @enum {string}
+       */
+      controlMode: 'host' | 'everyone'
+      /** Format: date-time */
+      scheduledAt?: string
+      note?: string
+      invite?: string[]
+      /**
+       * @description Remind the organizer and the invitees who said yes or maybe 15 minutes before (R29).
+       * @default true
+       */
+      reminder: boolean
+      vote?: {
+        /** Format: date-time */
+        proposalsUntil: string
+        /** Format: date-time */
+        rankingUntil: string
+      }
+      showId?: string
+      season?: number
+      episode?: number
+    }
+    PartyUpdate: {
+      /** @description Turn the 15-minute reminder on or off (R29). */
+      reminder?: boolean
+      /** Format: date-time */
+      scheduledAt?: string
+      note?: string
+      itemId?: string
+      /** @enum {string} */
+      controlMode?: 'host' | 'everyone'
+    }
+    /** @description What the public join page shows (Party14, Party25). */
+    PartyPreview: {
+      code: string
+      /** @enum {string} */
+      status: 'scheduled' | 'voting' | 'lobby' | 'live'
+      hostName: string
+      item?: components['schemas']['PartyItem']
+      /** Format: date-time */
+      startedAt?: string
+      /** Format: date-time */
+      scheduledAt?: string
+      watching: number
+      full: boolean
+      /** @description Whether someone without an account may join. */
+      guests: boolean
+    }
+    PartyGuestSession: {
+      partyId: string
+      guestId: string
+      firstName: string
+      /** @description Native apps only; the web gets the `plaid_guest` cookie. */
+      token?: string
+    }
+    PartyVote: {
+      /** Format: date-time */
+      proposalsUntil: string
+      /** Format: date-time */
+      rankingUntil: string
+      /** @enum {string} */
+      phase: 'proposals' | 'ranking' | 'closed'
+      proposals: components['schemas']['PartyProposal'][]
+      /** @description Who voted, never what (R32). */
+      voters: {
+        userId: string
+        name: string
+        voted: boolean
+      }[]
+      myRanking: string[]
+      myVeto?: string
+      /** @description Once closed. */
+      result?: {
+        scores: {
+          itemId: string
+          points: number
+          vetoed: boolean
+        }[]
+        tied?: string[]
+        winner?: string
+        /** @description The tie draw's seed; the draw is Draw(tied, seed) and can be checked again (R33). */
+        seed?: string
+      }
+    }
+    ShowFollow: {
+      /** @description The show is in Upcoming, followed explicitly or started and not finished. */
+      following: boolean
+      /** @description Followed from the show page. */
+      explicit: boolean
+    }
+    UpcomingEpisode: {
+      showId: string
+      showTitle: string
+      season: number
+      episode: number
+      title?: string
+      /**
+       * Format: date
+       * @description TMDB gives the date only.
+       */
+      airDate: string
+      /** @enum {string} */
+      status: 'released_on_server' | 'released_pending_file' | 'upcoming'
+      /** @description The episode on the server, when it's there. */
+      itemId?: string
+      /** @description The show's selected backdrop; fetch it with GET /images/{imageId}?w=. */
+      backdropId?: string
+      /** @description Notify me is on. */
+      alert: boolean
+    }
+    Upcoming: {
+      invitations: components['schemas']['Party'][]
+      episodes: components['schemas']['UpcomingEpisode'][]
+      parties: components['schemas']['Party'][]
+    }
     PartySettings: {
       /** @description Watch together, at home or away. On by default. */
       enabled: boolean
-      /** @description People per party, the host included. 8 by default. */
+      /** @description People per party, the host included. 8 by default (F010-R4). */
       maxPeople: number
       /** @description Someone without an account can join from the party's link. Off by default. */
       guests: boolean
+      /** @description The home connection's upload speed in Mbps, given by the admin; 0 when unknown. Caps remote party streams (F010-R27). */
+      uploadMbps: number
     }
     PartySettingsUpdate: {
       enabled?: boolean
       maxPeople?: number
       guests?: boolean
+      /** @description 0 forgets the value. */
+      uploadMbps?: number
     }
     PlaybackSettingsUpdate: {
       maxTranscodes?: number | null
@@ -3716,6 +4332,67 @@ export interface operations {
         content: {
           'application/json': components['schemas']['AuthResult']
         }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getSignInBackdrop: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The wall's posters */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SignInBackdrop']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getSignInBackdropImage: {
+    parameters: {
+      query?: {
+        /** @description Wanted width in pixels; defaults to 342. */
+        w?: number
+      }
+      header?: {
+        'If-None-Match'?: string
+      }
+      path: {
+        imageId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The image */
+      200: {
+        headers: {
+          ETag?: string
+          'Cache-Control'?: string
+          'X-Content-Type-Options'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'image/jpeg': string
+          'image/png': string
+        }
+      }
+      /** @description Not modified (If-None-Match matched) */
+      304: {
+        headers: {
+          ETag?: string
+          [name: string]: unknown
+        }
+        content?: never
       }
       default: components['responses']['Error']
     }
@@ -5804,6 +6481,567 @@ export interface operations {
         content: {
           'application/json': components['schemas']['PlaybackSettings']
         }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listParties: {
+    parameters: {
+      query?: {
+        all?: boolean
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The parties */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Party'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  createParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PartyCreate']
+      }
+    }
+    responses: {
+      /** @description The party, with its code and link */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Party']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  listPartyPeople: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The people */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyPerson'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  lookupPartyCode: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        code: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The party's preview */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyPreview']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  joinPartyAsGuest: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        code: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          firstName: string
+        }
+      }
+    }
+    responses: {
+      /** @description The guest */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyGuestSession']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The party */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Party']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  cancelParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Cancelled or ended */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  updateParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PartyUpdate']
+      }
+    }
+    responses: {
+      /** @description The party */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Party']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  inviteToParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          userIds: string[]
+        }
+      }
+    }
+    responses: {
+      /** @description Invited; they get a notification */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  answerParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          answer: 'yes' | 'maybe' | 'no'
+        }
+      }
+    }
+    responses: {
+      /** @description Recorded */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  nudgeParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          userIds: string[]
+        }
+      }
+    }
+    responses: {
+      /** @description Nudged */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  startPartyRanking: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The vote */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyVote']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getPartyVote: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The vote */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyVote']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  proposeForParty: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+        itemId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The vote */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyVote']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  withdrawPartyProposal: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+        itemId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The vote */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyVote']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  castPartyBallot: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          ranking: string[]
+          veto?: string | null
+        }
+      }
+    }
+    responses: {
+      /** @description The vote */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyVote']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  partyVoteSuggestions: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        partyId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Up to 12 item ids */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PartyItem'][]
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getUpcoming: {
+    parameters: {
+      query?: {
+        from?: string
+        to?: string
+        kind?: 'all' | 'episodes' | 'parties'
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The tab */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Upcoming']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getShowFollow: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The follow state */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ShowFollow']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  followShow: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The follow state */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ShowFollow']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  unfollowShow: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The follow state */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ShowFollow']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  setReleaseAlert: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+        season: number
+        episode: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Set */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      default: components['responses']['Error']
+    }
+  }
+  clearReleaseAlert: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        showId: string
+        season: number
+        episode: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Cleared */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
       default: components['responses']['Error']
     }

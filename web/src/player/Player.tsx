@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
   type RefObject,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -46,6 +47,7 @@ import {
   pickTracks,
   rememberAudio,
   rememberSubtitles,
+  avoidBurnIn,
   rememberVolume,
 } from './trackMemory'
 import { endPhase } from './upNext'
@@ -73,6 +75,29 @@ const ladderHeight: Record<string, number> = {
   '720p': 720,
   '480p': 480,
   '360p': 360,
+}
+
+/**
+ * What a Plaid Party gives the player (F010-R12, R13): it plays the room's
+ * title from the room's position, its controls ask the room instead of
+ * acting alone, and the room drives the video once it plays.
+ */
+export interface PartyBridge {
+  partyId: string
+  /** The room's position when the player starts. */
+  startMs(): number
+  control(action: 'play' | 'pause' | 'seek', positionMs?: number): void
+  attach(video: HTMLVideoElement, sessionId: string, quality: string, method: string): void
+  /** 503 transcode_limit_reached: the host gets the choice (R26). */
+  blocked(quality?: string): void
+  /** A quality the room asked for (one shared encode). */
+  quality?: Quality
+  /** The panel, toasts and sheets drawn over the player. */
+  overlay: ReactNode
+  /** Leaving the player leaves the party view. */
+  onBack(): void
+  /** The end credits started (R30). */
+  credits?(): void
 }
 
 /**
@@ -112,13 +137,14 @@ export default function Player() {
   )
 }
 
-function Playback({
+export function Playback({
   itemId,
   fileId,
   startMs,
   autoplayed,
   shell,
   onBack,
+  party,
 }: {
   itemId: string
   fileId?: string
@@ -126,6 +152,7 @@ function Playback({
   autoplayed: number
   shell: RefObject<HTMLDivElement | null>
   onBack: (fallback: string) => void
+  party?: PartyBridge
 }) {
   const { t, i18n } = useTranslation()
   const lng = i18n.language
@@ -156,6 +183,12 @@ function Playback({
   const engine = useRef<Engine | null>(null)
   const progress = useRef<Progress | null>(null)
   const retried = useRef(false)
+  // The subtitles on screen, for a retry started from an older callback.
+  const onScreen = useRef<{ index: number | null; burn: boolean }>({ index: null, burn: false })
+  useEffect(() => {
+    const burned = session?.subtitles.find((s) => s.selected && s.delivery === 'burn_in')
+    onScreen.current = burned ? { index: burned.index, burn: true } : { index: sub, burn: false }
+  }, [session, sub])
   const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const lastTap = useRef<{ at: number; x: number } | null>(null)
 
@@ -190,13 +223,25 @@ function Playback({
     const picks = files.map((f) => pickTracks(choice, f.streams))
     // Indexes differ between files: apply them only when every file agrees.
     const same = picks.every((p) => JSON.stringify(p) === JSON.stringify(picks[0]))
-    return same && picks[0] ? picks[0] : {}
+    if (!same || !picks[0]) return {}
+    if (party && files.length === 1 && picks[0].subtitleStreamIndex !== undefined) {
+      return {
+        ...picks[0],
+        subtitleStreamIndex: avoidBurnIn(picks[0].subtitleStreamIndex, files[0]!.streams),
+      }
+    }
+    return picks[0]
   }
 
   async function start(
     it: Item,
     atMs: number,
-    extra: { forceMethod?: 'transcode'; quality?: Quality } = {},
+    extra: {
+      forceMethod?: 'transcode'
+      quality?: Quality
+      subtitleStreamIndex?: number | null
+      burnSubtitles?: boolean
+    } = {},
   ) {
     setPhase({ k: 'starting' })
     setMenu(null)
@@ -206,9 +251,13 @@ function Playback({
       burnSubtitles: false,
       ...(fileId ? { fileId } : {}),
       ...tracksFor(it),
+      ...(party
+        ? { partyId: party.partyId, ...(party.quality ? { quality: party.quality } : {}) }
+        : {}),
       ...extra,
     })
     if ('failure' in r) {
+      if (party && r.failure.code === 'transcode_limit_reached') party.blocked(extra.quality)
       if (r.failure.code === 'profile_required') {
         void navigate('/profiles', { state: { from: { pathname: `/watch/${itemId}` } } })
         return
@@ -224,6 +273,7 @@ function Playback({
     p.follow(video.current!)
     setPhase({ k: 'playing' })
     await attachStream(s, atMs, it)
+    if (party) party.attach(video.current!, s.id, s.quality, s.method)
   }
 
   function halt(atMs: number) {
@@ -250,9 +300,15 @@ function Playback({
     }
     halt(at)
     if (f.kind === 'media' && !retried.current && it) {
-      // One automatic retry as a conversion (F008-R45).
+      // One automatic retry as a conversion (F008-R45), with the subtitles
+      // on screen rather than the remembered language's first track.
       retried.current = true
-      void start(it, at, { forceMethod: 'transcode' })
+      const { index, burn } = onScreen.current
+      void start(it, at, {
+        forceMethod: 'transcode',
+        subtitleStreamIndex: index,
+        burnSubtitles: burn,
+      })
       return
     }
     setPhase({
@@ -288,7 +344,12 @@ function Playback({
     rememberSubtitles(
       profileId,
       target
-        ? { language: target.language, forced: target.forced, sdh: sdh.has(target.index) }
+        ? {
+            language: target.language,
+            forced: target.forced,
+            sdh: sdh.has(target.index),
+            image: target.delivery === 'burn_in' || isPgs(target),
+          }
         : 'off',
     )
     const burned = session.subtitles.find((s) => s.selected && s.delivery === 'burn_in')
@@ -364,6 +425,11 @@ function Playback({
         return
       }
       setItem(data)
+      if (party) {
+        // The room says where to start; it runs the next episode too (R30).
+        void start(data, party.startMs())
+        return
+      }
       const resume = data.userState?.watched ? 0 : (data.userState?.positionMs ?? 0)
       if (startMs !== null) void start(data, startMs)
       else if (resume > 0) setPhase({ k: 'ask', positionMs: resume })
@@ -471,8 +537,19 @@ function Playback({
   }, [media.ended, media.durationMs])
 
   useEffect(() => {
-    if (playing && end === 'leave') void navigate(detailPath, { replace: true })
-  }, [playing, end, navigate, detailPath])
+    if (!party && playing && end === 'leave') void navigate(detailPath, { replace: true })
+  }, [party, playing, end, navigate, detailPath])
+
+  // In a party, the last 30 s tell the room the credits started: it offers
+  // the next episode to everyone together (F010-R30).
+  const creditsSent = useRef(false)
+  const nearEnd = media.durationMs > 0 && media.durationMs - media.timeMs < 30_000
+  useEffect(() => {
+    if (party && playing && nearEnd && !creditsSent.current) {
+      creditsSent.current = true
+      party.credits?.()
+    }
+  }, [party, playing, nearEnd])
 
   function playNext(auto: boolean) {
     if (!next) return
@@ -496,14 +573,17 @@ function Playback({
   function toggle() {
     const v = video.current
     if (!v) return
-    if (v.paused) void v.play().catch(() => {})
+    if (party) party.control(v.paused ? 'play' : 'pause', pos())
+    else if (v.paused) void v.play().catch(() => {})
     else v.pause()
   }
 
   function seekTo(ms: number) {
     const v = video.current
     if (!v) return
-    v.currentTime = Math.max(0, Math.min(ms, media.durationMs || ms)) / 1000
+    const at = Math.max(0, Math.min(ms, media.durationMs || ms))
+    if (party) party.control('seek', Math.round(at))
+    else v.currentTime = at / 1000
   }
 
   function toggleFullscreen() {
@@ -897,7 +977,7 @@ function Playback({
           onCopyLink={copyLink}
         />
       )}
-      {playing && next && (end === 'card' || end === 'countdown') && (
+      {!party && playing && next && (end === 'card' || end === 'countdown') && (
         <NextEpisode
           next={next}
           counting={end === 'countdown'}
@@ -905,20 +985,21 @@ function Playback({
           onCancel={() => setCancelled(true)}
         />
       )}
-      {playing && next && end === 'stillWatching' && (
+      {!party && playing && next && end === 'stillWatching' && (
         <StillWatching
           next={next}
           onContinue={() => playNext(false)}
           onStop={() => void navigate(detailPath, { replace: true })}
         />
       )}
-      {playing && end === 'endOfShow' && item?.show && (
+      {!party && playing && end === 'endOfShow' && item?.show && (
         <EndOfShow
           show={item.show.displayTitle}
           onBack={() => void navigate(detailPath, { replace: true })}
         />
       )}
       {menu === 'shortcuts' && <ShortcutsDialog onClose={closeMenu} />}
+      {party?.overlay}
     </div>
   )
 }

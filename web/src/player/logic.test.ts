@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { shortcutFor } from './shortcuts'
 import {
+  avoidBurnIn,
+  matchSubtitle,
   cycleSubtitle,
   loadAutoplay,
   loadChoice,
@@ -142,5 +144,45 @@ describe('upNext', () => {
     expect(at({ ended: true, hasNext: false })).toBe('endOfShow')
     expect(at({ ended: true, hasNext: false, isEpisode: false })).toBe('leave')
     expect(at({ ended: true, hasNext: undefined })).toBe('leave')
+  })
+})
+
+describe('matchSubtitle', () => {
+  // 1917's English tracks: two DVD pictures (the first only the forced lines), then an SRT.
+  const subs = [
+    { index: 3, language: 'eng', forced: false, sdh: false, imageBased: true },
+    { index: 4, language: 'eng', forced: false, sdh: false, imageBased: true },
+    { index: 5, language: 'eng', forced: false, sdh: false, imageBased: false },
+  ]
+  it('prefers the same kind of track: text unless a picture one was chosen', () => {
+    expect(matchSubtitle({ language: 'eng', forced: false, sdh: false }, subs)).toBe(5)
+    expect(matchSubtitle({ language: 'eng', forced: false, sdh: false, image: true }, subs)).toBe(3)
+  })
+})
+
+describe('avoidBurnIn', () => {
+  const s = (index: number, codec: string, imageBased: boolean, language = 'eng') =>
+    ({
+      index,
+      type: 'subtitle',
+      codec,
+      language,
+      imageBased,
+      forced: false,
+      sdh: false,
+      default: false,
+      external: false,
+    }) as never
+  const streams = [
+    s(3, 'dvd_subtitle', true),
+    s(4, 'hdmv_pgs_subtitle', true),
+    s(5, 'subrip', false),
+    s(6, 'dvd_subtitle', true, 'fin'),
+  ]
+  it('swaps a burned-in picture track for the text one of the same language', () => {
+    expect(avoidBurnIn(3, streams)).toBe(5)
+    expect(avoidBurnIn(4, streams)).toBe(4) // PGS: drawn by the browser
+    expect(avoidBurnIn(6, streams)).toBe(6) // no Finnish text track
+    expect(avoidBurnIn(null, streams)).toBe(null)
   })
 })

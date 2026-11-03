@@ -27,6 +27,13 @@ final class APIClient {
         return d
     }()
 
+    /// Dates go out as RFC 3339, as the API reads them (a party's time).
+    private let encoder: JSONEncoder = {
+        let e = JSONEncoder()
+        e.dateEncodingStrategy = .iso8601
+        return e
+    }()
+
     init(baseURL: URL, token: String? = nil) {
         self.baseURL = baseURL
         self.token = token
@@ -135,7 +142,7 @@ final class APIClient {
         r.setValue("application/json", forHTTPHeaderField: "Accept")
         for (k, v) in headers { r.setValue(v, forHTTPHeaderField: k) }
         if let body {
-            r.httpBody = try JSONEncoder().encode(body)
+            r.httpBody = try encoder.encode(body)
             r.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         let data: Data, response: URLResponse
@@ -160,5 +167,83 @@ final class APIClient {
         let (data, response) = try await session.data(for: authorized(url))
         guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw APIError.network }
         return data
+    }
+}
+
+// MARK: Plaid Party (F010)
+
+extension APIClient {
+    /// Parties not over that I organize or am invited to, soonest first.
+    func parties() async throws -> [Party] { try await get("/parties") }
+
+    func party(_ id: String) async throws -> Party { try await get("/parties/\(id)") }
+
+    func createParty(_ body: PartyCreate) async throws -> Party { try await post("/parties", body) }
+
+    func updateParty(_ id: String, _ body: PartyUpdate) async throws -> Party { try await patch("/parties/\(id)", body) }
+
+    /// Cancels a scheduled party, or ends a live one for everyone.
+    func cancelParty(_ id: String) async throws {
+        try await send("DELETE", "/parties/\(id)", body: Optional<Int>.none)
+    }
+
+    func invite(_ userIds: [String], to partyId: String) async throws {
+        try await send("POST", "/parties/\(partyId)/invites", body: ["userIds": userIds])
+    }
+
+    /// yes, maybe or no.
+    func answerParty(_ id: String, _ answer: String) async throws {
+        try await send("PUT", "/parties/\(id)/answer", body: ["answer": answer])
+    }
+
+    func partyPeople() async throws -> [PartyPerson] { try await get("/parties/people") }
+
+    /// A code as typed: the separator and case don't matter.
+    func partyPreview(code: String) async throws -> PartyPreview {
+        try await get("/party-codes/\(code.uppercased().filter { $0.isLetter || $0.isNumber })")
+    }
+
+    func partyVote(_ id: String) async throws -> PartyVote { try await get("/parties/\(id)/vote") }
+
+    func propose(_ itemId: String, in partyId: String, _ on: Bool) async throws -> PartyVote {
+        let (data, _) = try await send(on ? "PUT" : "DELETE", "/parties/\(partyId)/vote/proposals/\(itemId)", body: Optional<Int>.none)
+        return try decode(data)
+    }
+
+    func castBallot(_ ballot: Ballot, in partyId: String) async throws -> PartyVote {
+        try await put("/parties/\(partyId)/vote/ballot", ballot)
+    }
+
+    func voteSuggestions(_ partyId: String) async throws -> [PartyItem] { try await get("/parties/\(partyId)/vote/suggestions") }
+
+    /// The Upcoming tab between two days (kind: all, episodes or parties).
+    func upcoming(from: Date, to: Date, kind: String = "all") async throws -> Upcoming {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return try await get("/upcoming", query: [
+            .init(name: "from", value: f.string(from: from)), .init(name: "to", value: f.string(from: to)),
+            .init(name: "kind", value: kind),
+        ])
+    }
+
+    func showFollow(_ showId: String) async throws -> ShowFollow { try await get("/shows/\(showId)/follow") }
+
+    func setShowFollow(_ showId: String, _ on: Bool) async throws -> ShowFollow {
+        let (data, _) = try await send(on ? "PUT" : "DELETE", "/shows/\(showId)/follow", body: Optional<Int>.none)
+        return try decode(data)
+    }
+
+    /// Notify me when this episode is on the server (R38).
+    func setReleaseAlert(_ e: UpcomingEpisode, _ on: Bool) async throws {
+        try await send(on ? "PUT" : "DELETE", "/shows/\(e.showId)/alerts/\(e.season)/\(e.episode)", body: Optional<Int>.none)
+    }
+
+    /// The realtime socket's address: /api/v1/ws on the same server.
+    var socketURL: URL {
+        var c = URLComponents(url: baseURL.appending(path: "api/v1/ws"), resolvingAgainstBaseURL: false)!
+        c.scheme = c.scheme == "https" ? "wss" : "ws"
+        return c.url!
     }
 }

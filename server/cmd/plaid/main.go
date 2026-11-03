@@ -2,6 +2,8 @@
 package main
 
 import (
+	"net/url"
+
 	"context"
 	"crypto/tls"
 	"database/sql"
@@ -16,6 +18,10 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"github.com/gh-prim/plaid/server/internal/auth"
+	"github.com/gh-prim/plaid/server/internal/party"
+	"github.com/gh-prim/plaid/server/internal/realtime"
 
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/buildinfo"
@@ -91,12 +97,28 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	meta.Start(ctx)
 	defer meta.Close()
 
-	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{ItemsCreated: meta.ItemsCreated, Sidecars: meta.SidecarsSeen}, probs)
+	// Plaid Party (F010): rooms over the WebSocket hub; playback asks it
+	// which titles a party opens, scans fire its release alerts.
+	parties := party.New(party.Options{Store: party.NewStore(database), Accounts: accts, Log: logger,
+		Releases: func() party.Releases {
+			if p := meta.Provider(); p != nil {
+				return p
+			}
+			return nil
+		}})
+
+	engine := newLibraryEngine(ctx, cfg, database, logger, library.Hooks{
+		ItemsCreated: func(libraryID string, itemIDs []string) {
+			meta.ItemsCreated(libraryID, itemIDs)
+			parties.ItemsCreated(libraryID, itemIDs)
+		},
+		Sidecars: meta.SidecarsSeen,
+	}, probs)
 	defer engine.Close()
 
 	// Playback (F006) closes before the library engine: deferred calls
 	// run last-in first-out.
-	play := newPlayback(ctx, cfg, database, engine.Store(), accts, logger, probs)
+	play := newPlayback(ctx, cfg, database, engine.Store(), accts, logger, probs, parties)
 	defer play.Close()
 
 	// Remote access (F012) opens a port and keeps a getplaid.direct
@@ -120,6 +142,18 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	// Cancelled by srv.Shutdown so open event streams don't hold it up.
 	streams, endStreams := context.WithCancel(context.Background())
 	defer endStreams()
+	hub := realtime.New(realtime.Options{
+		Handler: parties, Log: logger, Streams: streams, OriginPatterns: originHosts(cfg.AppOrigins),
+		Describe: func(ctx context.Context, p auth.Principal) realtime.Device {
+			if p.IsGuest() {
+				return realtime.Device{Name: "Browser", Type: "browser"}
+			}
+			d, _ := accts.SessionDevice(ctx, p.SessionID)
+			return realtime.Device{Name: d.Name, Type: d.Type}
+		},
+	})
+	parties.SetHub(hub)
+	go parties.Run(ctx)
 	handler := httpserver.New(handlers.New(handlers.Deps{
 		DB:         database,
 		Accounts:   accts,
@@ -131,6 +165,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Catalog:    catalog.New(catalog.Options{DB: database}),
 		Segments:   segments.New(segments.Options{DB: database, Log: logger, FFmpeg: ffmpegPath(ctx, cfg)}),
 		Remote:     remote,
+		Party:      parties,
 		Streams:    streams,
 	}), webui.FS(), logger, httpserver.Options{
 		TrustedProxies: cfg.TrustedProxies,
@@ -138,6 +173,8 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Stream:         handlers.StreamHandler(play, meta, engine.Store()),
 		Preview:        handlers.PreviewHandler(play),
 		AppOrigins:     cfg.AppOrigins,
+		Realtime:       hub,
+		Guests:         parties.Store(),
 	})
 
 	ln, err := (&net.ListenConfig{}).Listen(ctx, "tcp", cfg.Addr())
@@ -200,7 +237,7 @@ func newLibraryEngine(ctx context.Context, cfg config.Config, database *sql.DB, 
 
 // newPlayback finds ffmpeg and starts the playback service. A missing
 // ffmpeg is a warning: Direct Play still works (F006 R31).
-func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store *library.Store, accts *accounts.Service, logger *slog.Logger, probs problems.Reporter) *playback.Service {
+func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store *library.Store, accts *accounts.Service, logger *slog.Logger, probs problems.Reporter, parties playback.PartyAccess) *playback.Service {
 	ffmpeg, err := playback.FindFFmpeg(ctx, cfg.FFmpegPath)
 	if err != nil {
 		logger.Warn("ffmpeg not found: only Direct Play is available; install ffmpeg or set PLAID_FFMPEG_PATH",
@@ -215,7 +252,7 @@ func newPlayback(ctx context.Context, cfg config.Config, database *sql.DB, store
 	svc := playback.New(playback.Options{
 		DB: database, Library: store, Accounts: accts,
 		Settings: settings.New(database), FFmpeg: ffmpeg, Log: logger, ProbeHardware: true, Problems: probs,
-		PreviewsAhead: true, Geo: geo,
+		PreviewsAhead: true, Geo: geo, Party: parties,
 		TranscodeDir: cfg.TranscodeDir, CacheDir: filepath.Join(cfg.DataDir, "cache", "playback"),
 	})
 	svc.Start(ctx)
@@ -262,4 +299,16 @@ func newLogger(cfg config.Config, w io.Writer) *slog.Logger {
 		return slog.New(slog.NewJSONHandler(w, opts))
 	}
 	return slog.New(slog.NewTextHandler(w, opts))
+}
+
+// originHosts turns origins (https://getplaid.direct) into the host
+// patterns the WebSocket accepts.
+func originHosts(origins []string) []string {
+	out := make([]string, 0, len(origins))
+	for _, o := range origins {
+		if u, err := url.Parse(o); err == nil && u.Host != "" {
+			out = append(out, u.Host)
+		}
+	}
+	return out
 }

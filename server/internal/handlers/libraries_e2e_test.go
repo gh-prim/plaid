@@ -15,6 +15,10 @@ import (
 	"testing/fstest"
 	"time"
 
+	"github.com/gh-prim/plaid/server/internal/auth"
+	"github.com/gh-prim/plaid/server/internal/party"
+	"github.com/gh-prim/plaid/server/internal/realtime"
+
 	"github.com/gh-prim/plaid/server/internal/catalog"
 	"github.com/gh-prim/plaid/server/internal/handlers"
 	"github.com/gh-prim/plaid/server/internal/httpserver"
@@ -59,6 +63,7 @@ type libEnv struct {
 	play      *playback.Service
 	admin     string
 	endStream context.CancelFunc
+	parties   *party.Service
 }
 
 type libOpts struct {
@@ -112,6 +117,17 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 		po.FFmpeg, po.Timings, po.Now, po.PreviewsAhead = ffmpeg, o.hls, nil, o.previewsAhead
 		po.TranscodeDir, po.CacheDir = filepath.Join(t.TempDir(), "transcodes"), t.TempDir()
 	}
+	parties := party.New(party.Options{Store: party.NewStore(e.db), Accounts: e.acct, Log: logger, Now: e.clock.now})
+	hub := realtime.New(realtime.Options{Handler: parties, Log: logger, Now: e.clock.now, Streams: streams,
+		Describe: func(ctx context.Context, p auth.Principal) realtime.Device {
+			if p.IsGuest() {
+				return realtime.Device{Name: "Browser", Type: "browser"}
+			}
+			d, _ := e.acct.SessionDevice(ctx, p.SessionID)
+			return realtime.Device{Name: d.Name, Type: d.Type}
+		}})
+	parties.SetHub(hub)
+	po.Party = parties
 	play := playback.New(po)
 	if o.hls != nil {
 		ctx, stop := context.WithCancel(context.Background())
@@ -120,10 +136,11 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 	}
 	t.Cleanup(play.Close)
 	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta,
-		Playback: play, Problems: probs, Catalog: catalog.New(catalog.Options{DB: e.db, Now: e.clock.now}), Streams: streams})
+		Playback: play, Problems: probs, Catalog: catalog.New(catalog.Options{DB: e.db, Now: e.clock.now}), Streams: streams,
+		Party: parties, Now: e.clock.now})
 	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct, Stream: handlers.StreamHandler(play, meta, engine.Store()),
-		Preview: handlers.PreviewHandler(play)})
-	le := &libEnv{env: e, engine: engine, play: play, endStream: end}
+		Preview: handlers.PreviewHandler(play), Realtime: hub, Guests: parties.Store()})
+	le := &libEnv{env: e, engine: engine, play: play, endStream: end, parties: parties}
 	le.admin = e.setup().Token
 	return le
 }

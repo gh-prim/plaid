@@ -35,6 +35,10 @@ type Session struct {
 	ItemID        string
 	ItemTitle     string
 	Owner         Owner
+	// PartyID is set for a Plaid Party screen (F010-R12); GuestID for a
+	// party guest, whose AuthSessionID is guestAuthPrefix + GuestID.
+	PartyID string
+	GuestID string
 
 	Decision Decision
 	Request  Request
@@ -111,10 +115,22 @@ func (m *Manager) Get(p auth.Principal, id string) (Session, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	s, ok := m.byID[id]
-	if !ok || !m.live(s) || (s.UserID != p.UserID && !p.IsAdmin()) {
+	if !ok || !m.live(s) || !owns(p, s) {
 		return Session{}, ErrSessionNotFound
 	}
 	return *s, nil
+}
+
+// owns reports whether p may see s: their own (a guest's own as a guest),
+// or anyone's for an admin.
+func owns(p auth.Principal, s *Session) bool {
+	if p.IsAdmin() {
+		return true
+	}
+	if p.IsGuest() || s.GuestID != "" {
+		return p.GuestID != "" && s.GuestID == p.GuestID
+	}
+	return s.UserID == p.UserID
 }
 
 // ByToken returns the session a stream request belongs to and counts the
@@ -144,7 +160,7 @@ func (m *Manager) Update(p auth.Principal, id string, change func(*Session)) (Se
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	s, ok := m.byID[id]
-	if !ok || !m.live(s) || (s.UserID != p.UserID && !p.IsAdmin()) {
+	if !ok || !m.live(s) || !owns(p, s) {
 		return Session{}, ErrSessionNotFound
 	}
 	change(s)
@@ -157,7 +173,7 @@ func (m *Manager) Update(p auth.Principal, id string, change func(*Session)) (Se
 func (m *Manager) End(p auth.Principal, id string, change func(*Session)) error {
 	m.mu.Lock()
 	s, ok := m.byID[id]
-	if !ok || (s.UserID != p.UserID && !p.IsAdmin()) {
+	if !ok || !owns(p, s) {
 		m.mu.Unlock()
 		return ErrSessionNotFound
 	}

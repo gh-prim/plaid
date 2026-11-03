@@ -215,3 +215,16 @@ func (s *Service) SessionOwner(ctx context.Context, p auth.Principal) (SessionOw
 	o.ProfileName = profile.String
 	return o, err
 }
+
+// SessionDevice is a session's device, for presence and routing (F010).
+type SessionDevice struct {
+	Name string
+	Type string
+}
+
+// SessionDevice returns the device of an F003 session.
+func (s *Service) SessionDevice(ctx context.Context, sessionID string) (SessionDevice, error) {
+	var d SessionDevice
+	err := s.db.QueryRowContext(ctx, `SELECT device_name, device_type FROM sessions WHERE id = ?`, sessionID).Scan(&d.Name, &d.Type)
+	return d, err
+}

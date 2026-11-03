@@ -64,6 +64,15 @@
         "PLAID_PORT=32510 PLAID_TLS_PORT=32511 PLAID_TMDB_API_KEY=\"$(op item get l4io3ylnmezvlq3imkymsjkt5q --fields credential --reveal)\" PLAID_MDBLIST_API_KEY=\"$(op read 'op://Private/mdblist API Credentials/credential')\" PLAID_DATA_DIR=/private/tmp/claude-501/-Users-g-hubert-Documents-GitHub-plaid/4a07164c-5c0e-4a81-bfbb-86510bd069de/scratchpad/ratings-data exec server/bin/plaid"
       ],
       "port": 32510
+    },
+    {
+      "name": "server-f010",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "PLAID_PORT=32530 PLAID_TLS_PORT=0 PLAID_BONJOUR=off PLAID_DATA_DIR=/private/tmp/claude-501/-Users-g-hubert-Documents-GitHub-plaid/accb6597-27cf-4d62-8406-8032f81e5cd0/scratchpad/f010/data exec server/bin/plaid"
+      ],
+      "port": 32530
     }
   ]
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router'
+import { useInvitationCount } from '../party/notify'
 import { Icon } from '../ui'
 import { ProfileMenu } from './ProfileMenu'
 import type { ShellLibrary } from './useShell'
@@ -11,6 +12,7 @@ export const tabLibraries = 3
 /** The phone's bottom tab bar (F008-R1): Home, libraries, Search, More. */
 export function TabBar({ libraries }: { libraries?: ShellLibrary[] }) {
   const { t } = useTranslation()
+  const invitations = useInvitationCount()
   const [more, setMore] = useState(false)
   const shown = libraries?.slice(0, tabLibraries) ?? []
   const rest = libraries?.slice(tabLibraries) ?? []
@@ -26,6 +28,18 @@ export function TabBar({ libraries }: { libraries?: ShellLibrary[] }) {
           <span className="br-tab__text">{l.name}</span>
         </NavLink>
       ))}
+      <NavLink to="/upcoming" className="br-tab pl-focusable">
+        <Icon name="calendar" size={20} />
+        {t('nav.upcoming')}
+        {invitations > 0 && (
+          <span
+            className="pl-badge pl-badge--count"
+            aria-label={t('upcoming.invitations', { count: invitations })}
+          >
+            {invitations}
+          </span>
+        )}
+      </NavLink>
       <NavLink to="/search" className="br-tab pl-focusable">
         <Icon name="search" size={20} />
         {t('nav.search')}

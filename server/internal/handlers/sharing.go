@@ -356,7 +356,7 @@ func (h *Handlers) UpdatePartySettings(ctx context.Context, req api.UpdatePartyS
 	if err != nil {
 		return nil, err
 	}
-	s, err := h.accounts.SetParty(ctx, p, accounts.PartyUpdate{Enabled: b.Enabled, MaxPeople: b.MaxPeople, Guests: b.Guests})
+	s, err := h.accounts.SetParty(ctx, p, accounts.PartyUpdate{Enabled: b.Enabled, MaxPeople: b.MaxPeople, Guests: b.Guests, UploadMbps: b.UploadMbps})
 	if err != nil {
 		return nil, err
 	}
@@ -364,5 +364,5 @@ func (h *Handlers) UpdatePartySettings(ctx context.Context, req api.UpdatePartyS
 }
 
 func toParty(s accounts.PartySettings) api.PartySettings {
-	return api.PartySettings{Enabled: s.Enabled, MaxPeople: s.MaxPeople, Guests: s.Guests}
+	return api.PartySettings{Enabled: s.Enabled, MaxPeople: s.MaxPeople, Guests: s.Guests, UploadMbps: s.UploadMbps}
 }
