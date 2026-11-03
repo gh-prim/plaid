@@ -6,7 +6,10 @@
   <a href="https://github.com/gh-prim/plaid/actions/workflows/ci.yml"><img src="https://github.com/gh-prim/plaid/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
   <a href="https://github.com/gh-prim/plaid/actions/workflows/release.yml"><img src="https://github.com/gh-prim/plaid/actions/workflows/release.yml/badge.svg" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8a8378" alt="MIT license"></a>
+  <a href="https://getplaid.tv/"><img src="https://img.shields.io/badge/website-getplaid.tv-f4f0e9" alt="Website: getplaid.tv"></a>
 </p>
+
+<p align="center"><a href="https://getplaid.tv/"><b>getplaid.tv</b></a> · <a href="#install">Install</a> · <a href="sdlc/roadmap.md">Roadmap</a></p>
 
 PLAID is a self-hosted media server, an open alternative to Plex. It indexes the movies and shows on your disks and streams them to every screen in the house. Watching together, in the same room or miles apart, is built in rather than bolted on.
 
@@ -38,7 +41,7 @@ Friends without a PLAID account can join from a link in their browser.
 
 ## One server, every screen
 
-<img src="docs/assets/readme/architecture.png" alt="The PLAID server connects to the web app, the iPhone and iPad app and the Apple TV app, all available, and to Android and Android TV apps, planned." width="100%">
+<img src="docs/assets/readme/architecture.jpg" alt="The PLAID server connects to the web app, the iPhone and iPad app and the Apple TV app, all available, and to Android and Android TV apps, planned." width="100%">
 
 <img src="docs/assets/readme/iphone-ipad.jpg" alt="The PLAID home on iPad and iPhone: Tears of Steel as the hero, then Continue watching with Big Buck Bunny, Caminandes, Elephants Dream and Nosferatu." width="100%">
 
