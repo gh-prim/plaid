@@ -12,7 +12,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/huin/goupnp v1.3.0
 	github.com/jackpal/gateway v1.2.0
-	github.com/jackpal/go-nat-pmp v1.0.2
+	github.com/jackpal/go-nat-pmp v1.1.0
 	github.com/libp2p/zeroconf/v2 v2.2.0
 	github.com/maxmind/mmdbwriter v1.0.0
 	github.com/oapi-codegen/nullable v1.2.0
