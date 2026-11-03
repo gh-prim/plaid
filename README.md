@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/readme/banner.png" alt="PLAID. Your movies and shows, on your own server. Watch alone, or together." width="100%">
+  <img src="docs/assets/readme/banner.jpg" alt="PLAID, the woven play logo. Your movies and shows, on your own server. Watch alone, or together. A wall of public-domain and open movie posters." width="100%">
 </p>
 
 <p align="center">
