@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { apiError, fakeApi, server } from '../test/fakeApi'
@@ -18,7 +18,8 @@ describe('SignIn', () => {
       'POST /auth/login': apiError(401, 'invalid_credentials'),
     })
     await renderApp('/login')
-    expect(await screen.findByRole('heading', { name: 'Sign in to nas' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+    expect(screen.getByText('nas')).toBeInTheDocument()
     await signIn()
     expect(await screen.findByRole('alert')).toHaveTextContent('Wrong username or password.')
     // Both fields turn red and point at the message (board TL02).
@@ -27,6 +28,24 @@ describe('SignIn', () => {
       'Wrong username or password.',
     )
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeEnabled()
+  })
+
+  it('fills the wall with the posters of GET /auth/backdrop', async () => {
+    fakeApi({
+      'GET /server': server(true),
+      'GET /me': apiError(401, 'unauthorized'),
+      'GET /auth/backdrop': { status: 200, body: { posters: ['a', 'b'] } },
+    })
+    const { container } = await renderApp('/login')
+    await screen.findByRole('heading', { name: 'Welcome back' })
+    await waitFor(() =>
+      expect(container.querySelector('.si__wall img')).toHaveAttribute(
+        'src',
+        expect.stringContaining('/api/v1/auth/backdrop/a?w=342'),
+      ),
+    )
+    // Nine columns of six, each twice: two posters fill every slot.
+    expect(container.querySelectorAll('.si__wall img')).toHaveLength(9 * 6 * 2)
   })
 
   it('shows and hides the password', async () => {

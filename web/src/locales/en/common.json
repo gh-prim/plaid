@@ -2016,8 +2016,10 @@
     }
   },
   "signIn": {
-    "forgot": "Forgot it? Ask an admin to reset your password in People.",
-    "title": "Sign in to {{serverName}}"
+    "footer": "Plaid · self-hosted server · {{host}}",
+    "forgot": "Forgot your password? Ask the server’s admin to reset it.",
+    "server": "Server:",
+    "title": "Welcome back"
   },
   "transcoding": {
     "cap": {

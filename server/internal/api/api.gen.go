@@ -4170,6 +4170,12 @@ type ShowRef struct {
 	Logo *Artwork `json:"logo,omitempty"`
 }
 
+// SignInBackdrop defines model for SignInBackdrop.
+type SignInBackdrop struct {
+	// Posters Image ids, for `/auth/backdrop/{imageId}`.
+	Posters []string `json:"posters"`
+}
+
 // SortOrder defines model for SortOrder.
 type SortOrder string
 
@@ -4476,6 +4482,13 @@ type GetActivityParams struct {
 
 	// TzOffsetMinutes The browser's offset from UTC (JavaScript's getTimezoneOffset), so days are local.
 	TzOffsetMinutes *int `form:"tzOffsetMinutes,omitempty" json:"tzOffsetMinutes,omitempty"`
+}
+
+// GetSignInBackdropImageParams defines parameters for GetSignInBackdropImage.
+type GetSignInBackdropImageParams struct {
+	// W Wanted width in pixels; defaults to 342.
+	W           *int    `form:"w,omitempty" json:"w,omitempty"`
+	IfNoneMatch *string `json:"If-None-Match,omitempty"`
 }
 
 // RenderAvatarParams defines parameters for RenderAvatar.
@@ -4813,6 +4826,12 @@ type ServerInterface interface {
 	// GetActivity What was watched and added lately, for the admin dashboard and Activity (step 21)
 	// (GET /activity)
 	GetActivity(w http.ResponseWriter, r *http.Request, params GetActivityParams)
+	// GetSignInBackdrop Posters for the sign-in page's wall
+	// (GET /auth/backdrop)
+	GetSignInBackdrop(w http.ResponseWriter, r *http.Request)
+	// GetSignInBackdropImage One poster of the sign-in wall
+	// (GET /auth/backdrop/{imageId})
+	GetSignInBackdropImage(w http.ResponseWriter, r *http.Request, imageId string, params GetSignInBackdropImageParams)
 	// Login Sign in with username and password
 	// (POST /auth/login)
 	Login(w http.ResponseWriter, r *http.Request)
@@ -5246,6 +5265,83 @@ func (siw *ServerInterfaceWrapper) GetActivity(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetActivity(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSignInBackdrop operation middleware
+func (siw *ServerInterfaceWrapper) GetSignInBackdrop(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSignInBackdrop(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSignInBackdropImage operation middleware
+func (siw *ServerInterfaceWrapper) GetSignInBackdropImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "imageId" -------------
+	var imageId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "imageId", r.PathValue("imageId"), &imageId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "imageId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSignInBackdropImageParams
+
+	// ------------- Optional query parameter "w" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "w", r.URL.Query(), &params.W, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "w"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "w", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-None-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-None-Match")]; found {
+		var IfNoneMatch string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-None-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-None-Match", valueList[0], &IfNoneMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-None-Match", Err: err})
+			return
+		}
+
+		params.IfNoneMatch = &IfNoneMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSignInBackdropImage(w, r, imageId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -8793,6 +8889,8 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/setup", wrapper.GetSetup)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/setup/admin", wrapper.CreateFirstAdmin)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/auth/login", wrapper.Login)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/auth/backdrop", wrapper.GetSignInBackdrop)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/auth/backdrop/{imageId}", wrapper.GetSignInBackdropImage)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/auth/logout", wrapper.Logout)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/me", wrapper.GetMe)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/me", wrapper.UpdateMe)
@@ -8947,6 +9045,152 @@ type GetActivitydefaultJSONResponse struct {
 }
 
 func (response GetActivitydefaultJSONResponse) VisitGetActivityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSignInBackdropRequestObject struct {
+}
+
+type GetSignInBackdropResponseObject interface {
+	VisitGetSignInBackdropResponse(w http.ResponseWriter) error
+}
+
+type GetSignInBackdrop200JSONResponse SignInBackdrop
+
+func (response GetSignInBackdrop200JSONResponse) VisitGetSignInBackdropResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSignInBackdropdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetSignInBackdropdefaultJSONResponse) VisitGetSignInBackdropResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSignInBackdropImageRequestObject struct {
+	ImageId string `json:"imageId"`
+	Params  GetSignInBackdropImageParams
+}
+
+type GetSignInBackdropImageResponseObject interface {
+	VisitGetSignInBackdropImageResponse(w http.ResponseWriter) error
+}
+
+type GetSignInBackdropImage200ResponseHeaders struct {
+	CacheControl        *string
+	ETag                *string
+	XContentTypeOptions *string
+}
+
+type GetSignInBackdropImage200ImagejpegResponse struct {
+	Body          io.Reader
+	Headers       GetSignInBackdropImage200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetSignInBackdropImage200ImagejpegResponse) VisitGetSignInBackdropImageResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetSignInBackdropImage200ImagepngResponse struct {
+	Body          io.Reader
+	Headers       GetSignInBackdropImage200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetSignInBackdropImage200ImagepngResponse) VisitGetSignInBackdropImageResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/png")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.CacheControl != nil {
+		w.Header().Set("Cache-Control", fmt.Sprint(*response.Headers.CacheControl))
+	}
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	if response.Headers.XContentTypeOptions != nil {
+		w.Header().Set("X-Content-Type-Options", fmt.Sprint(*response.Headers.XContentTypeOptions))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetSignInBackdropImage304ResponseHeaders struct {
+	ETag *string
+}
+
+type GetSignInBackdropImage304Response struct {
+	Headers GetSignInBackdropImage304ResponseHeaders
+}
+
+func (response GetSignInBackdropImage304Response) VisitGetSignInBackdropImageResponse(w http.ResponseWriter) error {
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(304)
+	return nil
+}
+
+type GetSignInBackdropImagedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetSignInBackdropImagedefaultJSONResponse) VisitGetSignInBackdropImageResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -13849,6 +14093,12 @@ type StrictServerInterface interface {
 	// GetActivity What was watched and added lately, for the admin dashboard and Activity (step 21)
 	// (GET /activity)
 	GetActivity(ctx context.Context, request GetActivityRequestObject) (GetActivityResponseObject, error)
+	// GetSignInBackdrop Posters for the sign-in page's wall
+	// (GET /auth/backdrop)
+	GetSignInBackdrop(ctx context.Context, request GetSignInBackdropRequestObject) (GetSignInBackdropResponseObject, error)
+	// GetSignInBackdropImage One poster of the sign-in wall
+	// (GET /auth/backdrop/{imageId})
+	GetSignInBackdropImage(ctx context.Context, request GetSignInBackdropImageRequestObject) (GetSignInBackdropImageResponseObject, error)
 	// Login Sign in with username and password
 	// (POST /auth/login)
 	Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error)
@@ -14281,6 +14531,57 @@ func (sh *strictHandler) GetActivity(w http.ResponseWriter, r *http.Request, par
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetActivityResponseObject); ok {
 		if err := validResponse.VisitGetActivityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetSignInBackdrop operation middleware
+func (sh *strictHandler) GetSignInBackdrop(w http.ResponseWriter, r *http.Request) {
+	var request GetSignInBackdropRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSignInBackdrop(ctx, request.(GetSignInBackdropRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSignInBackdrop")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSignInBackdropResponseObject); ok {
+		if err := validResponse.VisitGetSignInBackdropResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetSignInBackdropImage operation middleware
+func (sh *strictHandler) GetSignInBackdropImage(w http.ResponseWriter, r *http.Request, imageId string, params GetSignInBackdropImageParams) {
+	var request GetSignInBackdropImageRequestObject
+
+	request.ImageId = imageId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSignInBackdropImage(ctx, request.(GetSignInBackdropImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSignInBackdropImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSignInBackdropImageResponseObject); ok {
+		if err := validResponse.VisitGetSignInBackdropImageResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

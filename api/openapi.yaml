@@ -112,6 +112,82 @@ paths:
                 $ref: "#/components/schemas/AuthResult"
         default:
           $ref: "#/components/responses/Error"
+  /auth/backdrop:
+    get:
+      operationId: getSignInBackdrop
+      summary: Posters for the sign-in page's wall
+      description: >-
+        Up to 60 posters of the server's movies and shows, in random order, for the animated wall behind the web
+        sign-in page. Public: anyone who can reach the server sees them. Only matched, visible titles rated 12 or
+        under, or unrated, are picked. Fetch each one from `/auth/backdrop/{imageId}`.
+      tags: [auth]
+      security: []
+      responses:
+        "200":
+          description: The wall's posters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignInBackdrop"
+        default:
+          $ref: "#/components/responses/Error"
+  /auth/backdrop/{imageId}:
+    parameters:
+      - name: imageId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getSignInBackdropImage
+      summary: One poster of the sign-in wall
+      description: >-
+        Public. The same image as `/images/{imageId}`, but only for a poster `/auth/backdrop` may pick; any other id is
+        a 404.
+      tags: [auth]
+      security: []
+      parameters:
+        - name: w
+          in: query
+          description: Wanted width in pixels; defaults to 342.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3840
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The image
+          headers:
+            ETag:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "304":
+          description: Not modified (If-None-Match matched)
+          headers:
+            ETag:
+              schema:
+                type: string
+        default:
+          $ref: "#/components/responses/Error"
   /auth/logout:
     post:
       operationId: logout
@@ -3244,6 +3320,16 @@ components:
           type: string
         device:
           $ref: "#/components/schemas/Device"
+    SignInBackdrop:
+      type: object
+      required: [posters]
+      properties:
+        posters:
+          type: array
+          description: Image ids, for `/auth/backdrop/{imageId}`.
+          maxItems: 60
+          items:
+            type: string
     LoginRequest:
       type: object
       required: [username, password, device]

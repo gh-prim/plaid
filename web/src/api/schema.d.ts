@@ -99,6 +99,48 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/auth/backdrop': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Posters for the sign-in page's wall
+     * @description Up to 60 posters of the server's movies and shows, in random order, for the animated wall behind the web sign-in page. Public: anyone who can reach the server sees them. Only matched, visible titles rated 12 or under, or unrated, are picked. Fetch each one from `/auth/backdrop/{imageId}`.
+     */
+    get: operations['getSignInBackdrop']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/auth/backdrop/{imageId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        imageId: string
+      }
+      cookie?: never
+    }
+    /**
+     * One poster of the sign-in wall
+     * @description Public. The same image as `/images/{imageId}`, but only for a poster `/auth/backdrop` may pick; any other id is a 404.
+     */
+    get: operations['getSignInBackdropImage']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/auth/logout': {
     parameters: {
       query?: never
@@ -2321,6 +2363,10 @@ export interface components {
       setupCode?: string
       device?: components['schemas']['Device']
     }
+    SignInBackdrop: {
+      /** @description Image ids, for `/auth/backdrop/{imageId}`. */
+      posters: string[]
+    }
     LoginRequest: {
       username: string
       password: string
@@ -4286,6 +4332,67 @@ export interface operations {
         content: {
           'application/json': components['schemas']['AuthResult']
         }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getSignInBackdrop: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The wall's posters */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SignInBackdrop']
+        }
+      }
+      default: components['responses']['Error']
+    }
+  }
+  getSignInBackdropImage: {
+    parameters: {
+      query?: {
+        /** @description Wanted width in pixels; defaults to 342. */
+        w?: number
+      }
+      header?: {
+        'If-None-Match'?: string
+      }
+      path: {
+        imageId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The image */
+      200: {
+        headers: {
+          ETag?: string
+          'Cache-Control'?: string
+          'X-Content-Type-Options'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'image/jpeg': string
+          'image/png': string
+        }
+      }
+      /** @description Not modified (If-None-Match matched) */
+      304: {
+        headers: {
+          ETag?: string
+          [name: string]: unknown
+        }
+        content?: never
       }
       default: components['responses']['Error']
     }

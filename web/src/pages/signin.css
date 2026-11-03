@@ -1,0 +1,434 @@
+/* ---------------------------------------------------------------------
+   Sign in (V2, board LoginWeb, step 24): a glass card over a wall of
+   posters. Always dark, whatever the theme: the board has no light one.
+   --------------------------------------------------------------------- */
+.si {
+  --si-display: 'Bricolage Grotesque', var(--font-text);
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #070708;
+  color: #fff;
+  font-family: var(--font-text);
+  color-scheme: dark;
+}
+.si .br-wordmark {
+  --wm-tile: #1c1c1e;
+  --wm-ink: #f4f0e9;
+  color: #f4f0e9;
+  gap: 12px;
+  filter: none;
+}
+.si .br-wordmark__mark {
+  width: 44px;
+  height: 44px;
+}
+.si .br-wordmark__name {
+  height: 30px;
+}
+
+/* The wall: nine tilted columns drifting in turn, dimmed by a vignette. */
+.si__wall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.si__wall::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 70% at 50% 50%, rgba(7, 7, 8, 0.55), rgba(7, 7, 8, 0.92) 75%);
+}
+.si__cols {
+  position: absolute;
+  inset: -80px -60px;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  transform: rotate(-6deg) scale(1.08);
+  opacity: 0.55;
+}
+.si__col {
+  flex: none;
+  /* 60 s, 67 s, 74 s… */
+  animation: si-col-down calc(60s + var(--si-i) * 7s) linear infinite;
+}
+.si__col.is-up {
+  animation-name: si-col-up;
+}
+@keyframes si-col-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+@keyframes si-col-down {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.si__poster {
+  display: block;
+  width: 150px;
+  aspect-ratio: 2 / 3;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 18px 34px -16px rgba(0, 0, 0, 0.9);
+}
+.si__poster img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.si__poster img.is-loaded {
+  opacity: 1;
+}
+
+/* The lockup, top left; the footer, bottom. */
+.si__top {
+  position: absolute;
+  z-index: 1;
+  left: 48px;
+  top: 30px;
+  display: flex;
+}
+.si__main {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding: 104px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.si__foot {
+  position: absolute;
+  z-index: 1;
+  left: 48px;
+  right: 48px;
+  bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font: 500 13px/1 var(--font-text);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* The glass of the board (".lg"): a tint, a sheen, a bright rim. */
+.si-glass {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)), rgba(24, 24, 26, 0.66);
+  -webkit-backdrop-filter: blur(40px) saturate(1.7);
+  backdrop-filter: blur(40px) saturate(1.7);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.06),
+    0 12px 32px -12px rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+.si-glass::before,
+.si-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.si-glass::before {
+  z-index: -1;
+  background:
+    radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.06)
+    );
+}
+.si-glass::after {
+  padding: 1px;
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.65),
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(255, 255, 255, 0.04) 55%,
+    rgba(255, 255, 255, 0.12) 80%,
+    rgba(255, 255, 255, 0.4)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+
+/* The card. */
+.si__card {
+  width: 460px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 40px 40px 30px;
+  border-radius: 38px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04)),
+    rgba(28, 28, 30, 0.72);
+  -webkit-backdrop-filter: blur(60px) saturate(1.8);
+  backdrop-filter: blur(60px) saturate(1.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 60px 140px -30px rgba(0, 0, 0, 0.9);
+  text-align: center;
+  animation: si-card-in 1.2s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+@keyframes si-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    filter: blur(10px);
+  }
+}
+.si__icon {
+  --wm-tile: #1c1c1e;
+  --wm-ink: #f4f0e9;
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto;
+  filter: drop-shadow(0 16px 30px rgba(0, 0, 0, 0.6));
+}
+.si__title {
+  margin: 24px 0 0;
+  font: 700 34px/1.05 var(--si-display);
+  letter-spacing: -0.035em;
+  color: #fff;
+}
+.si__server {
+  margin: 10px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  font: 600 13px/1 var(--font-text);
+  color: rgba(255, 255, 255, 0.75);
+}
+.si__server-icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+.si__form {
+  margin: 0;
+}
+.si__fields {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+/* A field: the label in the middle while empty, above the value after. */
+.si-field {
+  height: 64px;
+  box-sizing: border-box;
+  padding: 0 12px 0 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: box-shadow 0.2s ease;
+}
+.si-field:focus-within {
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.85),
+    0 0 0 4px rgba(255, 255, 255, 0.08);
+}
+.si-field.is-error {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 140, 120, 0.85);
+}
+.si-field__body {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: text;
+}
+.si-field__label {
+  display: block;
+  margin-bottom: 8px;
+  font: 600 12px/1 var(--font-text);
+  color: rgba(255, 255, 255, 0.55);
+  transition:
+    font-size 0.2s ease,
+    margin 0.2s ease;
+}
+.si-field__input {
+  width: 100%;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  caret-color: #fff;
+  font: 600 17px/20px var(--font-text);
+}
+.si-field__input.is-secret {
+  letter-spacing: 0.22em;
+}
+.si-field__input:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0 40px #2a2a2c inset;
+  transition: background-color 9999s;
+}
+.si-field:not(.is-filled):not(:focus-within):not(:has(:autofill)) .si-field__label {
+  margin-bottom: 0;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.si-field:not(.is-filled):not(:focus-within):not(:has(:autofill)) .si-field__input {
+  height: 0;
+}
+.si-field__show {
+  appearance: none;
+  border: 0;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #f4f0e9;
+  cursor: pointer;
+}
+
+.si__error {
+  margin: 12px 0 0;
+  text-align: left;
+  font: 600 13.5px/1.4 var(--font-text);
+  color: #ffb3a6;
+}
+
+/* Sign in: a lighter glass pill, the card's one action. */
+.si__cta.pl-btn {
+  margin-top: 20px;
+  height: 56px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font: 600 17px/1 var(--font-text);
+  color: #fff;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.14)), rgba(40, 40, 44, 0.35);
+}
+.si__cta.pl-btn:hover:not(:disabled) {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.2)), rgba(40, 40, 44, 0.35);
+}
+.si__cta.pl-btn:disabled:not(.is-loading) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.si__cta.is-loading .pl-btn__spin {
+  color: #fff;
+}
+
+.si__forgot {
+  margin: 20px 0 0;
+  font: 500 13px/1.45 var(--font-text);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* The language pill: the select is invisible, over the whole pill. */
+.si__lang {
+  flex: none;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font: 600 14px/1 var(--font-text);
+  color: #fff;
+}
+.si__lang svg {
+  color: #f4f0e9;
+}
+.si__lang select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.si__lang:focus-within {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 2px;
+}
+
+/* Phones: a 16 px gutter, the footer stacked under the card. */
+@media (max-width: 600px) {
+  .si__top {
+    left: 16px;
+    top: 16px;
+  }
+  .si__main {
+    padding: 84px 16px 120px;
+  }
+  .si__card {
+    padding: 32px 24px 24px;
+    border-radius: 32px;
+  }
+  .si__foot {
+    left: 16px;
+    right: 16px;
+    bottom: 20px;
+    flex-direction: column-reverse;
+    text-align: center;
+    line-height: 1.4;
+  }
+  .si__poster {
+    width: 110px;
+  }
+  .si__cols {
+    gap: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .si__col,
+  .si__card {
+    animation: none;
+  }
+}

@@ -13,6 +13,10 @@ import (
 // immutable: an imageId's bytes never change (R19).
 const imageCacheControl = "private, max-age=31536000, immutable"
 
+// The sign-in wall's posters are public, but kept for a day only: one
+// that leaves the wall (hidden, re-rated) should not linger in caches.
+const backdropCacheControl = "public, max-age=86400"
+
 // GetImage serves an artwork image at the width the client asks for
 // (F005 R19), hiding images of items the profile may not see (R25).
 func (h *Handlers) GetImage(ctx context.Context, req api.GetImageRequestObject) (api.GetImageResponseObject, error) {
@@ -71,4 +75,56 @@ func (c closingReader) Read(p []byte) (int, error) {
 		_ = c.f.Close()
 	}
 	return n, err
+}
+
+// GetSignInBackdrop lists the posters of the public sign-in wall.
+func (h *Handlers) GetSignInBackdrop(ctx context.Context, _ api.GetSignInBackdropRequestObject) (api.GetSignInBackdropResponseObject, error) {
+	if h.metadata == nil {
+		return api.GetSignInBackdrop200JSONResponse{Posters: []string{}}, nil
+	}
+	ids, err := h.metadata.BackdropPosters(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return api.GetSignInBackdrop200JSONResponse{Posters: ids}, nil
+}
+
+// GetSignInBackdropImage serves one poster of the public sign-in wall.
+func (h *Handlers) GetSignInBackdropImage(ctx context.Context, req api.GetSignInBackdropImageRequestObject) (api.GetSignInBackdropImageResponseObject, error) {
+	if h.metadata == nil {
+		return nil, apierr.NotFound("no such image")
+	}
+	want := 0
+	if req.Params.W != nil {
+		want = *req.Params.W
+	}
+	v, err := h.metadata.BackdropImage(ctx, req.ImageId, want)
+	switch {
+	case errors.Is(err, metadata.ErrImageNotFound):
+		return nil, apierr.NotFound("no such image")
+	case err != nil && metadata.IsProviderError(err):
+		return nil, apierr.ProviderUnavailable()
+	case err != nil:
+		return nil, err
+	}
+	etag := v.ETag
+	if m := req.Params.IfNoneMatch; m != nil && *m == etag {
+		return api.GetSignInBackdropImage304Response{Headers: api.GetSignInBackdropImage304ResponseHeaders{ETag: &etag}}, nil
+	}
+	f, err := os.Open(v.Path)
+	if err != nil {
+		return nil, err
+	}
+	st, err := f.Stat()
+	if err != nil {
+		_ = f.Close()
+		return nil, err
+	}
+	cc, nosniff := backdropCacheControl, "nosniff"
+	headers := api.GetSignInBackdropImage200ResponseHeaders{ETag: &etag, CacheControl: &cc, XContentTypeOptions: &nosniff}
+	body := closingReader{f}
+	if v.ContentType == "image/png" {
+		return api.GetSignInBackdropImage200ImagepngResponse{Body: body, Headers: headers, ContentLength: st.Size()}, nil
+	}
+	return api.GetSignInBackdropImage200ImagejpegResponse{Body: body, Headers: headers, ContentLength: st.Size()}, nil
 }
