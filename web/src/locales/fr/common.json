@@ -1134,7 +1134,8 @@
       "rate_limited": "Trop d’essais. Patiente un peu.",
       "screen_offline": "Cette Apple TV n’est pas allumée. Ouvre PLAID dessus et réessaie.",
       "too_many_attempts": "Trop de codes faux. Attends quelques minutes.",
-      "validation_failed": "Quelque chose ne va pas dans ce formulaire."
+      "validation_failed": "Quelque chose ne va pas dans ce formulaire.",
+      "voteTooSoon": "Laisse quelques heures au groupe : choisis une heure plus tardive."
     },
     "full": {
       "hint_one": "{{count, number}} personne regarde déjà, c’est le maximum sur ce serveur. L’hôte a été prévenu que tu attends.",
@@ -1312,6 +1313,18 @@
       "anonymous": "Votes anonymes : on voit qui a voté, jamais pour quoi.",
       "by": "proposé par {{name}}",
       "drawCheck": "Le tirage est vérifiable dans l’historique de la party.",
+      "launch": {
+        "cta": "Ouvrir les propositions",
+        "fair": "Toi aussi tu proposes et tu votes, avec le même poids que les autres.",
+        "hint": "Tout le monde propose, tout le monde classe. Le film le plus apprécié gagne.",
+        "menu": "Planifier une party avec un vote",
+        "step1": "Étape 1",
+        "step1Title": "Chacun propose",
+        "step2": "Étape 2",
+        "step2Title": "Chacun classe",
+        "title": "Le groupe choisit, pas toi",
+        "until": "jusqu’à {{until}}"
+      },
       "nobodySaw": "Personne ne l’a vu",
       "notYet": "pas encore voté",
       "open": "Voter pour le film",

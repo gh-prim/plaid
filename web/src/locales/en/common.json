@@ -1075,7 +1075,8 @@
       "rate_limited": "Too many tries. Wait a little.",
       "screen_offline": "That Apple TV isn't on. Open PLAID on it and try again.",
       "too_many_attempts": "Too many wrong codes. Wait a few minutes.",
-      "validation_failed": "Something in there isn't right."
+      "validation_failed": "Something in there isn't right.",
+      "voteTooSoon": "Leave the group a few hours: pick a later time."
     },
     "full": {
       "hint_one": "{{count, number}} person is already watching, the most on this server. The host knows you're waiting.",
@@ -1243,6 +1244,18 @@
       "anonymous": "Anonymous votes: you see who voted, never for what.",
       "by": "by {{name}}",
       "drawCheck": "The draw can be checked again from the party's history.",
+      "launch": {
+        "cta": "Open the proposals",
+        "fair": "You propose and vote too, with the same weight as the others.",
+        "hint": "Everyone proposes, everyone ranks. The most liked movie wins.",
+        "menu": "Plan a party with a vote",
+        "step1": "Step 1",
+        "step1Title": "Everyone proposes",
+        "step2": "Step 2",
+        "step2Title": "Everyone ranks",
+        "title": "The group chooses, not you",
+        "until": "until {{until}}"
+      },
       "nobodySaw": "Nobody has seen it",
       "notYet": "hasn't voted yet",
       "open": "Vote for the movie",

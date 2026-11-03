@@ -43,25 +43,48 @@ function localInput(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+/** Tomorrow evening at 21:00: a vote needs a few hours (R31). */
+function voteTime(): Date {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  d.setHours(21, 0, 0, 0)
+  return d
+}
+
+/** Ranking closes 3 hours before the party; proposals a day before that
+ * when there's time, else halfway from now, on the hour (R31). */
+function voteDeadlines(at: Date): { proposalsUntil: Date; rankingUntil: Date } {
+  const hour = 3600 * 1000
+  const rankingUntil = new Date(at.getTime() - 3 * hour)
+  let proposalsUntil = new Date(rankingUntil.getTime() - 24 * hour)
+  if (proposalsUntil.getTime() < Date.now() + hour) {
+    proposalsUntil = new Date((Date.now() + rankingUntil.getTime()) / 2)
+    proposalsUntil.setMinutes(0, 0, 0)
+  }
+  return { proposalsUntil, rankingUntil }
+}
+
 /**
  * Start or schedule a Plaid Party from a title (Party04, Party05), then
- * share it (Party06).
+ * share it (Party06). Without a title, the party is scheduled and the
+ * group votes for the movie first (VoteBig step 1, R31).
  */
 export function LaunchSheet({
   itemId,
   title,
   onClose,
 }: {
-  itemId: string
-  title: string
+  itemId?: string
+  title?: string
   onClose: () => void
 }) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  const [when, setWhen] = useState<'now' | 'schedule'>('now')
+  const vote = !itemId
+  const [when, setWhen] = useState<'now' | 'schedule'>(vote ? 'schedule' : 'now')
   const [where, setWhere] = useState('this')
   const [mode, setMode] = useState<'host' | 'everyone'>('host')
-  const [at, setAt] = useState(() => localInput(defaultTime()))
+  const [at, setAt] = useState(() => localInput(vote ? voteTime() : defaultTime()))
   const [earliest] = useState(() => localInput(new Date(Date.now() + 15 * 60 * 1000)))
   const [people, setPeople] = useState<Person[] | null>(null)
   const [invite, setInvite] = useState<string[]>([])
@@ -77,7 +100,13 @@ export function LaunchSheet({
       .catch(() => setPeople([]))
   }, [])
 
+  const deadlines = voteDeadlines(new Date(at))
+
   async function create() {
+    if (vote && deadlines.rankingUntil.getTime() < Date.now() + 3600 * 1000) {
+      setError('voteTooSoon')
+      return
+    }
     setBusy(true)
     setError(null)
     const { data, error: err } = await api
@@ -87,6 +116,14 @@ export function LaunchSheet({
           controlMode: mode,
           invite,
           ...(when === 'schedule' ? { scheduledAt: new Date(at).toISOString() } : {}),
+          ...(vote
+            ? {
+                vote: {
+                  proposalsUntil: deadlines.proposalsUntil.toISOString(),
+                  rankingUntil: deadlines.rankingUntil.toISOString(),
+                },
+              }
+            : {}),
         },
       })
       .catch(() => ({ data: undefined, error: { error: { code: 'network' } } }))
@@ -121,29 +158,39 @@ export function LaunchSheet({
   const timeLabel = new Intl.DateTimeFormat(i18n.language, { timeStyle: 'short' }).format(
     new Date(at),
   )
+  const deadline = (d: Date) =>
+    new Intl.DateTimeFormat(i18n.language, {
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d)
   return (
     <GlassSheet
-      title={t('party.title')}
-      subtitle={title}
+      title={vote ? t('party.vote.launch.title') : t('party.title')}
+      subtitle={vote ? t('party.vote.launch.hint') : title}
       onClose={onClose}
       footer={
         <Button variant="cream" block disabled={busy} onClick={() => void create()}>
           {busy ? <Spinner size={16} /> : <Icon name="play" size={15} />}
-          {when === 'now'
-            ? t('party.start.cta')
-            : t('party.schedule.cta', { date: atLabel, time: timeLabel })}
+          {vote
+            ? t('party.vote.launch.cta')
+            : when === 'now'
+              ? t('party.start.cta')
+              : t('party.schedule.cta', { date: atLabel, time: timeLabel })}
         </Button>
       }
     >
-      <SegmentedControl
-        label={t('party.start.whenLabel')}
-        value={when}
-        options={[
-          { value: 'now', label: t('party.start.now') },
-          { value: 'schedule', label: t('party.start.schedule') },
-        ]}
-        onChange={setWhen}
-      />
+      {!vote && (
+        <SegmentedControl
+          label={t('party.start.whenLabel')}
+          value={when}
+          options={[
+            { value: 'now', label: t('party.start.now') },
+            { value: 'schedule', label: t('party.start.schedule') },
+          ]}
+          onChange={setWhen}
+        />
+      )}
       {when === 'schedule' && (
         <label className="pl-field">
           <span className="pl-field__label">{t('party.schedule.when')}</span>
@@ -156,6 +203,25 @@ export function LaunchSheet({
           />
         </label>
       )}
+      {vote && (
+        <ol className="pv-vote-steps">
+          <li>
+            <span className="pv-party-kicker">{t('party.vote.launch.step1')}</span>
+            <strong>{t('party.vote.launch.step1Title')}</strong>
+            <span className="pv-party-muted">
+              {t('party.vote.launch.until', { until: deadline(deadlines.proposalsUntil) })}
+            </span>
+          </li>
+          <li>
+            <span className="pv-party-kicker">{t('party.vote.launch.step2')}</span>
+            <strong>{t('party.vote.launch.step2Title')}</strong>
+            <span className="pv-party-muted">
+              {t('party.vote.launch.until', { until: deadline(deadlines.rankingUntil) })}
+            </span>
+          </li>
+        </ol>
+      )}
+      {vote && <p className="pv-party-muted">{t('party.vote.launch.fair')}</p>}
       {when === 'now' && (
         <>
           <p className="pv-party-label">{t('party.start.whereTitle')}</p>

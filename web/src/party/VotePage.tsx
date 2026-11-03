@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { Button, Spinner } from '../ui'
+import '../upcoming/upcoming.css'
 import './party.css'
 
 type Vote = components['schemas']['PartyVote']

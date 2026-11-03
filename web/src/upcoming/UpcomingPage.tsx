@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { api } from '../api/client'
 import type { components } from '../api/schema'
 import { GlassSheet } from '../browse/GlassSheet'
-import { InviteSheet } from '../party/LaunchSheet'
+import { InviteSheet, LaunchSheet } from '../party/LaunchSheet'
 import { JoinCode } from '../party/JoinCode'
 import { useNotify } from '../party/notify'
 import { PartyAvatar } from '../party/PartyAvatar'
@@ -36,6 +36,7 @@ export function UpcomingPage() {
   const [view, setView] = useState<'list' | 'calendar'>('list')
   const [data, setData] = useState<Upcoming | null | undefined>(undefined)
   const [join, setJoin] = useState(false)
+  const [plan, setPlan] = useState(false)
   const tick = useNotify()
   const [reload, setReload] = useState(0)
   const openParty = params.get('party')
@@ -106,6 +107,9 @@ export function UpcomingPage() {
           <Button variant="secondary" size="sm" onClick={() => setJoin(true)}>
             {t('party.join.title')}
           </Button>
+          <Button variant="cream" size="sm" onClick={() => setPlan(true)}>
+            {t('party.vote.launch.menu')}
+          </Button>
         </div>
       </header>
 
@@ -149,6 +153,14 @@ export function UpcomingPage() {
       <p className="pv-party-muted up-foot">{t('upcoming.followHint')}</p>
 
       {join && <JoinCode onClose={() => setJoin(false)} />}
+      {plan && (
+        <LaunchSheet
+          onClose={() => {
+            setPlan(false)
+            setReload((n) => n + 1)
+          }}
+        />
+      )}
       {openParty && (
         <PartySheet
           id={openParty}

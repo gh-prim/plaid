@@ -643,3 +643,22 @@
     animation: none;
   }
 }
+
+/* The vote's two steps in the launch sheet (VoteBig step 1, R31). */
+.pv-vote-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pv-vote-steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
