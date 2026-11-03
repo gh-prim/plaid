@@ -93,7 +93,8 @@ ${eyebrow(t('home.how.eyebrow'), 'rv')}
 <div class="atv__bg" aria-hidden="true"><img src="/img/still-big-buck-bunny-800.jpg" width="800" height="450" alt="" loading="lazy" decoding="async"></div>
 <div class="wrap atv__in">
 <div class="atv__text">${eyebrow(t('home.tv.eyebrow'), 'rv')}<h2 class="h2" id="atv-title" data-words>${t('home.tv.title')}</h2><p class="lead rv">${t('home.tv.body')}</p>
-<ul class="ticks">${['pins', 'hdr', 'lang'].map((k) => `<li class="rv">${t(`home.tv.points.${k}`)}</li>`).join('')}</ul></div>
+<ul class="ticks">${['pins', 'hdr', 'lang'].map((k) => `<li class="rv">${t(`home.tv.points.${k}`)}</li>`).join('')}</ul>
+<div class="actions atv__actions rv">${btn(LINKS.testflight, t('home.tv.beta'), 'cream', 'md')}</div></div>
 ${tv}
 </div>
 </section>

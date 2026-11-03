@@ -156,7 +156,8 @@
         "pins": "Des profils protégés par code PIN pour les enfants",
         "hdr": "4K HDR et Dolby Atmos, sans conversion",
         "lang": "Anglais ou français, au choix de chacun"
-      }
+      },
+      "beta": "Rejoindre la bêta TestFlight"
     },
     "party": {
       "title": "Plaid Party. Tout le monde voit la même image, au même moment.",
@@ -283,11 +284,11 @@
       },
       "appletv": {
         "name": "Apple TV",
-        "body": "Une app tvOS native qui trouve le serveur et se connecte avec un code."
+        "body": "Une app tvOS native qui trouve le serveur et se connecte avec un code. En bêta publique sur TestFlight."
       },
       "ios": {
         "name": "iPhone et iPad",
-        "body": "En SwiftUI, le même code que l’app Apple TV. À compiler avec Xcode pour l’instant ; l’App Store viendra plus tard."
+        "body": "En SwiftUI, le même code que l’app Apple TV. En bêta publique sur TestFlight."
       },
       "android": {
         "name": "Android et Android TV",
@@ -467,7 +468,13 @@
       "status": "Est-ce qu’il tourne ?",
       "logs": "Suivre les logs"
     },
-    "parade": "Après la première analyse"
+    "parade": "Après la première analyse",
+    "apps": {
+      "kicker": "Sur tes écrans",
+      "title": "Les apps iPhone, iPad et Apple TV",
+      "body": "Les apps sont en bêta publique sur TestFlight. Installe TestFlight depuis l’App Store, ouvre le lien sur ton iPhone, ton iPad ou ton Apple TV, puis indique ton serveur à l’app. L’app web n’a besoin de rien : elle est fournie avec le serveur.",
+      "cta": "Rejoindre la bêta sur TestFlight"
+    }
   },
   "remote": {
     "meta": {

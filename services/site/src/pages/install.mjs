@@ -1,4 +1,4 @@
-import { CODE, LINKS, ambient, banner, card, cmd, eyebrow, page, pageHero, posterParade, value } from '../layout.mjs';
+import { CODE, LINKS, ambient, banner, btn, card, cmd, eyebrow, page, pageHero, posterParade, value } from '../layout.mjs';
 
 // What the package installs. Paths are code: never translated.
 const FILES = [
@@ -45,6 +45,7 @@ ${card({ id: 'docker', icon: 'docker', title: t('install.docker.name'), cls: 'ca
 ${card({ kicker: eyebrow(t('install.open.kicker'), 'card__kicker'), icon: 'globe', title: t('install.open.title'), cls: 'card--big', body: `<p>${t('install.open.body')}</p>${value(raw('common.serverUrl'))}` })}
 ${card({ kicker: eyebrow(t('install.folders.kicker'), 'card__kicker'), icon: 'folder', title: t('install.folders.title'), cls: 'card--big', body: `<p>${t('install.folders.body')}</p>` })}
 </section>
+${card({ id: 'apps', kicker: eyebrow(t('install.apps.kicker'), 'card__kicker'), icon: 'phone', title: t('install.apps.title'), cls: 'card--wide card--apps', body: `<p>${t('install.apps.body')}</p><div class="actions">${btn(LINKS.testflight, t('install.apps.cta'), 'cream', 'md')}</div>` })}
 <section class="grid2 grid2--gap" aria-label="${attr('install.ops')}">
 ${card({ icon: 'chip', title: t('install.req.title'), cls: 'card--big', body: `<div class="kv">${reqs}</div>` })}
 ${card({ icon: 'terminal', title: t('install.cmds.title'), cls: 'card--big', body: `<p class="card__small">${t('install.cmds.status')}</p>${cmd(ctx, CODE.status)}<p class="card__small">${t('install.cmds.logs')}</p>${cmd(ctx, CODE.logs)}` })}

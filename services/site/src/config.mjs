@@ -23,6 +23,8 @@ export const LINKS = {
   protocol: `${REPO}/blob/main/services/direct/PROTOCOL.md`,
   license: `${REPO}/blob/main/LICENSE`,
   installScript: `${REPO}/blob/main/packaging/install.sh`,
+  // The public TestFlight beta of the iPhone, iPad and Apple TV apps.
+  testflight: 'https://testflight.apple.com/join/bs3AVwrQ',
 };
 
 // Commands, paths and addresses shown on the site. Code is never translated.

@@ -9,7 +9,7 @@
   <a href="https://getplaid.tv/"><img src="https://img.shields.io/badge/website-getplaid.tv-f4f0e9" alt="Website: getplaid.tv"></a>
 </p>
 
-<p align="center"><a href="https://getplaid.tv/"><b>getplaid.tv</b></a> · <a href="#install">Install</a> · <a href="sdlc/roadmap.md">Roadmap</a></p>
+<p align="center"><a href="https://getplaid.tv/"><b>getplaid.tv</b></a> · <a href="#install">Install</a> · <a href="https://testflight.apple.com/join/bs3AVwrQ">iPhone, iPad and Apple TV beta</a> · <a href="sdlc/roadmap.md">Roadmap</a></p>
 
 PLAID is a self-hosted media server, an open alternative to Plex. It indexes the movies and shows on your disks and streams them to every screen in the house. Watching together, in the same room or miles apart, is built in rather than bolted on.
 
@@ -25,7 +25,7 @@ PLAID is a self-hosted media server, an open alternative to Plex. It indexes the
 
 - **Libraries that look after themselves.** Point PLAID at your folders. It scans them, matches each file on TMDB, pulls posters, backdrops and logos from TMDB and fanart.tv, and keeps up as files come and go. Anything it can't match waits in a list for you.
 - **Plays anything, the lightest way.** Direct Play when the device can take the file as is, an HLS remux when only the container is wrong, a transcode when it has to: on the GPU (VAAPI, Quick Sync, NVENC, Raspberry Pi V4L2) or in software, with HDR tone mapping. Seeking never waits for the transcode to catch up.
-- **Every screen.** A web app served by the server itself, plus native iPhone, iPad and Apple TV apps. Pair a TV by typing the code it shows.
+- **Every screen.** A web app served by the server itself, plus native iPhone, iPad and Apple TV apps, in public beta on [TestFlight](https://testflight.apple.com/join/bs3AVwrQ). Pair a TV by typing the code it shows.
 - **From anywhere, without a cloud account.** Turn on remote access and PLAID opens a port on your router (NAT-PMP or UPnP), gets its own `getplaid.direct` name and a Let's Encrypt certificate. getplaid.direct only finds your server: your video never goes through it.
 - **For the whole household.** Profiles with PINs and age limits, invitations, groups and per-library sharing, and an admin that tells you what's playing and what needs you.
 
@@ -51,7 +51,7 @@ Friends without a PLAID account can join from a link in their browser.
 |---|---|---|
 | Server | Go, single binary, SQLite, FFmpeg | Available |
 | Web | React, served by the server | Available |
-| iPhone, iPad, Apple TV | SwiftUI, one codebase | Available, build with Xcode (not on the App Store yet) |
+| iPhone, iPad, Apple TV | SwiftUI, one codebase | Public beta on [TestFlight](https://testflight.apple.com/join/bs3AVwrQ) |
 | Android, Android TV | Kotlin, Jetpack Compose | Planned |
 
 ## Run it yourself, reach it from anywhere
@@ -98,6 +98,8 @@ docker compose up -d
 ```
 
 Then open `http://<your-server>:32500`. Manual `.deb` install, configuration, upgrades and media folder permissions: [docs/install.md](docs/install.md).
+
+**iPhone, iPad and Apple TV:** the apps are in public beta. Install TestFlight from the App Store, then open [this link](https://testflight.apple.com/join/bs3AVwrQ) on the device and point the app at your server.
 
 ## Develop
 
