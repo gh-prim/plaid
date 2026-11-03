@@ -145,3 +145,26 @@ export function cycleSubtitle(
   }
   return (subs.find((s) => !s.forced) ?? subs[0])!.index
 }
+
+/**
+ * A picture subtitle the browser can't draw (DVD; PGS it draws itself) is
+ * burned in, which converts the whole video. In a party, the text track of
+ * the same language plays it direct instead; the picture one stays in the
+ * menu.
+ */
+export function avoidBurnIn(
+  index: number | null | undefined,
+  streams: Stream[],
+): number | null | undefined {
+  if (index == null) return index
+  const sub = streams.find((s) => s.type === 'subtitle' && s.index === index)
+  if (!sub?.imageBased || sub.codec === 'hdmv_pgs_subtitle') return index
+  const text = streams.find(
+    (s) =>
+      s.type === 'subtitle' &&
+      !s.imageBased &&
+      sameLanguage(s.language, sub.language) &&
+      s.forced === sub.forced,
+  )
+  return text?.index ?? index
+}

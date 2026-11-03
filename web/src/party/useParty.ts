@@ -285,7 +285,7 @@ export function useParty(target: JoinTarget | null, make?: () => PartySocket) {
 
   /** Hands the room the player's video: the room drives it from now on. */
   const attach = useCallback(
-    (video: HTMLVideoElement, sessionId: string, quality: string) => {
+    (video: HTMLVideoElement, sessionId: string, quality: string, method: string) => {
       sync.current?.destroy()
       const report = (state: ScreenState, positionMs: number) =>
         socket.current?.send('party.report', {
@@ -295,6 +295,8 @@ export function useParty(target: JoinTarget | null, make?: () => PartySocket) {
           quality,
         })
       sync.current = new VideoSync(video, {
+        // A conversion is made as it plays: 10 s ahead before saying ready.
+        readyAheadMs: method === 'transcode' ? 10_000 : 0,
         serverNow: () => socket.current?.clock.now() ?? Date.now(),
         report,
         log: (event, driftMs, rate, positionMs) =>

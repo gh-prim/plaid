@@ -405,3 +405,25 @@ func TestRoomOneScreenPerPerson(t *testing.T) {
 		t.Error("two devices took two seats")
 	}
 }
+
+func TestRoomPlayWaitsForUnreadyScreens(t *testing.T) {
+	rt := newRoomTest(t, 8)
+	rt.join(alex, "c-alex")
+	rt.join(mia, "c-mia")
+	rt.report("c-alex", ScreenReady)
+	rt.report("c-mia", ScreenLoading) // a conversion still filling up
+	if err := rt.r.Control(rt.now, alex.ID, "play", ptr(0)); err != nil {
+		t.Fatal(err)
+	}
+	if pb := rt.r.Playback(); pb.State != Waiting {
+		t.Fatalf("started without mia: %+v", pb)
+	}
+	if w := rt.last("party.waiting"); w.data == nil {
+		t.Error("no waiting banner")
+	}
+	rt.advance(3 * time.Second)
+	rt.report("c-mia", ScreenReady)
+	if pb := rt.r.Playback(); pb.State != Playing || pb.PositionMs != 0 {
+		t.Errorf("didn't start together from 0: %+v", pb)
+	}
+}

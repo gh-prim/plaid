@@ -47,6 +47,7 @@ import {
   pickTracks,
   rememberAudio,
   rememberSubtitles,
+  avoidBurnIn,
   rememberVolume,
 } from './trackMemory'
 import { endPhase } from './upNext'
@@ -86,7 +87,7 @@ export interface PartyBridge {
   /** The room's position when the player starts. */
   startMs(): number
   control(action: 'play' | 'pause' | 'seek', positionMs?: number): void
-  attach(video: HTMLVideoElement, sessionId: string, quality: string): void
+  attach(video: HTMLVideoElement, sessionId: string, quality: string, method: string): void
   /** 503 transcode_limit_reached: the host gets the choice (R26). */
   blocked(quality?: string): void
   /** A quality the room asked for (one shared encode). */
@@ -222,7 +223,14 @@ export function Playback({
     const picks = files.map((f) => pickTracks(choice, f.streams))
     // Indexes differ between files: apply them only when every file agrees.
     const same = picks.every((p) => JSON.stringify(p) === JSON.stringify(picks[0]))
-    return same && picks[0] ? picks[0] : {}
+    if (!same || !picks[0]) return {}
+    if (party && files.length === 1 && picks[0].subtitleStreamIndex !== undefined) {
+      return {
+        ...picks[0],
+        subtitleStreamIndex: avoidBurnIn(picks[0].subtitleStreamIndex, files[0]!.streams),
+      }
+    }
+    return picks[0]
   }
 
   async function start(
@@ -265,7 +273,7 @@ export function Playback({
     p.follow(video.current!)
     setPhase({ k: 'playing' })
     await attachStream(s, atMs, it)
-    if (party) party.attach(video.current!, s.id, s.quality)
+    if (party) party.attach(video.current!, s.id, s.quality, s.method)
   }
 
   function halt(atMs: number) {

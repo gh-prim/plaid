@@ -81,6 +81,8 @@ export type ScreenState =
   'loading' | 'ready' | 'playing' | 'paused' | 'buffering' | 'ended' | 'blocked' | 'credits'
 
 export interface SyncHooks {
+  /** Video buffered ahead before the screen says ready (a conversion). */
+  readyAheadMs?: number
   /** Server time now. */
   serverNow(): number
   report(state: ScreenState, positionMs: number): void
@@ -145,7 +147,21 @@ export class VideoSync {
       return 'buffering'
     }
     this.hadPicture = true
-    return this.pb?.state === 'playing' && !v.paused ? 'playing' : 'ready'
+    if (this.pb?.state === 'playing' && !v.paused) return 'playing'
+    return this.aheadMs() >= (this.hooks.readyAheadMs ?? 0) ? 'ready' : 'buffering'
+  }
+
+  /** Video buffered past the current position (to the end counts as plenty). */
+  private aheadMs(): number {
+    const v = this.video
+    for (let i = 0; i < v.buffered.length; i++) {
+      if (v.buffered.start(i) <= v.currentTime + 0.25 && v.currentTime <= v.buffered.end(i)) {
+        const end = v.buffered.end(i)
+        if (Number.isFinite(v.duration) && end >= v.duration - 0.5) return Infinity
+        return (end - v.currentTime) * 1000
+      }
+    }
+    return 0
   }
 
   private report() {

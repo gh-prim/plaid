@@ -99,6 +99,7 @@ type device struct {
 	Session   string // F006 playback session of a screen
 	bufSince  time.Time
 	announced bool
+	reported  bool // it has said what it shows at least once
 }
 
 type participant struct {
@@ -482,6 +483,7 @@ func (r *Room) Report(now time.Time, conn string, rep Report) error {
 	}
 	prev := d.State
 	d.State = rep.State
+	d.reported = true
 	if prev != rep.State && r.Log != nil {
 		r.Log.Info("party: screen", "party_id", r.PartyID, "name", p.Name, "device", d.Device.Type,
 			"from", prev, "state", rep.State, "position_ms", rep.PositionMs, "room", r.pb.State)
@@ -490,7 +492,7 @@ func (r *Room) Report(now time.Time, conn string, rep Report) error {
 		d.announced = true
 		r.system(now, "joined", map[string]string{"name": p.Name, "device": d.Device.Type, "quality": d.Quality})
 	}
-	if rep.State != ScreenBuffering && r.waiting[p.ID] {
+	if rep.State != ScreenBuffering && rep.State != ScreenLoading && r.waiting[p.ID] {
 		delete(r.waiting, p.ID)
 		r.resolveWaiting(now)
 	}
@@ -517,6 +519,10 @@ func (r *Room) Control(now time.Time, person, action string, positionMs *int64) 
 		}
 		r.waiting = map[string]bool{}
 		r.pb = Playback{State: Playing, PositionMs: pos, AtMs: nowMs, Rate: 1}
+		if r.waitForUnready(now, pos) {
+			r.broadcast("wait", person)
+			return nil
+		}
 	case "pause":
 		if positionMs != nil {
 			pos = *positionMs
@@ -555,7 +561,33 @@ func (r *Room) broadcast(action, by string) {
 func (r *Room) Start(now time.Time, startMs int64) {
 	r.waiting = map[string]bool{}
 	r.pb = Playback{State: Playing, PositionMs: startMs, AtMs: now.UnixMilli(), Rate: 1}
+	if r.waitForUnready(now, startMs) {
+		r.broadcast("wait", "")
+		return
+	}
 	r.broadcast("play", "")
+}
+
+// waitForUnready puts a starting room in waiting for the screens that
+// can't play yet (loading, or a conversion still filling up), so everyone
+// starts together instead of one screen running dry at once (R11).
+func (r *Room) waitForUnready(now time.Time, pos int64) bool {
+	for _, id := range r.order {
+		p := r.people[id]
+		if s := p.screen(); s != nil && p.connected() && s.reported && (s.State == ScreenLoading || s.State == ScreenBuffering) {
+			r.waiting[id] = true
+		}
+	}
+	if len(r.waiting) == 0 {
+		return false
+	}
+	if r.Log != nil {
+		r.Log.Info("party: start waits", "party_id", r.PartyID, "for", len(r.waiting))
+	}
+	r.pb = Playback{State: Waiting, PositionMs: pos, AtMs: now.UnixMilli(), Rate: 1}
+	r.waitFrom = now
+	r.emitWaiting(now)
+	return true
 }
 
 // ChangeItem moves the room to another item, paused at 0 until Start (R30).
