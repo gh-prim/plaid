@@ -127,7 +127,7 @@ export function LaunchSheet({
       subtitle={title}
       onClose={onClose}
       footer={
-        <Button block disabled={busy} onClick={() => void create()}>
+        <Button variant="cream" block disabled={busy} onClick={() => void create()}>
           {busy ? <Spinner size={16} /> : <Icon name="play" size={15} />}
           {when === 'now'
             ? t('party.start.cta')
@@ -259,7 +259,7 @@ export function InviteSheet({
       subtitle={t('party.invite.hint')}
       onClose={onClose}
       footer={
-        <Button block onClick={onGo}>
+        <Button variant="cream" block onClick={onGo}>
           {party.status === 'live' ? t('party.invite.go') : t('common.close')}
         </Button>
       }

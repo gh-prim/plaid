@@ -91,6 +91,7 @@ export function EndSummary({
       <div className="pv-party-stack">
         {party?.item && (
           <Button
+            variant="cream"
             onClick={() =>
               void navigate(`/item/${party.item!.showId ?? party.item!.id}`, {
                 state: { schedulePartyLike: party.id },

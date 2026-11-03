@@ -117,7 +117,7 @@ export default function GuestJoin() {
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
-            <Button type="submit" block disabled={busy || !name.trim()}>
+            <Button variant="cream" type="submit" block disabled={busy || !name.trim()}>
               {t('party.guest.join')}
             </Button>
             <p className="pv-party-muted">{t('party.guest.hint')}</p>

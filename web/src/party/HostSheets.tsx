@@ -94,7 +94,9 @@ export function LeaveSheet({
     return (
       <GlassSheet title={t('party.leaveTitle')} onClose={onClose}>
         <div className="pv-party-stack">
-          <Button onClick={onLeave}>{t('party.leave')}</Button>
+          <Button variant="cream" onClick={onLeave}>
+            {t('party.leave')}
+          </Button>
           <Button variant="secondary" onClick={onClose}>
             {t('party.stay')}
           </Button>
@@ -111,6 +113,7 @@ export function LeaveSheet({
       <div className="pv-party-stack">
         {next && (
           <Button
+            variant="cream"
             onClick={() => void send('party.host.set', { to: next.id }).then(onLeave, onLeave)}
           >
             {t('party.host.handTo', { name: next.name })}
@@ -151,7 +154,10 @@ export function LimitSheet({
       onClose={onClose}
     >
       <div className="pv-party-stack">
-        <Button onClick={() => choose({ choice: 'shared', quality: limit.sharedQuality })}>
+        <Button
+          variant="cream"
+          onClick={() => choose({ choice: 'shared', quality: limit.sharedQuality })}
+        >
           {t('party.limit.shared', { quality: limit.sharedQuality, count: limit.waiting.length })}
         </Button>
         {first && second && (

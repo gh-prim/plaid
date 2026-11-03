@@ -233,7 +233,7 @@ function PartyRow({ p }: { p: Party }) {
       </div>
       <div className="up-row__acts">
         {p.status === 'live' ? (
-          <Button size="sm" onClick={() => void navigate(`/party/${p.id}`)}>
+          <Button variant="cream" size="sm" onClick={() => void navigate(`/party/${p.id}`)}>
             {t('party.join.cta')}
           </Button>
         ) : (
@@ -275,7 +275,7 @@ function InvitationCard({ party, onAnswered }: { party: Party; onAnswered: () =>
         {party.note && <p className="up-row__status">« {party.note} »</p>}
       </div>
       <div className="up-row__acts">
-        <Button size="sm" onClick={() => void answer('yes')}>
+        <Button variant="cream" size="sm" onClick={() => void answer('yes')}>
           {t('party.answer.yes')}
         </Button>
         <Button size="sm" variant="secondary" onClick={() => void answer('maybe')}>
@@ -388,7 +388,7 @@ function PartySheet({ id, onClose }: { id: string; onClose: () => void }) {
       </ul>
       <div className="pv-party-stack">
         {(party.status === 'live' || party.status === 'lobby' || hosting) && party.item && (
-          <Button onClick={() => void navigate(`/party/${party.id}`)}>
+          <Button variant="cream" onClick={() => void navigate(`/party/${party.id}`)}>
             {hosting && party.status !== 'live' ? t('party.lobby.startNow') : t('party.join.cta')}
           </Button>
         )}

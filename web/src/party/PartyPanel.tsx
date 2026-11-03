@@ -126,6 +126,7 @@ export function PartyPanel({
             </p>
             <div>
               <Button
+                variant="cream"
                 size="sm"
                 onClick={() =>
                   void send('party.pause.answer', { requestId: a.requestId, answer: 'now' }).catch(

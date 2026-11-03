@@ -28,7 +28,7 @@ export function JoinCode({ onClose }: { onClose: () => void }) {
           aria-label={t('party.join.codeLabel')}
           onChange={(e) => setCode(e.target.value)}
         />
-        <Button type="submit" block disabled={clean.length !== 6}>
+        <Button variant="cream" type="submit" block disabled={clean.length !== 6}>
           {t('party.join.cta')}
         </Button>
       </form>

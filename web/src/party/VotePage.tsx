@@ -181,7 +181,12 @@ function Proposals({
         {found.map((m) => (
           <li key={m.id}>
             <span>{m.displayTitle}</span>
-            <Button size="sm" disabled={mine >= 2} onClick={() => void propose(m.id)}>
+            <Button
+              variant="cream"
+              size="sm"
+              disabled={mine >= 2}
+              onClick={() => void propose(m.id)}
+            >
               {t('party.vote.propose')}
             </Button>
           </li>
@@ -293,7 +298,7 @@ function Ranking({
         })}
       </ul>
       <div className="pv-party-stack">
-        <Button disabled={ranking.length === 0} onClick={() => void submit()}>
+        <Button variant="cream" disabled={ranking.length === 0} onClick={() => void submit()}>
           {t('party.vote.submit')}
         </Button>
         <Button
