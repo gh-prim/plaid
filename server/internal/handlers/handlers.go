@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"context"
+	"time"
 
 	"github.com/gh-prim/plaid/server/internal/accounts"
 	"github.com/gh-prim/plaid/server/internal/api"
@@ -42,6 +43,8 @@ type Deps struct {
 	// Streams is cancelled when the server shuts down, which ends
 	// long-lived responses such as server-sent events. Nil never ends them.
 	Streams context.Context
+	// Now is the clock; nil is time.Now.
+	Now func() time.Time
 }
 
 // Handlers implements every operation of the PLAID API.
@@ -57,11 +60,16 @@ type Handlers struct {
 	segments   *segments.Service
 	remote     *remoteaccess.Service
 	streams    context.Context
+	now        func() time.Time
 }
 
 var _ api.StrictServerInterface = (*Handlers)(nil)
 
 // New returns the API handlers.
 func New(d Deps) *Handlers {
-	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, problems: d.Problems, catalog: d.Catalog, segments: d.Segments, remote: d.Remote, streams: d.Streams}
+	now := d.Now
+	if now == nil {
+		now = time.Now
+	}
+	return &Handlers{db: d.DB, accounts: d.Accounts, serverName: d.ServerName, library: d.Library, metadata: d.Metadata, playback: d.Playback, problems: d.Problems, catalog: d.Catalog, segments: d.Segments, remote: d.Remote, streams: d.Streams, now: now}
 }

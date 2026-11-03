@@ -119,7 +119,7 @@ func newLibEnv(t *testing.T, o libOpts) *libEnv {
 		t.Cleanup(stop)
 	}
 	t.Cleanup(play.Close)
-	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Library: engine, Metadata: meta,
+	h := handlers.New(handlers.Deps{DB: e.db, Accounts: e.acct, ServerName: "test-server", Now: e.clock.now, Library: engine, Metadata: meta,
 		Playback: play, Problems: probs, Catalog: catalog.New(catalog.Options{DB: e.db, Now: e.clock.now}), Streams: streams})
 	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct, Stream: handlers.StreamHandler(play, meta, engine.Store()),
 		Preview: handlers.PreviewHandler(play)})
