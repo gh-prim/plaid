@@ -109,7 +109,7 @@ func newEnvWithParams(t testing.TB, params auth.Argon2Params) *env {
 	e.hasher = &countingHasher{Hasher: auth.NewHasher(params)}
 	logger := slog.New(slog.NewTextHandler(e.logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	e.acct = accounts.New(database, accounts.Options{Hasher: e.hasher, Now: e.clock.now, Logger: logger})
-	h := handlers.New(handlers.Deps{DB: database, Accounts: e.acct, ServerName: "test-server"})
+	h := handlers.New(handlers.Deps{DB: database, Accounts: e.acct, ServerName: "test-server", Now: e.clock.now})
 	e.h = httpserver.New(h, fstest.MapFS{}, logger, httpserver.Options{Sessions: e.acct})
 	return e
 }
